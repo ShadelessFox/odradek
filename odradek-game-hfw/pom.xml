@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>sh.adelessfox</groupId>
+        <artifactId>odradek</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>odradek-game-hfw</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-rtti</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-rtti-generator</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>sh.adelessfox</groupId>
+                            <artifactId>odradek-rtti-generator</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
