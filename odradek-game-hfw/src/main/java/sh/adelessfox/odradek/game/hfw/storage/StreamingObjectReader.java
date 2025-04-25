@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.game.hfw.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
@@ -312,7 +311,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     private record UUIDRef<T>(GGUUID objectUUID) implements Ref<T> {
         @Override
         public T get() {
-            throw new NotImplementedException();
+            return null;
         }
     }
 
