@@ -15,7 +15,7 @@ module odradek.app {
 
     opens sh.adelessfox.odradek.app.ui.util;
 
-    exports sh.adelessfox.odradek.app.ui to com.formdev.flatlaf;
+    exports sh.adelessfox.odradek.app.ui.laf to com.formdev.flatlaf;
 
     provides com.formdev.flatlaf.FlatDefaultsAddon
         with sh.adelessfox.odradek.app.ApplicationDefaultsAddon;

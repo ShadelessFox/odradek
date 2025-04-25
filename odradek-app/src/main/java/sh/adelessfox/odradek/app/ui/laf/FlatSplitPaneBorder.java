@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui;
+package sh.adelessfox.odradek.app.ui.laf;
 
 import com.formdev.flatlaf.ui.FlatBorder;
 

@@ -27,7 +27,6 @@ public class TreeActionEvent extends EventObject {
         return row;
     }
 
-    /*@Nullable*/
     public Object getLastPathComponent() {
         return path.getLastPathComponent();
     }
