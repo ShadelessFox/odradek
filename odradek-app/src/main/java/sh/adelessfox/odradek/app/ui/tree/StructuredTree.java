@@ -8,10 +8,10 @@ import javax.swing.tree.TreePath;
 import java.awt.event.*;
 import java.util.Objects;
 
-public class StructuredTree extends JTree {
+public class StructuredTree<T> extends JTree {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
 
-    public StructuredTree(StructuredTreeModel<?> model) {
+    public StructuredTree(StructuredTreeModel<T> model) {
         super(model);
 
         addMouseListener(new MouseAdapter() {
@@ -33,16 +33,18 @@ public class StructuredTree extends JTree {
     }
 
     @Override
-    public StructuredTreeModel<?> getModel() {
-        return (StructuredTreeModel<?>) super.getModel();
+    @SuppressWarnings("unchecked")
+    public StructuredTreeModel<T> getModel() {
+        return (StructuredTreeModel<T>) super.getModel();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setModel(TreeModel newModel) {
-        setModel((StructuredTreeModel<?>) newModel);
+        setModel((StructuredTreeModel<T>) newModel);
     }
 
-    public void setModel(StructuredTreeModel<?> newModel) {
+    public void setModel(StructuredTreeModel<T> newModel) {
         super.setModel(newModel);
     }
 

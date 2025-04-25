@@ -10,7 +10,6 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
@@ -77,7 +76,16 @@ public final class StructuredTreeModel<T> implements TreeModel {
         throw new UnsupportedOperationException("valueForPathChanged");
     }
 
+    public void reload() {
+        if (root != null) {
+            reload(new TreePath(root));
+        }
+    }
+
     public void reload(TreePath path) {
+        // TODO: Reinvalidate the cache against the structure; don't just
+        //       hard-reload from the root. We're losing expanded state
+        //       and it's also pretty expensive
         Node<T> node = cast(path.getLastPathComponent());
         node.children = null;
         listeners.broadcast().treeStructureChanged(new TreeModelEvent(this, path, null, null));
@@ -138,13 +146,15 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Node<?> node
-                && Objects.equals(element, node.element);
+            // return o instanceof Node<?> node
+            //     && Objects.equals(element, node.element);
+            return o instanceof Node<?> node && element == node.element;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(element);
+            // return Objects.hashCode(element);
+            return System.identityHashCode(element);
         }
 
         @Override

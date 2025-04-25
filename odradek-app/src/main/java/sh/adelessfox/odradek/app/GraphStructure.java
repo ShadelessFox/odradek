@@ -112,9 +112,13 @@ record GraphStructure(
             StreamingGroupData group,
             int index
         ) implements Element {
+            public ClassTypeInfo type() {
+                return graph.types().get(group.typeStart() + index);
+            }
+
             @Override
             public String toString() {
-                ClassTypeInfo type = graph.types().get(group.typeStart() + index);
+                ClassTypeInfo type = type();
                 return "[%d] %s".formatted(index, type.name());
             }
         }

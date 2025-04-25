@@ -7,6 +7,8 @@ import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import com.formdev.flatlaf.extras.components.FlatTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.GraphStructure.Element;
+import sh.adelessfox.odradek.app.ui.DocumentAdapter;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.app.ui.tree.TreeItem;
@@ -19,6 +21,7 @@ import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -26,7 +29,9 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 public class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -70,7 +75,35 @@ public class Application {
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
-        var tree = createGraphTree(game);
+        var predicate = (Predicate<Element>) element -> switch (element) {
+            case Element.Compound compound -> compound.type().toString().contains(filter.getText());
+            case Element.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
+                .mapToObj(index -> graph.types().get(group.typeStart() + index))
+                .anyMatch(type -> type.toString().contains(filter.getText()));
+            default -> true;
+        };
+
+        var structure = new FilteredStructure<>(new GraphStructure(game.getStreamingGraph()), predicate);
+        var model = new StructuredTreeModel<>(structure);
+
+        filter.getDocument().addDocumentListener(new DocumentAdapter() {
+            private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+            private ScheduledFuture<?> future;
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                if (future != null) {
+                    future.cancel(false);
+                }
+                future = service.schedule(this::reload, 300, TimeUnit.MILLISECONDS);
+            }
+
+            private void reload() {
+                SwingUtilities.invokeLater(model::reload);
+            }
+        });
+
+        var tree = createGraphTree(game, model);
         var treeScrollPane = new JScrollPane(tree);
         treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
@@ -98,9 +131,8 @@ public class Application {
         frame.setVisible(true);
     }
 
-    private static StructuredTree createGraphTree(ForbiddenWestGame game) {
-        var model = new StructuredTreeModel<>(new GraphStructure(game.getStreamingGraph()));
-        var tree = new StructuredTree(model);
+    private static StructuredTree<?> createGraphTree(ForbiddenWestGame game, StructuredTreeModel<Element> model) {
+        var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
         tree.addActionListener(_ -> {
@@ -108,7 +140,7 @@ public class Application {
             if (component instanceof TreeItem<?> item) {
                 component = item.getValue();
             }
-            if (component instanceof GraphStructure.Element.Compound element) {
+            if (component instanceof Element.Compound element) {
                 tree.setEnabled(false);
 
                 new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
@@ -140,7 +172,7 @@ public class Application {
         return tree;
     }
 
-    private static void installGraphTreePopupMenu(StructuredTree tree) {
+    private static void installGraphTreePopupMenu(StructuredTree<?> tree) {
         var menu = new JPopupMenu();
         menu.addPopupMenuListener(new PopupMenuListener() {
             @Override
@@ -153,14 +185,14 @@ public class Application {
                 if (component instanceof TreeItem<?> item) {
                     component = item.getValue();
                 }
-                if (component instanceof GraphStructure.Element.GroupObjects objects) {
+                if (component instanceof Element.GroupObjects objects) {
                     var groupObjectsByType = new JCheckBoxMenuItem("Group objects by type");
-                    groupObjectsByType.setSelected(objects.options().contains(GraphStructure.Element.GroupObjects.Options.GROUP_BY_TYPE));
+                    groupObjectsByType.setSelected(objects.options().contains(Element.GroupObjects.Options.GROUP_BY_TYPE));
                     groupObjectsByType.addActionListener(e -> {
                         if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                            objects.options().add(GraphStructure.Element.GroupObjects.Options.GROUP_BY_TYPE);
+                            objects.options().add(Element.GroupObjects.Options.GROUP_BY_TYPE);
                         } else {
-                            objects.options().remove(GraphStructure.Element.GroupObjects.Options.GROUP_BY_TYPE);
+                            objects.options().remove(Element.GroupObjects.Options.GROUP_BY_TYPE);
                         }
                         tree.getModel().reload(path);
                     });
@@ -168,12 +200,12 @@ public class Application {
 
                     if (groupObjectsByType.isSelected()) {
                         var sortByCount = new JCheckBoxMenuItem("Sort by count");
-                        sortByCount.setSelected(objects.options().contains(GraphStructure.Element.GroupObjects.Options.SORT_BY_COUNT));
+                        sortByCount.setSelected(objects.options().contains(Element.GroupObjects.Options.SORT_BY_COUNT));
                         sortByCount.addActionListener(e -> {
                             if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                                objects.options().add(GraphStructure.Element.GroupObjects.Options.SORT_BY_COUNT);
+                                objects.options().add(Element.GroupObjects.Options.SORT_BY_COUNT);
                             } else {
-                                objects.options().remove(GraphStructure.Element.GroupObjects.Options.SORT_BY_COUNT);
+                                objects.options().remove(Element.GroupObjects.Options.SORT_BY_COUNT);
                             }
                             tree.getModel().reload(path);
                         });
@@ -220,9 +252,9 @@ public class Application {
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
     }
 
-    private static StructuredTree createObjectTree(ClassTypeInfo info, Object object) {
+    private static StructuredTree<?> createObjectTree(ClassTypeInfo info, Object object) {
         var model = new StructuredTreeModel<>(new ObjectStructure(info, object));
-        var tree = new StructuredTree(model);
+        var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
@@ -256,16 +288,16 @@ public class Application {
             if (value instanceof TreeItem<?> item) {
                 node = item.getValue();
             }
-            if (node instanceof GraphStructure.Element element) {
+            if (node instanceof Element element) {
                 var icon = switch (element) {
-                    case GraphStructure.Element.Root ignored -> Fugue.getIcon("folders-stack");
-                    case GraphStructure.Element.Group ignored -> Fugue.getIcon("folders");
-                    case GraphStructure.Element.GroupDependentGroups ignored -> Fugue.getIcon("folder-import");
-                    case GraphStructure.Element.GroupDependencyGroups ignored -> Fugue.getIcon("folder-export");
-                    case GraphStructure.Element.GroupRoots ignored -> Fugue.getIcon("folder-bookmark");
-                    case GraphStructure.Element.GroupObjects ignored -> Fugue.getIcon("folder-open-document");
-                    case GraphStructure.Element.GroupObjectSet ignored -> Fugue.getIcon("folder-open-document");
-                    case GraphStructure.Element.Compound ignored -> Fugue.getIcon("blue-document");
+                    case Element.Root ignored -> Fugue.getIcon("folders-stack");
+                    case Element.Group ignored -> Fugue.getIcon("folders");
+                    case Element.GroupDependentGroups ignored -> Fugue.getIcon("folder-import");
+                    case Element.GroupDependencyGroups ignored -> Fugue.getIcon("folder-export");
+                    case Element.GroupRoots ignored -> Fugue.getIcon("folder-bookmark");
+                    case Element.GroupObjects ignored -> Fugue.getIcon("folder-open-document");
+                    case Element.GroupObjectSet ignored -> Fugue.getIcon("folder-open-document");
+                    case Element.Compound ignored -> Fugue.getIcon("blue-document");
                 };
                 if (tree.isEnabled()) {
                     setIcon(icon);
