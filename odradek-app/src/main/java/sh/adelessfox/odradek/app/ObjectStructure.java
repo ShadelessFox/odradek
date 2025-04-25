@@ -115,8 +115,7 @@ record ObjectStructure(
 
     private boolean hasChildren(TypeInfo info, Object object) {
         return switch (info) {
-            case ClassTypeInfo ignored -> true;
-            case ContainerTypeInfo ignored -> true;
+            case ClassTypeInfo _, ContainerTypeInfo _ -> true;
             default -> false;
         };
     }
@@ -124,12 +123,11 @@ record ObjectStructure(
     private static String getDisplayString(Element element) {
         var type = element.type().name().toString();
         var value = switch (element.type()) {
-            case ClassTypeInfo ignored -> null;
-            case ContainerTypeInfo container when element.value() != null ->
-                "(%d items)".formatted(container.length(element.value()));
-            case
-                PointerTypeInfo ignored when element.value() instanceof Ref<?> ref && ref.get() instanceof TypedObject object ->
-                "<%s>".formatted(object.getType().name());
+            case ClassTypeInfo _ -> null;
+            case ContainerTypeInfo container when element.value() != null
+                -> "(%d items)".formatted(container.length(element.value()));
+            case PointerTypeInfo _ when element.value() instanceof Ref<?> ref && ref.get() instanceof TypedObject object
+                -> "<%s>".formatted(object.getType().name());
             default -> String.valueOf(element.value());
         };
         if (value != null) {

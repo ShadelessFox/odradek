@@ -7,9 +7,8 @@ import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import com.formdev.flatlaf.extras.components.FlatTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.tree.PaginatedTreeModel;
+import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
-import sh.adelessfox.odradek.app.ui.tree.Tree;
 import sh.adelessfox.odradek.app.ui.tree.TreeItem;
 import sh.adelessfox.odradek.app.ui.util.Fugue;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
@@ -41,7 +40,6 @@ public class Application {
 
         log.info("Opening UI");
 
-        UIManager.getDefaults().addResourceBundle("sh.adelessfox.odradek.app.ui.util.Bundle");
         FlatInspector.install("ctrl shift alt X");
         FlatUIDefaultsInspector.install("ctrl shift alt Y");
         FlatLightLaf.setup();
@@ -100,9 +98,9 @@ public class Application {
         frame.setVisible(true);
     }
 
-    private static Tree createGraphTree(ForbiddenWestGame game) {
+    private static StructuredTree createGraphTree(ForbiddenWestGame game) {
         var model = new StructuredTreeModel<>(new GraphStructure(game.getStreamingGraph()));
-        var tree = new Tree(model);
+        var tree = new StructuredTree(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
         tree.addActionListener(_ -> {
@@ -142,7 +140,7 @@ public class Application {
         return tree;
     }
 
-    private static void installGraphTreePopupMenu(Tree tree) {
+    private static void installGraphTreePopupMenu(StructuredTree tree) {
         var menu = new JPopupMenu();
         menu.addPopupMenuListener(new PopupMenuListener() {
             @Override
@@ -164,8 +162,7 @@ public class Application {
                         } else {
                             objects.options().remove(GraphStructure.Element.GroupObjects.Options.GROUP_BY_TYPE);
                         }
-                        tree.getModel().unload(path.getLastPathComponent());
-                        tree.getModel().nodeStructureChanged(path);
+                        tree.getModel().reload(path);
                     });
                     menu.add(groupObjectsByType);
 
@@ -178,8 +175,7 @@ public class Application {
                             } else {
                                 objects.options().remove(GraphStructure.Element.GroupObjects.Options.SORT_BY_COUNT);
                             }
-                            tree.getModel().unload(path.getLastPathComponent());
-                            tree.getModel().nodeStructureChanged(path);
+                            tree.getModel().reload(path);
                         });
                         menu.add(sortByCount);
                     }
@@ -224,16 +220,12 @@ public class Application {
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
     }
 
-    private static Tree createObjectTree(ClassTypeInfo info, Object object) {
-        var model = new PaginatedTreeModel(100, new StructuredTreeModel<>(new ObjectStructure(info, object)));
-        var tree = new Tree(model);
+    private static StructuredTree createObjectTree(ClassTypeInfo info, Object object) {
+        var model = new StructuredTreeModel<>(new ObjectStructure(info, object));
+        var tree = new StructuredTree(model);
+        tree.setLargeModel(true);
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
-            var row = tree.getLeadSelectionRow();
-            if (model.handleNextPage(component, event.getSource().isShiftDown())) {
-                tree.setSelectionRow(row);
-                return;
-            }
             if (component instanceof TreeItem<?> wrapper) {
                 component = wrapper.getValue();
             }

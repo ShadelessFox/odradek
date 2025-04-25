@@ -13,8 +13,6 @@ record GraphStructure(
     StreamingGraphResource graph
 ) implements TreeStructure<GraphStructure.Element> {
     public sealed interface Element {
-        StreamingGraphResource graph();
-
         record Root(StreamingGraphResource graph) implements Element {
             @Override
             public boolean equals(Object object) {
@@ -45,32 +43,12 @@ record GraphStructure(
             public int compareTo(Group o) {
                 return Integer.compare(group.groupID(), o.group().groupID());
             }
-
-            @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
         }
 
         record GroupDependencyGroups(
             StreamingGraphResource graph,
             StreamingGroupData group
         ) implements Element {
-            @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
-
             @Override
             public String toString() {
                 return "Dependencies (" + group.subGroupCount() + ")";
@@ -82,16 +60,6 @@ record GraphStructure(
             StreamingGroupData group
         ) implements Element {
             @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
-
-            @Override
             public String toString() {
                 return "Dependents (" + graph.incomingGroups(group).size() + ")";
             }
@@ -101,16 +69,6 @@ record GraphStructure(
             StreamingGraphResource graph,
             StreamingGroupData group
         ) implements Element {
-            @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
-
             @Override
             public String toString() {
                 return "Roots (" + group.rootCount() + ")";
@@ -132,16 +90,6 @@ record GraphStructure(
             }
 
             @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
-
-            @Override
             public String toString() {
                 return "Objects (" + group.numObjects() + ")";
             }
@@ -154,16 +102,6 @@ record GraphStructure(
             int[] indices
         ) implements Element {
             @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
-
-            @Override
             public String toString() {
                 return "%s (%d)".formatted(info.name(), indices.length);
             }
@@ -174,16 +112,6 @@ record GraphStructure(
             StreamingGroupData group,
             int index
         ) implements Element {
-            @Override
-            public boolean equals(Object object) {
-                return this == object;
-            }
-
-            @Override
-            public int hashCode() {
-                return System.identityHashCode(this);
-            }
-
             @Override
             public String toString() {
                 ClassTypeInfo type = graph.types().get(group.typeStart() + index);
@@ -247,10 +175,10 @@ record GraphStructure(
                         .toList();
                 }
             }
-            case Element.GroupObjectSet(var graph, var group, var ignored, var indices) -> IntStream.of(indices)
+            case Element.GroupObjectSet(var graph, var group, var _, var indices) -> IntStream.of(indices)
                 .mapToObj(index -> new Element.Compound(graph, group, index))
                 .toList();
-            case Element.Compound ignored -> List.of();
+            case Element.Compound _ -> List.of();
         };
     }
 
@@ -258,13 +186,13 @@ record GraphStructure(
     public boolean hasChildren(Element node) {
         return switch (node) {
             case Element.Root(var graph) -> !graph.groups().isEmpty();
-            case Element.Group ignored -> true;
-            case Element.GroupObjects(var ignored, var group, var ignored1) -> group.numObjects() > 0;
-            case Element.GroupObjectSet(var ignored, var ignored1, var ignored2, var indices) -> indices.length > 0;
-            case Element.GroupDependencyGroups(var ignored, var group) -> group.subGroupCount() > 0;
-            case Element.GroupDependentGroups(var ignored, var group) -> !graph.incomingGroups(group).isEmpty();
-            case Element.GroupRoots(var ignored, var group) -> group.rootCount() > 0;
-            case Element.Compound ignored -> false;
+            case Element.Group _ -> true;
+            case Element.GroupObjects(var _, var group, var _) -> group.numObjects() > 0;
+            case Element.GroupObjectSet(var _, var _, var _, var indices) -> indices.length > 0;
+            case Element.GroupDependencyGroups(var _, var group) -> group.subGroupCount() > 0;
+            case Element.GroupDependentGroups(var _, var group) -> !graph.incomingGroups(group).isEmpty();
+            case Element.GroupRoots(var _, var group) -> group.rootCount() > 0;
+            case Element.Compound _ -> false;
         };
     }
 
