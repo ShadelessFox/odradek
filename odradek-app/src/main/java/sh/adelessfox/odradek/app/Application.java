@@ -12,7 +12,6 @@ import sh.adelessfox.odradek.app.ui.DocumentAdapter;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.app.ui.tree.TreeItem;
-import sh.adelessfox.odradek.app.ui.util.Fugue;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
@@ -24,7 +23,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -76,10 +74,11 @@ public class Application {
         ));
 
         var predicate = (Predicate<Element>) element -> switch (element) {
-            case Element.Compound compound -> compound.type().toString().contains(filter.getText());
             case Element.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
                 .mapToObj(index -> graph.types().get(group.typeStart() + index))
                 .anyMatch(type -> type.toString().contains(filter.getText()));
+            case Element.GroupObject object -> object.type().toString().contains(filter.getText());
+            case Element.GroupObjectSet(var _, var _, var info, var _) -> info.toString().contains(filter.getText());
             default -> true;
         };
 
@@ -140,7 +139,7 @@ public class Application {
             if (component instanceof TreeItem<?> item) {
                 component = item.getValue();
             }
-            if (component instanceof Element.Compound element) {
+            if (component instanceof Element.GroupObject element) {
                 tree.setEnabled(false);
 
                 new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
@@ -243,7 +242,6 @@ public class Application {
         log.debug("Showing object info for {}", info);
 
         var tree = createObjectTree(info, object);
-        tree.setLargeModel(true);
 
         var treePane = new JScrollPane(tree);
         treePane.setBorder(BorderFactory.createEmptyBorder());
@@ -256,6 +254,7 @@ public class Application {
         var model = new StructuredTreeModel<>(new ObjectStructure(info, object));
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
+        tree.setCellRenderer(new ObjectTreeCellRenderer());
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> wrapper) {
@@ -271,43 +270,4 @@ public class Application {
         return tree;
     }
 
-    private static class GraphTreeCellRenderer extends DefaultTreeCellRenderer {
-        @Override
-        public Component getTreeCellRendererComponent(
-            JTree tree,
-            Object value,
-            boolean sel,
-            boolean expanded,
-            boolean leaf,
-            int row,
-            boolean hasFocus
-        ) {
-            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-
-            Object node = value;
-            if (value instanceof TreeItem<?> item) {
-                node = item.getValue();
-            }
-            if (node instanceof Element element) {
-                var icon = switch (element) {
-                    case Element.Root ignored -> Fugue.getIcon("folders-stack");
-                    case Element.Group ignored -> Fugue.getIcon("folders");
-                    case Element.GroupDependentGroups ignored -> Fugue.getIcon("folder-import");
-                    case Element.GroupDependencyGroups ignored -> Fugue.getIcon("folder-export");
-                    case Element.GroupRoots ignored -> Fugue.getIcon("folder-bookmark");
-                    case Element.GroupObjects ignored -> Fugue.getIcon("folder-open-document");
-                    case Element.GroupObjectSet ignored -> Fugue.getIcon("folder-open-document");
-                    case Element.Compound ignored -> Fugue.getIcon("blue-document");
-                };
-                if (tree.isEnabled()) {
-                    setIcon(icon);
-                } else {
-                    Icon disabledIcon = UIManager.getLookAndFeel().getDisabledIcon(tree, icon);
-                    setDisabledIcon(disabledIcon != null ? disabledIcon : icon);
-                }
-            }
-
-            return this;
-        }
-    }
 }

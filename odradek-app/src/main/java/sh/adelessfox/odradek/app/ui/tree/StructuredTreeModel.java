@@ -10,6 +10,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
@@ -78,22 +79,42 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
     public void reload() {
         if (root != null) {
-            reload(new TreePath(root));
+            reload(root);
         }
     }
 
     public void reload(TreePath path) {
+        Node<T> node = cast(path.getLastPathComponent());
+        reload(node);
+    }
+
+    private void reload(Node<T> node) {
         // TODO: Reinvalidate the cache against the structure; don't just
         //       hard-reload from the root. We're losing expanded state
         //       and it's also pretty expensive
-        Node<T> node = cast(path.getLastPathComponent());
-        node.children = null;
-        listeners.broadcast().treeStructureChanged(new TreeModelEvent(this, path, null, null));
+        if (node.children != null) {
+            node.children = null;
+            treeStructureChanged(node);
+        }
+    }
+
+    private void treeStructureChanged(Node<T> node) {
+        var path = getNodePath(node);
+        var event = new TreeModelEvent(this, path, null, null);
+        listeners.broadcast().treeStructureChanged(event);
     }
 
     @SuppressWarnings("unchecked")
     private Node<T> cast(Object node) {
         return (Node<T>) node;
+    }
+
+    private TreePath getNodePath(Node<T> node) {
+        if (node.parent != null) {
+            return getNodePath(node.parent).pathByAddingChild(node);
+        } else {
+            return new TreePath(node);
+        }
     }
 
     private Object getRootNode() {
@@ -116,7 +137,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
     private Node<T> computeRootNode() {
         log.debug("Computing root for {}", structure);
-        return new Node<>(structure.getRoot(), 0);
+        return new Node<>(structure.getRoot(), null, 0);
     }
 
     private List<Node<T>> computeChildrenNodes(Node<T> parent) {
@@ -124,18 +145,20 @@ public final class StructuredTreeModel<T> implements TreeModel {
         var children = structure.getChildren(parent.element);
         var nodes = new ArrayList<Node<T>>(children.size());
         for (int i = 0; i < children.size(); i++) {
-            nodes.add(new Node<>(children.get(i), i));
+            nodes.add(new Node<>(children.get(i), parent, i));
         }
         return List.copyOf(nodes);
     }
 
     private static class Node<T> implements TreeItem<T> {
         private final T element;
+        private final Node<T> parent;
         private List<Node<T>> children;
         private final int index;
 
-        Node(T element, int index) {
+        Node(T element, Node<T> parent, int index) {
             this.element = element;
+            this.parent = parent;
             this.index = index;
         }
 
@@ -146,15 +169,12 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
         @Override
         public boolean equals(Object o) {
-            // return o instanceof Node<?> node
-            //     && Objects.equals(element, node.element);
-            return o instanceof Node<?> node && element == node.element;
+            return o instanceof Node<?> node && Objects.equals(element, node.element);
         }
 
         @Override
         public int hashCode() {
-            // return Objects.hashCode(element);
-            return System.identityHashCode(element);
+            return Objects.hashCode(element);
         }
 
         @Override
