@@ -4,10 +4,9 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
-import com.formdev.flatlaf.extras.components.FlatTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.DocumentAdapter;
+import sh.adelessfox.odradek.app.ui.SearchTextField;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.app.ui.tree.TreeItem;
@@ -16,17 +15,17 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
@@ -64,50 +63,23 @@ public class Application {
             }
         });
 
-        var filter = new FlatTextField();
-        filter.setPlaceholderText("Filter objects\u2026");
-        filter.setShowClearButton(true);
-        filter.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
-            BorderFactory.createEmptyBorder(6, 8, 6, 8)
-        ));
-
-        var predicate = (Predicate<GraphStructure>) element -> switch (element) {
-            case GraphStructure.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
-                .mapToObj(index -> graph.types().get(group.typeStart() + index))
-                .anyMatch(type -> type.toString().contains(filter.getText()));
-            case GraphStructure.GroupObject object -> object.type().toString().contains(filter.getText());
-            case GraphStructure.GroupObjectSet(var _, var _, var info, var _) ->
-                info.toString().contains(filter.getText());
-            default -> true;
-        };
-
-        var structure = new FilteredStructure<>(new GraphStructure.Graph(game.getStreamingGraph()), predicate);
-        var model = new StructuredTreeModel<>(structure);
-
-        filter.getDocument().addDocumentListener(new DocumentAdapter() {
-            private final ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-            private ScheduledFuture<?> future;
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                if (future != null) {
-                    future.cancel(false);
-                }
-                future = service.schedule(this::reload, 300, TimeUnit.MILLISECONDS);
-            }
-
-            private void reload() {
-                SwingUtilities.invokeLater(model::reload);
-            }
-        });
-
-        var tree = createGraphTree(game, model);
+        var tree = createGraphTree(game);
         var treeScrollPane = new JScrollPane(tree);
         treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
+        var filterField = new SearchTextField();
+        filterField.setPlaceholderText("Search by object type\u2026");
+        filterField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
+            BorderFactory.createEmptyBorder(6, 8, 6, 8)
+        ));
+        filterField.addActionListener(e -> {
+            tree.getModel().setFilter(createFilter(e.getActionCommand()));
+            tree.getModel().update();
+        });
+
         var treePanel = new JPanel(new BorderLayout());
-        treePanel.add(filter, BorderLayout.NORTH);
+        treePanel.add(filterField, BorderLayout.NORTH);
         treePanel.add(treeScrollPane, BorderLayout.CENTER);
 
         var splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -130,8 +102,26 @@ public class Application {
         frame.setVisible(true);
     }
 
-    private static StructuredTree<?> createGraphTree(ForbiddenWestGame game, StructuredTreeModel<GraphStructure> model) {
+    private static Predicate<GraphStructure> createFilter(String filter) {
+        return (GraphStructure structure) -> switch (structure) {
+            case GraphStructure.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
+                .mapToObj(index -> graph.types().get(group.typeStart() + index))
+                .anyMatch(type -> filterMatches(type, filter));
+            case GraphStructure.GroupObject object -> filterMatches(object.type(), filter);
+            case GraphStructure.GroupObjectSet(var _, var _, var info, var _) -> filterMatches(info, filter);
+            default -> true;
+        };
+    }
+
+    private static boolean filterMatches(TypeInfo info, String filter) {
+        return info.toString().contains(filter);
+    }
+
+    private static StructuredTree<GraphStructure> createGraphTree(ForbiddenWestGame game) {
+        var model = new StructuredTreeModel<>(new GraphStructure.Graph(game.getStreamingGraph()));
         var tree = new StructuredTree<>(model);
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
         tree.addActionListener(_ -> {
@@ -193,7 +183,7 @@ public class Application {
                         } else {
                             objects.options().remove(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
                         }
-                        tree.getModel().reload(path);
+                        tree.getModel().update(path);
                     });
                     menu.add(groupObjectsByType);
 
@@ -206,7 +196,7 @@ public class Application {
                             } else {
                                 objects.options().remove(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
                             }
-                            tree.getModel().reload(path);
+                            tree.getModel().update(path);
                         });
                         menu.add(sortByCount);
                     }

@@ -9,6 +9,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
@@ -22,6 +23,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
     private final Listeners<TreeModelListener> listeners = new Listeners<>(TreeModelListener.class);
     private final TreeStructure<T> structure;
+    private Predicate<T> filter;
     private Node<T> root;
 
     public StructuredTreeModel(TreeStructure<T> structure) {
@@ -75,23 +77,31 @@ public final class StructuredTreeModel<T> implements TreeModel {
         throw new UnsupportedOperationException("valueForPathChanged");
     }
 
-    public void reload() {
+    public void update() {
         if (root != null) {
-            reload(root);
+            update(root);
         }
     }
 
-    public void reload(TreePath path) {
+    public void update(TreePath path) {
         Node<T> node = cast(path.getLastPathComponent());
-        reload(node);
+        update(node);
     }
 
-    private void reload(Node<T> node) {
+    public Predicate<T> getFilter() {
+        return filter;
+    }
+
+    public void setFilter(Predicate<T> filter) {
+        this.filter = filter;
+    }
+
+    private void update(Node<T> node) {
         if (node.children == null) {
             return;
         }
 
-        var newChildren = structure.getChildren(node.element);
+        var newChildren = computeChildren(node);
         var oldChildren = node.children.stream().map(n -> n.element).toList();
 
         var added = new LinkedHashMap<T, Integer>();
@@ -133,7 +143,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
         }
 
         for (Node<T> child : node.children) {
-            reload(child);
+            update(child);
         }
     }
 
@@ -227,13 +237,22 @@ public final class StructuredTreeModel<T> implements TreeModel {
     }
 
     private List<Node<T>> computeChildrenNodes(Node<T> parent) {
-        log.debug("Computing children of {} for {}", parent.element, structure);
-        var children = structure.getChildren(parent.element);
+        var children = computeChildren(parent);
         var nodes = new ArrayList<Node<T>>(children.size());
-        for (int i = 0; i < children.size(); i++) {
-            nodes.add(new Node<>(children.get(i), parent, i));
+        for (T child : children) {
+            nodes.add(new Node<>(child, parent, nodes.size()));
         }
         return List.copyOf(nodes);
+    }
+
+    private List<? extends T> computeChildren(Node<T> parent) {
+        log.debug("Computing children of {} for {}", parent.element, structure);
+        var children = structure.getChildren(parent.element);
+        if (filter != null) {
+            return children.stream().filter(filter).toList();
+        } else {
+            return children;
+        }
     }
 
     private static class Node<T> implements TreeItem<T> {
