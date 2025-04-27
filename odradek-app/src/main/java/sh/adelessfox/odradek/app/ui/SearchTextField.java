@@ -8,7 +8,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import java.time.Duration;
 
-public class SearchTextField extends FlatTextField {
+public final class SearchTextField extends FlatTextField {
     public static final Duration DEFAULT_DELAY = Duration.ofMillis(250);
 
     private final int delay;

@@ -28,7 +28,7 @@ final class ViewportAnimator {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(1);
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
-    private final AtomicBoolean isThrottling = new AtomicBoolean(false);
+    private final AtomicBoolean isPaused = new AtomicBoolean(false);
     private final Lock renderLock = new ReentrantLock();
     private final Condition canRender = renderLock.newCondition();
 
@@ -62,14 +62,18 @@ final class ViewportAnimator {
         while (isRunning.get()) {
             renderLock.lock();
             try {
-                while (isThrottling.get()) {
+                while (isPaused.get()) {
                     canRender.awaitUninterruptibly();
                 }
             } finally {
                 renderLock.unlock();
             }
             try {
-                SwingUtilities.invokeAndWait(viewport::render);
+                SwingUtilities.invokeAndWait(() -> {
+                    if (viewport.isValid()) {
+                        viewport.render();
+                    }
+                });
             } catch (InterruptedException ignored) {
             } catch (InvocationTargetException e) {
                 log.error("Error during rendering", e.getTargetException());
@@ -77,18 +81,18 @@ final class ViewportAnimator {
         }
     }
 
-    private void updateThrottle() {
+    private void updatePause() {
         renderLock.lock();
 
         try {
-            isThrottling.set(shouldThrottle());
+            isPaused.set(shouldPause());
             canRender.signal();
         } finally {
             renderLock.unlock();
         }
     }
 
-    private boolean shouldThrottle() {
+    private boolean shouldPause() {
         return viewport.getWidth() <= 0 || viewport.getHeight() <= 0 || !viewport.isShowing();
     }
 
@@ -96,28 +100,28 @@ final class ViewportAnimator {
         @Override
         public void hierarchyChanged(HierarchyEvent e) {
             if (e.getID() == HierarchyEvent.HIERARCHY_CHANGED && (e.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
-                updateThrottle();
+                updatePause();
             }
         }
 
         @Override
         public void componentResized(ComponentEvent e) {
-            updateThrottle();
+            updatePause();
         }
 
         @Override
         public void componentMoved(ComponentEvent e) {
-            updateThrottle();
+            updatePause();
         }
 
         @Override
         public void componentShown(ComponentEvent e) {
-            updateThrottle();
+            updatePause();
         }
 
         @Override
         public void componentHidden(ComponentEvent e) {
-            updateThrottle();
+            updatePause();
         }
     }
 }

@@ -10,6 +10,11 @@ import sh.adelessfox.odradek.app.ui.SearchTextField;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.app.ui.tree.TreeItem;
+import sh.adelessfox.odradek.app.viewport.Camera;
+import sh.adelessfox.odradek.app.viewport.Viewport;
+import sh.adelessfox.odradek.app.viewport.renderpass.RenderMeshesPass;
+import sh.adelessfox.odradek.game.Converter;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
@@ -17,6 +22,8 @@ import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.scene.Node;
+import sh.adelessfox.odradek.scene.Scene;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -47,6 +54,7 @@ public class Application {
 
         tabs = new FlatTabbedPane();
         tabs.setTabPlacement(SwingConstants.TOP);
+        tabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         tabs.setTabsClosable(true);
         tabs.setTabCloseToolTipText("Close");
         tabs.setTabCloseCallback(JTabbedPane::remove);
@@ -65,7 +73,6 @@ public class Application {
 
         var tree = createGraphTree(game);
         var treeScrollPane = new JScrollPane(tree);
-        treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         var filterField = new SearchTextField();
         filterField.setPlaceholderText("Search by object type\u2026");
@@ -76,6 +83,7 @@ public class Application {
         filterField.addActionListener(e -> {
             tree.getModel().setFilter(createFilter(e.getActionCommand()));
             tree.getModel().update();
+            // TODO: Update the selection model as well
         });
 
         var treePanel = new JPanel(new BorderLayout());
@@ -103,7 +111,14 @@ public class Application {
     }
 
     private static Predicate<GraphStructure> createFilter(String filter) {
-        return (GraphStructure structure) -> switch (structure) {
+        if (filter.equals("has:roots")) {
+            return structure -> switch (structure) {
+                case GraphStructure.Group(var _, var group) -> group.rootCount() > 0;
+                default -> true;
+            };
+        }
+
+        return structure -> switch (structure) {
             case GraphStructure.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
                 .mapToObj(index -> graph.types().get(group.typeStart() + index))
                 .anyMatch(type -> filterMatches(type, filter));
@@ -144,7 +159,7 @@ public class Application {
                         try {
                             var result = get();
                             var object = result.objects().get(groupObject.index());
-                            SwingUtilities.invokeLater(() -> showObjectInfo(object.type(), object.object()));
+                            SwingUtilities.invokeLater(() -> showObjectInfo(game, object.type(), object.object()));
                         } catch (ExecutionException e) {
                             log.error("Failed to read object", e);
                         } catch (InterruptedException ignored) {
@@ -228,19 +243,35 @@ public class Application {
         });
     }
 
-    private static void showObjectInfo(ClassTypeInfo info, Object object) {
+    private static void showObjectInfo(Game game, ClassTypeInfo info, Object object) {
         log.debug("Showing object info for {}", info);
 
-        var tree = createObjectTree(info, object);
+        JComponent component;
 
-        var treePane = new JScrollPane(tree);
-        treePane.setBorder(BorderFactory.createEmptyBorder());
+        boolean matches = Converter.converters()
+            .anyMatch(converter -> converter.supports(object) && converter.resultType() == Node.class);
 
-        tabs.add(info.toString(), treePane);
+        if (matches) {
+            var scene = Converter.convert(object, game, Node.class)
+                .map(Scene::of)
+                .orElse(null);
+
+            Viewport viewport = new Viewport();
+            viewport.setMinimumSize(new Dimension(100, 100));
+            viewport.addRenderPass(new RenderMeshesPass());
+            viewport.setCamera(new Camera(30.f, 0.01f, 1000.f));
+            viewport.setScene(scene);
+
+            component = viewport;
+        } else {
+            component = new JScrollPane(createObjectTree(game, info, object));
+        }
+
+        tabs.add(info.toString(), component);
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
     }
 
-    private static StructuredTree<?> createObjectTree(ClassTypeInfo info, Object object) {
+    private static StructuredTree<?> createObjectTree(Game game, ClassTypeInfo info, Object object) {
         var model = new StructuredTreeModel<>(new ObjectStructure.Compound(info, object));
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
@@ -254,7 +285,7 @@ public class Application {
                 && structure.value() instanceof Ref<?> ref
                 && ref.get() instanceof TypedObject target
             ) {
-                showObjectInfo(target.getType(), target);
+                showObjectInfo(game, target.getType(), target);
             }
         });
         return tree;
