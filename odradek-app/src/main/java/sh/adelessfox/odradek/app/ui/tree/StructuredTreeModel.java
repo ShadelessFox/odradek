@@ -8,9 +8,7 @@ import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
@@ -89,13 +87,101 @@ public final class StructuredTreeModel<T> implements TreeModel {
     }
 
     private void reload(Node<T> node) {
-        // TODO: Reinvalidate the cache against the structure; don't just
-        //       hard-reload from the root. We're losing expanded state
-        //       and it's also pretty expensive
-        if (node.children != null) {
-            node.children = null;
-            treeStructureChanged(node);
+        if (node.children == null) {
+            return;
         }
+
+        var newChildren = structure.getChildren(node.element);
+        var oldChildren = node.children.stream().map(n -> n.element).toList();
+
+        var added = new LinkedHashMap<T, Integer>();
+        var removed = new LinkedHashMap<T, Integer>();
+        var unchanged = new LinkedHashMap<T, Integer>();
+
+        difference(oldChildren, newChildren, added, removed, unchanged);
+
+        if (!added.isEmpty() || !removed.isEmpty()) {
+            var nodes = new ArrayList<Node<T>>();
+
+            for (T child : newChildren) {
+                var oldNodeIndex = unchanged.get(child);
+                if (oldNodeIndex != null) {
+                    var oldNode = node.children.get(oldNodeIndex);
+                    var newNode = new Node<>(child, node, oldNode.children, nodes.size());
+                    nodes.add(newNode);
+                } else {
+                    nodes.add(new Node<>(child, node, null, nodes.size()));
+                }
+            }
+
+            node.children = List.copyOf(nodes);
+
+            if (added.isEmpty() && removed.size() == oldChildren.size() ||
+                removed.isEmpty() && added.size() == newChildren.size()
+            ) {
+                treeStructureChanged(node);
+                return;
+            }
+
+            if (!removed.isEmpty()) {
+                treeNodesRemoved(node, removed.values().stream().mapToInt(i -> i).toArray());
+            }
+
+            if (!added.isEmpty()) {
+                treeNodesInserted(node, added.values().stream().mapToInt(i -> i).toArray());
+            }
+        }
+
+        for (Node<T> child : node.children) {
+            reload(child);
+        }
+    }
+
+    private static <T> void difference(
+        List<? extends T> original,
+        List<? extends T> updated,
+        Map<? super T, Integer> added,
+        Map<? super T, Integer> removed,
+        Map<? super T, Integer> unchanged
+    ) {
+        Set<T> matched = new HashSet<>();
+
+        int length = Math.min(original.size(), updated.size());
+        for (int i = 0; i < length; i++) {
+            T originalItem = original.get(i);
+            T updatedItem = updated.get(i);
+
+            if (originalItem.equals(updatedItem)) {
+                unchanged.put(originalItem, i);
+                matched.add(originalItem);
+            }
+        }
+
+        for (int i = 0; i < original.size(); i++) {
+            T item = original.get(i);
+            if (!matched.contains(item)) {
+                removed.put(item, i);
+            }
+        }
+
+        for (int i = 0; i < updated.size(); i++) {
+            T item = updated.get(i);
+            if (!matched.contains(item)) {
+                added.put(item, i);
+            }
+        }
+    }
+
+    private void treeNodesInserted(Node<T> parent, int[] children) {
+        var path = getNodePath(parent);
+        var event = new TreeModelEvent(this, path, children, null);
+        listeners.broadcast().treeNodesInserted(event);
+    }
+
+    private void treeNodesRemoved(Node<T> parent, int[] children) {
+        var path = getNodePath(parent);
+        var event = new TreeModelEvent(this, path, children, null);
+        listeners.broadcast().treeNodesRemoved(event);
     }
 
     private void treeStructureChanged(Node<T> node) {
@@ -157,8 +243,13 @@ public final class StructuredTreeModel<T> implements TreeModel {
         private final int index;
 
         Node(T element, Node<T> parent, int index) {
+            this(element, parent, null, index);
+        }
+
+        Node(T element, Node<T> parent, List<Node<T>> children, int index) {
             this.element = element;
             this.parent = parent;
+            this.children = children;
             this.index = index;
         }
 

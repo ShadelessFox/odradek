@@ -101,6 +101,20 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         int[] indices
     ) implements GraphStructure {
         @Override
+        public boolean equals(Object o) {
+            return o instanceof GroupObjectSet that
+                && Objects.equals(graph, that.graph)
+                && Objects.equals(group, that.group)
+                && Objects.equals(info, that.info)
+                && Arrays.equals(indices, that.indices);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(graph, group, info, Arrays.hashCode(indices));
+        }
+
+        @Override
         public String toString() {
             return "%s (%d)".formatted(info.name(), indices.length);
         }
