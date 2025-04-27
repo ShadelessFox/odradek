@@ -119,19 +119,8 @@ public final class Viewport extends JPanel {
         super.removeNotify();
     }
 
-    private int counter;
-    private long lastTime;
-
     public void render() {
         canvas.render();
-        counter++;
-
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= 1000) {
-            System.out.println("FPS: " + counter);
-            counter = 0;
-            lastTime = currentTime;
-        }
     }
 
     public boolean isKeyDown(int keyCode) {
