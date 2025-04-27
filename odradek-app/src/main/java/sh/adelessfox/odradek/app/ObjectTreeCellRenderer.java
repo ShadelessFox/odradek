@@ -25,11 +25,11 @@ class ObjectTreeCellRenderer extends DefaultTreeCellRenderer {
         if (value instanceof TreeItem<?> item) {
             node = item.getValue();
         }
-        if (node instanceof ObjectStructure.Element element) {
+        if (node instanceof ObjectStructure element) {
             var icon = switch (element) {
-                case ObjectStructure.Element.Attr attr -> getIcon(attr.type());
-                case ObjectStructure.Element.Class clazz -> getIcon(clazz.type());
-                case ObjectStructure.Element.Index index -> getIcon(index.info());
+                case ObjectStructure.Compound compound -> getIcon(compound.type());
+                case ObjectStructure.Attr attr -> getIcon(attr.type());
+                case ObjectStructure.Index index -> getIcon(index.info());
             };
             if (tree.isEnabled()) {
                 setIcon(icon);

@@ -7,7 +7,6 @@ import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import com.formdev.flatlaf.extras.components.FlatTextField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.GraphStructure.Element;
 import sh.adelessfox.odradek.app.ui.DocumentAdapter;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
@@ -73,16 +72,17 @@ public class Application {
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
-        var predicate = (Predicate<Element>) element -> switch (element) {
-            case Element.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
+        var predicate = (Predicate<GraphStructure>) element -> switch (element) {
+            case GraphStructure.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
                 .mapToObj(index -> graph.types().get(group.typeStart() + index))
                 .anyMatch(type -> type.toString().contains(filter.getText()));
-            case Element.GroupObject object -> object.type().toString().contains(filter.getText());
-            case Element.GroupObjectSet(var _, var _, var info, var _) -> info.toString().contains(filter.getText());
+            case GraphStructure.GroupObject object -> object.type().toString().contains(filter.getText());
+            case GraphStructure.GroupObjectSet(var _, var _, var info, var _) ->
+                info.toString().contains(filter.getText());
             default -> true;
         };
 
-        var structure = new FilteredStructure<>(new GraphStructure(game.getStreamingGraph()), predicate);
+        var structure = new FilteredStructure<>(new GraphStructure.Graph(game.getStreamingGraph()), predicate);
         var model = new StructuredTreeModel<>(structure);
 
         filter.getDocument().addDocumentListener(new DocumentAdapter() {
@@ -130,7 +130,7 @@ public class Application {
         frame.setVisible(true);
     }
 
-    private static StructuredTree<?> createGraphTree(ForbiddenWestGame game, StructuredTreeModel<Element> model) {
+    private static StructuredTree<?> createGraphTree(ForbiddenWestGame game, StructuredTreeModel<GraphStructure> model) {
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
@@ -139,21 +139,21 @@ public class Application {
             if (component instanceof TreeItem<?> item) {
                 component = item.getValue();
             }
-            if (component instanceof Element.GroupObject element) {
+            if (component instanceof GraphStructure.GroupObject groupObject) {
                 tree.setEnabled(false);
 
                 new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
                     @Override
                     protected StreamingObjectReader.GroupResult doInBackground() throws Exception {
-                        log.debug("Reading group {}", element.group().groupID());
-                        return game.getStreamingReader().readGroup(element.group().groupID());
+                        log.debug("Reading group {}", groupObject.group().groupID());
+                        return game.getStreamingReader().readGroup(groupObject.group().groupID());
                     }
 
                     @Override
                     protected void done() {
                         try {
                             var result = get();
-                            var object = result.objects().get(element.index());
+                            var object = result.objects().get(groupObject.index());
                             SwingUtilities.invokeLater(() -> showObjectInfo(object.type(), object.object()));
                         } catch (ExecutionException e) {
                             log.error("Failed to read object", e);
@@ -184,14 +184,14 @@ public class Application {
                 if (component instanceof TreeItem<?> item) {
                     component = item.getValue();
                 }
-                if (component instanceof Element.GroupObjects objects) {
+                if (component instanceof GraphStructure.GroupObjects objects) {
                     var groupObjectsByType = new JCheckBoxMenuItem("Group objects by type");
-                    groupObjectsByType.setSelected(objects.options().contains(Element.GroupObjects.Options.GROUP_BY_TYPE));
+                    groupObjectsByType.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE));
                     groupObjectsByType.addActionListener(e -> {
                         if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                            objects.options().add(Element.GroupObjects.Options.GROUP_BY_TYPE);
+                            objects.options().add(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
                         } else {
-                            objects.options().remove(Element.GroupObjects.Options.GROUP_BY_TYPE);
+                            objects.options().remove(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
                         }
                         tree.getModel().reload(path);
                     });
@@ -199,12 +199,12 @@ public class Application {
 
                     if (groupObjectsByType.isSelected()) {
                         var sortByCount = new JCheckBoxMenuItem("Sort by count");
-                        sortByCount.setSelected(objects.options().contains(Element.GroupObjects.Options.SORT_BY_COUNT));
+                        sortByCount.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.SORT_BY_COUNT));
                         sortByCount.addActionListener(e -> {
                             if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                                objects.options().add(Element.GroupObjects.Options.SORT_BY_COUNT);
+                                objects.options().add(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
                             } else {
-                                objects.options().remove(Element.GroupObjects.Options.SORT_BY_COUNT);
+                                objects.options().remove(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
                             }
                             tree.getModel().reload(path);
                         });
@@ -251,7 +251,7 @@ public class Application {
     }
 
     private static StructuredTree<?> createObjectTree(ClassTypeInfo info, Object object) {
-        var model = new StructuredTreeModel<>(new ObjectStructure(info, object));
+        var model = new StructuredTreeModel<>(new ObjectStructure.Compound(info, object));
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new ObjectTreeCellRenderer());
@@ -260,8 +260,8 @@ public class Application {
             if (component instanceof TreeItem<?> wrapper) {
                 component = wrapper.getValue();
             }
-            if (component instanceof ObjectStructure.Element element
-                && element.value() instanceof Ref<?> ref
+            if (component instanceof ObjectStructure structure
+                && structure.value() instanceof Ref<?> ref
                 && ref.get() instanceof TypedObject target
             ) {
                 showObjectInfo(target.getType(), target);

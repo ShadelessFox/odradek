@@ -24,16 +24,16 @@ class GraphTreeCellRenderer extends DefaultTreeCellRenderer {
         if (value instanceof TreeItem<?> item) {
             node = item.getValue();
         }
-        if (node instanceof GraphStructure.Element element) {
-            var icon = switch (element) {
-                case GraphStructure.Element.Graph ignored -> Fugue.getIcon("folders-stack");
-                case GraphStructure.Element.Group ignored -> Fugue.getIcon("folders");
-                case GraphStructure.Element.GroupDependents ignored -> Fugue.getIcon("folder-import");
-                case GraphStructure.Element.GroupDependencies ignored -> Fugue.getIcon("folder-export");
-                case GraphStructure.Element.GroupRoots ignored -> Fugue.getIcon("folder-bookmark");
-                case GraphStructure.Element.GroupObjects ignored -> Fugue.getIcon("folder-open-document");
-                case GraphStructure.Element.GroupObjectSet ignored -> Fugue.getIcon("folder-open-document");
-                case GraphStructure.Element.GroupObject ignored -> Fugue.getIcon("blue-document");
+        if (node instanceof GraphStructure structure) {
+            var icon = switch (structure) {
+                case GraphStructure.Graph ignored -> Fugue.getIcon("folders-stack");
+                case GraphStructure.Group ignored -> Fugue.getIcon("folders");
+                case GraphStructure.GroupDependents ignored -> Fugue.getIcon("folder-import");
+                case GraphStructure.GroupDependencies ignored -> Fugue.getIcon("folder-export");
+                case GraphStructure.GroupRoots ignored -> Fugue.getIcon("folder-bookmark");
+                case GraphStructure.GroupObjects ignored -> Fugue.getIcon("folder-open-document");
+                case GraphStructure.GroupObjectSet ignored -> Fugue.getIcon("folder-open-document");
+                case GraphStructure.GroupObject ignored -> Fugue.getIcon("blue-document");
             };
             if (tree.isEnabled()) {
                 setIcon(icon);
