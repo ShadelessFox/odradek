@@ -20,8 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * This class is responsible for triggering the {@link Viewport#render()} function
  * periodically according to the current display refresh rate.
  * <p>
- * When the viewport is obscured by another window, the rendering is throttled to
- * reduce CPU and GPU usage.
+ * When the viewport is not visible, the rendering is paused to reduce CPU and GPU usage.
  */
 final class ViewportAnimator {
     private static final Logger log = LoggerFactory.getLogger(ViewportAnimator.class);

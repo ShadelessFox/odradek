@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.viewport;
 
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLDebugMessageCallback;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
@@ -20,6 +21,7 @@ import static org.lwjgl.opengl.GL43.*;
 
 public final class Viewport extends JPanel {
     private static final GLDebugMessageCallback DEBUG_MESSAGE_CALLBACK = new ViewportDebugCallback();
+    private static final ThreadLocal<GLCapabilities> capabilities = new ThreadLocal<>();
 
     private final List<RenderPass> passes = new ArrayList<>();
     private final AWTGLCanvas canvas;
@@ -45,8 +47,11 @@ public final class Viewport extends JPanel {
         canvas = new AWTGLCanvas(data) {
             @Override
             public void initGL() {
-                // TODO: Do we need to destroy the context when the viewport is destroyed?
-                GL.createCapabilities();
+                ensureEDT();
+
+                if (capabilities.get() == null) {
+                    capabilities.set(GL.createCapabilities());
+                }
 
                 // Enable depth testing
                 glEnable(GL_DEPTH_TEST);
@@ -74,6 +79,8 @@ public final class Viewport extends JPanel {
 
             @Override
             public void paintGL() {
+                ensureEDT();
+
                 var currentUpdateTime = System.currentTimeMillis();
                 var currentUpdateDelta = (currentUpdateTime - lastUpdateTime) / 1000.0f;
 
@@ -123,22 +130,6 @@ public final class Viewport extends JPanel {
         canvas.render();
     }
 
-    public boolean isKeyDown(int keyCode) {
-        return input.isKeyDown(keyCode);
-    }
-
-    public boolean isMouseDown(int button) {
-        return input.isMouseDown(button);
-    }
-
-    public Vec2 mousePositionDelta() {
-        return input.mousePositionDelta();
-    }
-
-    public float mouseWheelDelta() {
-        return input.mouseWheelDelta();
-    }
-
     public void addRenderPass(RenderPass pass) {
         if (passes.contains(pass)) {
             throw new IllegalArgumentException("Render pass already added");
@@ -179,6 +170,12 @@ public final class Viewport extends JPanel {
 
     public int getFramebufferHeight() {
         return canvas.getFramebufferHeight();
+    }
+
+    private void ensureEDT() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException("This method must be called on the EDT");
+        }
     }
 
     private void renderScene(float dt) {
