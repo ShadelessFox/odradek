@@ -59,9 +59,12 @@ public class StructuredTree<T> extends JTree {
     }
 
     private void fireActionListener(InputEvent event) {
-        var path = getLeadSelectionPath();
-        if (path != null) {
-            fireActionListener(event, path, getLeadSelectionRow());
+        TreePath[] paths = getSelectionPaths();
+        if (paths == null) {
+            return;
+        }
+        for (TreePath path : paths) {
+            fireActionListener(event, path, getRowForPath(path));
         }
     }
 

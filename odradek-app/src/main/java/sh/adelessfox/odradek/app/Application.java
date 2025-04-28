@@ -139,8 +139,8 @@ public class Application {
         tree.setShowsRootHandles(true);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
-        tree.addActionListener(_ -> {
-            var component = tree.getLastSelectedPathComponent();
+        tree.addActionListener(event -> {
+            var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> item) {
                 component = item.getValue();
             }
