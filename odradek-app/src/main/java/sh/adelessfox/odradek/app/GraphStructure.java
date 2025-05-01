@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -14,6 +15,51 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         public String toString() {
             return "Graph";
+        }
+    }
+
+    record GraphGroups(StreamingGraphResource graph) implements GraphStructure {
+        @Override
+        public String toString() {
+            return "Groups (" + graph.groups().size() + ")";
+        }
+    }
+
+    record GraphObjects(StreamingGraphResource graph) implements GraphStructure {
+        @Override
+        public String toString() {
+            return "Objects (" + graph.types().size() + ")";
+        }
+    }
+
+    record GraphObjectSet(StreamingGraphResource graph, ClassTypeInfo info, int count) implements GraphStructure {
+        @Override
+        public String toString() {
+            return "%s (%d)".formatted(info, count);
+        }
+    }
+
+    record GraphObjectSetGroup(
+        StreamingGraphResource graph,
+        StreamingGroupData group,
+        int[] indices
+    ) implements GraphStructure {
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof GraphObjectSetGroup that
+                && Objects.equals(graph, that.graph)
+                && Objects.equals(group, that.group)
+                && Arrays.equals(indices, that.indices);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(graph, group, Arrays.hashCode(indices));
+        }
+
+        @Override
+        public String toString() {
+            return "Group %s (%d)".formatted(group.groupID(), indices.length);
         }
     }
 
@@ -116,7 +162,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public String toString() {
-            return "%s (%d)".formatted(info.name(), indices.length);
+            return "%s (%d)".formatted(info, indices.length);
         }
     }
 
@@ -144,9 +190,36 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     @Override
     default List<? extends GraphStructure> getChildren(GraphStructure parent) {
         return switch (parent) {
-            case Graph(var graph) -> graph.groups().stream()
+            case Graph(var graph) -> List.of(
+                new GraphGroups(graph),
+                new GraphObjects(graph)
+            );
+            case GraphGroups(var graph) -> graph.groups().stream()
                 .map(group -> new Group(graph, group))
                 .sorted()
+                .toList();
+            case GraphObjects(var graph) -> {
+                var types = graph.types().stream().collect(Collectors.groupingBy(
+                    Function.identity(),
+                    IdentityHashMap::new,
+                    Collectors.counting()
+                ));
+                yield types.entrySet().stream()
+                    .sorted(Comparator.comparing(x -> x.getKey().name()))
+                    .map(entry -> new GraphObjectSet(graph, entry.getKey(), Math.toIntExact(entry.getValue())))
+                    .toList();
+            }
+            case GraphObjectSet(var graph, var info, var _) -> graph.groups().stream()
+                .filter(group -> graph.types(group).stream().anyMatch(type -> type == info))
+                .map(group -> {
+                    var indices = IntStream.range(0, group.typeCount())
+                        .filter(index -> graph.types().get(group.typeStart() + index) == info)
+                        .toArray();
+                    return new GraphObjectSetGroup(graph, group, indices);
+                })
+                .toList();
+            case GraphObjectSetGroup(var graph, var group, var indices) -> IntStream.of(indices)
+                .mapToObj(index -> new GroupObject(graph, group, index))
                 .toList();
             case Group(var graph, var group) -> List.of(
                 new GroupObjects(graph, group),
@@ -177,7 +250,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 if (options.contains(GroupObjects.Options.GROUP_BY_TYPE)) {
                     var indices = IntStream.range(0, group.typeCount())
                         .boxed()
-                        .collect(Collectors.groupingBy(index -> graph.types().get(group.typeStart() + index)));
+                        .collect(Collectors.groupingBy(index -> graph.types().get(group.typeStart() + index), IdentityHashMap::new, Collectors.toList()));
                     var comparator = options.contains(GroupObjects.Options.SORT_BY_COUNT)
                         ? Comparator.comparingInt((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getValue().size()).reversed()
                         : Comparator.comparing((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getKey().name().name());
@@ -201,14 +274,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     @Override
     default boolean hasChildren(GraphStructure node) {
         return switch (node) {
-            case Graph(var graph) -> !graph.groups().isEmpty();
-            case Group _ -> true;
-            case GroupObjects(var _, var group, var _) -> group.numObjects() > 0;
-            case GroupObjectSet(var _, var _, var _, var indices) -> indices.length > 0;
             case GroupDependencies(var _, var group) -> group.subGroupCount() > 0;
             case GroupDependents(var graph, var group) -> !graph.incomingGroups(group).isEmpty();
             case GroupRoots(var _, var group) -> group.rootCount() > 0;
             case GroupObject _ -> false;
+            default -> true;
         };
     }
 }

@@ -18,6 +18,7 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
+import sh.adelessfox.odradek.math.Vec3;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
@@ -34,7 +35,6 @@ import java.awt.event.MouseEvent;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
 public class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -111,17 +111,19 @@ public class Application {
     }
 
     private static Predicate<GraphStructure> createFilter(String filter) {
+        if (filter.isBlank()) {
+            return _ -> true;
+        }
         if (filter.equals("has:roots")) {
             return structure -> switch (structure) {
                 case GraphStructure.Group(var _, var group) -> group.rootCount() > 0;
                 default -> true;
             };
         }
-
         return structure -> switch (structure) {
-            case GraphStructure.Group(var graph, var group) -> IntStream.range(0, group.typeCount())
-                .mapToObj(index -> graph.types().get(group.typeStart() + index))
-                .anyMatch(type -> filterMatches(type, filter));
+            case GraphStructure.Group(var graph, var group) ->
+                graph.types(group).stream().anyMatch(info -> filterMatches(info, filter));
+            case GraphStructure.GraphObjectSet(var _, var info, var _) -> filterMatches(info, filter);
             case GraphStructure.GroupObject object -> filterMatches(object.type(), filter);
             case GraphStructure.GroupObjectSet(var _, var _, var info, var _) -> filterMatches(info, filter);
             default -> true;

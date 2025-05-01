@@ -26,14 +26,18 @@ class GraphTreeCellRenderer extends DefaultTreeCellRenderer {
         }
         if (node instanceof GraphStructure structure) {
             var icon = switch (structure) {
-                case GraphStructure.Graph ignored -> Fugue.getIcon("folders-stack");
-                case GraphStructure.Group ignored -> Fugue.getIcon("folders");
-                case GraphStructure.GroupDependents ignored -> Fugue.getIcon("folder-import");
-                case GraphStructure.GroupDependencies ignored -> Fugue.getIcon("folder-export");
-                case GraphStructure.GroupRoots ignored -> Fugue.getIcon("folder-bookmark");
-                case GraphStructure.GroupObjects ignored -> Fugue.getIcon("folder-open-document");
-                case GraphStructure.GroupObjectSet ignored -> Fugue.getIcon("folder-open-document");
-                case GraphStructure.GroupObject ignored -> Fugue.getIcon("blue-document");
+                case GraphStructure.GraphGroups _ -> Fugue.getIcon("folders-stack");
+                case GraphStructure.GraphObjects _ -> Fugue.getIcon("folders-stack");
+                case GraphStructure.GraphObjectSet _ -> Fugue.getIcon("folder-open-document");
+                case GraphStructure.GraphObjectSetGroup _ -> Fugue.getIcon("folders");
+                case GraphStructure.Group _ -> Fugue.getIcon("folders");
+                case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
+                case GraphStructure.GroupDependencies _ -> Fugue.getIcon("folder-export");
+                case GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
+                case GraphStructure.GroupObjects _ -> Fugue.getIcon("folder-open-document");
+                case GraphStructure.GroupObjectSet _ -> Fugue.getIcon("folder-open-document");
+                case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
+                default -> null;
             };
             if (tree.isEnabled()) {
                 setIcon(icon);
