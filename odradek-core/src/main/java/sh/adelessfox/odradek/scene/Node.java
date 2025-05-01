@@ -11,6 +11,10 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, List<Node> childr
         children = List.copyOf(children);
     }
 
+    public Node(List<Node> children) {
+        this(Optional.empty(), Optional.empty(), children, Mat4.identity());
+    }
+
     public Node transform(Mat4 transform) {
         return new Node(name, mesh, children, matrix.mul(transform));
     }

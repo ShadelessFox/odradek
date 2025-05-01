@@ -103,7 +103,7 @@ public class Application {
         var frame = new JFrame();
         frame.add(splitPane);
         frame.setJMenuBar(menuBar);
-        frame.setTitle("Odradek");
+        frame.setTitle("Odradek - " + source);
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -258,10 +258,13 @@ public class Application {
                 .map(Scene::of)
                 .orElse(null);
 
+            Camera camera = new Camera(30.f, 0.01f, 1000.f);
+            camera.position(new Vec3(-2, 0, 1));
+
             Viewport viewport = new Viewport();
             viewport.setMinimumSize(new Dimension(100, 100));
             viewport.addRenderPass(new RenderMeshesPass());
-            viewport.setCamera(new Camera(30.f, 0.01f, 1000.f));
+            viewport.setCamera(camera);
             viewport.setScene(scene);
 
             component = viewport;

@@ -26,22 +26,20 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         return object instanceof StaticMeshResource
             || object instanceof RegularSkinnedMeshResource
             || object instanceof LodMeshResource
-            || object instanceof MultiMeshResource;
+            || object instanceof MultiMeshResource
+            || object instanceof BodyVariant;
     }
 
     @Override
     public Optional<Node> convert(Object object, ForbiddenWestGame game) {
-        return convertResource((MeshResourceBase) object, game);
-    }
-
-    private Optional<Node> convertResource(MeshResourceBase resource, ForbiddenWestGame game) {
-        return switch (resource) {
+        return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(r, game);
             case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(r, game);
             case LodMeshResource r -> convertLodMeshResource(r, game);
             case MultiMeshResource r -> convertMultiMeshResource(r, game);
+            case BodyVariant r -> convertBodyVariant(r, game);
             default -> {
-                log.error("Unsupported resource type: {}", resource);
+                log.error("Unsupported resource type: {}", object);
                 yield Optional.empty();
             }
         };
@@ -70,7 +68,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
 
     private Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {
         var part = resource.runtimeMeshes().getFirst();
-        return convertResource(part.mesh().get(), game);
+        return convert(part.mesh().get(), game);
     }
 
     private Optional<Node> convertMultiMeshResource(MultiMeshResource resource, ForbiddenWestGame game) {
@@ -81,16 +79,23 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             .flatMap(Optional::stream)
             .toList();
 
-        var node = new Node(Optional.empty(), Optional.empty(), children, Mat4.identity());
-
-        return Optional.of(node);
+        return Optional.of(new Node(children));
     }
 
     private Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
-        var child = convertResource(resource, game);
+        var child = convert(resource, game);
         var matrix = transform != null ? convertMat34(transform) : Mat4.identity();
 
         return child.map(c -> c.transform(matrix));
+    }
+
+    private Optional<Node> convertBodyVariant(BodyVariant resource, ForbiddenWestGame game) {
+        List<Node> children = resource.logic().modelPartResources().stream()
+            .map(part -> convert(part.get().general().meshResource().get(), game))
+            .flatMap(Optional::stream)
+            .toList();
+
+        return Optional.of(new Node(children));
     }
 
     private Mat4 convertMat34(Mat34 matrix) {

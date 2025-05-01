@@ -14,6 +14,10 @@ import java.util.function.Predicate;
 /**
  * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
  * a {@link TreeStructure} to populate the tree.
+ * <p>
+ * It supports filtering of the elements in the tree using a {@link Predicate}
+ * set via {@link #setFilter(Predicate)}. After setting the filter, the
+ * tree can be updated by calling {@link #update()}.
  *
  * @param <T> the type of the elements in the tree
  * @see TreeStructure

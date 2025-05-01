@@ -48,7 +48,7 @@ public record VertexAttribute(
     public int glSize() {
         return switch (componentType) {
             case INT_10_10_10_2, UNSIGNED_INT_10_10_10_2 -> 4;
-            case null, default -> elementType.size();
+            default -> elementType.size();
         };
     }
 }
