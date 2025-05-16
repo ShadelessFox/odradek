@@ -211,6 +211,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             }
             case GraphObjectSet(var graph, var info, var _) -> graph.groups().stream()
                 .filter(group -> graph.types(group).stream().anyMatch(type -> type == info))
+                .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
                 .map(group -> {
                     var indices = IntStream.range(0, group.typeCount())
                         .filter(index -> graph.types().get(group.typeStart() + index) == info)

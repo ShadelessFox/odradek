@@ -1,6 +1,7 @@
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.converters.MeshToNodeConverter;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
+import sh.adelessfox.odradek.game.hfw.rtti.data.GGUUIDExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingDataSourceExtension;
 import sh.adelessfox.odradek.rtti.generator.GenerateBindings;
 import sh.adelessfox.odradek.rtti.generator.GenerateBindings.Builtin;
@@ -59,7 +60,8 @@ import java.math.BigInteger;
         @Callback(type = "WorldMapSuperTile", handler = WorldMapSuperTileCallback.class),
     },
     extensions = {
-        @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class),
+        @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
+        @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)
     }
 )
 module odradek.game.hfw {
@@ -73,6 +75,7 @@ module odradek.game.hfw {
     opens sh.adelessfox.odradek.game.hfw.rtti.callbacks to odradek.rtti;
 
     exports sh.adelessfox.odradek.game.hfw.game;
+    exports sh.adelessfox.odradek.game.hfw.rtti.data;
     exports sh.adelessfox.odradek.game.hfw.rtti;
     exports sh.adelessfox.odradek.game.hfw.storage;
     exports sh.adelessfox.odradek.game.hfw;

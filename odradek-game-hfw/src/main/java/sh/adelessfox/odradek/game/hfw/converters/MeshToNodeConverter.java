@@ -27,7 +27,9 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             || object instanceof RegularSkinnedMeshResource
             || object instanceof LodMeshResource
             || object instanceof MultiMeshResource
-            || object instanceof BodyVariant;
+            || object instanceof BodyVariant
+            || object instanceof SkinnedModelResource
+            || object instanceof ControlledEntityResource;
     }
 
     @Override
@@ -38,11 +40,52 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             case LodMeshResource r -> convertLodMeshResource(r, game);
             case MultiMeshResource r -> convertMultiMeshResource(r, game);
             case BodyVariant r -> convertBodyVariant(r, game);
+            case SkinnedModelResource r -> convertSkinnedModelResource(r, game);
+            case ControlledEntityResource r -> convertControlledEntityResource(r, game);
             default -> {
                 log.error("Unsupported resource type: {}", object);
                 yield Optional.empty();
             }
         };
+    }
+
+    private Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
+        List<Node> children = new ArrayList<>();
+
+        for (EntityComponentResource component : Ref.unwrap(resource.logic().entityComponentResources())) {
+            switch (component) {
+                case DestructibilityResource destructibility -> {
+                    for (DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
+                        var partState = part.initialState().get();
+                        var modelPart = convertModelPartResource(partState.state().modelPartResource().get(), game);
+                        // TODO: Handle attachment joints
+                        modelPart.ifPresent(children::add);
+                    }
+                }
+                case SkinnedModelResource model -> {
+                    log.info("Skinned model: {}", model);
+                    convertSkinnedModelResource(model, game).ifPresent(children::add);
+                }
+                default -> log.debug("Skipping unsupported component: {}", component.getType());
+            }
+        }
+
+        return Optional.of(new Node(children));
+    }
+
+    private Optional<Node> convertSkinnedModelResource(SkinnedModelResource resource, ForbiddenWestGame game) {
+        var parts = resource.general().modelPartResources().stream()
+            .flatMap(part -> convertModelPartResource(part.get(), game).stream())
+            .toList();
+
+        return Optional.of(new Node(parts));
+    }
+
+    private Optional<Node> convertModelPartResource(ModelPartResource resource, ForbiddenWestGame game) {
+        if (resource.general().meshResource() == null) {
+            return Optional.empty();
+        }
+        return convert(resource.general().meshResource().get(), game);
     }
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {

@@ -3,6 +3,8 @@ package sh.adelessfox.odradek.game.hfw.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
+import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
+import sh.adelessfox.odradek.game.hfw.rtti.data.UUIDRef;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.Ref;
@@ -15,7 +17,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
 
@@ -244,7 +245,7 @@ public class StreamingObjectReader extends HFWTypeReader {
             throw new IllegalStateException("Type mismatch for pointer");
         }
 
-        return new StreamingLink<>(object.object());
+        return new StreamingLink<>(object.object(), group.group().groupID(), linkIndex);
     }
 
     private String indent() {
@@ -257,62 +258,6 @@ public class StreamingObjectReader extends HFWTypeReader {
 
     private String getSpanFile(StreamingSourceSpan span) {
         return graph.files().get(span.fileIndexAndIsPatch() & 0x7fffffff);
-    }
-
-    private GGUUID parseUUID(String objectUUID) {
-        var uuid = UUID.fromString(objectUUID);
-        var msb = uuid.getMostSignificantBits();
-        var lsb = uuid.getLeastSignificantBits();
-
-        var object = factory.newInstance(GGUUID.class);
-        object.data0((byte) (msb >>> 56));
-        object.data1((byte) (msb >>> 48));
-        object.data2((byte) (msb >>> 40));
-        object.data3((byte) (msb >>> 32));
-        object.data4((byte) (msb >>> 24));
-        object.data5((byte) (msb >>> 16));
-        object.data6((byte) (msb >>> 8));
-        object.data7((byte) (msb));
-        object.data8((byte) (lsb >>> 56));
-        object.data9((byte) (lsb >>> 48));
-        object.data10((byte) (lsb >>> 40));
-        object.data11((byte) (lsb >>> 32));
-        object.data12((byte) (lsb >>> 24));
-        object.data13((byte) (lsb >>> 16));
-        object.data14((byte) (lsb >>> 8));
-        object.data15((byte) (lsb));
-
-        return object;
-    }
-
-    private record StreamingLink<T>(RTTIRefObject object) implements Ref<T> {
-        @Override
-        @SuppressWarnings("unchecked")
-        public T get() {
-            return (T) object;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return this == obj;
-        }
-
-        @Override
-        public int hashCode() {
-            return System.identityHashCode(this);
-        }
-
-        @Override
-        public String toString() {
-            return "<streaming link to " + object.getType() + ">";
-        }
-    }
-
-    private record UUIDRef<T>(GGUUID objectUUID) implements Ref<T> {
-        @Override
-        public T get() {
-            return null;
-        }
     }
 
     private record Colors(CharSequence text, int foreground) {

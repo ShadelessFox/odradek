@@ -17,12 +17,11 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
+import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.math.Vec3;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 
@@ -33,6 +32,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
@@ -108,6 +108,9 @@ public class Application {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
+
+        showObjectInfo(game, 4565, 64);
+        showObjectInfo(game, 1151, 9);
     }
 
     private static Predicate<GraphStructure> createFilter(String filter) {
@@ -148,29 +151,8 @@ public class Application {
             }
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 tree.setEnabled(false);
-
-                new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
-                    @Override
-                    protected StreamingObjectReader.GroupResult doInBackground() throws Exception {
-                        log.debug("Reading group {}", groupObject.group().groupID());
-                        return game.getStreamingReader().readGroup(groupObject.group().groupID());
-                    }
-
-                    @Override
-                    protected void done() {
-                        try {
-                            var result = get();
-                            var object = result.objects().get(groupObject.index());
-                            SwingUtilities.invokeLater(() -> showObjectInfo(game, object.type(), object.object()));
-                        } catch (ExecutionException e) {
-                            log.error("Failed to read object", e);
-                        } catch (InterruptedException ignored) {
-                            // ignored
-                        } finally {
-                            tree.setEnabled(true);
-                        }
-                    }
-                }.execute();
+                var future = showObjectInfo(game, groupObject.group().groupID(), groupObject.index());
+                future.whenComplete((_, _) -> tree.setEnabled(true));
             }
         });
 
@@ -245,18 +227,44 @@ public class Application {
         });
     }
 
-    private static void showObjectInfo(Game game, ClassTypeInfo info, Object object) {
-        log.debug("Showing object info for {}", info);
+    private static CompletableFuture<Void> showObjectInfo(ForbiddenWestGame game, int groupId, int objectIndex) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
 
-        JComponent component;
+        new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
+            @Override
+            protected StreamingObjectReader.GroupResult doInBackground() throws Exception {
+                log.debug("Reading group {}", groupId);
+                return game.getStreamingReader().readGroup(groupId);
+            }
 
-        boolean matches = Converter.converters()
-            .anyMatch(converter -> converter.supports(object) && converter.resultType() == Node.class);
+            @Override
+            protected void done() {
+                try {
+                    var result = get();
+                    var object = result.objects().get(objectIndex);
+                    SwingUtilities.invokeLater(() -> showObjectInfo(game, object.type(), object.object(), groupId, objectIndex));
+                } catch (ExecutionException e) {
+                    future.completeExceptionally(e.getCause());
+                } catch (InterruptedException e) {
+                    future.completeExceptionally(e);
+                } finally {
+                    future.complete(null);
+                }
+            }
+        }.execute();
 
-        if (matches) {
-            var scene = Converter.convert(object, game, Node.class)
-                .map(Scene::of)
-                .orElse(null);
+        return future;
+    }
+
+    private static void showObjectInfo(Game game, ClassTypeInfo info, Object object, int groupId, int groupIndex) {
+        log.debug("Showing object info for {} (group: {}, index: {})", info, groupId, groupIndex);
+
+        FlatTabbedPane pane = new FlatTabbedPane();
+        pane.setTabPlacement(SwingConstants.BOTTOM);
+        pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+
+        Converter.convert(object, game, Node.class).ifPresent(node -> {
+            Scene scene = Scene.of(node);
 
             Camera camera = new Camera(30.f, 0.01f, 1000.f);
             camera.position(new Vec3(-2, 0, 1));
@@ -267,12 +275,14 @@ public class Application {
             viewport.setCamera(camera);
             viewport.setScene(scene);
 
-            component = viewport;
-        } else {
-            component = new JScrollPane(createObjectTree(game, info, object));
-        }
+            pane.add("Model", viewport);
+        });
 
-        tabs.add(info.toString(), component);
+        pane.add("Object", new JScrollPane(createObjectTree(game, info, object)));
+        pane.setSelectedIndex(0);
+
+        tabs.add(info.toString(), pane);
+        tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, groupIndex));
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
     }
 
@@ -286,11 +296,8 @@ public class Application {
             if (component instanceof TreeItem<?> wrapper) {
                 component = wrapper.getValue();
             }
-            if (component instanceof ObjectStructure structure
-                && structure.value() instanceof Ref<?> ref
-                && ref.get() instanceof TypedObject target
-            ) {
-                showObjectInfo(game, target.getType(), target);
+            if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
+                showObjectInfo(game, link.get().getType(), link.get(), link.group(), link.index());
             }
         });
         return tree;

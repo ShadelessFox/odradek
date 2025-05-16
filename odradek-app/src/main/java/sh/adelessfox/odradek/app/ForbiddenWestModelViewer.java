@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Comparator;
-import java.util.HexFormat;
 
 public class ForbiddenWestModelViewer {
     private static final Logger log = LoggerFactory.getLogger(ForbiddenWestModelViewer.class);
@@ -58,7 +57,7 @@ public class ForbiddenWestModelViewer {
                 if (resource == null) {
                     return super.getListCellRendererComponent(list, null, index, isSelected, cellHasFocus);
                 }
-                var name = "%s - %s".formatted(uuidToString(resource.general().objectUUID()), resource.getType());
+                var name = "%s - %s".formatted(resource.general().objectUUID().toDisplayString(), resource.getType());
                 if (resource instanceof StaticMeshResource mesh && mesh.meshDescription().isMoss()) {
                     name += " (moss)";
                 }
@@ -102,28 +101,6 @@ public class ForbiddenWestModelViewer {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
-    }
-
-    private static String uuidToString(GGUUID gguuid) {
-        var builder = new StringBuilder(32);
-        var format = HexFormat.of();
-        format.toHexDigits(builder, gguuid.data0());
-        format.toHexDigits(builder, gguuid.data1());
-        format.toHexDigits(builder, gguuid.data2());
-        format.toHexDigits(builder, gguuid.data3());
-        format.toHexDigits(builder, gguuid.data4());
-        format.toHexDigits(builder, gguuid.data5());
-        format.toHexDigits(builder, gguuid.data6());
-        format.toHexDigits(builder, gguuid.data7());
-        format.toHexDigits(builder, gguuid.data8());
-        format.toHexDigits(builder, gguuid.data9());
-        format.toHexDigits(builder, gguuid.data10());
-        format.toHexDigits(builder, gguuid.data11());
-        format.toHexDigits(builder, gguuid.data12());
-        format.toHexDigits(builder, gguuid.data13());
-        format.toHexDigits(builder, gguuid.data14());
-        format.toHexDigits(builder, gguuid.data15());
-        return builder.toString();
     }
 
     private static StreamingGroupData[] loadGroups(ForbiddenWestGame game) {
