@@ -16,31 +16,38 @@ public final class VertexBuffer implements GLObject {
         this.target = target;
     }
 
+    public void allocate(int size, int usage) {
+        glBufferData(target, size, usage);
+    }
+
     public void put(ByteBuffer data, int usage) {
         ensureBound();
-        if (data.isDirect()) {
-            glBufferData(target, data, usage);
-            return;
-        }
-        glBufferData(target, BufferUtils.createByteBuffer(data.remaining()).put(data).flip(), usage);
+        glBufferData(target, ensureDirect(data), usage);
     }
 
     public void put(IntBuffer data, int usage) {
         ensureBound();
-        if (data.isDirect()) {
-            glBufferData(target, data, usage);
-            return;
-        }
-        glBufferData(target, BufferUtils.createIntBuffer(data.remaining()).put(data).flip(), usage);
+        glBufferData(target, ensureDirect(data), usage);
     }
 
     public void put(FloatBuffer data, int usage) {
         ensureBound();
-        if (data.isDirect()) {
-            glBufferData(target, data, usage);
-            return;
-        }
-        glBufferData(target, BufferUtils.createFloatBuffer(data.remaining()).put(data).flip(), usage);
+        glBufferData(target, ensureDirect(data), usage);
+    }
+
+    public void update(ByteBuffer data, int offset) {
+        ensureBound();
+        glBufferSubData(target, offset, ensureDirect(data));
+    }
+
+    public void update(IntBuffer data, int offset) {
+        ensureBound();
+        glBufferSubData(target, offset, ensureDirect(data));
+    }
+
+    public void update(FloatBuffer data, int offset) {
+        ensureBound();
+        glBufferSubData(target, offset, ensureDirect(data));
     }
 
     @Override
@@ -57,6 +64,30 @@ public final class VertexBuffer implements GLObject {
     @Override
     public void dispose() {
         glDeleteBuffers(buffer);
+    }
+
+    private ByteBuffer ensureDirect(ByteBuffer buffer) {
+        if (buffer.isDirect()) {
+            return buffer;
+        } else {
+            return BufferUtils.createByteBuffer(buffer.remaining()).put(buffer).flip();
+        }
+    }
+
+    private IntBuffer ensureDirect(IntBuffer buffer) {
+        if (buffer.isDirect()) {
+            return buffer;
+        } else {
+            return BufferUtils.createIntBuffer(buffer.remaining()).put(buffer).flip();
+        }
+    }
+
+    private FloatBuffer ensureDirect(FloatBuffer buffer) {
+        if (buffer.isDirect()) {
+            return buffer;
+        } else {
+            return BufferUtils.createFloatBuffer(buffer.remaining()).put(buffer).flip();
+        }
     }
 
     private void ensureBound() {

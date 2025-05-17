@@ -59,8 +59,8 @@ public final class Viewport extends JPanel {
                 glDepthMask(true);
 
                 // Enable back face culling
-                // glEnable(GL_CULL_FACE);
-                // glCullFace(GL_BACK);
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
 
                 // Enable debug output
                 glEnable(GL_DEBUG_OUTPUT);

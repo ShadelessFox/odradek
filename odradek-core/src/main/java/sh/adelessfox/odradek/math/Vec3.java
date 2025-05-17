@@ -1,12 +1,6 @@
 package sh.adelessfox.odradek.math;
 
 public record Vec3(float x, float y, float z) {
-    private static final Vec3 zero = new Vec3(0, 0, 0);
-
-    public static Vec3 zero() {
-        return zero;
-    }
-
     public Vec3 add(Vec3 other) {
         return add(other.x, other.y, other.z);
     }

@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.gl;
 
 import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
-import sh.adelessfox.odradek.geometry.Semantic;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_2_10_10_10_REV;
@@ -11,7 +10,6 @@ import static org.lwjgl.opengl.GL33.GL_INT_2_10_10_10_REV;
 
 public record VertexAttribute(
     int location,
-    Semantic semantic,
     ElementType elementType,
     ComponentType componentType,
     int offset,

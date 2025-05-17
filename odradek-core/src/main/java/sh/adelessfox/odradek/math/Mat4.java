@@ -120,6 +120,52 @@ public record Mat4(
         );
     }
 
+    public Mat4 invert() {
+        var a = m00() * m11() - m01() * m10();
+        var b = m00() * m12() - m02() * m10();
+        var c = m00() * m13() - m03() * m10();
+        var d = m01() * m12() - m02() * m11();
+        var e = m01() * m13() - m03() * m11();
+        var f = m02() * m13() - m03() * m12();
+        var g = m20() * m31() - m21() * m30();
+        var h = m20() * m32() - m22() * m30();
+        var i = m20() * m33() - m23() * m30();
+        var j = m21() * m32() - m22() * m31();
+        var k = m21() * m33() - m23() * m31();
+        var l = m22() * m33() - m23() * m32();
+
+        var determinant = a * l - b * k + c * j + d * i - e * h + f * g;
+        var scale = 1.0f / determinant;
+
+        var m00 = Math.fma(m11(), l, Math.fma(-m12(), k, m13() * j)) * scale;
+        var m01 = Math.fma(-m01(), l, Math.fma(m02(), k, -m03() * j)) * scale;
+        var m02 = Math.fma(m31(), f, Math.fma(-m32(), e, m33() * d)) * scale;
+        var m03 = Math.fma(-m21(), f, Math.fma(m22(), e, -m23() * d)) * scale;
+        var m10 = Math.fma(-m10(), l, Math.fma(m12(), i, -m13() * h)) * scale;
+        var m11 = Math.fma(m00(), l, Math.fma(-m02(), i, m03() * h)) * scale;
+        var m12 = Math.fma(-m30(), f, Math.fma(m32(), c, -m33() * b)) * scale;
+        var m13 = Math.fma(m20(), f, Math.fma(-m22(), c, m23() * b)) * scale;
+        var m20 = Math.fma(m10(), k, Math.fma(-m11(), i, m13() * g)) * scale;
+        var m21 = Math.fma(-m00(), k, Math.fma(m01(), i, -m03() * g)) * scale;
+        var m22 = Math.fma(m30(), e, Math.fma(-m31(), c, m33() * a)) * scale;
+        var m23 = Math.fma(-m20(), e, Math.fma(m21(), c, -m23() * a)) * scale;
+        var m30 = Math.fma(-m10(), j, Math.fma(m11(), h, -m12() * g)) * scale;
+        var m31 = Math.fma(m00(), j, Math.fma(-m01(), h, m02() * g)) * scale;
+        var m32 = Math.fma(-m30(), d, Math.fma(m31(), b, -m32() * a)) * scale;
+        var m33 = Math.fma(m20(), d, Math.fma(-m21(), b, m22() * a)) * scale;
+
+        return new Mat4(
+            m00, m01, m02, m03,
+            m10, m11, m12, m13,
+            m20, m21, m22, m23,
+            m30, m31, m32, m33
+        );
+    }
+
+    public Vec3 translation() {
+        return new Vec3(m30, m31, m32);
+    }
+
     public FloatBuffer get(FloatBuffer dst) {
         dst.put(m00).put(m01).put(m02).put(m03);
         dst.put(m10).put(m11).put(m12).put(m13);

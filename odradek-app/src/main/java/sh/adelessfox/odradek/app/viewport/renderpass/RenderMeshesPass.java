@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Mat4;
+import sh.adelessfox.odradek.math.Vec3;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 
@@ -67,15 +68,19 @@ public final class RenderMeshesPass implements RenderPass {
 
     private ShaderProgram program;
     private Scene scene;
+    private RenderDebugPass debug;
 
     @Override
     public void init() {
         program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        debug = new RenderDebugPass();
+        debug.init();
     }
 
     @Override
     public void dispose() {
         program.dispose();
+        debug.dispose();
     }
 
     @Override
@@ -93,6 +98,7 @@ public final class RenderMeshesPass implements RenderPass {
             return;
         }
         renderScene(activeCamera, scene);
+        debug.draw(viewport, dt);
     }
 
     private void renderScene(Camera camera, Scene scene) {
@@ -102,12 +108,12 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_view_position", camera.position());
 
             for (Node node : scene.nodes()) {
-                renderNode(node, node.matrix(), program);
+                renderNode(node, node.matrix());
             }
         }
     }
 
-    private void renderNode(Node node, Mat4 transform, ShaderProgram program) {
+    private void renderNode(Node node, Mat4 transform) {
         GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
 
         for (GpuPrimitive primitive : data.primitives()) {
@@ -119,7 +125,23 @@ public final class RenderMeshesPass implements RenderPass {
         }
 
         for (Node child : node.children()) {
-            renderNode(child, transform.mul(child.matrix()), program);
+            renderNode(child, transform.mul(child.matrix()));
+        }
+
+        if (node.skin().isPresent()) {
+            renderSkin(node.skin().get(), null);
+        }
+    }
+
+    private void renderSkin(Node node, Node parent) {
+        if (parent != null) {
+            var translation = node.matrix().translation();
+            debug.point(translation, new Vec3(1, 0, 1), 10f, false);
+            debug.line(parent.matrix().translation(), translation, new Vec3(0, 1, 0), false);
+        }
+
+        for (Node child : node.children()) {
+            renderSkin(child, node);
         }
     }
 
@@ -150,7 +172,6 @@ public final class RenderMeshesPass implements RenderPass {
             var attributes = buffers.computeIfAbsent(accessor.buffer(), _ -> new ArrayList<>());
             attributes.add(new VertexAttribute(
                 location++,
-                semantic,
                 accessor.elementType(),
                 accessor.componentType(),
                 accessor.offset(),

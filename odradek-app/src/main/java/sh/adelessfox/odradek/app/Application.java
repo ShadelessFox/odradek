@@ -109,8 +109,8 @@ public class Application {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
-        showObjectInfo(game, 4565, 64);
-        showObjectInfo(game, 1151, 9);
+        showObjectInfo(game, 4565, 64).get();
+        showObjectInfo(game, 1151, 9).get();
     }
 
     private static Predicate<GraphStructure> createFilter(String filter) {
@@ -244,8 +244,10 @@ public class Application {
                     var object = result.objects().get(objectIndex);
                     SwingUtilities.invokeLater(() -> showObjectInfo(game, object.type(), object.object(), groupId, objectIndex));
                 } catch (ExecutionException e) {
+                    log.error("Failed to read group {}", groupId, e.getCause());
                     future.completeExceptionally(e.getCause());
                 } catch (InterruptedException e) {
+                    log.error("Interrupted while reading group {}", groupId, e);
                     future.completeExceptionally(e);
                 } finally {
                     future.complete(null);

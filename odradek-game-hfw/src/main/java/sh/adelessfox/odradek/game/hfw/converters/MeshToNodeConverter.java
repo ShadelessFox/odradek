@@ -70,7 +70,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             }
         }
 
-        return Optional.of(new Node(children));
+        return Optional.of(Node.of(children));
     }
 
     private Optional<Node> convertSkinnedModelResource(SkinnedModelResource resource, ForbiddenWestGame game) {
@@ -78,7 +78,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             .flatMap(part -> convertModelPartResource(part.get(), game).stream())
             .toList();
 
-        return Optional.of(new Node(parts));
+        return Optional.of(Node.of(parts));
     }
 
     private Optional<Node> convertModelPartResource(ModelPartResource resource, ForbiddenWestGame game) {
@@ -92,21 +92,48 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         if (resource.meshDescription().isMoss()) {
             return Optional.empty();
         }
-        return convertMesh(
+        var mesh = convertMesh(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
             resource.meshDescription().streamingDataSource(),
             game
         );
+        return Optional.of(Node.of(mesh));
     }
 
     private Optional<Node> convertRegularSkinnedMeshResource(RegularSkinnedMeshResource resource, ForbiddenWestGame game) {
-        return convertMesh(
-            resource.shadingGroups(),
-            resource.primitives(),
-            resource.streamingDataSource(),
-            game
-        );
+        var node = Node.builder()
+            .mesh(convertMesh(resource.shadingGroups(), resource.primitives(), resource.streamingDataSource(), game))
+            .skin(convertSkeleton(resource.general().skeleton().get(), resource.skinning().skinnedMeshJointBindings().get()))
+            .build();
+
+        return Optional.of(node);
+    }
+
+    private static Node convertSkeleton(Skeleton skeleton, SkinnedMeshIndexedJointBindings bindings) {
+        var joints = skeleton.general().joints();
+        var unlinked = joints.stream().map(joint -> Node.builder().name(joint.name())).toList();
+        var linked = new Node[unlinked.size()];
+
+        for (int i = 0; i < bindings.jointIndexList().length; i++) {
+            var inverseBindMatrix = convertMat44(bindings.inverseBindMatrices().get(i));
+            var node = unlinked.get(bindings.jointIndexList()[i]);
+            node.matrix(inverseBindMatrix.invert());
+        }
+
+        for (int i = joints.size() - 1; i >= 0; i--) {
+            var joint = joints.get(i);
+            var node = unlinked.get(i).build();
+            if (joint.parentIndex() != -1) {
+                unlinked.get(joint.parentIndex()).add(node);
+            }
+            if (linked[i] != null) {
+                throw new IllegalStateException("Node already linked");
+            }
+            linked[i] = node;
+        }
+
+        return Node.of(List.of(linked[0]));
     }
 
     private Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {
@@ -122,7 +149,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             .flatMap(Optional::stream)
             .toList();
 
-        return Optional.of(new Node(children));
+        return Optional.of(Node.of(children));
     }
 
     private Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
@@ -138,10 +165,10 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             .flatMap(Optional::stream)
             .toList();
 
-        return Optional.of(new Node(children));
+        return Optional.of(Node.of(children));
     }
 
-    private Mat4 convertMat34(Mat34 matrix) {
+    private static Mat4 convertMat34(Mat34 matrix) {
         return new Mat4(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
             matrix.row0().y(), matrix.row1().y(), matrix.row2().y(), 0.f,
@@ -150,7 +177,16 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         );
     }
 
-    private Optional<Node> convertMesh(
+    private static Mat4 convertMat44(Mat44 matrix) {
+        return new Mat4(
+            matrix.col0().x(), matrix.col0().y(), matrix.col0().z(), matrix.col0().w(),
+            matrix.col1().x(), matrix.col1().y(), matrix.col1().z(), matrix.col1().w(),
+            matrix.col2().x(), matrix.col2().y(), matrix.col2().z(), matrix.col2().w(),
+            matrix.col3().x(), matrix.col3().y(), matrix.col3().z(), matrix.col3().w()
+        );
+    }
+
+    private Mesh convertMesh(
         List<Ref<ShadingGroup>> shadingGroups,
         List<Ref<PrimitiveResource>> primitiveResources,
         StreamingDataSource dataSource,
@@ -181,10 +217,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
-        var mesh = new Mesh(Optional.empty(), primitives);
-        var node = new Node(Optional.empty(), Optional.of(mesh), List.of(), Mat4.identity());
-
-        return Optional.of(node);
+        return Mesh.of(primitives);
     }
 
     private static Map<Semantic, Accessor> buildVertexAccessors(VertexArrayResource vertexArray, ByteBuffer buffer) {
