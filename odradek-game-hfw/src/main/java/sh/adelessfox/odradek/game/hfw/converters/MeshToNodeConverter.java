@@ -133,7 +133,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             linked[i] = node;
         }
 
-        return Node.of(List.of(linked[0]));
+        return linked[0];
     }
 
     private Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {
