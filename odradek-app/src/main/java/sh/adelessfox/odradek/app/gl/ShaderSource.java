@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public record ShaderSource(String name, String source) {
-    public static ShaderSource fromResource(String name, ClassLoader classLoader) throws IOException {
-        try (InputStream stream = classLoader.getResourceAsStream(name)) {
+    public static ShaderSource fromResource(String name, Class<?> cls) throws IOException {
+        try (InputStream stream = cls.getResourceAsStream(name)) {
             if (stream == null) {
                 throw new IOException("Can't find resource '" + name + "'");
             }

@@ -10,10 +10,10 @@ import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
 import sh.adelessfox.odradek.math.Vec3;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.FloatBuffer;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -29,47 +29,24 @@ public class DebugRenderPass implements RenderPass {
     private static final int VERTEX_BUFFER_SIZE = 4096;
     private static final int VERTEX_SIZE = 7;
 
-    // region Shaders
-    private static final ShaderSource VERTEX_SHADER = new ShaderSource("main.vert", """
-        #version 330 core
-        
-        in vec3 in_position;
-        in vec4 in_color_point_size;
-        
-        out vec3 io_color;
-        
-        uniform mat4 u_view;
-        uniform mat4 u_projection;
-        
-        void main() {
-            gl_Position = u_projection * u_view * vec4(in_position, 1.0);
-            gl_PointSize = in_color_point_size.w;
-            io_color = in_color_point_size.rgb;
-        }""");
-
-    private static final ShaderSource FRAGMENT_SHADER = new ShaderSource("main.frag", """
-        #version 330 core
-        
-        in vec3 io_color;
-        
-        out vec4 out_color;
-        
-        void main() {
-            out_color = vec4(io_color, 1.0);
-        }""");
-    // endregion
-
     private ShaderProgram program;
     private VertexArray vao;
     private VertexBuffer vbo;
 
     private final FloatBuffer vertices = BufferUtils.createFloatBuffer(VERTEX_BUFFER_SIZE * VERTEX_SIZE);
-    private final Deque<Line> lines = new ArrayDeque<>(MAX_LINES);
+    private final List<Line> lines = new ArrayList<>(MAX_LINES);
     private final List<Point> points = new ArrayList<>(MAX_POINTS);
 
     @Override
     public void init() {
-        program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        try {
+            program = new ShaderProgram(
+                ShaderSource.fromResource("/assets/shaders/debug.vert", TextRenderPass.class),
+                ShaderSource.fromResource("/assets/shaders/debug.frag", TextRenderPass.class)
+            );
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         try (var _ = vao = new VertexArray().bind()) {
             var attributes = List.of(
@@ -129,7 +106,7 @@ public class DebugRenderPass implements RenderPass {
             return;
         }
 
-        lines.offer(new Line(
+        lines.add(new Line(
             x1, y1, z1,
             x2, y2, z2,
             r, g, b,

@@ -18,8 +18,12 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.nio.FloatBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
@@ -33,82 +37,10 @@ public class TextRenderPass implements RenderPass {
     private static final int MAX_TEXTS = 32768;
     private static final int VERTEX_BUFFER_SIZE = 4096;
     private static final int VERTEX_ELEMENTS = 7;
-    private static final float FLOAT_EPSILON = Math.ulp(1.0f);
 
     private final FloatBuffer vertices = BufferUtils.createFloatBuffer(VERTEX_BUFFER_SIZE * VERTEX_ELEMENTS);
-    private final Deque<Text> texts = new ArrayDeque<>(MAX_TEXTS);
+    private final List<Text> texts = new ArrayList<>(MAX_TEXTS);
     private final Map<Integer, Glyph> glyphs = new HashMap<>();
-
-    // region Shaders
-    private static final ShaderSource VERTEX_SHADER = new ShaderSource("main.vert", """
-        #version 330 core
-        
-        in vec2 in_position;
-        in vec2 in_uv;
-        in vec3 in_color;
-        
-        out vec2 io_uv;
-        out vec3 io_color;
-        
-        uniform mat4 u_transform;
-        
-        void main() {
-            gl_Position = u_transform * vec4(in_position, 0.0, 1.0);
-            io_uv = in_uv;
-            io_color = in_color;
-        }""");
-
-    private static final ShaderSource FRAGMENT_SHADER = new ShaderSource("main.frag", """
-        #version 330 core
-        
-        in vec2 io_uv;
-        in vec3 io_color;
-        
-        out vec4 out_color;
-        
-        uniform sampler2D u_msdf;
-        uniform float u_distance_range;
-        
-        float median(float r, float g, float b) {
-            return max(min(r, g), min(max(r, g), b));
-        }
-        
-        float screenPxRange() {
-            vec2 unitRange = vec2(u_distance_range);
-            vec2 screenTexSize = vec2(1.0) / fwidth(io_uv);
-            return max(0.5 * dot(unitRange, screenTexSize), 1.0);
-        }
-        
-        void main() {
-            vec3 tex = texture(u_msdf, io_uv).rgb;
-            float distance = median(tex.r, tex.g, tex.b);
-            float range = screenPxRange();
-        
-            #define WEIGHT 1.0
-            #define OUTLINE_OFFSET 0.7
-            #define OUTLINE_COLOR vec3(0.0)
-            #define BIAS 0.5
-        
-            // offset the SDF edge to make the font appear wider or slimmer
-            float weight = (0.5 + (WEIGHT * -0.1));
-            float characterDistance = range * (distance - weight);
-            float outlineDistance = range * (distance - (weight - OUTLINE_OFFSET));
-        
-            // calculate how much color is required
-            float characterColorAmount = clamp(characterDistance + 0.5, 0.0, 1.0);
-            float outlineColorAmount = clamp(outlineDistance + 0.5, 0.0, 1.0);
-        
-            // mix between font color and outline color
-            out_color.rgb = mix(OUTLINE_COLOR, io_color.rgb, characterColorAmount);
-        
-            // opacity is a max, so unreasonable outlines don't destroy the rendering
-            out_color.a = pow(smoothstep(0.025, WEIGHT - OUTLINE_OFFSET, distance), BIAS);
-        
-            if (out_color.a < 0.01) {
-                discard;
-            }
-        }""");
-    // endregion
 
     private ShaderProgram program;
     private VertexArray vao;
@@ -119,7 +51,16 @@ public class TextRenderPass implements RenderPass {
 
     @Override
     public void init() {
-        program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        try {
+            program = new ShaderProgram(
+                ShaderSource.fromResource("/assets/shaders/msdf.vert", TextRenderPass.class),
+                ShaderSource.fromResource("/assets/shaders/msdf.frag", TextRenderPass.class)
+            );
+            texture = createTexture(loadFontImage());
+            font = loadFontMetadata();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         try (var _ = vao = new VertexArray().bind()) {
             var attributes = List.of(
@@ -131,13 +72,6 @@ public class TextRenderPass implements RenderPass {
             try (var _ = vbo = vao.createBuffer(attributes)) {
                 vbo.allocate(vertices.capacity() * Float.BYTES, GL_STREAM_DRAW);
             }
-        }
-
-        try {
-            texture = createTexture(loadFontImage());
-            font = loadFontMetadata();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to load font", e);
         }
 
         for (Glyph glyph : font.glyphs) {
@@ -156,6 +90,7 @@ public class TextRenderPass implements RenderPass {
     public void draw(Viewport viewport, double dt) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
+        glDisable(GL_DEPTH_TEST);
 
         int width = viewport.getFramebufferWidth();
         int height = viewport.getFramebufferHeight();
@@ -172,6 +107,7 @@ public class TextRenderPass implements RenderPass {
             flushVertices();
         }
 
+        glEnable(GL_DEPTH_TEST);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
@@ -183,7 +119,7 @@ public class TextRenderPass implements RenderPass {
         Vec4 clip = new Vec4(x, y, z, 1.0f).mul(viewProjection);
 
         // Skip if the point is behind the camera or outside the screen
-        if (Math.abs(clip.w()) < FLOAT_EPSILON || clip.z() < -clip.w() || clip.z() > clip.w()) {
+        if (Math.abs(clip.w()) < 1e-6 || clip.z() < -clip.w() || clip.z() > clip.w()) {
             return;
         }
 
@@ -207,7 +143,7 @@ public class TextRenderPass implements RenderPass {
             return;
         }
 
-        texts.offer(new Text(text, x, y, r, g, b, scale, normalized));
+        texts.add(new Text(text, x, y, r, g, b, scale, normalized));
     }
 
     private void push(Text text, int width, int height) {
@@ -308,7 +244,7 @@ public class TextRenderPass implements RenderPass {
     }
 
     private BufferedImage loadFontImage() throws IOException {
-        try (InputStream is = TextRenderPass.class.getResourceAsStream("font.png")) {
+        try (InputStream is = TextRenderPass.class.getResourceAsStream("/assets/textures/font.png")) {
             if (is == null) {
                 throw new IOException("Font image not found");
             }
@@ -317,7 +253,7 @@ public class TextRenderPass implements RenderPass {
     }
 
     private Font loadFontMetadata() throws IOException {
-        try (InputStream is = TextRenderPass.class.getResourceAsStream("font.json")) {
+        try (InputStream is = TextRenderPass.class.getResourceAsStream("/assets/textures/font.json")) {
             if (is == null) {
                 throw new IOException("Font metadata not found");
             }

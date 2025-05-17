@@ -6,7 +6,7 @@ public interface RenderPass {
     /**
      * This method is called when the OpenGL context is created.
      * <p>
-     * It's responsible for creating the OpenGL resources needed for the tool.
+     * It's responsible for creating the OpenGL resources needed for the pass.
      */
     void init();
 
