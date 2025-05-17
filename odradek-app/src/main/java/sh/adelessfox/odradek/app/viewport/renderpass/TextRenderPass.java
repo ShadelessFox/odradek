@@ -26,12 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
-import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
-import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 
-public class TextRenderPass implements RenderPass {
+class TextRenderPass implements RenderPass {
     private static final Logger log = LoggerFactory.getLogger(TextRenderPass.class);
 
     private static final int MAX_TEXTS = 32768;
@@ -46,7 +43,7 @@ public class TextRenderPass implements RenderPass {
     private VertexArray vao;
     private VertexBuffer vbo;
 
-    private int texture;
+    private Texture texture;
     private Font font;
 
     @Override
@@ -56,8 +53,13 @@ public class TextRenderPass implements RenderPass {
                 ShaderSource.fromResource("/assets/shaders/msdf.vert", TextRenderPass.class),
                 ShaderSource.fromResource("/assets/shaders/msdf.frag", TextRenderPass.class)
             );
-            texture = createTexture(loadFontImage());
             font = loadFontMetadata();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        try (var _ = texture = new Texture().bind()) {
+            texture.put(loadFontImage());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -83,19 +85,17 @@ public class TextRenderPass implements RenderPass {
     public void dispose() {
         program.dispose();
         vao.dispose();
-        glDeleteTextures(texture);
+        texture.dispose();
     }
 
     @Override
     public void draw(Viewport viewport, double dt) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
         glDisable(GL_DEPTH_TEST);
 
-        int width = viewport.getFramebufferWidth();
-        int height = viewport.getFramebufferHeight();
+        try (var _ = program.bind(); var _ = texture.bind()) {
+            int width = viewport.getFramebufferWidth();
+            int height = viewport.getFramebufferHeight();
 
-        try (var _ = program.bind()) {
             program.set("u_transform", Mat4.ortho2D(0, width, height, 0));
             program.set("u_msdf", 0);
             program.set("u_distance_range", (float) font.atlas.distanceRange / font.atlas.width);
@@ -103,12 +103,12 @@ public class TextRenderPass implements RenderPass {
             for (Text text : texts) {
                 push(text, width, height);
             }
+
             texts.clear();
             flushVertices();
         }
 
         glEnable(GL_DEPTH_TEST);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     public void projectedText(String text, Vec3 position, Mat4 transform, Vec3 color, float scale) {
@@ -218,29 +218,6 @@ public class TextRenderPass implements RenderPass {
         }
 
         vertices.clear();
-    }
-
-    private static int createTexture(BufferedImage image) {
-        var raster = image.getRaster();
-        var width = raster.getWidth();
-        var height = raster.getHeight();
-
-        var buffer = BufferUtils
-            .createByteBuffer(width * height * 3)
-            .put((byte[]) raster.getDataElements(0, 0, width, height, null))
-            .flip();
-
-        var texture = glGenTextures();
-
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer);
-        glBindTexture(GL_TEXTURE_2D, 0);
-
-        return texture;
     }
 
     private BufferedImage loadFontImage() throws IOException {

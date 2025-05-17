@@ -20,7 +20,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL32.GL_PROGRAM_POINT_SIZE;
 
-public class DebugRenderPass implements RenderPass {
+class DebugRenderPass implements RenderPass {
     private static final Logger log = LoggerFactory.getLogger(DebugRenderPass.class);
 
     private static final int MAX_LINES = 32768;
