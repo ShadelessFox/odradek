@@ -70,22 +70,18 @@ public final class RenderMeshesPass implements RenderPass {
     private Scene scene;
 
     private DebugRenderPass debug;
-    private TextRenderPass text;
 
     @Override
     public void init() {
         program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         debug = new DebugRenderPass();
         debug.init();
-        text = new TextRenderPass();
-        text.init();
     }
 
     @Override
     public void dispose() {
         program.dispose();
         debug.dispose();
-        text.dispose();
     }
 
     @Override
@@ -104,7 +100,6 @@ public final class RenderMeshesPass implements RenderPass {
         }
         renderScene(activeCamera, scene);
         debug.draw(viewport, dt);
-        text.draw(viewport, dt);
     }
 
     private void renderScene(Camera camera, Scene scene) {
@@ -149,7 +144,7 @@ public final class RenderMeshesPass implements RenderPass {
                 float distance = translation.distance(camera.position());
                 float size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
 
-                text.projectedText(node.name().get(), translation, camera.viewProjection(), Vec3.one(), size);
+                debug.projectedText(node.name().get(), translation, camera.viewProjection(), Vec3.one(), size);
             }
         }
 
