@@ -32,12 +32,12 @@ public record Mat4(
         );
     }
 
-    public static Mat4 perspective(float fov, float aspect, float zNear, float zFar) {
+    public static Mat4 perspective(float fov, float aspect, float near, float far) {
         float h = (float) Math.tan(fov * 0.5f);
         float m00 = 1.0f / (h * aspect);
         float m11 = 1.0f / h;
-        float m22 = (zFar + zNear) / (zNear - zFar);
-        float m32 = (zFar + zFar) * zNear / (zNear - zFar);
+        float m22 = (far + near) / (near - far);
+        float m32 = (far + far) * near / (near - far);
         float m23 = -1.0f;
 
         return new Mat4(
@@ -45,6 +45,21 @@ public record Mat4(
             0.f, m11, 0.f, 0.f,
             0.f, 0.f, m22, m23,
             0.f, 0.f, m32, 0.f
+        );
+    }
+
+    public static Mat4 ortho2D(float left, float right, float bottom, float top) {
+        float m00 = 2.0f / (right - left);
+        float m11 = 2.0f / (top - bottom);
+        float m22 = -1.0f;
+        float m30 = (right + left) / (left - right);
+        float m31 = (top + bottom) / (bottom - top);
+
+        return new Mat4(
+            m00, 0.f, 0.f, 0.f,
+            0.f, m11, 0.f, 0.f,
+            0.f, 0.f, m22, 0.f,
+            m30, m31, 0.f, 1.f
         );
     }
 

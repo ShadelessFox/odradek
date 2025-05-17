@@ -30,6 +30,16 @@ public final class ShaderProgram implements GLObject {
         glDeleteShader(fragmentShaderId);
     }
 
+    public void set(String name, int value) {
+        ensureBound();
+        glUniform1i(uniformLocation(name), value);
+    }
+
+    public void set(String name, float value) {
+        ensureBound();
+        glUniform1f(uniformLocation(name), value);
+    }
+
     public void set(String name, Vec3 value) {
         ensureBound();
         glUniform3f(uniformLocation(name), value.x(), value.y(), value.z());

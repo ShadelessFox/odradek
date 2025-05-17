@@ -1,6 +1,12 @@
 package sh.adelessfox.odradek.math;
 
 public record Vec3(float x, float y, float z) {
+    private static final Vec3 one = new Vec3(1, 1, 1);
+
+    public static Vec3 one() {
+        return one;
+    }
+
     public Vec3 add(Vec3 other) {
         return add(other.x, other.y, other.z);
     }
@@ -27,6 +33,17 @@ public record Vec3(float x, float y, float z) {
 
     public Vec3 mul(float x, float y, float z) {
         return new Vec3(this.x * x, this.y * y, this.z * z);
+    }
+
+    public float distance(Vec3 other) {
+        return distance(other.x, other.y, other.z);
+    }
+
+    public float distance(float x, float y, float z) {
+        float dx = this.x - x;
+        float dy = this.y - y;
+        float dz = this.z - z;
+        return (float) Math.sqrt(Math.fma(dx, dx, Math.fma(dy, dy, dz * dz)));
     }
 
     public Vec3 normalize() {

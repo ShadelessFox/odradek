@@ -12,8 +12,10 @@ module odradek.app {
     requires org.lwjgl.opengl;
     requires org.lwjgl;
     requires org.slf4j;
+    requires com.google.gson;
 
     opens sh.adelessfox.odradek.app.ui.util;
+    opens sh.adelessfox.odradek.app.viewport.renderpass;
 
     exports sh.adelessfox.odradek.app.ui.laf to com.formdev.flatlaf;
 

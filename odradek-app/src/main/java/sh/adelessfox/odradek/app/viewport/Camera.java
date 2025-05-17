@@ -47,6 +47,10 @@ public final class Camera {
         return Mat4.lookAt(eye, center, up());
     }
 
+    public Mat4 viewProjection() {
+        return projection().mul(view());
+    }
+
     public Vec3 position() {
         return new Vec3(x, y, z);
     }
@@ -73,5 +77,13 @@ public final class Camera {
         float x = (float) Math.cos(yaw - Math.PI * 0.5);
         float y = (float) Math.sin(yaw - Math.PI * 0.5);
         return new Vec3(x, y, 0);
+    }
+
+    public float near() {
+        return near;
+    }
+
+    public float far() {
+        return far;
     }
 }

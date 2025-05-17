@@ -68,19 +68,24 @@ public final class RenderMeshesPass implements RenderPass {
 
     private ShaderProgram program;
     private Scene scene;
-    private RenderDebugPass debug;
+
+    private DebugRenderPass debug;
+    private TextRenderPass text;
 
     @Override
     public void init() {
         program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-        debug = new RenderDebugPass();
+        debug = new DebugRenderPass();
         debug.init();
+        text = new TextRenderPass();
+        text.init();
     }
 
     @Override
     public void dispose() {
         program.dispose();
         debug.dispose();
+        text.dispose();
     }
 
     @Override
@@ -99,6 +104,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
         renderScene(activeCamera, scene);
         debug.draw(viewport, dt);
+        text.draw(viewport, dt);
     }
 
     private void renderScene(Camera camera, Scene scene) {
@@ -108,12 +114,12 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_view_position", camera.position());
 
             for (Node node : scene.nodes()) {
-                renderNode(node, node.matrix());
+                renderNode(node, node.matrix(), camera);
             }
         }
     }
 
-    private void renderNode(Node node, Mat4 transform) {
+    private void renderNode(Node node, Mat4 transform, Camera camera) {
         GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
 
         for (GpuPrimitive primitive : data.primitives()) {
@@ -125,23 +131,30 @@ public final class RenderMeshesPass implements RenderPass {
         }
 
         for (Node child : node.children()) {
-            renderNode(child, transform.mul(child.matrix()));
+            renderNode(child, transform.mul(child.matrix()), camera);
         }
 
         if (node.skin().isPresent()) {
-            renderSkin(node.skin().get(), null);
+            renderSkin(node.skin().get(), null, camera);
         }
     }
 
-    private void renderSkin(Node node, Node parent) {
+    private void renderSkin(Node node, Node parent, Camera camera) {
         if (parent != null) {
             var translation = node.matrix().translation();
             debug.point(translation, new Vec3(1, 0, 1), 10f, false);
             debug.line(parent.matrix().translation(), translation, new Vec3(0, 1, 0), false);
+
+            if (node.name().isPresent()) {
+                float distance = translation.distance(camera.position());
+                float size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
+
+                text.projectedText(node.name().get(), translation, camera.viewProjection(), Vec3.one(), size);
+            }
         }
 
         for (Node child : node.children()) {
-            renderSkin(child, node);
+            renderSkin(child, node, camera);
         }
     }
 
