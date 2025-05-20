@@ -4,8 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.game.Converter;
+import sh.adelessfox.odradek.game.hfw.data.edge.EdgeAnimJointTransform;
+import sh.adelessfox.odradek.game.hfw.data.edge.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.geometry.*;
+import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.math.Mat4;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Node;
@@ -29,6 +32,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             || object instanceof MultiMeshResource
             || object instanceof BodyVariant
             || object instanceof SkinnedModelResource
+            || object instanceof DestructibilityPart
             || object instanceof ControlledEntityResource;
     }
 
@@ -41,6 +45,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             case MultiMeshResource r -> convertMultiMeshResource(r, game);
             case BodyVariant r -> convertBodyVariant(r, game);
             case SkinnedModelResource r -> convertSkinnedModelResource(r, game);
+            case DestructibilityPart r -> convertDestructibilityPart(r, game);
             case ControlledEntityResource r -> convertControlledEntityResource(r, game);
             default -> {
                 log.error("Unsupported resource type: {}", object);
@@ -56,14 +61,11 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             switch (component) {
                 case DestructibilityResource destructibility -> {
                     for (DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
-                        var partState = part.initialState().get();
-                        var modelPart = convertModelPartResource(partState.state().modelPartResource().get(), game);
+                        convertDestructibilityPart(part, game).ifPresent(children::add);
                         // TODO: Handle attachment joints
-                        modelPart.ifPresent(children::add);
                     }
                 }
                 case SkinnedModelResource model -> {
-                    log.info("Skinned model: {}", model);
                     convertSkinnedModelResource(model, game).ifPresent(children::add);
                 }
                 default -> log.debug("Skipping unsupported component: {}", component.getType());
@@ -74,11 +76,23 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     }
 
     private Optional<Node> convertSkinnedModelResource(SkinnedModelResource resource, ForbiddenWestGame game) {
+        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
             .flatMap(part -> convertModelPartResource(part.get(), game).stream())
             .toList();
 
-        return Optional.of(Node.of(parts));
+        var node = Node.builder()
+            .skin(skin)
+            .children(parts)
+            .build();
+
+        return Optional.of(node);
+    }
+
+    private Optional<Node> convertDestructibilityPart(DestructibilityPart part, ForbiddenWestGame game) {
+        var initialState = part.initialState().get();
+        var modePartResource = initialState.state().modelPartResource().get();
+        return convertModelPartResource(modePartResource, game);
     }
 
     private Optional<Node> convertModelPartResource(ModelPartResource resource, ForbiddenWestGame game) {
@@ -104,36 +118,56 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     private Optional<Node> convertRegularSkinnedMeshResource(RegularSkinnedMeshResource resource, ForbiddenWestGame game) {
         var node = Node.builder()
             .mesh(convertMesh(resource.shadingGroups(), resource.primitives(), resource.streamingDataSource(), game))
-            .skin(convertSkeleton(resource.general().skeleton().get(), resource.skinning().skinnedMeshJointBindings().get()))
             .build();
 
         return Optional.of(node);
     }
 
-    private static Node convertSkeleton(Skeleton skeleton, SkinnedMeshIndexedJointBindings bindings) {
+    private static Optional<Node> convertSkeleton(Skeleton skeleton) {
+        if (!skeleton.general().hasBindPose()) {
+            log.warn("Skeleton does not have a bind pose");
+            return Optional.empty();
+        }
+
+        List<EdgeAnimJointTransform> transforms;
+
+        try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
+            transforms = EdgeAnimSkeleton.read(reader).readBasePose(reader);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
         var joints = skeleton.general().joints();
         var unlinked = joints.stream().map(joint -> Node.builder().name(joint.name())).toList();
-        var linked = new Node[unlinked.size()];
 
-        for (int i = 0; i < bindings.jointIndexList().length; i++) {
-            var inverseBindMatrix = convertMat44(bindings.inverseBindMatrices().get(i));
-            var node = unlinked.get(bindings.jointIndexList()[i]);
-            node.matrix(inverseBindMatrix.invert());
+        for (int i = 0; i < joints.size(); i++) {
+            var joint = joints.get(i);
+            var node = unlinked.get(i);
+
+            if (joint.parentIndex() != -1) {
+                var child = transforms.get(i).toMatrix();
+                var parent = unlinked.get(joint.parentIndex()).matrix();
+                node.matrix(parent.mul(child));
+            } else {
+                var child = transforms.get(i).toMatrix();
+                node.matrix(child);
+            }
         }
+
+        var linked = new Node[joints.size()];
 
         for (int i = joints.size() - 1; i >= 0; i--) {
             var joint = joints.get(i);
             var node = unlinked.get(i).build();
+
             if (joint.parentIndex() != -1) {
                 unlinked.get(joint.parentIndex()).add(node);
             }
-            if (linked[i] != null) {
-                throw new IllegalStateException("Node already linked");
-            }
+
             linked[i] = node;
         }
 
-        return linked[0];
+        return Optional.of(linked[0]);
     }
 
     private Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {
@@ -210,7 +244,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             var indexArray = primitive.indexArray().get();
             var indexAccessor = buildIndexAccessor(indexArray, buffer, primitive.startIndex(), primitive.endIndex());
 
-            primitives.add(new Primitive(indexAccessor, vertexAccessors));
+            primitives.add(new Primitive(indexAccessor, vertexAccessors, primitive.hashCode()));
         }
 
         if (buffer != null && buffer.hasRemaining()) {

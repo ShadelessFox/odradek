@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.math.Mat4;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,8 +61,18 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
             return this;
         }
 
+        public Mat4 matrix() {
+            return matrix;
+        }
+
         public Builder matrix(Mat4 matrix) {
             this.matrix = matrix;
+            return this;
+        }
+
+        public Builder children(Collection<Node> children) {
+            this.children.clear();
+            this.children.addAll(children);
             return this;
         }
 

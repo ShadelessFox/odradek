@@ -78,6 +78,42 @@ public record Mat4(
         return result.translate(-eye.x(), -eye.y(), -eye.z());
     }
 
+    public Mat4 rotate(Quat quat) {
+        float w2 = quat.w() * quat.w(), x2 = quat.x() * quat.x();
+        float y2 = quat.y() * quat.y(), z2 = quat.z() * quat.z();
+        float zw = quat.z() * quat.w(), dzw = zw + zw, xy = quat.x() * quat.y(), dxy = xy + xy;
+        float xz = quat.x() * quat.z(), dxz = xz + xz, yw = quat.y() * quat.w(), dyw = yw + yw;
+        float yz = quat.y() * quat.z(), dyz = yz + yz, xw = quat.x() * quat.w(), dxw = xw + xw;
+        float rm00 = w2 + x2 - z2 - y2;
+        float rm01 = dxy + dzw;
+        float rm02 = dxz - dyw;
+        float rm10 = -dzw + dxy;
+        float rm11 = y2 - z2 + w2 - x2;
+        float rm12 = dyz + dxw;
+        float rm20 = dyw + dxz;
+        float rm21 = dyz - dxw;
+        float rm22 = z2 - y2 - x2 + w2;
+        float nm00 = Math.fma(m00(), rm00, Math.fma(m10(), rm01, m20() * rm02));
+        float nm01 = Math.fma(m01(), rm00, Math.fma(m11(), rm01, m21() * rm02));
+        float nm02 = Math.fma(m02(), rm00, Math.fma(m12(), rm01, m22() * rm02));
+        float nm03 = Math.fma(m03(), rm00, Math.fma(m13(), rm01, m23() * rm02));
+        float nm10 = Math.fma(m00(), rm10, Math.fma(m10(), rm11, m20() * rm12));
+        float nm11 = Math.fma(m01(), rm10, Math.fma(m11(), rm11, m21() * rm12));
+        float nm12 = Math.fma(m02(), rm10, Math.fma(m12(), rm11, m22() * rm12));
+        float nm13 = Math.fma(m03(), rm10, Math.fma(m13(), rm11, m23() * rm12));
+        float nm20 = Math.fma(m00(), rm20, Math.fma(m10(), rm21, m20() * rm22));
+        float nm21 = Math.fma(m01(), rm20, Math.fma(m11(), rm21, m21() * rm22));
+        float nm22 = Math.fma(m02(), rm20, Math.fma(m12(), rm21, m22() * rm22));
+        float nm23 = Math.fma(m03(), rm20, Math.fma(m13(), rm21, m23() * rm22));
+
+        return new Mat4(
+            nm00, nm01, nm02, nm03,
+            nm10, nm11, nm12, nm13,
+            nm20, nm21, nm22, nm23,
+            m30(), m31(), m32(), m33()
+        );
+    }
+
     public Mat4 rotateX(float ang) {
         return mul(rotationX(ang));
     }
