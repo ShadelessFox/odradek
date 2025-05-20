@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.geometry;
 
 import java.util.Map;
 
-public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices) {
+public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int hash) {
     public Primitive {
         if (indices.componentType() != ComponentType.UNSIGNED_SHORT && indices.componentType() != ComponentType.UNSIGNED_INT) {
             throw new IllegalArgumentException("indices must be of type UNSIGNED_SHORT or UNSIGNED_INT");

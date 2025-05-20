@@ -54,13 +54,14 @@ public final class RenderMeshesPass implements RenderPass {
         out vec4 out_color;
         
         uniform vec3 u_view_position;
+        uniform vec3 u_color;
         
         void main() {
             vec3 normal = normalize(io_normal);
             vec3 view = normalize(u_view_position - io_position);
-            vec3 color = vec3(abs(dot(view, normal)));
+            vec3 color = vec3(abs(dot(view, normal))) * u_color;
         
-            out_color = vec4(color * 0.5 + vec3(0.5), 1.0);
+            out_color = vec4(color, 1.0);
         }""");
     // endregion
 
@@ -115,13 +116,18 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void renderNode(Node node, Mat4 transform, Camera camera) {
-        GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
+        glEnable(GL_DEPTH_TEST);
 
-        for (GpuPrimitive primitive : data.primitives()) {
-            program.set("u_model", transform);
+        if (node.mesh().isPresent()) {
+            GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
 
-            try (VertexArray ignored = primitive.vao.bind()) {
-                glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
+            for (GpuPrimitive primitive : data.primitives()) {
+                program.set("u_model", transform);
+                program.set("u_color", primitive.color);
+
+                try (VertexArray ignored = primitive.vao.bind()) {
+                    glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
+                }
             }
         }
 
@@ -144,7 +150,7 @@ public final class RenderMeshesPass implements RenderPass {
                 float distance = translation.distance(camera.position());
                 float size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
 
-                debug.projectedText(node.name().get(), translation, camera.viewProjection(), Vec3.one(), size);
+                debug.projectedText(node.name().get(), translation, camera.projectionView(), Vec3.one(), size);
             }
         }
 
@@ -205,7 +211,14 @@ public final class RenderMeshesPass implements RenderPass {
                 default -> throw new IllegalArgumentException("unsupported index type");
             };
 
-            return Optional.of(new GpuPrimitive(count, type, vao));
+            var random = new Random(primitive.hash());
+            var color = new Vec3(
+                random.nextFloat(0.5f, 1.0f),
+                random.nextFloat(0.5f, 1.0f),
+                random.nextFloat(0.5f, 1.0f)
+            );
+
+            return Optional.of(new GpuPrimitive(count, type, vao, color));
         }
     }
 
@@ -217,7 +230,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuPrimitive(int count, int type, VertexArray vao) {
+    private record GpuPrimitive(int count, int type, VertexArray vao, Vec3 color) {
         public void dispose() {
             vao.dispose();
         }

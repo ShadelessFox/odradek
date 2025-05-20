@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <logger name="sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader" level="OFF"/>
+    <logger name="sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader" level="INFO"/>
     <logger name="sh.adelessfox.odradek.app.viewport.Viewport" level="INFO"/>
 
     <root level="debug">

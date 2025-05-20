@@ -36,6 +36,10 @@ public final class Camera {
         pitch = Math.clamp(pitch, -PITCH_LIMIT, PITCH_LIMIT);
     }
 
+    public Mat4 projectionView() {
+        return projection().mul(view());
+    }
+
     public Mat4 projection() {
         var aspect = (float) width / height;
         return Mat4.perspective(fov, aspect, near, far);
@@ -45,10 +49,6 @@ public final class Camera {
         var eye = position();
         var center = forward().add(eye);
         return Mat4.lookAt(eye, center, up());
-    }
-
-    public Mat4 viewProjection() {
-        return projection().mul(view());
     }
 
     public Vec3 position() {

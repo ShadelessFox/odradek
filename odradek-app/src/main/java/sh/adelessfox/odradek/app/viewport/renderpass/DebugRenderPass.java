@@ -257,7 +257,7 @@ class DebugRenderPass implements RenderPass {
     }
 
     private void drawTexts(int width, int height) {
-        drawTexts(width, height, true);
+        drawTexts(width, height, false);
         texts.clear();
     }
 
