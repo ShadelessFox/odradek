@@ -1,14 +1,14 @@
 package sh.adelessfox.odradek.scene;
 
 import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.math.Mat4;
+import sh.adelessfox.odradek.math.Mat4f;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> skin, List<Node> children, Mat4 matrix) {
+public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> skin, List<Node> children, Mat4f matrix) {
     public Node {
         children = List.copyOf(children);
     }
@@ -19,11 +19,11 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
 
 
     public static Node of(List<Node> children) {
-        return new Node(Optional.empty(), Optional.empty(), Optional.empty(), children, Mat4.identity());
+        return new Node(Optional.empty(), Optional.empty(), Optional.empty(), children, Mat4f.identity());
     }
 
     public static Node of(Mesh mesh) {
-        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Mat4.identity());
+        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Mat4f.identity());
     }
 
     public Node add(Node child) {
@@ -32,7 +32,7 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
         return new Node(name, mesh, skin, children, matrix);
     }
 
-    public Node transform(Mat4 transform) {
+    public Node transform(Mat4f transform) {
         return new Node(name, mesh, skin, children, matrix.mul(transform));
     }
 
@@ -41,7 +41,7 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
         private String name;
         private Mesh mesh;
         private Node skin;
-        private Mat4 matrix = Mat4.identity();
+        private Mat4f matrix = Mat4f.identity();
 
         private Builder() {
         }
@@ -61,11 +61,11 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
             return this;
         }
 
-        public Mat4 matrix() {
+        public Mat4f matrix() {
             return matrix;
         }
 
-        public Builder matrix(Mat4 matrix) {
+        public Builder matrix(Mat4f matrix) {
             this.matrix = matrix;
             return this;
         }

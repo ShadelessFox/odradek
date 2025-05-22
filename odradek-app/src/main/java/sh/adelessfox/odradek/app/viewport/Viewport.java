@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GLDebugMessageCallback;
 import org.lwjgl.opengl.awt.AWTGLCanvas;
 import org.lwjgl.opengl.awt.GLData;
 import sh.adelessfox.odradek.app.viewport.renderpass.RenderPass;
-import sh.adelessfox.odradek.math.Vec2;
+import sh.adelessfox.odradek.math.Vec2f;
 import sh.adelessfox.odradek.scene.Scene;
 
 import javax.swing.*;
@@ -232,7 +232,7 @@ public final class Viewport extends JPanel {
         }
     }
 
-    private void updateFlyCamera(float dt, Vec2 mouse) {
+    private void updateFlyCamera(float dt, Vec2f mouse) {
         float speed = cameraSpeed * dt;
         if (input.isKeyDown(KeyEvent.VK_SHIFT)) {
             speed *= 5.0f;

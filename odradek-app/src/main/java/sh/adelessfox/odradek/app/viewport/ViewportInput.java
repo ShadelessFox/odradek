@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.viewport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.math.Vec2;
+import sh.adelessfox.odradek.math.Vec2f;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,8 +39,8 @@ final class ViewportInput extends MouseAdapter implements KeyListener, FocusList
         return mouseState.contains(button);
     }
 
-    public Vec2 mousePositionDelta() {
-        return new Vec2(mouseDelta.x, mouseDelta.y);
+    public Vec2f mousePositionDelta() {
+        return new Vec2f(mouseDelta.x, mouseDelta.y);
     }
 
     public float mouseWheelDelta() {

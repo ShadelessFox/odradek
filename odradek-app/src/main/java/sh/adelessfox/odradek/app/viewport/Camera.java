@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.viewport;
 
-import sh.adelessfox.odradek.math.Mat4;
-import sh.adelessfox.odradek.math.Vec3;
+import sh.adelessfox.odradek.math.Mat4f;
+import sh.adelessfox.odradek.math.Vec3f;
 
 public final class Camera {
     private static final float PITCH_LIMIT = (float) Math.PI / 2 - 0.01f;
@@ -29,54 +29,54 @@ public final class Camera {
         this.height = height;
     }
 
-    public void lookAt(Vec3 target) {
-        Vec3 dir = target.sub(x, y, z).normalize();
+    public void lookAt(Vec3f target) {
+        Vec3f dir = target.sub(x, y, z).normalize();
         yaw = (float) Math.atan2(dir.y(), dir.x());
         pitch = (float) Math.asin(dir.z());
         pitch = Math.clamp(pitch, -PITCH_LIMIT, PITCH_LIMIT);
     }
 
-    public Mat4 projectionView() {
+    public Mat4f projectionView() {
         return projection().mul(view());
     }
 
-    public Mat4 projection() {
+    public Mat4f projection() {
         var aspect = (float) width / height;
-        return Mat4.perspective(fov, aspect, near, far);
+        return Mat4f.perspective(fov, aspect, near, far);
     }
 
-    public Mat4 view() {
+    public Mat4f view() {
         var eye = position();
         var center = forward().add(eye);
-        return Mat4.lookAt(eye, center, up());
+        return Mat4f.lookAt(eye, center, up());
     }
 
-    public Vec3 position() {
-        return new Vec3(x, y, z);
+    public Vec3f position() {
+        return new Vec3f(x, y, z);
     }
 
-    public void position(Vec3 position) {
+    public void position(Vec3f position) {
         this.x = position.x();
         this.y = position.y();
         this.z = position.z();
     }
 
-    public Vec3 up() {
-        return new Vec3(0.f, 0.f, -1.f);
+    public Vec3f up() {
+        return new Vec3f(0.f, 0.f, -1.f);
     }
 
-    public Vec3 forward() {
+    public Vec3f forward() {
         float yawSin = (float) Math.sin(yaw);
         float yawCos = (float) Math.cos(yaw);
         float pitchSin = (float) Math.sin(pitch);
         float pitchCos = (float) Math.cos(pitch);
-        return new Vec3(yawCos * pitchCos, yawSin * pitchCos, pitchSin);
+        return new Vec3f(yawCos * pitchCos, yawSin * pitchCos, pitchSin);
     }
 
-    public Vec3 right() {
+    public Vec3f right() {
         float x = (float) Math.cos(yaw - Math.PI * 0.5);
         float y = (float) Math.sin(yaw - Math.PI * 0.5);
-        return new Vec3(x, y, 0);
+        return new Vec3f(x, y, 0);
     }
 
     public float near() {

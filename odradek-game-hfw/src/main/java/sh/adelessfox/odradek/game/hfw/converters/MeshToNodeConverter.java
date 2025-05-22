@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.game.hfw.data.edge.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.math.Mat4;
+import sh.adelessfox.odradek.math.Mat4f;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Node;
 
@@ -143,14 +143,13 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         for (int i = 0; i < joints.size(); i++) {
             var joint = joints.get(i);
             var node = unlinked.get(i);
+            var transform = transforms.get(i).toMatrix();
 
             if (joint.parentIndex() != -1) {
-                var child = transforms.get(i).toMatrix();
-                var parent = unlinked.get(joint.parentIndex()).matrix();
-                node.matrix(parent.mul(child));
+                var parent = unlinked.get(joint.parentIndex());
+                node.matrix(parent.matrix().mul(transform));
             } else {
-                var child = transforms.get(i).toMatrix();
-                node.matrix(child);
+                node.matrix(transform);
             }
         }
 
@@ -188,7 +187,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
 
     private Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
         var child = convert(resource, game);
-        var matrix = transform != null ? convertMat34(transform) : Mat4.identity();
+        var matrix = transform != null ? convertMat34(transform) : Mat4f.identity();
 
         return child.map(c -> c.transform(matrix));
     }
@@ -202,8 +201,8 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         return Optional.of(Node.of(children));
     }
 
-    private static Mat4 convertMat34(Mat34 matrix) {
-        return new Mat4(
+    private static Mat4f convertMat34(Mat34 matrix) {
+        return new Mat4f(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
             matrix.row0().y(), matrix.row1().y(), matrix.row2().y(), 0.f,
             matrix.row0().z(), matrix.row1().z(), matrix.row2().z(), 0.f,
@@ -211,8 +210,8 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         );
     }
 
-    private static Mat4 convertMat44(Mat44 matrix) {
-        return new Mat4(
+    private static Mat4f convertMat44(Mat44 matrix) {
+        return new Mat4f(
             matrix.col0().x(), matrix.col0().y(), matrix.col0().z(), matrix.col0().w(),
             matrix.col1().x(), matrix.col1().y(), matrix.col1().z(), matrix.col1().w(),
             matrix.col2().x(), matrix.col2().y(), matrix.col2().z(), matrix.col2().w(),

@@ -9,10 +9,10 @@ import sh.adelessfox.odradek.app.viewport.Camera;
 import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
-import sh.adelessfox.odradek.math.Mat4;
-import sh.adelessfox.odradek.math.Vec2;
-import sh.adelessfox.odradek.math.Vec3;
-import sh.adelessfox.odradek.math.Vec4;
+import sh.adelessfox.odradek.math.Mat4f;
+import sh.adelessfox.odradek.math.Vec2f;
+import sh.adelessfox.odradek.math.Vec3f;
+import sh.adelessfox.odradek.math.Vec4f;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -120,7 +120,7 @@ class DebugRenderPass implements RenderPass {
                 int width = viewport.getFramebufferWidth();
                 int height = viewport.getFramebufferHeight();
 
-                msdfProgram.set("u_transform", Mat4.ortho2D(0, width, height, 0));
+                msdfProgram.set("u_transform", Mat4f.ortho2D(0, width, height, 0));
                 msdfProgram.set("u_msdf", 0);
                 msdfProgram.set("u_distance_range", (float) msdfAtlas.distanceRange / msdfAtlas.width);
 
@@ -129,7 +129,7 @@ class DebugRenderPass implements RenderPass {
         }
     }
 
-    public void point(Vec3 position, Vec3 color, float size, boolean depthTest) {
+    public void point(Vec3f position, Vec3f color, float size, boolean depthTest) {
         point(position.x(), position.y(), position.z(), color.x(), color.y(), color.z(), size, depthTest);
     }
 
@@ -142,7 +142,7 @@ class DebugRenderPass implements RenderPass {
         points.add(new Point(x, y, z, r, g, b, size, depthTest));
     }
 
-    public void line(Vec3 from, Vec3 to, Vec3 color, boolean depthTest) {
+    public void line(Vec3f from, Vec3f to, Vec3f color, boolean depthTest) {
         line(from.x(), from.y(), from.z(), to.x(), to.y(), to.z(), color.x(), color.y(), color.z(), depthTest);
     }
 
@@ -155,7 +155,7 @@ class DebugRenderPass implements RenderPass {
         lines.add(new Line(x1, y1, z1, x2, y2, z2, r, g, b, depthTest));
     }
 
-    public void box(Vec3[] points, Vec3 color, boolean depthTest) {
+    public void box(Vec3f[] points, Vec3f color, boolean depthTest) {
         for (int i = 0; i < 4; i++) {
             line(points[i], points[(i + 1) % 4], color, depthTest);
             line(points[i + 4], points[(i + 1) % 4 + 4], color, depthTest);
@@ -163,22 +163,22 @@ class DebugRenderPass implements RenderPass {
         }
     }
 
-    public void aabb(Vec3 min, Vec3 max, Vec3 color, boolean depthTest) {
-        final Vec3[] points = {
-            new Vec3(min.x(), min.y(), min.z()),
-            new Vec3(max.x(), min.y(), min.z()),
-            new Vec3(max.x(), max.y(), min.z()),
-            new Vec3(min.x(), max.y(), min.z()),
-            new Vec3(min.x(), min.y(), max.z()),
-            new Vec3(max.x(), min.y(), max.z()),
-            new Vec3(max.x(), max.y(), max.z()),
-            new Vec3(min.x(), max.y(), max.z()),
+    public void aabb(Vec3f min, Vec3f max, Vec3f color, boolean depthTest) {
+        final Vec3f[] points = {
+            new Vec3f(min.x(), min.y(), min.z()),
+            new Vec3f(max.x(), min.y(), min.z()),
+            new Vec3f(max.x(), max.y(), min.z()),
+            new Vec3f(min.x(), max.y(), min.z()),
+            new Vec3f(min.x(), min.y(), max.z()),
+            new Vec3f(max.x(), min.y(), max.z()),
+            new Vec3f(max.x(), max.y(), max.z()),
+            new Vec3f(min.x(), max.y(), max.z()),
         };
 
         box(points, color, depthTest);
     }
 
-    public void cross(Vec3 center, float length, boolean depthTest) {
+    public void cross(Vec3f center, float length, boolean depthTest) {
         float cx = center.x();
         float cy = center.y();
         float cz = center.z();
@@ -189,12 +189,12 @@ class DebugRenderPass implements RenderPass {
         line(cx, cy, cz - hl, cx, cy, cz + hl, 0, 0, 1, depthTest);
     }
 
-    public void projectedText(String text, Vec3 position, Mat4 transform, Vec3 color, float scale) {
+    public void projectedText(String text, Vec3f position, Mat4f transform, Vec3f color, float scale) {
         projectedText(text, position.x(), position.y(), position.z(), transform, color.x(), color.y(), color.z(), scale);
     }
 
-    public void projectedText(String text, float x, float y, float z, Mat4 projection, float r, float g, float b, float scale) {
-        Vec4 clip = new Vec4(x, y, z, 1.0f).mul(projection);
+    public void projectedText(String text, float x, float y, float z, Mat4f projection, float r, float g, float b, float scale) {
+        Vec4f clip = new Vec4f(x, y, z, 1.0f).mul(projection);
 
         // Skip if the point is behind the camera or outside the screen
         if (Math.abs(clip.w()) < 1e-6 || clip.z() < -clip.w() || clip.z() > clip.w()) {
@@ -207,7 +207,7 @@ class DebugRenderPass implements RenderPass {
         text(text, nx, ny, r, g, b, scale, true);
     }
 
-    public void billboardText(String text, Vec2 position, Vec3 color, float scale) {
+    public void billboardText(String text, Vec2f position, Vec3f color, float scale) {
         billboardText(text, position.x(), position.y(), color.x(), color.y(), color.z(), scale);
     }
 

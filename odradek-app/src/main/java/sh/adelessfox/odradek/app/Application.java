@@ -19,7 +19,7 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
-import sh.adelessfox.odradek.math.Vec3;
+import sh.adelessfox.odradek.math.Vec3f;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.scene.Node;
@@ -110,7 +110,7 @@ public class Application {
         frame.setVisible(true);
 
         showObjectInfo(game, 4565, 64).get();
-        showObjectInfo(game, 1151, 9).get();
+        // showObjectInfo(game, 1151, 9).get();
     }
 
     private static Predicate<GraphStructure> createFilter(String filter) {
@@ -269,7 +269,7 @@ public class Application {
             Scene scene = Scene.of(node);
 
             Camera camera = new Camera(30.f, 0.01f, 1000.f);
-            camera.position(new Vec3(-2, 0, 1));
+            camera.position(new Vec3f(-2, 0, 1));
 
             Viewport viewport = new Viewport();
             viewport.setMinimumSize(new Dimension(100, 100));

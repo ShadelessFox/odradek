@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.data.edge;
 
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.math.Mat4;
-import sh.adelessfox.odradek.math.Quat;
+import sh.adelessfox.odradek.math.Mat4f;
+import sh.adelessfox.odradek.math.Quatf;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,10 +20,10 @@ public record EdgeAnimJointTransform(
         );
     }
 
-    public Mat4 toMatrix() {
-        return Mat4.identity()
+    public Mat4f toMatrix() {
+        return Mat4f.identity()
             .translate(translation[0], translation[1], translation[2])
-            .rotate(new Quat(rotation[0], rotation[1], rotation[2], rotation[3]))
+            .rotate(new Quatf(rotation[0], rotation[1], rotation[2], rotation[3]))
             .scale(scale[0], scale[1], scale[2]);
     }
 
