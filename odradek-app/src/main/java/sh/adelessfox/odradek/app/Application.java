@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.app.ui.SearchTextField;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.app.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.app.ui.tree.TreeItem;
+import sh.adelessfox.odradek.app.ui.util.ByteContents;
 import sh.adelessfox.odradek.app.viewport.Camera;
 import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.app.viewport.renderpass.RenderMeshesPass;
@@ -29,11 +30,14 @@ import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public class Application {
@@ -160,7 +164,7 @@ public class Application {
         return tree;
     }
 
-    private static void installGraphTreePopupMenu(StructuredTree<?> tree) {
+    private static void installTreePopupMenu(StructuredTree<?> tree, BiConsumer<JPopupMenu, Object> callback) {
         var menu = new JPopupMenu();
         menu.addPopupMenuListener(new PopupMenuListener() {
             @Override
@@ -173,32 +177,8 @@ public class Application {
                 if (component instanceof TreeItem<?> item) {
                     component = item.getValue();
                 }
-                if (component instanceof GraphStructure.GroupObjects objects) {
-                    var groupObjectsByType = new JCheckBoxMenuItem("Group objects by type");
-                    groupObjectsByType.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE));
-                    groupObjectsByType.addActionListener(e -> {
-                        if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                            objects.options().add(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
-                        } else {
-                            objects.options().remove(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
-                        }
-                        tree.getModel().update(path);
-                    });
-                    menu.add(groupObjectsByType);
-
-                    if (groupObjectsByType.isSelected()) {
-                        var sortByCount = new JCheckBoxMenuItem("Sort by count");
-                        sortByCount.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.SORT_BY_COUNT));
-                        sortByCount.addActionListener(e -> {
-                            if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                                objects.options().add(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
-                            } else {
-                                objects.options().remove(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
-                            }
-                            tree.getModel().update(path);
-                        });
-                        menu.add(sortByCount);
-                    }
+                if (component != null) {
+                    callback.accept(menu, component);
                 }
             }
 
@@ -223,6 +203,58 @@ public class Application {
                         tree.scrollPathToVisible(path);
                     }
                 }
+            }
+        });
+    }
+
+    private static void installGraphTreePopupMenu(StructuredTree<?> tree) {
+        installTreePopupMenu(tree, (menu, object) -> {
+            if (!(object instanceof GraphStructure.GroupObjects objects)) {
+                return;
+            }
+
+            var groupObjectsByType = new JCheckBoxMenuItem("Group objects by type");
+            groupObjectsByType.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE));
+            groupObjectsByType.addActionListener(e -> {
+                if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
+                    objects.options().add(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
+                } else {
+                    objects.options().remove(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
+                }
+                tree.getModel().update(tree.getSelectionPath());
+            });
+            menu.add(groupObjectsByType);
+
+            if (groupObjectsByType.isSelected()) {
+                var sortByCount = new JCheckBoxMenuItem("Sort by count");
+                sortByCount.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.SORT_BY_COUNT));
+                sortByCount.addActionListener(e -> {
+                    if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
+                        objects.options().add(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
+                    } else {
+                        objects.options().remove(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
+                    }
+                    tree.getModel().update(tree.getSelectionPath());
+                });
+                menu.add(sortByCount);
+            }
+        });
+    }
+
+    private static void installObjectTreePopupMenu(StructuredTree<?> tree) {
+        installTreePopupMenu(tree, (menu, object) -> {
+            if (!(object instanceof ObjectStructure structure)) {
+                return;
+            }
+            if (structure.value() instanceof byte[] bytes) {
+                menu.add(new AbstractAction("Copy to clipboard") {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        ByteContents contents = new ByteContents(bytes);
+                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        clipboard.setContents(contents, contents);
+                    }
+                });
             }
         });
     }
@@ -302,6 +334,7 @@ public class Application {
                 showObjectInfo(game, link.get().getType(), link.get(), link.group(), link.index());
             }
         });
+        installObjectTreePopupMenu(tree);
         return tree;
     }
 
