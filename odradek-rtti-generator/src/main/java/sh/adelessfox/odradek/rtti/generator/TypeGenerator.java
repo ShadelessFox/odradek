@@ -10,7 +10,6 @@ import sh.adelessfox.odradek.rtti.generator.data.*;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import javax.lang.model.element.Modifier;
-import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
@@ -21,25 +20,25 @@ class TypeGenerator {
     private static final String NO_CATEGORY = "";
     private static final AnnotationSpec extensionAnnotation = AnnotationSpec.builder(Extension.class).build();
 
-    private final Map<String, TypeMirror> callbacks = new HashMap<>();
-    private final Map<String, TypeMirror> builtins = new HashMap<>();
-    private final Map<String, TypeMirror> extensions = new HashMap<>();
+    private final Map<String, TypeName> callbacks = new HashMap<>();
+    private final Map<String, TypeName> builtins = new HashMap<>();
+    private final Map<String, TypeName> extensions = new HashMap<>();
 
-    void addCallback(String targetType, TypeMirror handlerType) {
+    void addCallback(String targetType, TypeName handlerType) {
         if (callbacks.containsKey(targetType)) {
             throw new IllegalArgumentException("Callback for type '" + targetType + "' already exists");
         }
         callbacks.put(targetType, handlerType);
     }
 
-    void addBuiltin(String typeName, TypeMirror javaType) {
+    void addBuiltin(String typeName, TypeName javaType) {
         if (builtins.containsKey(typeName)) {
             throw new IllegalArgumentException("Builtin for type '" + typeName + "' already exists");
         }
         builtins.put(typeName, javaType);
     }
 
-    void addExtension(String typeName, TypeMirror javaType) {
+    void addExtension(String typeName, TypeName javaType) {
         if (extensions.containsKey(typeName)) {
             throw new IllegalArgumentException("Extension for type '" + typeName + "' already exists");
         }
@@ -56,7 +55,7 @@ class TypeGenerator {
         };
     }
 
-    Optional<TypeMirror> getBuiltin(String name) {
+    Optional<TypeName> getBuiltin(String name) {
         return Optional.ofNullable(builtins.get(name));
     }
 
@@ -96,7 +95,7 @@ class TypeGenerator {
 
         var extension = extensions.get(info.name());
         if (extension != null) {
-            builder.addSuperinterface(TypeName.get(extension).annotated(extensionAnnotation));
+            builder.addSuperinterface(extension.annotated(extensionAnnotation));
         }
 
         return builder.build();

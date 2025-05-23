@@ -6,4 +6,18 @@ public sealed interface TypeInfo
     permits AtomTypeInfo, ClassTypeInfo, EnumTypeInfo, ContainerTypeInfo, PointerTypeInfo {
 
     TypeName typeName();
+
+    default TypeInfoRef ref() {
+        return new TypeInfoRef() {
+            @Override
+            public TypeName typeName() {
+                return TypeInfo.this.typeName();
+            }
+
+            @Override
+            public TypeInfo value() {
+                return TypeInfo.this;
+            }
+        };
+    }
 }

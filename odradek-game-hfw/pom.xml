@@ -22,7 +22,7 @@
         <dependency>
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-rtti-generator</artifactId>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

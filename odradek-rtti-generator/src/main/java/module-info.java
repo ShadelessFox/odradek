@@ -1,7 +1,7 @@
 module odradek.rtti.generator {
-    requires static transitive java.compiler;
-    requires static com.palantir.javapoet;
-    requires static com.google.gson;
+    requires transitive java.compiler;
+    requires com.palantir.javapoet;
+    requires com.google.gson;
 
     requires odradek.core;
     requires odradek.rtti;

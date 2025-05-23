@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.rtti.generator;
 
 import com.palantir.javapoet.AnnotationSpec;
 import com.palantir.javapoet.JavaFile;
+import com.palantir.javapoet.TypeName;
 import com.palantir.javapoet.TypeSpec;
-import sh.adelessfox.odradek.rtti.factory.TypeName;
 import sh.adelessfox.odradek.rtti.generator.data.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.generator.data.TypeInfo;
 
@@ -68,18 +68,18 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
                     var handlerType = (TypeElement) types.asElement(getAnnotationValueMirror(callback, GenerateBindings.Callback::handler));
                     var handlerParent = (DeclaredType) handlerType.getInterfaces().getFirst();
                     var holderType = types.asElement(handlerParent.getTypeArguments().getFirst());
-                    generator.addCallback(callback.type(), handlerType.asType());
-                    generator.addExtension(callback.type(), holderType.asType());
+                    generator.addCallback(callback.type(), TypeName.get(handlerType.asType()));
+                    generator.addExtension(callback.type(), TypeName.get(holderType.asType()));
                 }
 
                 for (GenerateBindings.Builtin builtin : annotation.builtins()) {
                     var javaType = getAnnotationValueMirror(builtin, GenerateBindings.Builtin::javaType);
-                    generator.addBuiltin(builtin.type(), javaType);
+                    generator.addBuiltin(builtin.type(), TypeName.get(javaType));
                 }
 
                 for (GenerateBindings.Extension extension : annotation.extensions()) {
                     var extensionType = getAnnotationValueMirror(extension, GenerateBindings.Extension::extension);
-                    generator.addExtension(extension.type(), extensionType);
+                    generator.addExtension(extension.type(), TypeName.get(extensionType));
                 }
 
                 var builder = TypeSpec.interfaceBuilder(className)
@@ -125,8 +125,7 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
     private void reportMissingCallbacks(TypeContext context, GenerateBindings annotation) {
         Set<String> typesMissingCallback = context.types().stream()
             .filter(info -> info instanceof ClassTypeInfo cls && cls.messages().contains("MsgReadBinary"))
-            .map(TypeInfo::typeName)
-            .map(TypeName::fullName)
+            .map(info -> info.typeName().fullName())
             .collect(Collectors.toSet());
 
         for (GenerateBindings.Callback callback : annotation.callbacks()) {

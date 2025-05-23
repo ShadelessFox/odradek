@@ -9,8 +9,10 @@ import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.generator.data.*;
 
 import javax.lang.model.SourceVersion;
-import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 class TypeNameUtil {
@@ -79,9 +81,9 @@ class TypeNameUtil {
             if (parent.isPresent()) {
                 return getTypeName(parent.get(), generator, false);
             }
-            Optional<TypeMirror> builtin = generator.getBuiltin(name);
+            var builtin = generator.getBuiltin(name);
             if (builtin.isPresent()) {
-                return TypeName.get(builtin.get());
+                return builtin.get();
             }
             throw new IllegalArgumentException("Unknown atom type: " + name);
         } else if (type instanceof PointerTypeInfo pointer) {
