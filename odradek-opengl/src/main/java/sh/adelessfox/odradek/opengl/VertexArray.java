@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.gl;
+package sh.adelessfox.odradek.opengl;
 
 import java.util.ArrayList;
 import java.util.List;

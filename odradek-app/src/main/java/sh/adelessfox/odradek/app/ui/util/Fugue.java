@@ -43,8 +43,8 @@ public final class Fugue {
 
     private static Fugue load() throws IOException {
         try (
-            InputStream iconsInputStream = Fugue.class.getResourceAsStream("fugue.png");
-            InputStream namesInputStream = Fugue.class.getResourceAsStream("fugue.txt")
+            InputStream iconsInputStream = Fugue.class.getResourceAsStream("/fugue.png");
+            InputStream namesInputStream = Fugue.class.getResourceAsStream("/fugue.txt")
         ) {
             if (namesInputStream == null || iconsInputStream == null) {
                 throw new IOException("Failed to load Fugue sheet");

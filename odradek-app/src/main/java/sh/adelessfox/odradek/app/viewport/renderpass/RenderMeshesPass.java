@@ -2,16 +2,16 @@ package sh.adelessfox.odradek.app.viewport.renderpass;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.gl.ShaderProgram;
-import sh.adelessfox.odradek.app.gl.ShaderSource;
-import sh.adelessfox.odradek.app.gl.VertexArray;
-import sh.adelessfox.odradek.app.gl.VertexAttribute;
 import sh.adelessfox.odradek.app.viewport.Camera;
 import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Mat4f;
 import sh.adelessfox.odradek.math.Vec3f;
+import sh.adelessfox.odradek.opengl.ShaderProgram;
+import sh.adelessfox.odradek.opengl.ShaderSource;
+import sh.adelessfox.odradek.opengl.VertexArray;
+import sh.adelessfox.odradek.opengl.VertexAttribute;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 

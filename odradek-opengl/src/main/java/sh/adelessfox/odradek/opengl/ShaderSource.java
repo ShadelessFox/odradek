@@ -1,16 +1,16 @@
-package sh.adelessfox.odradek.app.gl;
+package sh.adelessfox.odradek.opengl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public record ShaderSource(String name, String source) {
-    public static ShaderSource fromResource(String name, Class<?> cls) throws IOException {
-        try (InputStream stream = cls.getResourceAsStream(name)) {
-            if (stream == null) {
-                throw new IOException("Can't find resource '" + name + "'");
-            }
-            return fromStream(name, stream);
+    public static ShaderSource fromResource(URL url) throws IOException {
+        Objects.requireNonNull(url, "url");
+        try (InputStream stream = url.openStream()) {
+            return fromStream(url.getFile(), stream);
         }
     }
 

@@ -1,23 +1,23 @@
 module odradek.app {
+    requires ch.qos.logback.classic;
+    requires ch.qos.logback.core;
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
+    requires com.google.gson;
     requires com.miglayout.swing;
+    requires info.picocli;
     requires java.desktop;
-    requires lwjgl3.awt;
     requires odradek.core;
     requires odradek.game.hfw;
+    requires odradek.opengl.awt;
+    requires odradek.opengl;
     requires odradek.rtti;
-    requires org.lwjgl.natives;
-    requires org.lwjgl.opengl.natives;
     requires org.lwjgl.opengl;
-    requires org.lwjgl;
     requires org.slf4j;
-    requires com.google.gson;
 
-    opens sh.adelessfox.odradek.app.ui.util;
-    opens sh.adelessfox.odradek.app.viewport.renderpass;
-
-    exports sh.adelessfox.odradek.app.ui.laf to com.formdev.flatlaf;
+    opens sh.adelessfox.odradek.app to info.picocli;
+    opens sh.adelessfox.odradek.app.ui.laf to com.formdev.flatlaf;
+    opens sh.adelessfox.odradek.app.viewport.renderpass to com.google.gson;
 
     provides com.formdev.flatlaf.FlatDefaultsAddon
         with sh.adelessfox.odradek.app.ApplicationDefaultsAddon;

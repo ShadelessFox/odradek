@@ -1,5 +1,6 @@
-package sh.adelessfox.odradek.app.gl;
+package sh.adelessfox.odradek.opengl;
 
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
 import sh.adelessfox.odradek.math.Mat4f;
 import sh.adelessfox.odradek.math.Vec3f;
@@ -49,7 +50,7 @@ public final class ShaderProgram implements GLObject {
         ensureBound();
         try (MemoryStack stack = MemoryStack.stackPush()) {
             FloatBuffer buffer = stack.mallocFloat(Mat4f.BYTES / Float.BYTES);
-            glUniformMatrix4fv(uniformLocation(name), false, value.get(buffer).flip());
+            GL20.glUniformMatrix4fv(uniformLocation(name), false, value.get(buffer).flip());
         }
     }
 

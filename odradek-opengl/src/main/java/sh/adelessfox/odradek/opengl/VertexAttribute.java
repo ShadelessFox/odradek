@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.gl;
+package sh.adelessfox.odradek.opengl;
 
 import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
@@ -30,22 +30,22 @@ public record VertexAttribute(
 
     public int glType() {
         return switch (componentType) {
-            case BYTE -> GL_BYTE;
-            case UNSIGNED_BYTE -> GL_UNSIGNED_BYTE;
-            case SHORT -> GL_SHORT;
-            case UNSIGNED_SHORT -> GL_UNSIGNED_SHORT;
-            case INT -> GL_INT;
-            case UNSIGNED_INT -> GL_UNSIGNED_INT;
-            case HALF_FLOAT -> GL_HALF_FLOAT;
-            case FLOAT -> GL_FLOAT;
-            case INT_10_10_10_2 -> GL_INT_2_10_10_10_REV;
-            case UNSIGNED_INT_10_10_10_2 -> GL_UNSIGNED_INT_2_10_10_10_REV;
+            case ComponentType.BYTE -> GL_BYTE;
+            case ComponentType.UNSIGNED_BYTE -> GL_UNSIGNED_BYTE;
+            case ComponentType.SHORT -> GL_SHORT;
+            case ComponentType.UNSIGNED_SHORT -> GL_UNSIGNED_SHORT;
+            case ComponentType.INT -> GL_INT;
+            case ComponentType.UNSIGNED_INT -> GL_UNSIGNED_INT;
+            case ComponentType.HALF_FLOAT -> GL_HALF_FLOAT;
+            case ComponentType.FLOAT -> GL_FLOAT;
+            case ComponentType.INT_10_10_10_2 -> GL_INT_2_10_10_10_REV;
+            case ComponentType.UNSIGNED_INT_10_10_10_2 -> GL_UNSIGNED_INT_2_10_10_10_REV;
         };
     }
 
     public int glSize() {
         return switch (componentType) {
-            case INT_10_10_10_2, UNSIGNED_INT_10_10_10_2 -> 4;
+            case ComponentType.INT_10_10_10_2, ComponentType.UNSIGNED_INT_10_10_10_2 -> 4;
             default -> elementType.size();
         };
     }

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.gl;
+package sh.adelessfox.odradek.opengl;
 
 public interface GLObject extends AutoCloseable {
     GLObject bind();

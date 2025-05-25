@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import org.lwjgl.BufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.gl.*;
 import sh.adelessfox.odradek.app.viewport.Camera;
 import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.geometry.ComponentType;
@@ -13,6 +12,7 @@ import sh.adelessfox.odradek.math.Mat4f;
 import sh.adelessfox.odradek.math.Vec2f;
 import sh.adelessfox.odradek.math.Vec3f;
 import sh.adelessfox.odradek.math.Vec4f;
+import sh.adelessfox.odradek.opengl.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -58,12 +58,12 @@ class DebugRenderPass implements RenderPass {
     public void init() {
         try {
             debugProgram = new ShaderProgram(
-                ShaderSource.fromResource("/assets/shaders/debug.vert", DebugRenderPass.class),
-                ShaderSource.fromResource("/assets/shaders/debug.frag", DebugRenderPass.class)
+                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/debug.vert")),
+                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/debug.frag"))
             );
             msdfProgram = new ShaderProgram(
-                ShaderSource.fromResource("/assets/shaders/msdf.vert", DebugRenderPass.class),
-                ShaderSource.fromResource("/assets/shaders/msdf.frag", DebugRenderPass.class)
+                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/msdf.vert")),
+                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/msdf.frag"))
             );
         } catch (IOException e) {
             log.error("Failed to load shaders", e);

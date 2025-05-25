@@ -11,52 +11,118 @@
 
     <artifactId>odradek-app</artifactId>
 
+    <properties>
+        <target.module.path>target/modules</target.module.path>
+    </properties>
+
     <dependencies>
+        <!-- Internal dependencies -->
         <dependency>
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-game-hfw</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-opengl</artifactId>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-opengl</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl-opengl</artifactId>
-            <classifier>natives-windows</classifier>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-opengl-awt</artifactId>
         </dependency>
+
+        <!-- External dependencies -->
         <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjgl</groupId>
-            <artifactId>lwjgl</artifactId>
-            <classifier>natives-windows</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.lwjglx</groupId>
-            <artifactId>lwjgl3-awt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf</artifactId>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
         </dependency>
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf-extras</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.miglayout</groupId>
             <artifactId>miglayout-swing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>${target.module.path}</outputDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${target.module.path}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.panteleyev</groupId>
+                <artifactId>jpackage-maven-plugin</artifactId>
+                <version>1.6.5</version>
+                <configuration>
+                    <type>APP_IMAGE</type>
+                    <appVersion>${project.version}</appVersion>
+                    <name>odradek</name>
+                    <destination>target/dist</destination>
+                    <vendor>ShadelessFox</vendor>
+                    <winConsole>true</winConsole>
+                    <modulePaths>
+                        <modulePath>${target.module.path}</modulePath>
+                    </modulePaths>
+                    <addModules>
+                        <module>java.naming</module>
+                    </addModules>
+                    <jLinkOptions>
+                        <jLinkOption>--compress=zip-0</jLinkOption>
+                        <jLinkOption>--strip-debug</jLinkOption>
+                        <jLinkOption>--no-header-files</jLinkOption>
+                        <jLinkOption>--no-man-pages</jLinkOption>
+                    </jLinkOptions>
+                    <javaOptions>
+                        <javaOption>--enable-native-access=com.formdev.flatlaf</javaOption>
+                        <javaOption>--enable-native-access=org.lwjgl</javaOption>
+                        <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
+                        <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
+                    </javaOptions>
+                    <module>odradek.app/sh.adelessfox.odradek.app.Application</module>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jpackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
