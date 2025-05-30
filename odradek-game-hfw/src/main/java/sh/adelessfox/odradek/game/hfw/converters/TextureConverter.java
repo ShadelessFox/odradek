@@ -38,26 +38,24 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
             log.debug("Unsupported texture format: {}", texture.header().pixelFormat());
             return Optional.empty();
         }
+
         var type = mapType(texture.header().type()).orElse(null);
         if (type == null) {
             log.debug("Unsupported texture type: {}", texture.header().type());
             return Optional.empty();
         }
 
-        // TODO: Respect TextureSetParent
-        // TODO: Respect StreamingMipOffsets
-
         var textureSet = texture.textureSetParent() != null ? texture.textureSetParent().get() : null;
-        var streamingDataSource = textureSet != null ? textureSet.streamingDataSource() : texture.streamingDataSource();
-        var streamedData = game.getStreamingSystem().getDataSourceData(streamingDataSource);
+        var dataSource = textureSet != null ? textureSet.streamingDataSource() : texture.streamingDataSource();
+        var streamedData = game.getStreamingSystem().getDataSourceData(dataSource);
         var embeddedData = texture.data().embeddedData();
-
-        int streamedDataOffset = 0;
-        int embeddedDataOffset = 0;
 
         int width = Short.toUnsignedInt(texture.header().width());
         int height = Short.toUnsignedInt(texture.header().height());
         int numMips = Byte.toUnsignedInt(texture.header().numMips());
+
+        int streamedDataOffset = 0;
+        int embeddedDataOffset = 0;
 
         var surfaces = new ArrayList<Surface>(numMips);
         for (int i = 0; i < numMips; i++) {
