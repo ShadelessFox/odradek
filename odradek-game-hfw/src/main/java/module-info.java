@@ -1,5 +1,3 @@
-import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.converters.MeshToNodeConverter;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.hfw.rtti.data.GGUUIDExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.MurmurHashValueExtension;
@@ -77,11 +75,13 @@ module odradek.game.hfw {
     opens sh.adelessfox.odradek.game.hfw.rtti.callbacks to odradek.rtti;
 
     exports sh.adelessfox.odradek.game.hfw.game;
+    exports sh.adelessfox.odradek.game.hfw.rtti.callbacks;
     exports sh.adelessfox.odradek.game.hfw.rtti.data;
     exports sh.adelessfox.odradek.game.hfw.rtti;
     exports sh.adelessfox.odradek.game.hfw.storage;
     exports sh.adelessfox.odradek.game.hfw;
 
-    provides Converter with
-        MeshToNodeConverter;
+    provides sh.adelessfox.odradek.game.Converter with
+        sh.adelessfox.odradek.game.hfw.converters.MeshToNodeConverter,
+        sh.adelessfox.odradek.game.hfw.converters.TextureConverter;
 }

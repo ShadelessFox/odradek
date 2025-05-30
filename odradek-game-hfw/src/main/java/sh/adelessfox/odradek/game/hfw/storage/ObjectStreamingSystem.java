@@ -41,6 +41,10 @@ public final class ObjectStreamingSystem {
         var reader = device.resolve(file);
         var buffer = new byte[Math.toIntExact(length)];
 
+        if (length == 0) {
+            return buffer;
+        }
+
         synchronized (reader) {
             reader.position(offset);
             reader.readBytes(buffer, 0, buffer.length);

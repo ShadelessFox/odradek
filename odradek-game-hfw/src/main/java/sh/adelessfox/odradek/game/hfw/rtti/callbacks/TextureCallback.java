@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETexColorSpace;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureType;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.MurmurHashValue;
 import sh.adelessfox.odradek.io.BinaryReader;
@@ -48,10 +49,10 @@ public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.
 
         void unk0A(byte value);
 
-        @Attr(name = "Unk0B", type = "uint8", position = 7, offset = 11)
-        byte unk0B();
+        @Attr(name = "ColorSpace", type = "ETexColorSpace", position = 7, offset = 11)
+        ETexColorSpace colorSpace();
 
-        void unk0B(byte value);
+        void colorSpace(ETexColorSpace value);
 
         @Attr(name = "Unk0C", type = "uint8", position = 8, offset = 12)
         byte unk0C();
@@ -87,7 +88,7 @@ public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.
             header.numMips(reader.readByte());
             header.pixelFormat(EPixelFormat.valueOf(reader.readByte()));
             header.unk0A(reader.readByte());
-            header.unk0B(reader.readByte());
+            header.colorSpace(ETexColorSpace.valueOf(reader.readByte()));
             header.unk0C(reader.readByte());
             header.unk0D(reader.readByte());
             header.unk0E(reader.readByte());
