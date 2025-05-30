@@ -2,6 +2,7 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.converters.MeshToNodeConverter;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.hfw.rtti.data.GGUUIDExtension;
+import sh.adelessfox.odradek.game.hfw.rtti.data.MurmurHashValueExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingDataSourceExtension;
 import sh.adelessfox.odradek.rtti.generator.GenerateBindings;
 import sh.adelessfox.odradek.rtti.generator.GenerateBindings.Builtin;
@@ -61,6 +62,7 @@ import java.math.BigInteger;
     },
     extensions = {
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
+        @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)
     }
 )
