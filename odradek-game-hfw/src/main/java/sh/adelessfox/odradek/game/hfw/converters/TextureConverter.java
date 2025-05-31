@@ -12,8 +12,10 @@ import sh.adelessfox.odradek.texture.TextureType;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
     private static final Logger log = LoggerFactory.getLogger(TextureConverter.class);
@@ -47,40 +49,53 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
 
         var textureSet = texture.textureSetParent() != null ? texture.textureSetParent().get() : null;
         var dataSource = textureSet != null ? textureSet.streamingDataSource() : texture.streamingDataSource();
-        var streamedData = game.getStreamingSystem().getDataSourceData(dataSource);
-        var embeddedData = texture.data().embeddedData();
+        var streamedData = ByteBuffer.wrap(game.getStreamingSystem().getDataSourceData(dataSource));
+        var embeddedData = ByteBuffer.wrap(texture.data().embeddedData());
 
-        int width = Short.toUnsignedInt(texture.header().width());
-        int height = Short.toUnsignedInt(texture.header().height());
-        int numMips = Byte.toUnsignedInt(texture.header().numMips());
+        int width = texture.header().width() & 0x3FFF;
+        int height = texture.header().height() & 0x3FFF;
+        int numMipmaps = Byte.toUnsignedInt(texture.header().numMips());
+        int numSurfaces = Short.toUnsignedInt(texture.header().numSurfaces());
 
-        int streamedDataOffset = 0;
-        int embeddedDataOffset = 0;
-
-        var surfaces = new ArrayList<Surface>(numMips);
-        for (int i = 0; i < numMips; i++) {
-            int mipWidth = Math.max(width >> i, format.block().width());
-            int mipHeight = Math.max(height >> i, format.block().height());
+        var surfaces = new ArrayList<Surface>();
+        for (int mip = 0; mip < numMipmaps; mip++) {
+            int mipWidth = Math.max(width >> mip, format.block().width());
+            int mipHeight = Math.max(height >> mip, format.block().height());
             int mipSize = Math.toIntExact((long) mipWidth * mipHeight * format.block().bitsPerPixel() / 8);
-            var mipData = new byte[mipSize];
 
-            if (i >= texture.data().streamedMips()) {
-                System.arraycopy(embeddedData, embeddedDataOffset, mipData, 0, mipSize);
-                embeddedDataOffset += mipSize;
-            } else if (textureSet == null) {
-                System.arraycopy(streamedData, streamedDataOffset, mipData, 0, mipSize);
-                streamedDataOffset += mipSize;
-            } else {
-                System.arraycopy(streamedData, texture.streamingMipOffsets()[i], mipData, 0, mipSize);
+            int elements = switch (type) {
+                case ARRAY -> numSurfaces;
+                case VOLUME -> 1 << Math.max(0, numSurfaces - mip);
+                case CUBEMAP -> 6;
+                default -> 1;
+            };
+
+            for (int element = 0; element < elements; element++) {
+                var mipData = new byte[mipSize];
+
+                if (mip >= texture.data().streamedMips()) {
+                    embeddedData.get(mipData, 0, mipSize);
+                } else if (textureSet == null) {
+                    streamedData.get(mipData, 0, mipSize);
+                } else {
+                    streamedData.get(texture.streamingMipOffsets()[mip], mipData, 0, mipSize);
+                }
+
+                surfaces.add(new Surface(mipWidth, mipHeight, mipData));
             }
-
-            surfaces.add(new Surface(mipWidth, mipHeight, mipData));
         }
 
-        assert streamedDataOffset == streamedData.length || textureSet != null;
-        assert embeddedDataOffset == embeddedData.length;
+        assert !streamedData.hasRemaining() || textureSet != null;
+        assert !embeddedData.hasRemaining();
 
-        return Optional.of(new Texture(format, type, surfaces, numMips));
+        return Optional.of(new Texture(
+            format,
+            type,
+            surfaces,
+            numMipmaps,
+            type == TextureType.VOLUME ? OptionalInt.of(numSurfaces) : OptionalInt.empty(),
+            type == TextureType.ARRAY ? OptionalInt.of(numSurfaces) : OptionalInt.empty()
+        ));
     }
 
     private static Optional<TextureFormat> mapFormat(HorizonForbiddenWest.EPixelFormat format) {
@@ -102,9 +117,9 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
     private static Optional<TextureType> mapType(HorizonForbiddenWest.ETextureType type) {
         return switch (type) {
             case _0 -> Optional.of(TextureType.SURFACE);
-            // case _1 -> Optional.of(TextureType.VOLUME);
-            // case _3 -> Optional.of(TextureType.ARRAY);
-            // case CubeMap -> Optional.of(TextureType.CUBEMAP);
+            case CubeMap -> Optional.of(TextureType.CUBEMAP);
+            case _1 -> Optional.of(TextureType.VOLUME);
+            case _3 -> Optional.of(TextureType.ARRAY);
             default -> Optional.empty();
         };
     }
