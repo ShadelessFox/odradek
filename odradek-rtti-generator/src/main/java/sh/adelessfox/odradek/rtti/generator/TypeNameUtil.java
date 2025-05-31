@@ -30,11 +30,14 @@ class TypeNameUtil {
     }
 
     static String getJavaConstantName(EnumTypeInfo info, EnumValueInfo value) {
-        if (SourceVersion.isIdentifier(value.name()) && !SourceVersion.isKeyword(value.name())) {
-            return value.name();
-        } else {
-            return "_" + info.values().indexOf(value);
+        String name = value.name();
+        if (!isValidIdentifier(name)) {
+            name = "_" + name;
         }
+        if (!isValidIdentifier(name)) {
+            name = "_" + info.values().indexOf(value);
+        }
+        return name;
     }
 
     static String getJavaPropertyName(String name) {
@@ -56,7 +59,7 @@ class TypeNameUtil {
             name = '_' + name;
         }
         if (SourceVersion.isIdentifier(name)) {
-            if (!SourceVersion.isName(name) || OBJECT_METHODS.contains(name)) {
+            if (SourceVersion.isKeyword(name) || OBJECT_METHODS.contains(name)) {
                 name += '_';
             }
             return name;
@@ -108,5 +111,9 @@ class TypeNameUtil {
             return Character.toUpperCase(name.charAt(0)) + name.substring(1);
         }
         return name;
+    }
+
+    private static boolean isValidIdentifier(String name) {
+        return SourceVersion.isIdentifier(name) && !SourceVersion.isKeyword(name);
     }
 }

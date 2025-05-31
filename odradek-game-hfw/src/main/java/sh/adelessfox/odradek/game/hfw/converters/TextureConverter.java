@@ -116,10 +116,10 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
 
     private static Optional<TextureType> mapType(HorizonForbiddenWest.ETextureType type) {
         return switch (type) {
-            case _0 -> Optional.of(TextureType.SURFACE);
+            case _2D -> Optional.of(TextureType.SURFACE);
+            case _2DArray -> Optional.of(TextureType.ARRAY);
+            case _3D -> Optional.of(TextureType.VOLUME);
             case CubeMap -> Optional.of(TextureType.CUBEMAP);
-            case _1 -> Optional.of(TextureType.VOLUME);
-            case _3 -> Optional.of(TextureType.ARRAY);
             default -> Optional.empty();
         };
     }
