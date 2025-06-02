@@ -19,6 +19,20 @@ Open the terminal and execute the following commands:
 
 Ready-to-use distributions can be found under the `odradek-app/target/dist` directory.
 
+#### Development note
+
+IntelliJ IDEA refuses to provide code analysis for generated RTTI classes due to the enormous size of the generated
+code, and all references will be highlighted in _red_. The project will still compile and launch just fine.
+
+To fix this, go to **Help -> Edit Custom Properties** and add the following lines:
+
+```properties
+idea.max.content.load.filesize=10000
+idea.max.intellisense.filesize=10000
+```
+
+Then restart the IDE.
+
 ## License
 This project is licensed under the GPL-3.0 license.
 
