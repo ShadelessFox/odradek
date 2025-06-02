@@ -4,7 +4,7 @@ module odradek.opengl {
     requires odradek.core;
     requires org.lwjgl.natives;
     requires org.lwjgl.opengl.natives;
-    requires org.lwjgl.opengl;
+    requires transitive org.lwjgl.opengl;
 
     exports sh.adelessfox.odradek.opengl;
 }

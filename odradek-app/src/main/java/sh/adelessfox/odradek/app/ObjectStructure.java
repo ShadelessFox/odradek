@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app;
 
-import sh.adelessfox.odradek.app.ui.tree.TreeStructure;
+import sh.adelessfox.odradek.ui.tree.TreeStructure;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.runtime.*;
 

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.util;
+package sh.adelessfox.odradek.ui.util;
 
 import java.awt.datatransfer.*;
 import java.io.ByteArrayInputStream;

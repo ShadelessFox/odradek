@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui;
+package sh.adelessfox.odradek.ui;
 
 import com.formdev.flatlaf.extras.components.FlatTextField;
 import com.formdev.flatlaf.icons.FlatSearchIcon;

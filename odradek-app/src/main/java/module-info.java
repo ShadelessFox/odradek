@@ -12,13 +12,9 @@ module odradek.app {
     requires odradek.opengl.awt;
     requires odradek.opengl;
     requires odradek.rtti;
-    requires org.lwjgl.opengl;
+    requires odradek.ui;
     requires org.slf4j;
 
     opens sh.adelessfox.odradek.app to info.picocli;
-    opens sh.adelessfox.odradek.app.ui.laf to com.formdev.flatlaf;
     opens sh.adelessfox.odradek.app.viewport.renderpass to com.google.gson;
-
-    provides com.formdev.flatlaf.FlatDefaultsAddon
-        with sh.adelessfox.odradek.app.ApplicationDefaultsAddon;
 }

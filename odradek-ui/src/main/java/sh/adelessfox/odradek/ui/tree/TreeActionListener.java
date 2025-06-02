@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.tree;
+package sh.adelessfox.odradek.ui.tree;
 
 import java.util.EventListener;
 

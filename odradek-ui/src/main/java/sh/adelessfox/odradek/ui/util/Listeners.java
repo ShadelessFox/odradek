@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.util;
+package sh.adelessfox.odradek.ui.util;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

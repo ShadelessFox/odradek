@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui;
+package sh.adelessfox.odradek.ui;
 
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;

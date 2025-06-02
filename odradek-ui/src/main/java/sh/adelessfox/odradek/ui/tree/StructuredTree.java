@@ -1,6 +1,6 @@
-package sh.adelessfox.odradek.app.ui.tree;
+package sh.adelessfox.odradek.ui.tree;
 
-import sh.adelessfox.odradek.app.ui.util.Listeners;
+import sh.adelessfox.odradek.ui.util.Listeners;
 
 import javax.swing.*;
 import javax.swing.tree.TreeModel;
