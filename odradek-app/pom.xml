@@ -23,15 +23,15 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-opengl-awt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-opengl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-ui</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-viewer-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-viewer-texture</artifactId>
         </dependency>
 
         <!-- External dependencies -->

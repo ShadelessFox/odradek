@@ -1,6 +1,6 @@
-package sh.adelessfox.odradek.app.viewport.renderpass;
+package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
-import sh.adelessfox.odradek.app.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 public interface RenderPass {
     /**

@@ -1,13 +1,13 @@
-package sh.adelessfox.odradek.app.viewport;
+package sh.adelessfox.odradek.viewer.model.viewport;
 
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLDebugMessageCallback;
-import sh.adelessfox.odradek.app.viewport.renderpass.RenderPass;
 import sh.adelessfox.odradek.math.Vec2f;
 import sh.adelessfox.odradek.opengl.awt.AWTGLCanvas;
 import sh.adelessfox.odradek.opengl.awt.GLData;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderPass;
 
 import javax.swing.*;
 import java.awt.*;

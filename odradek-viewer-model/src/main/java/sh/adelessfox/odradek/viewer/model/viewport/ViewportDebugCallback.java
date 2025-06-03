@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.viewport;
+package sh.adelessfox.odradek.viewer.model.viewport;
 
 import org.lwjgl.opengl.GLDebugMessageCallback;
 import org.slf4j.Logger;

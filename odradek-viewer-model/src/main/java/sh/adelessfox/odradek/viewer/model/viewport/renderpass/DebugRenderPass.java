@@ -1,11 +1,9 @@
-package sh.adelessfox.odradek.app.viewport.renderpass;
+package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import com.google.gson.Gson;
 import org.lwjgl.BufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.viewport.Camera;
-import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
 import sh.adelessfox.odradek.math.Mat4f;
@@ -13,6 +11,8 @@ import sh.adelessfox.odradek.math.Vec2f;
 import sh.adelessfox.odradek.math.Vec3f;
 import sh.adelessfox.odradek.math.Vec4f;
 import sh.adelessfox.odradek.opengl.*;
+import sh.adelessfox.odradek.viewer.model.viewport.Camera;
+import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

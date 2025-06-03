@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui;
+package sh.adelessfox.odradek.ui.laf;
 
 import com.formdev.flatlaf.FlatDefaultsAddon;
 

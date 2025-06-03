@@ -1,9 +1,7 @@
-package sh.adelessfox.odradek.app.viewport.renderpass;
+package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.viewport.Camera;
-import sh.adelessfox.odradek.app.viewport.Viewport;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Mat4f;
@@ -14,6 +12,8 @@ import sh.adelessfox.odradek.opengl.VertexArray;
 import sh.adelessfox.odradek.opengl.VertexAttribute;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.viewer.model.viewport.Camera;
+import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import java.nio.ByteBuffer;
 import java.util.*;

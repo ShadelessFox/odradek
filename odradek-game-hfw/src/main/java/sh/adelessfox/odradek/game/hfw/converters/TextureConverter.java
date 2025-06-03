@@ -21,7 +21,7 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
     private static final Logger log = LoggerFactory.getLogger(TextureConverter.class);
 
     @Override
-    public boolean supports(Object object) {
+    public boolean canConvert(Object object) {
         return object instanceof HorizonForbiddenWest.Texture;
     }
 

@@ -9,22 +9,27 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>odradek-ui</artifactId>
+    <artifactId>odradek-viewer-model</artifactId>
 
     <dependencies>
+        <!-- Internal dependencies -->
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-opengl-awt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-opengl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-ui</artifactId>
+        </dependency>
+
         <!-- External dependencies -->
         <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf-extras</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
     </dependencies>
-
 </project>

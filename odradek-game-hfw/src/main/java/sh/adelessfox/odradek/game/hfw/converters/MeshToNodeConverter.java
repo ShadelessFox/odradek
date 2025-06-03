@@ -25,7 +25,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     private static final Logger log = LoggerFactory.getLogger(MeshToNodeConverter.class);
 
     @Override
-    public boolean supports(Object object) {
+    public boolean canConvert(Object object) {
         return object instanceof StaticMeshResource
             || object instanceof RegularSkinnedMeshResource
             || object instanceof LodMeshResource

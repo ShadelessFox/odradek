@@ -6,11 +6,14 @@ module odradek.ui {
 
     opens sh.adelessfox.odradek.ui.laf to com.formdev.flatlaf;
 
+    exports sh.adelessfox.odradek.ui.components;
     exports sh.adelessfox.odradek.ui.laf;
     exports sh.adelessfox.odradek.ui.tree;
     exports sh.adelessfox.odradek.ui.util;
     exports sh.adelessfox.odradek.ui;
 
-    provides com.formdev.flatlaf.FlatDefaultsAddon
-        with sh.adelessfox.odradek.ui.OdradekDefaultsAddon;
+    uses sh.adelessfox.odradek.ui.Viewer;
+
+    provides com.formdev.flatlaf.FlatDefaultsAddon with
+        sh.adelessfox.odradek.ui.laf.OdradekDefaultsAddon;
 }

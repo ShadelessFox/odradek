@@ -3,24 +3,19 @@ package sh.adelessfox.odradek.app;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.ui.SearchTextField;
-import sh.adelessfox.odradek.ui.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
-import sh.adelessfox.odradek.ui.tree.TreeItem;
-import sh.adelessfox.odradek.ui.util.ByteContents;
-import sh.adelessfox.odradek.app.viewport.Camera;
-import sh.adelessfox.odradek.app.viewport.Viewport;
-import sh.adelessfox.odradek.app.viewport.renderpass.RenderMeshesPass;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
-import sh.adelessfox.odradek.math.Vec3f;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
-import sh.adelessfox.odradek.scene.Node;
-import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.ui.Viewer;
+import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
+import sh.adelessfox.odradek.ui.tree.TreeItem;
+import sh.adelessfox.odradek.ui.util.ByteContents;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -99,8 +94,7 @@ public class ApplicationWindow extends JComponent {
             };
         }
         return structure -> switch (structure) {
-            case GraphStructure.Group(var graph, var group) ->
-                graph.types(group).stream().anyMatch(info -> filterMatches(info, filter));
+            case GraphStructure.Group(var graph, var group) -> graph.types(group).stream().anyMatch(info -> filterMatches(info, filter));
             case GraphStructure.GraphObjectSet(var _, var info, var _) -> filterMatches(info, filter);
             case GraphStructure.GroupObject object -> filterMatches(object.type(), filter);
             case GraphStructure.GroupObjectSet(var _, var _, var info, var _) -> filterMatches(info, filter);
@@ -268,19 +262,16 @@ public class ApplicationWindow extends JComponent {
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
-        Converter.convert(object, game, Node.class).ifPresent(node -> {
-            Scene scene = Scene.of(node);
-
-            Camera camera = new Camera(30.f, 0.01f, 1000.f);
-            camera.position(new Vec3f(-2, 0, 1));
-
-            Viewport viewport = new Viewport();
-            viewport.setMinimumSize(new Dimension(100, 100));
-            viewport.addRenderPass(new RenderMeshesPass());
-            viewport.setCamera(camera);
-            viewport.setScene(scene);
-
-            pane.add("Model", viewport);
+        Converter.converters(object).forEach(converter -> {
+            @SuppressWarnings("unchecked")
+            var clazz = (Class<Object>) converter.resultType();
+            Viewer.viewers(clazz).forEach(viewer -> {
+                var result = converter.convert(object, game);
+                if (result.isEmpty()) {
+                    return;
+                }
+                pane.add(viewer.displayName(), viewer.createPreview(result.get()));
+            });
         });
 
         pane.add("Object", new JScrollPane(createObjectTree(game, info, object)));

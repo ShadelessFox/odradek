@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.viewport;
+package sh.adelessfox.odradek.viewer.model.viewport;
 
 import sh.adelessfox.odradek.math.Mat4f;
 import sh.adelessfox.odradek.math.Vec3f;

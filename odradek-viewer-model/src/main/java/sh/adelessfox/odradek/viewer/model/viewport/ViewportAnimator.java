@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.viewport;
+package sh.adelessfox.odradek.viewer.model.viewport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

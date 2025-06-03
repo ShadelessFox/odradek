@@ -1,7 +1,8 @@
-package sh.adelessfox.odradek.ui;
+package sh.adelessfox.odradek.ui.components;
 
 import com.formdev.flatlaf.extras.components.FlatTextField;
 import com.formdev.flatlaf.icons.FlatSearchIcon;
+import sh.adelessfox.odradek.ui.util.DocumentAdapter;
 
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
