@@ -12,4 +12,10 @@ public record Surface(int width, int height, byte[] data) {
             throw new IllegalArgumentException("Data must not be null or empty");
         }
     }
+
+    public static Surface create(int width, int height, TextureFormat format) {
+        var size = format.block().surfaceSize(width, height);
+        var data = new byte[size];
+        return new Surface(width, height, data);
+    }
 }

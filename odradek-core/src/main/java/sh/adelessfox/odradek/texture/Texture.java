@@ -51,13 +51,17 @@ public record Texture(
             throw new IllegalArgumentException("Array size must be present for array textures");
         }
         for (Surface surface : surfaces) {
-            int size = surface.width() * surface.height() * format.block().bitsPerPixel() / 8;
+            int size = format.block().surfaceSize(surface.width(), surface.height());
             if (surface.data().length != size) {
                 throw new IllegalArgumentException("Surface data size does not match expected size: "
                     + surface.data().length + " != " + size);
             }
         }
         surfaces = List.copyOf(surfaces);
+    }
+
+    public Texture convert(TextureFormat targetFormat) {
+        return TextureConverter.convert(this, targetFormat);
     }
 
     public int width() {

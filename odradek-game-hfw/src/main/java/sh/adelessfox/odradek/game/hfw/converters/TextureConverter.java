@@ -61,7 +61,6 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
         for (int mip = 0; mip < numMipmaps; mip++) {
             int mipWidth = Math.max(width >> mip, format.block().width());
             int mipHeight = Math.max(height >> mip, format.block().height());
-            int mipSize = Math.toIntExact((long) mipWidth * mipHeight * format.block().bitsPerPixel() / 8);
 
             int elements = switch (type) {
                 case ARRAY -> numSurfaces;
@@ -71,17 +70,17 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
             };
 
             for (int element = 0; element < elements; element++) {
-                var mipData = new byte[mipSize];
+                var surface = Surface.create(mipWidth, mipHeight, format);
 
                 if (mip >= texture.data().streamedMips()) {
-                    embeddedData.get(mipData, 0, mipSize);
+                    embeddedData.get(surface.data());
                 } else if (textureSet == null) {
-                    streamedData.get(mipData, 0, mipSize);
+                    streamedData.get(surface.data());
                 } else {
-                    streamedData.get(texture.streamingMipOffsets()[mip], mipData, 0, mipSize);
+                    streamedData.get(texture.streamingMipOffsets()[mip], surface.data());
                 }
 
-                surfaces.add(new Surface(mipWidth, mipHeight, mipData));
+                surfaces.add(surface);
             }
         }
 
@@ -100,6 +99,10 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
 
     private static Optional<TextureFormat> mapFormat(HorizonForbiddenWest.EPixelFormat format) {
         return switch (format) {
+            // Uncompressed
+            case RGBA_8888 -> Optional.of(TextureFormat.R8G8B8A8_UNORM);
+
+            // Compressed
             case BC1 -> Optional.of(TextureFormat.BC1);
             case BC2 -> Optional.of(TextureFormat.BC2);
             case BC3 -> Optional.of(TextureFormat.BC3);
@@ -110,6 +113,7 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
             case BC6U -> Optional.of(TextureFormat.BC6U);
             case BC6S -> Optional.of(TextureFormat.BC6S);
             case BC7 -> Optional.of(TextureFormat.BC7);
+
             default -> Optional.empty();
         };
     }

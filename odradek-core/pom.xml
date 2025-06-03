@@ -9,4 +9,12 @@
     </parent>
 
     <artifactId>odradek-core</artifactId>
+
+    <dependencies>
+        <!-- External dependencies -->
+        <dependency>
+            <groupId>be.twofold</groupId>
+            <artifactId>tinybcdec</artifactId>
+        </dependency>
+    </dependencies>
 </project>
