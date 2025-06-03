@@ -2,7 +2,9 @@ package sh.adelessfox.odradek.texture;
 
 import be.twofold.tinybcdec.BlockDecoder;
 import be.twofold.tinybcdec.BlockFormat;
+import sh.adelessfox.odradek.Arrays;
 
+import java.nio.ByteOrder;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -18,7 +20,8 @@ final class TextureConverter {
         }
 
         var converter = Optional.of(Converter.noop(texture.format()))
-            .map(c -> decompress(c.format(), format).map(c::andThen).orElse(c))
+            .map(c -> decompress(c.format()).map(c::andThen).orElse(c))
+            .map(c -> tonemap(c.format()).map(c::andThen).orElse(c))
             .map(c -> unpack(c.format(), format).map(c::andThen).orElse(c))
             .map(c -> swizzle(c.format(), format).map(c::andThen).orElse(c))
             .orElseThrow();
@@ -30,7 +33,7 @@ final class TextureConverter {
         return map(texture, format, converter.operator);
     }
 
-    private static Optional<Converter> decompress(TextureFormat srcFormat, TextureFormat dstFormat) {
+    private static Optional<Converter> decompress(TextureFormat srcFormat) {
         if (!srcFormat.isCompressed()) {
             return Optional.empty();
         }
@@ -39,6 +42,7 @@ final class TextureConverter {
             case BC1, BC2, BC3, BC7 -> TextureFormat.R8G8B8A8_UNORM;
             case BC4U, BC4S -> TextureFormat.R8_UNORM;
             case BC5U, BC5S -> TextureFormat.R8G8B8_UNORM;
+            case BC6U, BC6S -> TextureFormat.R16G16B16_SFLOAT;
             default -> throw new UnsupportedOperationException(srcFormat.name());
         };
 
@@ -50,17 +54,28 @@ final class TextureConverter {
             case BC4S -> BlockFormat.BC4S;
             case BC5U -> BlockFormat.BC5U;
             case BC5S -> BlockFormat.BC5S;
+            case BC6U -> BlockFormat.BC6H_UF16;
+            case BC6S -> BlockFormat.BC6H_SF16;
             case BC7 -> BlockFormat.BC7;
             default -> throw new UnsupportedOperationException(srcFormat.name());
         });
 
         UnaryOperator<Surface> operator = surface -> {
-            var result = Surface.create(surface.width(), surface.height(), dstFormat);
+            var result = Surface.create(surface.width(), surface.height(), format);
             decoder.decode(surface.width(), surface.height(), surface.data(), 0, result.data(), 0);
             return result;
         };
 
         return Optional.of(new Converter(operator, format));
+    }
+
+    private static Optional<Converter> tonemap(TextureFormat srcFormat) {
+        Converter operator = switch (srcFormat) {
+            case R16G16B16_SFLOAT -> new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8_UNORM), TextureFormat.R8G8B8_UNORM);
+            default -> null;
+        };
+
+        return Optional.ofNullable(operator);
     }
 
     private static Optional<Converter> swizzle(TextureFormat srcFormat, TextureFormat dstFormat) {
@@ -189,6 +204,21 @@ final class TextureConverter {
             return surface -> rgba2bgra(surface, 4);
         }
         return null;
+    }
+
+    private static Surface tonemapF16(Surface surface, TextureFormat format) {
+        Surface target = Surface.create(surface.width(), surface.height(), format);
+
+        var src = surface.data();
+        var dst = target.data();
+        for (int i = 0, o = 0; i < src.length; i += 2, o++) {
+            dst[o] = packUNorm8(Float.float16ToFloat(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN)));
+        }
+        return target;
+    }
+
+    private static byte packUNorm8(float value) {
+        return (byte) Math.fma(Math.clamp(value, 0.0f, 1.0f), 255.0f, 0.5f);
     }
 
     private static Surface rgba2bgra(Surface surface, int stride) {
