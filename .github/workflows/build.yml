@@ -1,0 +1,39 @@
+name: Build
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+on:
+    push:
+        branches: [ "master" ]
+    pull_request:
+        branches: [ "master" ]
+
+jobs:
+    build:
+        strategy:
+            fail-fast: false
+            matrix:
+                config:
+                    - { name: Windows, runner-os: windows-latest, os: win32, arch: x86_64 }
+
+        name: Build ${{ matrix.config.name }} ${{ matrix.config.arch }}
+        runs-on: ${{ matrix.config.runner-os }}
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up JDK 24
+              uses: actions/setup-java@v4
+              with:
+                  java-version: '24'
+                  distribution: 'temurin'
+
+            - name: Build with Maven
+              run: ./mvnw -B package -f pom.xml
+
+            - name: Upload artifacts for ${{ matrix.config.os }} ${{ matrix.config.arch }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: odradek-${{ matrix.config.os }}-${{ matrix.config.arch }}
+                  path: odradek-app/target/dist/*/
