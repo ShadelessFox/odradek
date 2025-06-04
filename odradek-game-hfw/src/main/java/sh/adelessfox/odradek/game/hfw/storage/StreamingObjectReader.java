@@ -89,7 +89,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         return result;
     }
 
-    private GroupResult readGroup(StreamingGroupData group, List<GroupResult> groups, boolean readSubgroups) throws IOException {
+    private synchronized GroupResult readGroup(StreamingGroupData group, List<GroupResult> groups, boolean readSubgroups) throws IOException {
         var subGroups = new ArrayList<GroupResult>(group.subGroupCount());
         if (readSubgroups) {
             for (int i = 0; i < group.subGroupCount(); i++) {
