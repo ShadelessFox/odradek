@@ -74,6 +74,22 @@ public class ApplicationWindow extends JComponent {
         treePanel.add(filterField, BorderLayout.NORTH);
         treePanel.add(treeScrollPane, BorderLayout.CENTER);
 
+        filterField.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "focus-out");
+        filterField.getActionMap().put("focus-out", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tree.requestFocusInWindow();
+            }
+        });
+
+        treeScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
+        treeScrollPane.getActionMap().put("focus-in", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                filterField.requestFocusInWindow();
+            }
+        });
+
         var splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setLeftComponent(treePanel);
         splitPane.setRightComponent(tabs);
@@ -280,6 +296,17 @@ public class ApplicationWindow extends JComponent {
         tabs.add(info.toString(), pane);
         tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, groupIndex));
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
+
+        tabs.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F4"), "closeTab");
+        tabs.getActionMap().put("closeTab", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int index = tabs.getSelectedIndex();
+                if (index >= 0) {
+                    tabs.removeTabAt(index);
+                }
+            }
+        });
     }
 
     private StructuredTree<?> createObjectTree(Game game, ClassTypeInfo info, Object object) {
