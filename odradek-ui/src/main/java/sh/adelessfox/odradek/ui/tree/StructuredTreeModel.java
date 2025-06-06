@@ -62,8 +62,9 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
     @Override
     public int getIndexOfChild(Object parent, Object child) {
-        Node<T> node = cast(child);
-        return node.index;
+        Node<T> parentNode = cast(parent);
+        Node<T> childNode = cast(child);
+        return childNode.parent == parentNode ? parentNode.children.indexOf(childNode) : -1;
     }
 
     @Override
@@ -263,7 +264,6 @@ public final class StructuredTreeModel<T> implements TreeModel {
         private final T element;
         private final Node<T> parent;
         private List<Node<T>> children;
-        private final int index;
 
         Node(T element, Node<T> parent, int index) {
             this(element, parent, null, index);
@@ -273,7 +273,6 @@ public final class StructuredTreeModel<T> implements TreeModel {
             this.element = element;
             this.parent = parent;
             this.children = children;
-            this.index = index;
         }
 
         @Override
@@ -285,13 +284,12 @@ public final class StructuredTreeModel<T> implements TreeModel {
         public boolean equals(Object o) {
             return o instanceof Node<?> node
                 && Objects.equals(element, node.element)
-                && Objects.equals(parent, node.parent)
-                && index == node.index;
+                && Objects.equals(parent, node.parent);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(element, parent, index);
+            return Objects.hash(element, parent);
         }
 
         @Override
