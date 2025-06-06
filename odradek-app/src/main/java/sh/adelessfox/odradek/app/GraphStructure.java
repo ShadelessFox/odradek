@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.app;
 
-import sh.adelessfox.odradek.ui.tree.TreeStructure;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
+import sh.adelessfox.odradek.ui.tree.TreeStructure;
 
 import java.util.*;
 import java.util.function.Function;
@@ -46,10 +46,10 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     ) implements GraphStructure {
         @Override
         public boolean equals(Object o) {
-            return o instanceof GraphObjectSetGroup that
-                && Objects.equals(graph, that.graph)
-                && Objects.equals(group, that.group)
-                && Arrays.equals(indices, that.indices);
+            return o instanceof GraphObjectSetGroup(var graph1, var group1, var indices1)
+                && graph.equals(graph1)
+                && group.equals(group1)
+                && Arrays.equals(indices, indices1);
         }
 
         @Override
@@ -124,9 +124,9 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof GroupObjects that
-                && Objects.equals(group, that.group)
-                && Objects.equals(graph, that.graph);
+            return o instanceof GroupObjects(var graph1, var group1, _)
+                && Objects.equals(group, group1)
+                && Objects.equals(graph, graph1);
         }
 
         @Override
@@ -148,11 +148,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     ) implements GraphStructure {
         @Override
         public boolean equals(Object o) {
-            return o instanceof GroupObjectSet that
-                && Objects.equals(graph, that.graph)
-                && Objects.equals(group, that.group)
-                && Objects.equals(info, that.info)
-                && Arrays.equals(indices, that.indices);
+            return o instanceof GroupObjectSet(var graph1, var group1, var info1, var indices1)
+                && graph.equals(graph1)
+                && group.equals(group1)
+                && info.equals(info1)
+                && Arrays.equals(indices, indices1);
         }
 
         @Override
@@ -228,15 +228,14 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 new GroupDependencies(graph, group),
                 new GroupDependents(graph, group)
             );
-            case GroupRoots(var graph, var group) ->
-                IntStream.range(group.rootStart(), group.rootStart() + group.rootCount())
-                    .mapToObj(index -> {
-                        var rootGroup = graph.group(graph.rootUUIDs().get(index));
-                        var rootIndex = graph.rootIndices()[index];
-                        Objects.requireNonNull(rootGroup);
-                        return new GroupObject(graph, rootGroup, rootIndex);
-                    })
-                    .toList();
+            case GroupRoots(var graph, var group) -> IntStream.range(group.rootStart(), group.rootStart() + group.rootCount())
+                .mapToObj(index -> {
+                    var rootGroup = graph.group(graph.rootUUIDs().get(index));
+                    var rootIndex = graph.rootIndices()[index];
+                    Objects.requireNonNull(rootGroup);
+                    return new GroupObject(graph, rootGroup, rootIndex);
+                })
+                .toList();
             case GroupDependencies(var graph, var group) ->
                 Arrays.stream(graph.subGroups(), group.subGroupStart(), group.subGroupStart() + group.subGroupCount())
                     .mapToObj(graph::group)
@@ -251,13 +250,20 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 if (options.contains(GroupObjects.Options.GROUP_BY_TYPE)) {
                     var indices = IntStream.range(0, group.typeCount())
                         .boxed()
-                        .collect(Collectors.groupingBy(index -> graph.types().get(group.typeStart() + index), IdentityHashMap::new, Collectors.toList()));
+                        .collect(Collectors.groupingBy(
+                            index -> graph.types().get(group.typeStart() + index),
+                            IdentityHashMap::new,
+                            Collectors.toList()
+                        ));
                     var comparator = options.contains(GroupObjects.Options.SORT_BY_COUNT)
                         ? Comparator.comparingInt((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getValue().size()).reversed()
                         : Comparator.comparing((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getKey().name().name());
                     yield indices.entrySet().stream()
                         .sorted(comparator)
-                        .map(entry -> new GroupObjectSet(graph, group, entry.getKey(), entry.getValue().stream().mapToInt(x -> x).toArray()))
+                        .map(entry -> new GroupObjectSet(graph,
+                            group,
+                            entry.getKey(),
+                            entry.getValue().stream().mapToInt(x -> x).toArray()))
                         .toList();
                 } else {
                     yield IntStream.range(0, group.typeCount())

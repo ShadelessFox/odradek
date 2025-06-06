@@ -283,12 +283,15 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Node<?> node && Objects.equals(element, node.element);
+            return o instanceof Node<?> node
+                && Objects.equals(element, node.element)
+                && Objects.equals(parent, node.parent)
+                && index == node.index;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(element);
+            return Objects.hash(element, parent, index);
         }
 
         @Override
