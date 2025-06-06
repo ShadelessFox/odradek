@@ -52,6 +52,10 @@
             <artifactId>miglayout-swing</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.weisj</groupId>
+            <artifactId>jsvg</artifactId>
+        </dependency>
+        <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
         </dependency>

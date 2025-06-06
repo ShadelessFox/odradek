@@ -80,7 +80,7 @@ public final class GraphWalker {
                 var groups = graph.groups();
                 for (int i = nextGroupIndex; i < groups.size(); i++) {
                     var group = groups.get(i);
-                    if (graph.types(group).stream().anyMatch(t -> t.isInstanceOf(ofType))) {
+                    if (graph.types(group).anyMatch(t -> t.isInstanceOf(ofType))) {
                         log.debug("Reading group {}/{}", i + 1, groups.size());
                         try {
                             result = reader.readGroup(group.groupID(), readSubgroups);

@@ -3,6 +3,7 @@ module odradek.app {
     requires ch.qos.logback.core;
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
+    requires com.github.weisj.jsvg;
     requires com.miglayout.swing;
     requires info.picocli;
     requires java.desktop;

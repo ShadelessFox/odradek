@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class StreamingGraphResource {
     private final HorizonForbiddenWest.StreamingGraphResource graph;
@@ -91,8 +92,8 @@ public class StreamingGraphResource {
         return types;
     }
 
-    public List<ClassTypeInfo> types(StreamingGroupData group) {
-        return types.subList(group.typeStart(), group.typeStart() + group.typeCount());
+    public Stream<ClassTypeInfo> types(StreamingGroupData group) {
+        return types.subList(group.typeStart(), group.typeStart() + group.typeCount()).stream();
     }
 
     public List<StreamingGroupData> incomingGroups(StreamingGroupData group) {

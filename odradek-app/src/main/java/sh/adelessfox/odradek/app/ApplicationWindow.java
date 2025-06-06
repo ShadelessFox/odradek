@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -58,17 +60,16 @@ public class ApplicationWindow extends JComponent {
         var tree = createGraphTree(game);
         var treeScrollPane = new JScrollPane(tree);
 
-        var filterField = new SearchTextField();
+        var filterField = createFilterField((input, matchCase, matchWholeWord) -> {
+            tree.getModel().setFilter(createFilter(input, matchCase, matchWholeWord));
+            tree.getModel().update();
+            // TODO: Update the selection model as well
+        });
         filterField.setPlaceholderText("Search by object type\u2026");
         filterField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
-        filterField.addActionListener(e -> {
-            tree.getModel().setFilter(createFilter(e.getActionCommand()));
-            tree.getModel().update();
-            // TODO: Update the selection model as well
-        });
 
         var treePanel = new JPanel(new BorderLayout());
         treePanel.add(filterField, BorderLayout.NORTH);
@@ -99,27 +100,32 @@ public class ApplicationWindow extends JComponent {
         add(splitPane, BorderLayout.CENTER);
     }
 
-    private Predicate<GraphStructure> createFilter(String filter) {
-        if (filter.isBlank()) {
-            return _ -> true;
-        }
-        if (filter.equals("has:roots")) {
-            return structure -> switch (structure) {
-                case GraphStructure.Group(var _, var group) -> group.rootCount() > 0;
-                default -> true;
-            };
-        }
-        return structure -> switch (structure) {
-            case GraphStructure.Group(var graph, var group) -> graph.types(group).stream().anyMatch(info -> filterMatches(info, filter));
-            case GraphStructure.GraphObjectSet(var _, var info, var _) -> filterMatches(info, filter);
-            case GraphStructure.GroupObject object -> filterMatches(object.type(), filter);
-            case GraphStructure.GroupObjectSet(var _, var _, var info, var _) -> filterMatches(info, filter);
-            default -> true;
-        };
-    }
+    private SearchTextField createFilterField(FilterListener listener) {
+        var toggleCaseSensitive = new JToggleButton(Icons.CASE_SENSITIVE);
+        toggleCaseSensitive.setToolTipText("Match Case");
 
-    private boolean filterMatches(TypeInfo info, String filter) {
-        return info.toString().contains(filter);
+        var toggleWholeWord = new JToggleButton(Icons.WHOLE_WORD);
+        toggleWholeWord.setToolTipText("Match Whole Word");
+
+        var filterToolbar = new JToolBar();
+        filterToolbar.add(toggleCaseSensitive);
+        filterToolbar.add(toggleWholeWord);
+        filterToolbar.add(Box.createHorizontalStrut(4));
+
+        var filterField = new SearchTextField();
+        filterField.setTrailingComponent(filterToolbar);
+
+        Runnable callback = () -> listener.filterChanged(
+            filterField.getText(),
+            toggleCaseSensitive.isSelected(),
+            toggleWholeWord.isSelected()
+        );
+
+        filterField.addActionListener(_ -> callback.run());
+        toggleCaseSensitive.addActionListener(_ -> callback.run());
+        toggleWholeWord.addActionListener(_ -> callback.run());
+
+        return filterField;
     }
 
     private StructuredTree<GraphStructure> createGraphTree(ForbiddenWestGame game) {
@@ -325,5 +331,82 @@ public class ApplicationWindow extends JComponent {
         });
         installObjectTreePopupMenu(tree);
         return tree;
+    }
+
+    private static Predicate<GraphStructure> createFilter(String input, boolean matchCase, boolean matchWholeWord) {
+        if (input.isBlank()) {
+            return null;
+        }
+        Predicate<GraphStructure> predicate = _ -> false;
+        for (String part : input.split("\\s+")) {
+            var filter = new Filter(part, matchCase, matchWholeWord);
+            predicate = predicate.or(createFilterPart(part, filter));
+        }
+        return predicate;
+    }
+
+    private static Predicate<GraphStructure> createFilterPart(String input, Filter filter) {
+        return switch (input) {
+            case "has:subgroups" -> s -> s instanceof GraphStructure.Group(_, var group) && group.subGroupCount() > 0;
+            case "has:roots" -> s -> s instanceof GraphStructure.Group(_, var group) && group.rootCount() > 0;
+            default -> s -> switch (s) {
+                case GraphStructure.Group(var graph, var group) -> graph.types(group).anyMatch(filter::matches);
+                case GraphStructure.GraphObjectSet(_, var info, _) -> filter.matches(info);
+                case GraphStructure.GroupObject object -> filter.matches(object.type());
+                case GraphStructure.GroupObjectSet(_, _, var info, _) -> filter.matches(info);
+                default -> true;
+            };
+        };
+    }
+
+    @FunctionalInterface
+    private interface FilterListener {
+        void filterChanged(String input, boolean matchCase, boolean matchWholeWord);
+    }
+
+    private record Filter(String query, boolean matchCase, boolean matchWholeWord) {
+        boolean matches(TypeInfo info) {
+            return matches(info.toString());
+        }
+
+        boolean matches(String input) {
+            if (matchWholeWord && input.length() != query.length()) {
+                return false;
+            }
+            if (matchCase) {
+                if (matchWholeWord) {
+                    return input.equals(query);
+                } else {
+                    return input.contains(query);
+                }
+            } else {
+                int index = indexOfIgnoreCase(query, input);
+                return index >= 0 && (!matchWholeWord || index == 0);
+            }
+        }
+
+        private static int indexOfIgnoreCase(String key, String haystack) {
+            if (haystack.length() < key.length()) {
+                return -1;
+            }
+            for (int i = haystack.length() - key.length(); i >= 0; i--) {
+                if (haystack.regionMatches(true, i, key, 0, key.length())) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+    }
+
+    private static final class Icons {
+        public static final FlatSVGIcon CASE_SENSITIVE = load("/icons/case-sensitive.svg");
+        public static final FlatSVGIcon WHOLE_WORD = load("/icons/whole-word.svg");
+
+        private Icons() {
+        }
+
+        private static FlatSVGIcon load(String path) {
+            return new FlatSVGIcon(Objects.requireNonNull(Icons.class.getResource(path), path));
+        }
     }
 }
