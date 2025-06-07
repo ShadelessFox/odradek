@@ -284,10 +284,25 @@ public class ApplicationWindow extends JComponent {
         return future;
     }
 
-    private void showObjectInfo(Game game, ClassTypeInfo info, Object object, int groupId, int groupIndex) {
-        log.debug("Showing object info for {} (group: {}, index: {})", info, groupId, groupIndex);
+    private static final String PROP_GROUP_ID = "odradek.groupId";
+    private static final String PROP_OBJECT_INDEX = "odradek.objectIndex";
+
+    private void showObjectInfo(Game game, ClassTypeInfo info, Object object, int groupId, int objectIndex) {
+        for (int i = 0; i < tabs.getTabCount(); i++) {
+            var tab = (JComponent) tabs.getComponentAt(i);
+            if (Objects.equals(groupId, tab.getClientProperty(PROP_GROUP_ID)) &&
+                Objects.equals(objectIndex, tab.getClientProperty(PROP_OBJECT_INDEX))
+            ) {
+                tabs.setSelectedIndex(i);
+                return;
+            }
+        }
+
+        log.debug("Showing object info for {} (group: {}, index: {})", info, groupId, objectIndex);
 
         FlatTabbedPane pane = new FlatTabbedPane();
+        pane.putClientProperty(PROP_GROUP_ID, groupId);
+        pane.putClientProperty(PROP_OBJECT_INDEX, objectIndex);
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
@@ -307,7 +322,7 @@ public class ApplicationWindow extends JComponent {
         pane.setSelectedIndex(0);
 
         tabs.add(info.toString(), pane);
-        tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, groupIndex));
+        tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, objectIndex));
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
 
         tabs.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F4"), "closeTab");
