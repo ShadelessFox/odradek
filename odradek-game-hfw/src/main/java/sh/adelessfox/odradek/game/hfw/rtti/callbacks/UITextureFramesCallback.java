@@ -1,7 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
+import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureType;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.FSize;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.Attr;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
@@ -11,11 +12,13 @@ import java.io.IOException;
 
 public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextureFramesCallback.FramesData> {
     public interface FramesData {
+        /** LZ4-compressed frame data; split into chunks defined by {@link #spans()}. */
         @Attr(name = "Data", type = "Array<uint8>", position = 0, offset = 0)
         byte[] data();
 
         void data(byte[] value);
 
+        /** {@code (u32 length; u32 offset)} pairs that define frame chunks in {@link #data()}. */
         @Attr(name = "Spans", type = "Array<uint64>", position = 1, offset = 0)
         long[] spans();
 
@@ -36,26 +39,21 @@ public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextur
 
         void format(EPixelFormat value);
 
-        @Attr(name = "Type", type = "ETextureType", position = 5, offset = 0)
-        ETextureType type();
+        @Attr(name = "Type", type = "uint32", position = 5, offset = 0)
+        int type();
 
-        void type(ETextureType value);
+        void type(int value);
 
-        /** Allocation size; dimensions are aligned for compressed textures */
+        /** Allocation size of a single frame; dimensions are aligned for compressed textures */
         @Attr(name = "Size", type = "uint32", position = 6, offset = 0)
         int size();
 
         void size(int value);
 
-        @Attr(name = "Unk01", type = "float", position = 7, offset = 0)
-        float unk01();
+        @Attr(name = "Size", type = "FSize", position = 7, offset = 0)
+        FSize scale();
 
-        void unk01(float value);
-
-        @Attr(name = "Unk02", type = "float", position = 8, offset = 0)
-        float unk02();
-
-        void unk02(float value);
+        void scale(FSize value);
 
         static FramesData read(BinaryReader reader, TypeFactory factory) throws IOException {
             var data = factory.newInstance(FramesData.class);
@@ -71,9 +69,8 @@ public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextur
         object.width(reader.readInt());
         object.height(reader.readInt());
         object.format(EPixelFormat.valueOf(reader.readInt()));
-        object.type(ETextureType.valueOf(reader.readInt()));
+        object.type(reader.readInt()); // readIntBoolean?
         object.size(reader.readInt());
-        object.unk01(reader.readFloat());
-        object.unk02(reader.readFloat());
+        object.scale(HFWTypeReader.readCompound(FSize.class, reader, factory));
     }
 }
