@@ -354,8 +354,8 @@ public class ApplicationWindow extends JComponent {
 
     private static Predicate<GraphStructure> createFilterPart(String input, Filter filter) {
         return switch (input) {
-            case "has:subgroups" -> s -> s instanceof GraphStructure.Group(_, var group) && group.subGroupCount() > 0;
-            case "has:roots" -> s -> s instanceof GraphStructure.Group(_, var group) && group.rootCount() > 0;
+            case "has:subgroups" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.subGroupCount() > 0;
+            case "has:roots" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.rootCount() > 0;
             default -> s -> switch (s) {
                 case GraphStructure.Group(var graph, var group) -> graph.types(group).anyMatch(filter::matches);
                 case GraphStructure.GraphObjectSet(_, var info, _) -> filter.matches(info);
