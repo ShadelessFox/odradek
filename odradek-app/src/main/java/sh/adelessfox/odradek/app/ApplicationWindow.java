@@ -66,6 +66,13 @@ public class ApplicationWindow extends JComponent {
             // TODO: Update the selection model as well
         });
         filterField.setPlaceholderText("Search by object type\u2026");
+        filterField.setToolTipText("""
+            <html>
+            You can search for multiple type names separated by spaces.<br>
+            - To include only groups that have <i>root objects</i>, use <b>has:roots</b>.<br>
+            - To include only groups that have <i>child groups</i>, use <b>has:subgroups</b>.
+            </html>
+            """);
         filterField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
