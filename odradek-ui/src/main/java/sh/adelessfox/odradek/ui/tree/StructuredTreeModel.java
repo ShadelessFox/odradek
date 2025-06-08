@@ -109,9 +109,9 @@ public final class StructuredTreeModel<T> implements TreeModel {
         var newChildren = computeChildren(node);
         var oldChildren = node.children.stream().map(n -> n.element).toList();
 
-        var added = new LinkedHashMap<T, Integer>();
-        var removed = new LinkedHashMap<T, Integer>();
-        var unchanged = new LinkedHashMap<T, Integer>();
+        var added = new ArrayList<Integer>();
+        var removed = new ArrayList<Integer>();
+        var unchanged = new HashMap<T, Integer>();
 
         difference(oldChildren, newChildren, added, removed, unchanged);
 
@@ -137,11 +137,11 @@ public final class StructuredTreeModel<T> implements TreeModel {
             }
 
             if (!removed.isEmpty()) {
-                treeNodesRemoved(node, removed.values().stream().mapToInt(i -> i).toArray());
+                treeNodesRemoved(node, removed.stream().mapToInt(i -> i).toArray());
             }
 
             if (!added.isEmpty()) {
-                treeNodesInserted(node, added.values().stream().mapToInt(i -> i).toArray());
+                treeNodesInserted(node, added.stream().mapToInt(i -> i).toArray());
             }
         }
 
@@ -153,8 +153,8 @@ public final class StructuredTreeModel<T> implements TreeModel {
     private static <T> void difference(
         List<? extends T> original,
         List<? extends T> updated,
-        Map<? super T, Integer> added,
-        Map<? super T, Integer> removed,
+        List<Integer> added,
+        List<Integer> removed,
         Map<? super T, Integer> unchanged
     ) {
         Set<T> matched = new HashSet<>();
@@ -173,14 +173,14 @@ public final class StructuredTreeModel<T> implements TreeModel {
         for (int i = 0; i < original.size(); i++) {
             T item = original.get(i);
             if (!matched.contains(item)) {
-                removed.put(item, i);
+                removed.add(i);
             }
         }
 
         for (int i = 0; i < updated.size(); i++) {
             T item = updated.get(i);
             if (!matched.contains(item)) {
-                added.put(item, i);
+                added.add(i);
             }
         }
     }
@@ -228,7 +228,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
             if (isLeaf(parent)) {
                 parent.children = List.of();
             } else {
-                parent.children = computeChildrenNodes(parent);
+                parent.children = computeChildNodes(parent);
             }
         }
         return parent.children;
@@ -239,7 +239,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
         return new Node<>(structure.getRoot(), null);
     }
 
-    private List<Node<T>> computeChildrenNodes(Node<T> parent) {
+    private List<Node<T>> computeChildNodes(Node<T> parent) {
         return computeChildren(parent).stream()
             .map(child -> new Node<>(child, parent))
             .toList();
