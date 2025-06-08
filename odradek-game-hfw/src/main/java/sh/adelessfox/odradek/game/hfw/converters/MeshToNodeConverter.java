@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.game.hfw.data.edge.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.math.Mat4f;
+import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Node;
 
@@ -187,7 +187,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
 
     private Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
         var child = convert(resource, game);
-        var matrix = transform != null ? convertMat34(transform) : Mat4f.identity();
+        var matrix = transform != null ? convertMat34(transform) : Matrix4f.identity();
 
         return child.map(c -> c.transform(matrix));
     }
@@ -201,21 +201,12 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         return Optional.of(Node.of(children));
     }
 
-    private static Mat4f convertMat34(Mat34 matrix) {
-        return new Mat4f(
+    private static Matrix4f convertMat34(Mat34 matrix) {
+        return new Matrix4f(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
             matrix.row0().y(), matrix.row1().y(), matrix.row2().y(), 0.f,
             matrix.row0().z(), matrix.row1().z(), matrix.row2().z(), 0.f,
             matrix.row0().w(), matrix.row1().w(), matrix.row2().w(), 1.f
-        );
-    }
-
-    private static Mat4f convertMat44(Mat44 matrix) {
-        return new Mat4f(
-            matrix.col0().x(), matrix.col0().y(), matrix.col0().z(), matrix.col0().w(),
-            matrix.col1().x(), matrix.col1().y(), matrix.col1().z(), matrix.col1().w(),
-            matrix.col2().x(), matrix.col2().y(), matrix.col2().z(), matrix.col2().w(),
-            matrix.col3().x(), matrix.col3().y(), matrix.col3().z(), matrix.col3().w()
         );
     }
 

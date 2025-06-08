@@ -2,7 +2,10 @@ package sh.adelessfox.odradek.math;
 
 import java.nio.FloatBuffer;
 
-public record Mat4f(
+/**
+ * Contains the definition of an immutable 4x4 Matrix of floats, and associated functions to transform it.
+ */
+public record Matrix4f(
     float m00, float m01, float m02, float m03,
     float m10, float m11, float m12, float m13,
     float m20, float m21, float m22, float m23,
@@ -10,29 +13,18 @@ public record Mat4f(
 ) {
     public static final int BYTES = Float.BYTES * 16;
 
-    private static final Mat4f identity = new Mat4f(
+    private static final Matrix4f identity = new Matrix4f(
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
     );
 
-    public static Mat4f identity() {
+    public static Matrix4f identity() {
         return identity;
     }
 
-    public static Mat4f rotationX(float ang) {
-        float sin = (float) Math.sin(ang);
-        float cos = (float) Math.cos(ang);
-        return new Mat4f(
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, +cos, -sin, 0.0f,
-            0.0f, +sin, -cos, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-        );
-    }
-
-    public static Mat4f perspective(float fov, float aspect, float near, float far) {
+    public static Matrix4f perspective(float fov, float aspect, float near, float far) {
         float h = (float) Math.tan(fov * 0.5f);
         float m00 = 1.0f / (h * aspect);
         float m11 = 1.0f / h;
@@ -40,7 +32,7 @@ public record Mat4f(
         float m32 = (far + far) * near / (near - far);
         float m23 = -1.0f;
 
-        return new Mat4f(
+        return new Matrix4f(
             m00, 0.f, 0.f, 0.f,
             0.f, m11, 0.f, 0.f,
             0.f, 0.f, m22, m23,
@@ -48,14 +40,14 @@ public record Mat4f(
         );
     }
 
-    public static Mat4f ortho2D(float left, float right, float bottom, float top) {
+    public static Matrix4f ortho2D(float left, float right, float bottom, float top) {
         float m00 = 2.0f / (right - left);
         float m11 = 2.0f / (top - bottom);
         float m22 = -1.0f;
         float m30 = (right + left) / (left - right);
         float m31 = (top + bottom) / (bottom - top);
 
-        return new Mat4f(
+        return new Matrix4f(
             m00, 0.f, 0.f, 0.f,
             0.f, m11, 0.f, 0.f,
             0.f, 0.f, m22, 0.f,
@@ -63,12 +55,12 @@ public record Mat4f(
         );
     }
 
-    public static Mat4f lookAt(Vec3f eye, Vec3f center, Vec3f up) {
-        Vec3f dir = eye.sub(center).normalize();
-        Vec3f left = up.cross(dir).normalize();
-        Vec3f upn = dir.cross(left);
+    public static Matrix4f lookAt(Vector3f eye, Vector3f center, Vector3f up) {
+        Vector3f dir = eye.sub(center).normalize();
+        Vector3f left = up.cross(dir).normalize();
+        Vector3f upn = dir.cross(left);
 
-        Mat4f result = new Mat4f(
+        Matrix4f result = new Matrix4f(
             left.x(), upn.x(), dir.x(), 0.f,
             left.y(), upn.y(), dir.y(), 0.f,
             left.z(), upn.z(), dir.z(), 0.f,
@@ -78,7 +70,7 @@ public record Mat4f(
         return result.translate(-eye.x(), -eye.y(), -eye.z());
     }
 
-    public Mat4f rotate(Quatf quat) {
+    public Matrix4f rotate(Quaternionf quat) {
         float w2 = quat.w() * quat.w(), x2 = quat.x() * quat.x();
         float y2 = quat.y() * quat.y(), z2 = quat.z() * quat.z();
         float zw = quat.z() * quat.w(), dzw = zw + zw, xy = quat.x() * quat.y(), dxy = xy + xy;
@@ -106,7 +98,7 @@ public record Mat4f(
         float nm22 = Math.fma(m02(), rm20, Math.fma(m12(), rm21, m22() * rm22));
         float nm23 = Math.fma(m03(), rm20, Math.fma(m13(), rm21, m23() * rm22));
 
-        return new Mat4f(
+        return new Matrix4f(
             nm00, nm01, nm02, nm03,
             nm10, nm11, nm12, nm13,
             nm20, nm21, nm22, nm23,
@@ -114,17 +106,13 @@ public record Mat4f(
         );
     }
 
-    public Mat4f rotateX(float ang) {
-        return mul(rotationX(ang));
-    }
-
-    public Mat4f translate(float x, float y, float z) {
+    public Matrix4f translate(float x, float y, float z) {
         float m30 = Math.fma(m00(), x, Math.fma(m10(), y, Math.fma(m20(), z, m30())));
         float m31 = Math.fma(m01(), x, Math.fma(m11(), y, Math.fma(m21(), z, m31())));
         float m32 = Math.fma(m02(), x, Math.fma(m12(), y, Math.fma(m22(), z, m32())));
         float m33 = Math.fma(m03(), x, Math.fma(m13(), y, Math.fma(m23(), z, m33())));
 
-        return new Mat4f(
+        return new Matrix4f(
             m00, m01, m02, m03,
             m10, m11, m12, m13,
             m20, m21, m22, m23,
@@ -132,12 +120,12 @@ public record Mat4f(
         );
     }
 
-    public Mat4f scale(float xyz) {
+    public Matrix4f scale(float xyz) {
         return scale(xyz, xyz, xyz);
     }
 
-    public Mat4f scale(float x, float y, float z) {
-        return new Mat4f(
+    public Matrix4f scale(float x, float y, float z) {
+        return new Matrix4f(
             m00 * x, m01 * x, m02 * x, m03 * x,
             m10 * y, m11 * y, m12 * y, m13 * y,
             m20 * z, m21 * z, m22 * z, m23 * z,
@@ -145,7 +133,7 @@ public record Mat4f(
         );
     }
 
-    public Mat4f mul(Mat4f o) {
+    public Matrix4f mul(Matrix4f o) {
         var m00 = Math.fma(m00(), o.m00(), Math.fma(m10(), o.m01(), Math.fma(m20(), o.m02(), m30() * o.m03())));
         var m01 = Math.fma(m01(), o.m00(), Math.fma(m11(), o.m01(), Math.fma(m21(), o.m02(), m31() * o.m03())));
         var m02 = Math.fma(m02(), o.m00(), Math.fma(m12(), o.m01(), Math.fma(m22(), o.m02(), m32() * o.m03())));
@@ -163,7 +151,7 @@ public record Mat4f(
         var m32 = Math.fma(m02(), o.m30(), Math.fma(m12(), o.m31(), Math.fma(m22(), o.m32(), m32() * o.m33())));
         var m33 = Math.fma(m03(), o.m30(), Math.fma(m13(), o.m31(), Math.fma(m23(), o.m32(), m33() * o.m33())));
 
-        return new Mat4f(
+        return new Matrix4f(
             m00, m01, m02, m03,
             m10, m11, m12, m13,
             m20, m21, m22, m23,
@@ -171,7 +159,7 @@ public record Mat4f(
         );
     }
 
-    public Mat4f invert() {
+    public Matrix4f invert() {
         var a = m00() * m11() - m01() * m10();
         var b = m00() * m12() - m02() * m10();
         var c = m00() * m13() - m03() * m10();
@@ -205,7 +193,7 @@ public record Mat4f(
         var m32 = Math.fma(-m30(), d, Math.fma(m31(), b, -m32() * a)) * scale;
         var m33 = Math.fma(m20(), d, Math.fma(-m21(), b, m22() * a)) * scale;
 
-        return new Mat4f(
+        return new Matrix4f(
             m00, m01, m02, m03,
             m10, m11, m12, m13,
             m20, m21, m22, m23,
@@ -213,8 +201,8 @@ public record Mat4f(
         );
     }
 
-    public Vec3f translation() {
-        return new Vec3f(m30, m31, m32);
+    public Vector3f translation() {
+        return new Vector3f(m30, m31, m32);
     }
 
     public FloatBuffer get(FloatBuffer dst) {

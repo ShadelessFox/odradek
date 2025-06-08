@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.viewer.model;
 
-import sh.adelessfox.odradek.math.Vec3f;
+import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -17,7 +17,7 @@ public class NodeViewer implements Viewer<Node> {
         Scene scene = Scene.of(node);
 
         Camera camera = new Camera(30.f, 0.01f, 1000.f);
-        camera.position(new Vec3f(-2, 0, 1));
+        camera.position(new Vector3f(-2, 0, 1));
 
         Viewport viewport = new Viewport();
         viewport.setMinimumSize(new Dimension(100, 100));

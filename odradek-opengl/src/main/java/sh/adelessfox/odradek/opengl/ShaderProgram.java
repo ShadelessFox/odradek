@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.opengl;
 
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
-import sh.adelessfox.odradek.math.Mat4f;
-import sh.adelessfox.odradek.math.Vec3f;
+import sh.adelessfox.odradek.math.Matrix4f;
+import sh.adelessfox.odradek.math.Vector3f;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -41,15 +41,15 @@ public final class ShaderProgram implements GLObject {
         glUniform1f(uniformLocation(name), value);
     }
 
-    public void set(String name, Vec3f value) {
+    public void set(String name, Vector3f value) {
         ensureBound();
         glUniform3f(uniformLocation(name), value.x(), value.y(), value.z());
     }
 
-    public void set(String name, Mat4f value) {
+    public void set(String name, Matrix4f value) {
         ensureBound();
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            FloatBuffer buffer = stack.mallocFloat(Mat4f.BYTES / Float.BYTES);
+            FloatBuffer buffer = stack.mallocFloat(Matrix4f.BYTES / Float.BYTES);
             GL20.glUniformMatrix4fv(uniformLocation(name), false, value.get(buffer).flip());
         }
     }

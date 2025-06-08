@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
-import sh.adelessfox.odradek.math.Mat4f;
-import sh.adelessfox.odradek.math.Vec3f;
+import sh.adelessfox.odradek.math.Matrix4f;
+import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.ShaderProgram;
 import sh.adelessfox.odradek.opengl.ShaderSource;
 import sh.adelessfox.odradek.opengl.VertexArray;
@@ -115,7 +115,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private void renderNode(Node node, Mat4f transform, Camera camera) {
+    private void renderNode(Node node, Matrix4f transform, Camera camera) {
         glEnable(GL_DEPTH_TEST);
 
         if (node.mesh().isPresent()) {
@@ -143,14 +143,14 @@ public final class RenderMeshesPass implements RenderPass {
     private void renderSkin(Node node, Node parent, Camera camera) {
         if (parent != null) {
             var translation = node.matrix().translation();
-            debug.point(translation, new Vec3f(1, 0, 1), 10f, false);
-            debug.line(parent.matrix().translation(), translation, new Vec3f(0, 1, 0), false);
+            debug.point(translation, new Vector3f(1, 0, 1), 10f, false);
+            debug.line(parent.matrix().translation(), translation, new Vector3f(0, 1, 0), false);
 
             if (node.name().isPresent()) {
                 float distance = translation.distance(camera.position());
                 float size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
 
-                debug.projectedText(node.name().get(), translation, camera.projectionView(), Vec3f.one(), size);
+                debug.projectedText(node.name().get(), translation, camera.projectionView(), new Vector3f(1, 1, 1), size);
             }
         }
 
@@ -212,7 +212,7 @@ public final class RenderMeshesPass implements RenderPass {
             };
 
             var random = new Random(primitive.hash());
-            var color = new Vec3f(
+            var color = new Vector3f(
                 random.nextFloat(0.5f, 1.0f),
                 random.nextFloat(0.5f, 1.0f),
                 random.nextFloat(0.5f, 1.0f)
@@ -230,7 +230,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuPrimitive(int count, int type, VertexArray vao, Vec3f color) {
+    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3f color) {
         public void dispose() {
             vao.dispose();
         }

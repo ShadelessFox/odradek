@@ -1,14 +1,14 @@
 package sh.adelessfox.odradek.scene;
 
 import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.math.Mat4f;
+import sh.adelessfox.odradek.math.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> skin, List<Node> children, Mat4f matrix) {
+public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> skin, List<Node> children, Matrix4f matrix) {
     public Node {
         children = List.copyOf(children);
     }
@@ -17,13 +17,12 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
         return new Builder();
     }
 
-
     public static Node of(List<Node> children) {
-        return new Node(Optional.empty(), Optional.empty(), Optional.empty(), children, Mat4f.identity());
+        return new Node(Optional.empty(), Optional.empty(), Optional.empty(), children, Matrix4f.identity());
     }
 
     public static Node of(Mesh mesh) {
-        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Mat4f.identity());
+        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Matrix4f.identity());
     }
 
     public Node add(Node child) {
@@ -32,7 +31,7 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
         return new Node(name, mesh, skin, children, matrix);
     }
 
-    public Node transform(Mat4f transform) {
+    public Node transform(Matrix4f transform) {
         return new Node(name, mesh, skin, children, matrix.mul(transform));
     }
 
@@ -41,7 +40,7 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
         private String name;
         private Mesh mesh;
         private Node skin;
-        private Mat4f matrix = Mat4f.identity();
+        private Matrix4f matrix = Matrix4f.identity();
 
         private Builder() {
         }
@@ -61,11 +60,11 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
             return this;
         }
 
-        public Mat4f matrix() {
+        public Matrix4f matrix() {
             return matrix;
         }
 
-        public Builder matrix(Mat4f matrix) {
+        public Builder matrix(Matrix4f matrix) {
             this.matrix = matrix;
             return this;
         }
@@ -82,7 +81,7 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
         }
 
         public Node build() {
-            return new Node(Optional.ofNullable(name), Optional.ofNullable(mesh), Optional.ofNullable(skin), List.copyOf(children), matrix);
+            return new Node(Optional.ofNullable(name), Optional.ofNullable(mesh), Optional.ofNullable(skin), children, matrix);
         }
 
         @Override
