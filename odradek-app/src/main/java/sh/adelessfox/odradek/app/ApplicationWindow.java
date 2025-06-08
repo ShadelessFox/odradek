@@ -254,6 +254,10 @@ public class ApplicationWindow extends JComponent {
     }
 
     private CompletableFuture<Void> showObjectInfo(ForbiddenWestGame game, int groupId, int objectIndex) {
+        if (revealObjectInfo(groupId, objectIndex)) {
+            return CompletableFuture.completedFuture(null);
+        }
+
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
@@ -288,14 +292,8 @@ public class ApplicationWindow extends JComponent {
     private static final String PROP_OBJECT_INDEX = "odradek.objectIndex";
 
     private void showObjectInfo(Game game, ClassTypeInfo info, Object object, int groupId, int objectIndex) {
-        for (int i = 0; i < tabs.getTabCount(); i++) {
-            var tab = (JComponent) tabs.getComponentAt(i);
-            if (Objects.equals(groupId, tab.getClientProperty(PROP_GROUP_ID)) &&
-                Objects.equals(objectIndex, tab.getClientProperty(PROP_OBJECT_INDEX))
-            ) {
-                tabs.setSelectedIndex(i);
-                return;
-            }
+        if (revealObjectInfo(groupId, objectIndex)) {
+            return;
         }
 
         log.debug("Showing object info for {} (group: {}, index: {})", info, groupId, objectIndex);
@@ -335,6 +333,19 @@ public class ApplicationWindow extends JComponent {
                 }
             }
         });
+    }
+
+    private boolean revealObjectInfo(int groupId, int objectIndex) {
+        for (int i = 0; i < tabs.getTabCount(); i++) {
+            var tab = (JComponent) tabs.getComponentAt(i);
+            if (Objects.equals(groupId, tab.getClientProperty(PROP_GROUP_ID)) &&
+                Objects.equals(objectIndex, tab.getClientProperty(PROP_OBJECT_INDEX))
+            ) {
+                tabs.setSelectedIndex(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     private StructuredTree<?> createObjectTree(Game game, ClassTypeInfo info, Object object) {
