@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EUpdateFrequency;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.FSize;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.Attr;
@@ -34,15 +35,15 @@ public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextur
 
         void height(int value);
 
-        @Attr(name = "Format", type = "EPixelFormat", position = 4, offset = 0)
-        EPixelFormat format();
+        @Attr(name = "PixelFormat", type = "EPixelFormat", position = 4, offset = 0)
+        EPixelFormat pixelFormat();
 
-        void format(EPixelFormat value);
+        void pixelFormat(EPixelFormat value);
 
-        @Attr(name = "Type", type = "uint32", position = 5, offset = 0)
-        int type();
+        @Attr(name = "Frequency", type = "EUpdateFrequency", position = 5, offset = 0)
+        EUpdateFrequency frequency();
 
-        void type(int value);
+        void frequency(EUpdateFrequency value);
 
         /** Allocation size of a single frame; dimensions are aligned for compressed textures */
         @Attr(name = "Size", type = "uint32", position = 6, offset = 0)
@@ -50,7 +51,7 @@ public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextur
 
         void size(int value);
 
-        @Attr(name = "Size", type = "FSize", position = 7, offset = 0)
+        @Attr(name = "Scale", type = "FSize", position = 7, offset = 0)
         FSize scale();
 
         void scale(FSize value);
@@ -68,8 +69,8 @@ public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextur
         object.spans(reader.readLongs(reader.readInt()));
         object.width(reader.readInt());
         object.height(reader.readInt());
-        object.format(EPixelFormat.valueOf(reader.readInt()));
-        object.type(reader.readInt()); // readIntBoolean?
+        object.pixelFormat(EPixelFormat.valueOf(reader.readInt()));
+        object.frequency(EUpdateFrequency.valueOf((byte) reader.readInt()));
         object.size(reader.readInt());
         object.scale(HFWTypeReader.readCompound(FSize.class, reader, factory));
     }
