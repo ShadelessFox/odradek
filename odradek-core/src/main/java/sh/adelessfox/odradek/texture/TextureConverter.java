@@ -39,24 +39,24 @@ final class TextureConverter {
         }
 
         var format = switch (srcFormat) {
-            case BC1, BC2, BC3, BC7 -> TextureFormat.R8G8B8A8_UNORM;
-            case BC4U, BC4S -> TextureFormat.R8_UNORM;
-            case BC5U, BC5S -> TextureFormat.R8G8B8_UNORM;
-            case BC6U, BC6S -> TextureFormat.R16G16B16_SFLOAT;
+            case BC1_UNORM, BC2_UNORM, BC3_UNORM, BC7_UNORM -> TextureFormat.R8G8B8A8_UNORM;
+            case BC4_UNORM, BC4_SNORM -> TextureFormat.R8_UNORM;
+            case BC5_UNORM, BC5_SNORM -> TextureFormat.R8G8B8_UNORM;
+            case BC6_UNORM, BC6_SNORM -> TextureFormat.R16G16B16_SFLOAT;
             default -> throw new UnsupportedOperationException(srcFormat.name());
         };
 
         var decoder = BlockDecoder.create(switch (srcFormat) {
-            case BC1 -> BlockFormat.BC1;
-            case BC2 -> BlockFormat.BC2;
-            case BC3 -> BlockFormat.BC3;
-            case BC4U -> BlockFormat.BC4U;
-            case BC4S -> BlockFormat.BC4S;
-            case BC5U -> BlockFormat.BC5U;
-            case BC5S -> BlockFormat.BC5S;
-            case BC6U -> BlockFormat.BC6H_UF16;
-            case BC6S -> BlockFormat.BC6H_SF16;
-            case BC7 -> BlockFormat.BC7;
+            case BC1_UNORM -> BlockFormat.BC1;
+            case BC2_UNORM -> BlockFormat.BC2;
+            case BC3_UNORM -> BlockFormat.BC3;
+            case BC4_UNORM -> BlockFormat.BC4U;
+            case BC4_SNORM -> BlockFormat.BC4S;
+            case BC5_UNORM -> BlockFormat.BC5U;
+            case BC5_SNORM -> BlockFormat.BC5S;
+            case BC6_UNORM -> BlockFormat.BC6H_UF16;
+            case BC6_SNORM -> BlockFormat.BC6H_SF16;
+            case BC7_UNORM -> BlockFormat.BC7;
             default -> throw new UnsupportedOperationException(srcFormat.name());
         });
 
@@ -243,6 +243,7 @@ final class TextureConverter {
         return new Texture(
             format,
             source.type(),
+            source.colorSpace(),
             surfaces,
             source.mips(),
             source.depth(),

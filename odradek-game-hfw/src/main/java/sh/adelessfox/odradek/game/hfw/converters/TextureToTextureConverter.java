@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
-import sh.adelessfox.odradek.texture.Surface;
-import sh.adelessfox.odradek.texture.Texture;
-import sh.adelessfox.odradek.texture.TextureFormat;
-import sh.adelessfox.odradek.texture.TextureType;
+import sh.adelessfox.odradek.texture.*;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -17,8 +14,8 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
-    private static final Logger log = LoggerFactory.getLogger(TextureConverter.class);
+public class TextureToTextureConverter implements Converter<ForbiddenWestGame, Texture> {
+    private static final Logger log = LoggerFactory.getLogger(TextureToTextureConverter.class);
 
     @Override
     public boolean canConvert(Object object) {
@@ -27,21 +24,17 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
 
     @Override
     public Optional<Texture> convert(Object object, ForbiddenWestGame game) {
-        try {
-            return convert((HorizonForbiddenWest.Texture) object, game);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e); // TODO: Exception handling in Converter
-        }
+        return convert((HorizonForbiddenWest.Texture) object, game);
     }
 
-    private static Optional<Texture> convert(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) throws IOException {
-        var format = mapFormat(texture.header().pixelFormat()).orElse(null);
+    private static Optional<Texture> convert(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) {
+        var format = mapFormat(texture.header().pixelFormat());
         if (format == null) {
             log.debug("Unsupported texture format: {}", texture.header().pixelFormat());
             return Optional.empty();
         }
 
-        var type = mapType(texture.header().type()).orElse(null);
+        var type = mapType(texture.header().type());
         if (type == null) {
             log.debug("Unsupported texture type: {}", texture.header().type());
             return Optional.empty();
@@ -49,7 +42,7 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
 
         var textureSet = texture.textureSetParent() != null ? texture.textureSetParent().get() : null;
         var dataSource = textureSet != null ? textureSet.streamingDataSource() : texture.streamingDataSource();
-        var streamedData = ByteBuffer.wrap(game.getStreamingSystem().getDataSourceData(dataSource));
+        var streamedData = ByteBuffer.wrap(readDataSource(game, dataSource));
         var embeddedData = ByteBuffer.wrap(texture.data().embeddedData());
 
         int width = texture.header().width() & 0x3FFF;
@@ -90,6 +83,7 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
         return Optional.of(new Texture(
             format,
             type,
+            mapColorSpace(texture.header().colorSpace()),
             surfaces,
             numMipmaps,
             type == TextureType.VOLUME ? OptionalInt.of(numSurfaces) : OptionalInt.empty(),
@@ -97,34 +91,46 @@ public class TextureConverter implements Converter<ForbiddenWestGame, Texture> {
         ));
     }
 
-    private static Optional<TextureFormat> mapFormat(HorizonForbiddenWest.EPixelFormat format) {
+    private static TextureFormat mapFormat(HorizonForbiddenWest.EPixelFormat format) {
         return switch (format) {
-            // Uncompressed
-            case RGBA_8888 -> Optional.of(TextureFormat.R8G8B8A8_UNORM);
+            case RGBA_8888 -> TextureFormat.R8G8B8A8_UNORM;
+            case BC1 -> TextureFormat.BC1_UNORM;
+            case BC2 -> TextureFormat.BC2_UNORM;
+            case BC3 -> TextureFormat.BC3_UNORM;
+            case BC4U -> TextureFormat.BC4_UNORM;
+            case BC4S -> TextureFormat.BC4_SNORM;
+            case BC5U -> TextureFormat.BC5_UNORM;
+            case BC5S -> TextureFormat.BC5_SNORM;
+            case BC6U -> TextureFormat.BC6_UNORM;
+            case BC6S -> TextureFormat.BC6_SNORM;
+            case BC7 -> TextureFormat.BC7_UNORM;
 
-            // Compressed
-            case BC1 -> Optional.of(TextureFormat.BC1);
-            case BC2 -> Optional.of(TextureFormat.BC2);
-            case BC3 -> Optional.of(TextureFormat.BC3);
-            case BC4U -> Optional.of(TextureFormat.BC4U);
-            case BC4S -> Optional.of(TextureFormat.BC4S);
-            case BC5U -> Optional.of(TextureFormat.BC5U);
-            case BC5S -> Optional.of(TextureFormat.BC5S);
-            case BC6U -> Optional.of(TextureFormat.BC6U);
-            case BC6S -> Optional.of(TextureFormat.BC6S);
-            case BC7 -> Optional.of(TextureFormat.BC7);
-
-            default -> Optional.empty();
+            default -> null;
         };
     }
 
-    private static Optional<TextureType> mapType(HorizonForbiddenWest.ETextureType type) {
-        return switch (type) {
-            case _2D -> Optional.of(TextureType.SURFACE);
-            case _2DArray -> Optional.of(TextureType.ARRAY);
-            case _3D -> Optional.of(TextureType.VOLUME);
-            case CubeMap -> Optional.of(TextureType.CUBEMAP);
-            default -> Optional.empty();
+    private static TextureColorSpace mapColorSpace(HorizonForbiddenWest.ETexColorSpace colorSpace) {
+        return switch (colorSpace) {
+            case Linear -> TextureColorSpace.LINEAR;
+            case sRGB -> TextureColorSpace.SRGB;
         };
+    }
+
+    private static TextureType mapType(HorizonForbiddenWest.ETextureType type) {
+        return switch (type) {
+            case _2D -> TextureType.SURFACE;
+            case _2DArray -> TextureType.ARRAY;
+            case _3D -> TextureType.VOLUME;
+            case CubeMap -> TextureType.CUBEMAP;
+            default -> null;
+        };
+    }
+
+    private static byte[] readDataSource(ForbiddenWestGame game, HorizonForbiddenWest.StreamingDataSource dataSource) {
+        try {
+            return game.getStreamingSystem().getDataSourceData(dataSource);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

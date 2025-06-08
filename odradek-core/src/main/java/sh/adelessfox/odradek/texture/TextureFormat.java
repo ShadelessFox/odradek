@@ -12,16 +12,16 @@ public enum TextureFormat {
     R16G16B16_SFLOAT(Block.BITS_48),
 
     // Compressed formats
-    BC1(Block.BC1),
-    BC2(Block.BC2),
-    BC3(Block.BC3),
-    BC4U(Block.BC4),
-    BC4S(Block.BC4),
-    BC5U(Block.BC5),
-    BC5S(Block.BC5),
-    BC6U(Block.BC6),
-    BC6S(Block.BC6),
-    BC7(Block.BC7);
+    BC1_UNORM(Block.BC1),
+    BC2_UNORM(Block.BC2),
+    BC3_UNORM(Block.BC3),
+    BC4_UNORM(Block.BC4),
+    BC4_SNORM(Block.BC4),
+    BC5_UNORM(Block.BC5),
+    BC5_SNORM(Block.BC5),
+    BC6_UNORM(Block.BC6),
+    BC6_SNORM(Block.BC6),
+    BC7_UNORM(Block.BC7);
 
     private final Block block;
 
@@ -35,7 +35,13 @@ public enum TextureFormat {
 
     public boolean isCompressed() {
         return switch (this) {
-            case BC1, BC2, BC3, BC4U, BC4S, BC5U, BC5S, BC6U, BC6S, BC7 -> true;
+            case BC1_UNORM,
+                 BC2_UNORM,
+                 BC3_UNORM,
+                 BC4_UNORM, BC4_SNORM,
+                 BC5_UNORM, BC5_SNORM,
+                 BC6_UNORM, BC6_SNORM,
+                 BC7_UNORM -> true;
             default -> false;
         };
     }

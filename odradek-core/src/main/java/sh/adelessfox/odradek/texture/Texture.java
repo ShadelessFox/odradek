@@ -20,18 +20,20 @@ import java.util.OptionalInt;
  *     <li>Surface 1, Mip  (1x1)</li>
  * </ul>
  *
- * @param format    The format of the texture
- * @param type      The type of the texture
- * @param surfaces  The list of all surfaces in the texture
- * @param mips      The number of mipmaps in the texture, including the <i>main</i> images.
- * @param depth     The depth of the texture if {@link #type()} is {@link TextureType#VOLUME},
- *                  or {@link OptionalInt#empty()} if the texture is not a volume texture
- * @param arraySize The number of elements in the texture if {@link #type()} is {@link TextureType#ARRAY},
- *                  or {@link OptionalInt#empty()} if the texture is not an array texture
+ * @param format     The format of the texture
+ * @param type       The type of the texture
+ * @param colorSpace The color space of the texture
+ * @param surfaces   The list of all surfaces in the texture
+ * @param mips       The number of mipmaps in the texture, including the <i>main</i> images.
+ * @param depth      The depth of the texture if {@link #type()} is {@link TextureType#VOLUME},
+ *                   or {@link OptionalInt#empty()} if the texture is not a volume texture
+ * @param arraySize  The number of elements in the texture if {@link #type()} is {@link TextureType#ARRAY},
+ *                   or {@link OptionalInt#empty()} if the texture is not an array texture
  */
 public record Texture(
     TextureFormat format,
     TextureType type,
+    TextureColorSpace colorSpace,
     List<Surface> surfaces,
     int mips,
     OptionalInt depth,
