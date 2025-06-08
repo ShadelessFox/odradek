@@ -34,6 +34,16 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
     record GraphObjectSet(StreamingGraphResource graph, ClassTypeInfo info, int count) implements GraphStructure {
         @Override
+        public boolean equals(Object object) {
+            return object instanceof GraphObjectSet that && info.equals(that.info);
+        }
+
+        @Override
+        public int hashCode() {
+            return info.hashCode();
+        }
+
+        @Override
         public String toString() {
             return "%s (%d)".formatted(info, count);
         }
@@ -45,16 +55,15 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         int[] indices
     ) implements GraphStructure {
         @Override
-        public boolean equals(Object o) {
-            return o instanceof GraphObjectSetGroup(var graph1, var group1, var indices1)
-                && graph.equals(graph1)
-                && group.equals(group1)
-                && Arrays.equals(indices, indices1);
+        public boolean equals(Object object) {
+            return object instanceof GraphObjectSetGroup that
+                && group.groupID() == that.group.groupID()
+                && Arrays.equals(indices, that.indices);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(graph, group, Arrays.hashCode(indices));
+            return Objects.hash(group.groupID(), Arrays.hashCode(indices));
         }
 
         @Override
@@ -68,13 +77,24 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         StreamingGroupData group
     ) implements GraphStructure, Comparable<Group> {
         @Override
-        public String toString() {
-            return "Group " + group.groupID();
+        public int compareTo(Group o) {
+            return Integer.compare(group.groupID(), o.group.groupID());
         }
 
         @Override
-        public int compareTo(Group o) {
-            return Integer.compare(group.groupID(), o.group().groupID());
+        public boolean equals(Object object) {
+            return object instanceof Group that
+                && group.groupID() == that.group.groupID();
+        }
+
+        @Override
+        public int hashCode() {
+            return group.groupID();
+        }
+
+        @Override
+        public String toString() {
+            return "Group " + group.groupID();
         }
     }
 
@@ -123,15 +143,14 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        public boolean equals(Object o) {
-            return o instanceof GroupObjects(var graph1, var group1, _)
-                && Objects.equals(group, group1)
-                && Objects.equals(graph, graph1);
+        public boolean equals(Object object) {
+            return object instanceof GroupObjects that
+                && group.groupID() == that.group.groupID();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(graph, group);
+            return group.groupID();
         }
 
         @Override
@@ -147,17 +166,16 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         int[] indices
     ) implements GraphStructure {
         @Override
-        public boolean equals(Object o) {
-            return o instanceof GroupObjectSet(var graph1, var group1, var info1, var indices1)
-                && graph.equals(graph1)
-                && group.equals(group1)
-                && info.equals(info1)
-                && Arrays.equals(indices, indices1);
+        public boolean equals(Object object) {
+            return object instanceof GroupObjectSet that
+                && group.groupID() == that.group.groupID()
+                && info.equals(that.info)
+                && Arrays.equals(indices, that.indices);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(graph, group, info, Arrays.hashCode(indices));
+            return Objects.hash(group, info, Arrays.hashCode(indices));
         }
 
         @Override
@@ -173,6 +191,18 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     ) implements GraphStructure {
         public ClassTypeInfo type() {
             return graph.types().get(group.typeStart() + index);
+        }
+
+        @Override
+        public boolean equals(Object object) {
+            return object instanceof GroupObject that
+                && group.groupID() == that.group.groupID()
+                && index == that.index;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(group.groupID(), index);
         }
 
         @Override

@@ -64,7 +64,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
     public int getIndexOfChild(Object parent, Object child) {
         Node<T> parentNode = cast(parent);
         Node<T> childNode = cast(child);
-        return childNode.parent == parentNode ? parentNode.children.indexOf(childNode) : -1;
+        return parentNode.equals(childNode.parent) ? parentNode.children.indexOf(childNode) : -1;
     }
 
     @Override
@@ -121,11 +121,9 @@ public final class StructuredTreeModel<T> implements TreeModel {
             for (T child : newChildren) {
                 var oldNodeIndex = unchanged.get(child);
                 if (oldNodeIndex != null) {
-                    var oldNode = node.children.get(oldNodeIndex);
-                    var newNode = new Node<>(child, node, oldNode.children, nodes.size());
-                    nodes.add(newNode);
+                    nodes.add(node.children.get(oldNodeIndex));
                 } else {
-                    nodes.add(new Node<>(child, node, null, nodes.size()));
+                    nodes.add(new Node<>(child, node, null));
                 }
             }
 
@@ -238,16 +236,13 @@ public final class StructuredTreeModel<T> implements TreeModel {
 
     private Node<T> computeRootNode() {
         log.debug("Computing root for {}", structure);
-        return new Node<>(structure.getRoot(), null, 0);
+        return new Node<>(structure.getRoot(), null);
     }
 
     private List<Node<T>> computeChildrenNodes(Node<T> parent) {
-        var children = computeChildren(parent);
-        var nodes = new ArrayList<Node<T>>(children.size());
-        for (T child : children) {
-            nodes.add(new Node<>(child, parent, nodes.size()));
-        }
-        return List.copyOf(nodes);
+        return computeChildren(parent).stream()
+            .map(child -> new Node<>(child, parent))
+            .toList();
     }
 
     private List<? extends T> computeChildren(Node<T> parent) {
@@ -265,11 +260,11 @@ public final class StructuredTreeModel<T> implements TreeModel {
         private final Node<T> parent;
         private List<Node<T>> children;
 
-        Node(T element, Node<T> parent, int index) {
-            this(element, parent, null, index);
+        Node(T element, Node<T> parent) {
+            this(element, parent, null);
         }
 
-        Node(T element, Node<T> parent, List<Node<T>> children, int index) {
+        Node(T element, Node<T> parent, List<Node<T>> children) {
             this.element = element;
             this.parent = parent;
             this.children = children;

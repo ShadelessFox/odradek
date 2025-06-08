@@ -20,11 +20,6 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
 
         @Override
-        public String toString() {
-            return ObjectStructure.toString(this);
-        }
-
-        @Override
         public boolean equals(Object o) {
             return o instanceof Compound(var type1, var object1)
                 && type.equals(type1)
@@ -34,6 +29,11 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         @Override
         public int hashCode() {
             return Objects.hash(type, System.identityHashCode(object));
+        }
+
+        @Override
+        public String toString() {
+            return ObjectStructure.toString(this);
         }
     }
 
@@ -52,11 +52,6 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
 
         @Override
-        public String toString() {
-            return "%s = %s".formatted(attr.name(), ObjectStructure.toString(this));
-        }
-
-        @Override
         public boolean equals(Object o) {
             return o instanceof Attr(var attr1, var object1)
                 && attr.equals(attr1)
@@ -66,6 +61,11 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         @Override
         public int hashCode() {
             return Objects.hash(attr, System.identityHashCode(object));
+        }
+
+        @Override
+        public String toString() {
+            return "%s = %s".formatted(attr.name(), ObjectStructure.toString(this));
         }
     }
 
@@ -81,11 +81,6 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
 
         @Override
-        public String toString() {
-            return "[%d] = %s".formatted(index, ObjectStructure.toString(this));
-        }
-
-        @Override
         public boolean equals(Object o) {
             return o instanceof Index(var info1, var object1, var index1)
                 && info.equals(info1)
@@ -96,6 +91,11 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         @Override
         public int hashCode() {
             return Objects.hash(info, System.identityHashCode(object), index);
+        }
+
+        @Override
+        public String toString() {
+            return "[%d] = %s".formatted(index, ObjectStructure.toString(this));
         }
     }
 
