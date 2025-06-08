@@ -12,32 +12,32 @@ import java.io.IOException;
 
 public class IndexArrayResourceCallback implements ExtraBinaryDataCallback<IndexArrayResourceCallback.IndexArrayData> {
     public interface IndexArrayData {
-        @Attr(name = "Count", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "Count", type = "uint32", position = 0)
         int count();
 
         void count(int value);
 
-        @Attr(name = "Flags", type = "uint32", position = 1, offset = 0)
+        @Attr(name = "Flags", type = "uint32", position = 1)
         int flags();
 
         void flags(int value);
 
-        @Attr(name = "Format", type = "EIndexFormat", position = 2, offset = 0)
+        @Attr(name = "Format", type = "EIndexFormat", position = 2)
         EIndexFormat format();
 
         void format(EIndexFormat value);
 
-        @Attr(name = "Checksum", type = "MurmurHashValue", position = 3, offset = 0)
+        @Attr(name = "Checksum", type = "MurmurHashValue", position = 3)
         MurmurHashValue hash();
 
         void hash(MurmurHashValue value);
 
-        @Attr(name = "IsStreaming", type = "bool", position = 4, offset = 0)
+        @Attr(name = "IsStreaming", type = "bool", position = 4)
         boolean streaming();
 
         void streaming(boolean value);
 
-        @Attr(name = "Data", type = "Array<uint8>", position = 5, offset = 0)
+        @Attr(name = "Data", type = "Array<uint8>", position = 5)
         byte[] data();
 
         void data(byte[] value);

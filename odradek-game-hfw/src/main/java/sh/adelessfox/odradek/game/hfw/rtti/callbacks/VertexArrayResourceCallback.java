@@ -14,44 +14,44 @@ import java.util.List;
 
 public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<VertexArrayResourceCallback.VertexArrayData> {
     public interface VertexArrayData {
-        @Attr(name = "Count", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "Count", type = "uint32", position = 0)
         int count();
 
         void count(int value);
 
-        @Attr(name = "IsStreaming", type = "bool", position = 0, offset = 0)
+        @Attr(name = "IsStreaming", type = "bool", position = 1)
         boolean streaming();
 
         void streaming(boolean value);
 
-        @Attr(name = "Streams", type = "Array<VertexStream>", position = 0, offset = 0)
+        @Attr(name = "Streams", type = "Array<VertexStream>", position = 2)
         List<VertexStream> streams();
 
         void streams(List<VertexStream> value);
     }
 
     public interface VertexStream {
-        @Attr(name = "Flags", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "Flags", type = "uint32", position = 0)
         int flags();
 
         void flags(int value);
 
-        @Attr(name = "Stride", type = "uint32", position = 1, offset = 0)
+        @Attr(name = "Stride", type = "uint32", position = 1)
         int stride();
 
         void stride(int value);
 
-        @Attr(name = "Elements", type = "Array<VertexStreamElement>", position = 2, offset = 0)
+        @Attr(name = "Elements", type = "Array<VertexStreamElement>", position = 2)
         List<VertexStreamElement> elements();
 
         void elements(List<VertexStreamElement> value);
 
-        @Attr(name = "Hash", type = "MurmurHashValue", position = 3, offset = 0)
+        @Attr(name = "Hash", type = "MurmurHashValue", position = 3)
         MurmurHashValue hash();
 
         void hash(MurmurHashValue value);
 
-        @Attr(name = "Data", type = "Array<uint8>", position = 4, offset = 0)
+        @Attr(name = "Data", type = "Array<uint8>", position = 4)
         byte[] data();
 
         void data(byte[] value);
@@ -75,22 +75,22 @@ public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<Vert
     }
 
     public interface VertexStreamElement {
-        @Attr(name = "Offset", type = "uint8", position = 0, offset = 0)
+        @Attr(name = "Offset", type = "uint8", position = 0)
         byte offset();
 
         void offset(byte value);
 
-        @Attr(name = "StorageType", type = "EVertexElementStorageType", position = 1, offset = 0)
+        @Attr(name = "StorageType", type = "EVertexElementStorageType", position = 1)
         EVertexElementStorageType storageType();
 
         void storageType(EVertexElementStorageType value);
 
-        @Attr(name = "SlotsUsed", type = "uint8", position = 2, offset = 0)
+        @Attr(name = "SlotsUsed", type = "uint8", position = 2)
         byte slotsUsed();
 
         void slotsUsed(byte value);
 
-        @Attr(name = "Element", type = "EVertexElement", position = 3, offset = 0)
+        @Attr(name = "Element", type = "EVertexElement", position = 3)
         EVertexElement element();
 
         void element(EVertexElement value);

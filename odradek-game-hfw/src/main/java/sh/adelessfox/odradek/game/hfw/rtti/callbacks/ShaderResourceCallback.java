@@ -11,12 +11,12 @@ import java.io.IOException;
 
 public class ShaderResourceCallback implements ExtraBinaryDataCallback<ShaderResourceCallback.ShaderData> {
     public interface ShaderData {
-        @Attr(name = "Hash", type = "MurmurHashValue", position = 0, offset = 0)
+        @Attr(name = "Hash", type = "MurmurHashValue", position = 0)
         MurmurHashValue hash();
 
         void hash(MurmurHashValue hash);
 
-        @Attr(name = "Data", type = "Array<uint8>", position = 1, offset = 8)
+        @Attr(name = "Data", type = "Array<uint8>", position = 1)
         byte[] data();
 
         void data(byte[] data);

@@ -9,32 +9,32 @@ import java.io.IOException;
 
 public class DataBufferResourceCallback implements ExtraBinaryDataCallback<DataBufferResourceCallback.DataBuffer> {
     public interface DataBuffer {
-        @Attr(name = "Count", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "Count", type = "uint32", position = 0)
         int count();
 
         void count(int value);
 
-        @Attr(name = "Streaming", type = "bool", position = 1, offset = 0)
+        @Attr(name = "Streaming", type = "bool", position = 1)
         boolean streaming();
 
         void streaming(boolean value);
 
-        @Attr(name = "Flags", type = "uint32", position = 2, offset = 0)
+        @Attr(name = "Flags", type = "uint32", position = 2)
         int flags();
 
         void flags(int value);
 
-        @Attr(name = "Format", type = "uint32", position = 2, offset = 0)
+        @Attr(name = "Format", type = "uint32", position = 3)
         int format();
 
         void format(int value);
 
-        @Attr(name = "Stride", type = "uint32", position = 3, offset = 0)
+        @Attr(name = "Stride", type = "uint32", position = 4)
         int stride();
 
         void stride(int value);
 
-        @Attr(name = "Data", type = "Array<uint8>", position = 4, offset = 0)
+        @Attr(name = "Data", type = "Array<uint8>", position = 5)
         byte[] data();
 
         void data(byte[] value);

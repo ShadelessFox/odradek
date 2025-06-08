@@ -14,7 +14,7 @@ import java.io.IOException;
 
 public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.TextureData> {
     public interface HwTextureHeader {
-        @Attr(name = "Type", type = "ETextureType", position = 0, offset = 0)
+        @Attr(name = "Type", type = "ETextureType", position = 0)
         ETextureType type();
 
         void type(ETextureType value);
@@ -74,7 +74,7 @@ public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.
 
         void unk0F(byte value);
 
-        @Attr(name = "Hash", type = "MurmurHashValue", position = 12, offset = 0)
+        @Attr(name = "Hash", type = "MurmurHashValue", position = 12)
         MurmurHashValue hash();
 
         void hash(MurmurHashValue value);
@@ -99,27 +99,27 @@ public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.
     }
 
     public interface HwTextureData {
-        @Attr(name = "TotalSize", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "TotalSize", type = "uint32", position = 0)
         int totalSize();
 
         void totalSize(int value);
 
-        @Attr(name = "EmbeddedSize", type = "uint32", position = 1, offset = 0)
+        @Attr(name = "EmbeddedSize", type = "uint32", position = 1)
         int embeddedSize();
 
         void embeddedSize(int value);
 
-        @Attr(name = "StreamedSize", type = "uint32", position = 2, offset = 0)
+        @Attr(name = "StreamedSize", type = "uint32", position = 2)
         int streamedSize();
 
         void streamedSize(int value);
 
-        @Attr(name = "StreamedMips", type = "uint32", position = 3, offset = 0)
+        @Attr(name = "StreamedMips", type = "uint32", position = 3)
         int streamedMips();
 
         void streamedMips(int value);
 
-        @Attr(name = "EmbeddedData", type = "Array<uint8>", position = 4, offset = 0)
+        @Attr(name = "EmbeddedData", type = "Array<uint8>", position = 4)
         byte[] embeddedData();
 
         void embeddedData(byte[] value);
@@ -136,12 +136,12 @@ public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.
     }
 
     public interface TextureData {
-        @Attr(name = "Header", type = "HwTextureHeader", position = 0, offset = 0)
+        @Attr(name = "Header", type = "HwTextureHeader", position = 0)
         HwTextureHeader header();
 
         void header(HwTextureHeader value);
 
-        @Attr(name = "Data", type = "HwTextureData", position = 1, offset = 0)
+        @Attr(name = "Data", type = "HwTextureData", position = 1)
         HwTextureData data();
 
         void data(HwTextureData value);

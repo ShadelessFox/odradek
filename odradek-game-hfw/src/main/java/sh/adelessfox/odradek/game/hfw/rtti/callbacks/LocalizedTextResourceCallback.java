@@ -12,7 +12,7 @@ import java.util.List;
 
 public class LocalizedTextResourceCallback implements ExtraBinaryDataCallback<LocalizedTextResourceCallback.TranslationData> {
     public interface TranslationData {
-        @Attr(name = "Translations", type = "Array<String>", position = 0, offset = 0)
+        @Attr(name = "Translations", type = "Array<String>", position = 0)
         List<String> translations();
 
         void translations(List<String> translations);

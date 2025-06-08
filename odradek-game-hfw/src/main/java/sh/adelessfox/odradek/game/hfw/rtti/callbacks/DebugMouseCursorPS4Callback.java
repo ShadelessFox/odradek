@@ -9,12 +9,12 @@ import java.io.IOException;
 
 public class DebugMouseCursorPS4Callback implements ExtraBinaryDataCallback<DebugMouseCursorPS4Callback.DebugMouseCursorData> {
     public interface DebugMouseCursorData {
-        @Attr(name = "Stride", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "Stride", type = "uint32", position = 0)
         int stride();
 
         void stride(int value);
 
-        @Attr(name = "Data", type = "Array<uint8>", position = 1, offset = 0)
+        @Attr(name = "Data", type = "Array<uint8>", position = 1)
         byte[] data();
 
         void data(byte[] value);

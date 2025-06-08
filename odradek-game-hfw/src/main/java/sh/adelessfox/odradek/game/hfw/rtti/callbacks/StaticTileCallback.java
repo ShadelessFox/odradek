@@ -13,27 +13,27 @@ import java.util.List;
 
 public class StaticTileCallback implements ExtraBinaryDataCallback<StaticTileCallback.StaticTileData> {
     public interface StaticTileData {
-        @Attr(name = "Unk01", type = "Array<uint8>", position = 0, offset = 0)
+        @Attr(name = "Unk01", type = "Array<uint8>", position = 0)
         byte[] unk01();
 
         void unk01(byte[] value);
 
-        @Attr(name = "Unk02", type = "Array<Mat44>", position = 1, offset = 0)
+        @Attr(name = "Unk02", type = "Array<Mat44>", position = 1)
         List<Mat44> unk02();
 
         void unk02(List<Mat44> value);
 
-        @Attr(name = "Unk03", type = "Array<uint8>", position = 2, offset = 0)
+        @Attr(name = "Unk03", type = "Array<uint8>", position = 2)
         byte[] unk03();
 
         void unk03(byte[] value);
 
-        @Attr(name = "Unk04", type = "Array<uint8>", position = 3, offset = 0)
+        @Attr(name = "Unk04", type = "Array<uint8>", position = 3)
         byte[] unk04();
 
         void unk04(byte[] value);
 
-        @Attr(name = "Unk05", type = "Array<Mat34>", position = 4, offset = 0)
+        @Attr(name = "Unk05", type = "Array<Mat34>", position = 4)
         List<Mat34> unk05();
 
         void unk05(List<Mat34> value);

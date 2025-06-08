@@ -10,24 +10,24 @@ import java.util.List;
 
 public class TextureListCallback implements ExtraBinaryDataCallback<TextureListCallback.TextureListData> {
     public interface TextureListData {
-        @Attr(name = "Entries", type = "Array<TextureEntry>", position = 0, offset = 0)
+        @Attr(name = "Entries", type = "Array<TextureEntry>", position = 0)
         List<TextureEntry> entries();
 
         void entries(List<TextureEntry> value);
     }
 
     public interface TextureEntry {
-        @Attr(name = "StreamingOffset", type = "uint32", position = 0, offset = 0)
+        @Attr(name = "StreamingOffset", type = "uint32", position = 0)
         int streamingOffset();
 
         void streamingOffset(int value);
 
-        @Attr(name = "StreamingLength", type = "uint32", position = 1, offset = 0)
+        @Attr(name = "StreamingLength", type = "uint32", position = 1)
         int streamingLength();
 
         void streamingLength(int value);
 
-        @Attr(name = "Data", type = "TextureData", position = 2, offset = 0)
+        @Attr(name = "Data", type = "TextureData", position = 2)
         TextureCallback.TextureData data();
 
         void data(TextureCallback.TextureData value);

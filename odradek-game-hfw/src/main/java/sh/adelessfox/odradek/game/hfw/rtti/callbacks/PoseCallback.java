@@ -13,17 +13,17 @@ import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.Mat34;
 
 public class PoseCallback implements ExtraBinaryDataCallback<PoseCallback.PoseData> {
     public interface PoseData {
-        @Attr(name = "Unk01", type = "Array<Mat34>", position = 0, offset = 0)
+        @Attr(name = "Unk01", type = "Array<Mat34>", position = 0)
         List<Mat34> unk01();
 
         void unk01(List<Mat34> value);
 
-        @Attr(name = "Unk02", type = "Array<Mat34>", position = 1, offset = 0)
+        @Attr(name = "Unk02", type = "Array<Mat34>", position = 1)
         List<Mat34> unk02();
 
         void unk02(List<Mat34> value);
 
-        @Attr(name = "Unk03", type = "Array<uint32>", position = 2, offset = 0)
+        @Attr(name = "Unk03", type = "Array<uint32>", position = 2)
         int[] unk03();
 
         void unk03(int[] value);

@@ -11,17 +11,17 @@ import java.util.List;
 
 public class WorldMapSuperTileCallback implements ExtraBinaryDataCallback<WorldMapSuperTileCallback.WorldMapSuperTileData> {
     public interface WorldMapSuperTileData {
-        @Attr(name = "SmallTextures", type = "Array<TextureData>", position = 0, offset = 0)
+        @Attr(name = "SmallTextures", type = "Array<TextureData>", position = 0)
         List<TextureCallback.TextureData> smallTextures();
 
         void smallTextures(List<TextureCallback.TextureData> value);
 
-        @Attr(name = "LargeTextures", type = "Array<TextureData>", position = 1, offset = 0)
+        @Attr(name = "LargeTextures", type = "Array<TextureData>", position = 1)
         List<TextureCallback.TextureData> largeTextures();
 
         void largeTextures(List<TextureCallback.TextureData> value);
 
-        @Attr(name = "Mask", type = "uint32", position = 2, offset = 0)
+        @Attr(name = "Mask", type = "uint32", position = 2)
         int mask();
 
         void mask(int value);

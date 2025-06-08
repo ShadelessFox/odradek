@@ -9,12 +9,12 @@ import java.io.IOException;
 
 public class MorphemeNetworkInstancePreInitializedDataCallback implements ExtraBinaryDataCallback<MorphemeNetworkInstancePreInitializedDataCallback.MorphemeNetworkInstancePreInitializedData> {
     public interface MorphemeNetworkInstancePreInitializedData {
-        @Attr(name = "Unk1", type = "Array<uint8>", position = 0, offset = 0)
+        @Attr(name = "Unk1", type = "Array<uint8>", position = 0)
         byte[] unk1();
 
         void unk1(byte[] value);
 
-        @Attr(name = "Unk2", type = "Array<uint32>", position = 1, offset = 0)
+        @Attr(name = "Unk2", type = "Array<uint32>", position = 1)
         int[] unk2();
 
         void unk2(int[] value);

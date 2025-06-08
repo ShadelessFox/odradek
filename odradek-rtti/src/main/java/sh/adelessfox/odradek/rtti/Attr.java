@@ -14,7 +14,7 @@ public @interface Attr {
 
     int position();
 
-    int offset();
+    int offset() default 0;
 
     int flags() default 0;
 

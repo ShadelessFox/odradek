@@ -11,12 +11,12 @@ import java.io.IOException;
 
 public class MorphemeAnimationCallback implements ExtraBinaryDataCallback<MorphemeAnimationCallback.MorphemeAnimationData> {
     public interface MorphemeAnimationData {
-        @Attr(name = "Data", type = "Array<uint8>", position = 0, offset = 0)
+        @Attr(name = "Data", type = "Array<uint8>", position = 0)
         byte[] data();
 
         void data(byte[] value);
 
-        @Attr(name = "Hash", type = "MurmurHashValue", position = 1, offset = 0)
+        @Attr(name = "Hash", type = "MurmurHashValue", position = 1)
         MurmurHashValue hash();
 
         void hash(MurmurHashValue value);

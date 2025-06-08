@@ -9,45 +9,52 @@ import java.io.IOException;
 
 public class UITextureCallback implements ExtraBinaryDataCallback<UITextureCallback.UITextureData> {
     public interface UITextureData {
-        @Attr(name = "SmallTexture", type = "TextureData", position = 0, offset = 0)
+        @Attr(name = "Animated", type = "bool", position = 0)
+        boolean animated();
+
+        void animated(boolean value);
+
+        @Attr(name = "SmallTexture", type = "TextureData", position = 0)
         TextureCallback.TextureData smallTexture();
 
         void smallTexture(TextureCallback.TextureData value);
 
-        @Attr(name = "LargeTexture", type = "TextureData", position = 1, offset = 0)
+        @Attr(name = "LargeTexture", type = "TextureData", position = 1)
         TextureCallback.TextureData largeTexture();
 
         void largeTexture(TextureCallback.TextureData value);
 
-        @Attr(name = "SmallFrames", type = "FramesData", position = 2, offset = 0)
-        UITextureFramesCallback.FramesData smallFrames();
+        @Attr(name = "SmallTextureFrames", type = "UITextureFramesData", position = 2)
+        UITextureFramesCallback.UITextureFramesData smallTextureFrames();
 
-        void smallFrames(UITextureFramesCallback.FramesData value);
+        void smallTextureFrames(UITextureFramesCallback.UITextureFramesData value);
 
-        @Attr(name = "LargeFrames", type = "FramesData", position = 3, offset = 0)
-        UITextureFramesCallback.FramesData largeFrames();
+        @Attr(name = "LargeTextureFrames", type = "UITextureFramesData", position = 3)
+        UITextureFramesCallback.UITextureFramesData largeTextureFrames();
 
-        void largeFrames(UITextureFramesCallback.FramesData value);
+        void largeTextureFrames(UITextureFramesCallback.UITextureFramesData value);
     }
 
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, UITextureData object) throws IOException {
-        var framed = reader.readByteBoolean();
+        var animated = reader.readByteBoolean();
+        object.animated(animated);
+
         var smallTextureSize = reader.readInt();
         var largeTextureSize = reader.readInt();
 
-        if (framed) {
-            if (smallTextureSize > 0) {
-                object.smallFrames(UITextureFramesCallback.FramesData.read(reader, factory));
-            }
-            if (largeTextureSize > 0) {
-                object.largeFrames(UITextureFramesCallback.FramesData.read(reader, factory));
-            }
-        } else {
-            if (smallTextureSize > 0) {
+        if (smallTextureSize > 0) {
+            if (animated) {
+                object.smallTextureFrames(UITextureFramesCallback.UITextureFramesData.read(reader, factory));
+            } else {
                 object.smallTexture(TextureCallback.TextureData.read(reader, factory));
             }
-            if (largeTextureSize > 0) {
+        }
+
+        if (largeTextureSize > 0) {
+            if (animated) {
+                object.largeTextureFrames(UITextureFramesCallback.UITextureFramesData.read(reader, factory));
+            } else {
                 object.largeTexture(TextureCallback.TextureData.read(reader, factory));
             }
         }
