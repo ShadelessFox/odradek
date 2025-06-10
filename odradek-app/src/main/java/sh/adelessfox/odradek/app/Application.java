@@ -12,6 +12,7 @@ import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.data.DataContext;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -64,7 +65,7 @@ public class Application {
     private static void start(Path source, ForbiddenWestGame game) {
         var frame = new JFrame();
         frame.add(new ApplicationWindow(game));
-        frame.setJMenuBar(Actions.createMenuBar(ActionIds.MAIN_MENU_ID));
+        frame.setJMenuBar(Actions.createMenuBar(ActionIds.MAIN_MENU_ID, DataContext.focusedComponent()));
         frame.setTitle("Odradek - " + source);
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);

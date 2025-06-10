@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.actions;
 
 import sh.adelessfox.odradek.Gatherers;
+import sh.adelessfox.odradek.ui.data.DataContext;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -16,18 +17,18 @@ public final class Actions {
     private Actions() {
     }
 
-    public static JMenuBar createMenuBar(String id) {
+    public static JMenuBar createMenuBar(String id, DataContext context) {
         var group = groups.get(id).getFirst();
         var menuBar = new JMenuBar();
 
         for (ActionDescriptor action : group.actions()) {
-            menuBar.add(createMenu(action));
+            menuBar.add(createMenu(action, context));
         }
 
         return menuBar;
     }
 
-    private static JMenu createMenu(ActionDescriptor action) {
+    private static JMenu createMenu(ActionDescriptor action, DataContext context) {
         var name = TextWithMnemonic.parse(action.registration().name());
 
         var menu = new JMenu();
@@ -36,37 +37,39 @@ public final class Actions {
         menu.setDisplayedMnemonicIndex(name.mnemonicIndex());
 
         var popupMenu = menu.getPopupMenu();
-        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(action, popupMenu));
+        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action, context));
 
         return menu;
     }
 
-    private static JMenuItem createMenuItem(MenuItemAction descriptor) {
-        if (groups.containsKey(descriptor.descriptor.registration().id())) {
-            var menu = new JMenu(descriptor);
+    private static JMenuItem createMenuItem(MenuItemAction action) {
+        if (groups.containsKey(action.descriptor.registration().id())) {
+            var menu = new JMenu(action);
             var popupMenu = menu.getPopupMenu();
-            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(descriptor.descriptor, popupMenu));
+            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor, action.context));
             return menu;
         } else {
-            return new JMenuItem(descriptor);
+            return new JMenuItem(action);
         }
     }
 
-    private static void populateMenu(JPopupMenu menu, ActionDescriptor descriptor) {
+    private static void populateMenu(JPopupMenu menu, ActionDescriptor descriptor, ActionContext context) {
         var groups = Actions.groups.get(descriptor.registration().id());
         if (groups == null || groups.isEmpty()) {
             return;
         }
         for (GroupDescriptor group : groups) {
-            populateMenuGroup(menu, group);
+            populateMenuGroup(menu, group, context);
         }
         if (menu.getComponentCount() == 0) {
             menu.add(new JLabel("No actions"));
         }
     }
 
-    private static void populateMenuGroup(JPopupMenu menu, GroupDescriptor descriptor) {
-        var actions = descriptor.actions();
+    private static void populateMenuGroup(JPopupMenu menu, GroupDescriptor descriptor, ActionContext context) {
+        var actions = descriptor.actions().stream()
+            .filter(d -> d.action().isVisible(context))
+            .toList();
         if (actions.isEmpty()) {
             return;
         }
@@ -74,7 +77,7 @@ public final class Actions {
             menu.addSeparator();
         }
         for (ActionDescriptor action : actions) {
-            menu.add(createMenuItem(new MenuItemAction(action)));
+            menu.add(createMenuItem(new MenuItemAction(action, context)));
         }
     }
 
@@ -127,40 +130,50 @@ public final class Actions {
 
     private static abstract class AbstractMenuAction extends AbstractAction {
         protected final ActionDescriptor descriptor;
+        protected final ActionContext context;
 
-        AbstractMenuAction(ActionDescriptor descriptor) {
+        AbstractMenuAction(ActionDescriptor descriptor, ActionContext context) {
             this.descriptor = descriptor;
+            this.context = context;
             update();
         }
 
         @Override
-        public abstract void actionPerformed(ActionEvent e);
+        public void actionPerformed(ActionEvent e) {
+            if (descriptor.action().isEnabled(context)) {
+                perform(e);
+            }
+        }
 
-        void update() {
+        protected abstract void perform(ActionEvent e);
+
+        private void update() {
             var name = TextWithMnemonic.parse(descriptor.registration().name());
 
             putValue(NAME, name.text());
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
             putValue(SHORT_DESCRIPTION, descriptor.registration().description());
+
+            setEnabled(descriptor.action().isEnabled(context));
         }
     }
 
     private static class MenuItemAction extends AbstractMenuAction {
-        MenuItemAction(ActionDescriptor action) {
-            super(action);
+        MenuItemAction(ActionDescriptor descriptor, ActionContext context) {
+            super(descriptor, context);
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            descriptor.action().perform(e);
+        protected void perform(ActionEvent e) {
+            descriptor.action().perform(context.withEvent(e));
         }
     }
 
-    private record ActionPopupMenuListener(ActionDescriptor descriptor, JPopupMenu popupMenu) implements PopupMenuListener {
+    private record ActionPopupMenuListener(Object source, JPopupMenu popupMenu, ActionDescriptor descriptor, DataContext context) implements PopupMenuListener {
         @Override
         public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-            populateMenu(popupMenu, descriptor);
+            populateMenu(popupMenu, descriptor, new ActionContext(context, source, null));
         }
 
         @Override
