@@ -12,6 +12,12 @@
     <artifactId>odradek-ui</artifactId>
 
     <dependencies>
+        <!-- Internal dependencies -->
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-core</artifactId>
+        </dependency>
+
         <!-- External dependencies -->
         <dependency>
             <groupId>com.formdev</groupId>
