@@ -108,11 +108,12 @@ public final class Actions {
         if (groups.containsKey(action.descriptor.id())) {
             var menu = new JMenu(action);
             var popupMenu = menu.getPopupMenu();
-            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null,
-                popupMenu,
-                action.descriptor.id(),
-                action.context));
+            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context));
             return menu;
+        } else if (action.descriptor.action() instanceof Action.Check) {
+            return new JCheckBoxMenuItem(action);
+        } else if (action.descriptor.action() instanceof Action.Radio) {
+            return new JRadioButtonMenuItem(action);
         } else {
             return new JMenuItem(action);
         }
@@ -218,11 +219,17 @@ public final class Actions {
 
         private void update() {
             var name = TextWithMnemonic.parse(descriptor.registration().name());
-
             putValue(NAME, name.text());
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
             putValue(SHORT_DESCRIPTION, descriptor.registration().description());
+
+            var action = descriptor.action();
+            if (action instanceof Action.Check check) {
+                putValue(SELECTED_KEY, check.isChecked(context));
+            } else if (action instanceof Action.Radio radio) {
+                putValue(SELECTED_KEY, radio.isSelected(context));
+            }
 
             setEnabled(descriptor.action().isEnabled(context));
         }

@@ -12,4 +12,12 @@ public abstract class Action {
     public boolean isVisible(ActionContext context) {
         return true;
     }
+
+    public interface Check {
+        boolean isChecked(ActionContext context);
+    }
+
+    public interface Radio {
+        boolean isSelected(ActionContext context);
+    }
 }
