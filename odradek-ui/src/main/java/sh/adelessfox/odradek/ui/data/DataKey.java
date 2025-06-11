@@ -24,6 +24,10 @@ public final class DataKey<T> {
         return context.getData(this);
     }
 
+    public boolean is(String name) {
+        return this.name.equals(name);
+    }
+
     public String name() {
         return name;
     }

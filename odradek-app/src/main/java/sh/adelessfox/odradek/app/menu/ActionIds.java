@@ -8,10 +8,8 @@ public final class ActionIds {
     public static final String EDIT_MENU_ID = MAIN_MENU_ID + ".Edit";
     public static final String HELP_MENU_ID = MAIN_MENU_ID + ".Help";
 
-    public static final String APP_MENU_GROUP_MAIN    = "1000," + MAIN_MENU_ID + ".main";
-
-
-    public static final String APP_MENU_HELP_GROUP_HELP = "1000," + HELP_MENU_ID + ".help";
+    public static final String OBJECT_MENU_ID = "ObjectMenu";
+    public static final String GRAPH_MENU_ID = "ObjectMenu";
 
     private ActionIds() {
     }

@@ -7,14 +7,76 @@ import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public final class Actions {
-    private static final List<ActionDescriptor> actions = loadActions();
-    private static final Map<String, List<GroupDescriptor>> groups = loadGroups(actions);
+    private static final Map<String, ActionDescriptor> actions = loadActions();
+    private static final Map<String, List<GroupDescriptor>> groups = loadGroups(actions.values());
 
     private Actions() {
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void installContextMenu(JComponent component, String id, DataContext context) {
+        var popupMenu = createPopupMenu(component, id, context);
+        var selectionProvider = switch (component) {
+            case JTree _ -> SelectionProvider.treeSelection();
+            default -> SelectionProvider.componentSelection();
+        };
+        installContextMenu(component, popupMenu, (SelectionProvider<JComponent, ?>) selectionProvider);
+        DataContext.putDataContext(component, context);
+    }
+
+    private static <T extends JComponent, R> void installContextMenu(T component, JPopupMenu popupMenu, SelectionProvider<? super T, R> selectionProvider) {
+        component.setComponentPopupMenu(popupMenu);
+        component.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    selectionProvider.getSelection(component, e).ifPresent(selection -> {
+                        selectionProvider.setSelection(component, selection, e);
+                    });
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    selectionProvider.getSelection(component, e).ifPresent(selection -> {
+                        var location = selectionProvider.getSelectionLocation(component, selection, e);
+                        popupMenu.show(component, location.x, location.y);
+                    });
+                }
+            }
+        });
+
+        var action = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectionProvider.getSelection(component, e).ifPresent(selection -> {
+                    var location = selectionProvider.getSelectionLocation(component, selection, e);
+                    popupMenu.show(component, location.x, location.y);
+                });
+            }
+        };
+
+        InputMap inputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_CONTEXT_MENU, 0), action);
+
+        ActionMap actionMap = component.getActionMap();
+        actionMap.put(action, action);
+    }
+
+    public static JPopupMenu createPopupMenu(JComponent component, String id, DataContext context) {
+        JPopupMenu popupMenu = new JPopupMenu();
+        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(component, popupMenu, id, context));
+        return popupMenu;
     }
 
     public static JMenuBar createMenuBar(String id, DataContext context) {
@@ -37,24 +99,27 @@ public final class Actions {
         menu.setDisplayedMnemonicIndex(name.mnemonicIndex());
 
         var popupMenu = menu.getPopupMenu();
-        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action, context));
+        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.id(), context));
 
         return menu;
     }
 
     private static JMenuItem createMenuItem(MenuItemAction action) {
-        if (groups.containsKey(action.descriptor.registration().id())) {
+        if (groups.containsKey(action.descriptor.id())) {
             var menu = new JMenu(action);
             var popupMenu = menu.getPopupMenu();
-            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor, action.context));
+            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null,
+                popupMenu,
+                action.descriptor.id(),
+                action.context));
             return menu;
         } else {
             return new JMenuItem(action);
         }
     }
 
-    private static void populateMenu(JPopupMenu menu, ActionDescriptor descriptor, ActionContext context) {
-        var groups = Actions.groups.get(descriptor.registration().id());
+    private static void populateMenu(JPopupMenu menu, String id, ActionContext context) {
+        var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
             return;
         }
@@ -62,7 +127,7 @@ public final class Actions {
             populateMenuGroup(menu, group, context);
         }
         if (menu.getComponentCount() == 0) {
-            menu.add(new JLabel("No actions"));
+            menu.add(new DisabledAction("No actions"));
         }
     }
 
@@ -81,16 +146,18 @@ public final class Actions {
         }
     }
 
-    private static List<ActionDescriptor> loadActions() {
+    private static Map<String, ActionDescriptor> loadActions() {
         return ServiceLoader.load(Action.class).stream()
             .map(provider -> ActionDescriptor.unreflect(provider.type(), provider))
             .gather(Gatherers.ensureDistinct(
-                d -> d.registration().id(),
-                d -> new IllegalArgumentException("Duplicate action ID: " + d.registration().id() + " for " + d.action().getClass())))
-            .toList();
+                ActionDescriptor::id,
+                d -> new IllegalArgumentException("Duplicate action ID: " + d.id() + " for " + d.action().getClass())))
+            .collect(Collectors.toMap(
+                ActionDescriptor::id,
+                Function.identity()));
     }
 
-    private static Map<String, List<GroupDescriptor>> loadGroups(List<ActionDescriptor> actions) {
+    private static Map<String, List<GroupDescriptor>> loadGroups(Collection<ActionDescriptor> actions) {
         record ActionInfo(ActionDescriptor action, ActionContribution contribution) {}
         record GroupInfo(String id, int order, List<ActionInfo> actions) {}
 
@@ -117,7 +184,9 @@ public final class Actions {
                     group.id(),
                     group.order(),
                     group.actions().stream()
-                        .sorted(Comparator.comparingInt(action -> action.contribution().order()))
+                        .sorted(Comparator
+                            .comparingInt((ActionInfo action) -> action.contribution().order())
+                            .thenComparing((ActionInfo action) -> action.action().registration().name()))
                         .map(ActionInfo::action)
                         .toList()))
                 .toList();
@@ -170,10 +239,10 @@ public final class Actions {
         }
     }
 
-    private record ActionPopupMenuListener(Object source, JPopupMenu popupMenu, ActionDescriptor descriptor, DataContext context) implements PopupMenuListener {
+    private record ActionPopupMenuListener(Object source, JPopupMenu popupMenu, String id, DataContext context) implements PopupMenuListener {
         @Override
         public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-            populateMenu(popupMenu, descriptor, new ActionContext(context, source, null));
+            populateMenu(popupMenu, id, new ActionContext(context, source, null));
         }
 
         @Override
@@ -202,8 +271,23 @@ public final class Actions {
                 List.of(contributions)
             );
         }
+
+        public String id() {
+            return registration.id();
+        }
     }
 
     private record GroupDescriptor(String id, int order, List<ActionDescriptor> actions) {
+    }
+
+    private static final class DisabledAction extends AbstractAction {
+        public DisabledAction(String name) {
+            super(name);
+            setEnabled(false);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+        }
     }
 }
