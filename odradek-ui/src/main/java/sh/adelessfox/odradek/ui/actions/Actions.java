@@ -269,7 +269,7 @@ public final class Actions {
             var contributions = type.getDeclaredAnnotationsByType(ActionContribution.class);
 
             if (registration == null) {
-                throw new IllegalArgumentException("Action class " + type.getName() + " is not annotated with @ActionRegistration");
+                throw new IllegalArgumentException("Action " + type + " is not annotated with @ActionRegistration");
             }
 
             return new ActionDescriptor(
@@ -285,16 +285,5 @@ public final class Actions {
     }
 
     private record GroupDescriptor(String id, int order, List<ActionDescriptor> actions) {
-    }
-
-    private static final class DisabledAction extends AbstractAction {
-        public DisabledAction(String name) {
-            super(name);
-            setEnabled(false);
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        }
     }
 }

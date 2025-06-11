@@ -14,9 +14,10 @@ public @interface ActionContribution {
     /**
      * A group this action contributes to.
      * <p>
-     * It must follow the format {@code "id,order"}, where {@code id} is a unique identifier
-     * of the group within {@link #parent()}, and {@code order} is an integer that denotes the
-     * order of the group within the parent action.
+     * It must follow the format {@code "order,id"}, where {@code order} is an integer that
+     * denotes the order of the group within {@link #parent()}, and {@code id} is a unique
+     * identifier of the group within {@link #parent()} used to group actions contributed
+     * to the same group together.
      * <p>
      * Grouped actions are visually combined into one group, separated from other actions
      * using separators.

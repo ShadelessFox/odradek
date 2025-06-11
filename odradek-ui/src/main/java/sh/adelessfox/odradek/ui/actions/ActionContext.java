@@ -17,7 +17,7 @@ public record ActionContext(DataContext context, Object source, ActionEvent even
         return context.getData(key);
     }
 
-    public ActionContext withEvent(ActionEvent event) {
+    ActionContext withEvent(ActionEvent event) {
         return new ActionContext(context, source, event);
     }
 }
