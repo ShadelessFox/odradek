@@ -44,12 +44,10 @@ interface SelectionProvider<T extends JComponent, R> {
             @Override
             public Optional<TreePath> getSelection(JTree component, EventObject event) {
                 if (event instanceof MouseEvent me) {
-                    final TreePath path = component.getPathForLocation(me.getX(), me.getY());
-                    if (path != null) {
-                        return Optional.of(path);
-                    }
+                    return Optional.ofNullable(component.getPathForLocation(me.getX(), me.getY()));
+                } else {
+                    return Optional.ofNullable(component.getSelectionPath());
                 }
-                return Optional.ofNullable(component.getSelectionPath());
             }
 
             @Override
