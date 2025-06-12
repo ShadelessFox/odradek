@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.menu.actions.graph;
 
+import sh.adelessfox.odradek.Gatherers;
 import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
@@ -13,12 +14,10 @@ abstract class AbstractObjectsOptionAction extends Action implements Action.Chec
     public void perform(ActionContext context) {
         var tree = (StructuredTree<?>) context.getData(DataKeys.COMPONENT).orElseThrow();
         var objects = (GraphStructure.GroupObjects) context.getData(DataKeys.SELECTION).orElseThrow();
-        var option = getOption();
 
+        var option = getOption();
         var options = objects.options();
-        if (options.contains(option)) {
-            options.remove(option);
-        } else {
+        if (!options.remove(option)) {
             options.add(option);
         }
 
@@ -27,16 +26,17 @@ abstract class AbstractObjectsOptionAction extends Action implements Action.Chec
 
     @Override
     public boolean isVisible(ActionContext context) {
-        Object selection = context.getData(DataKeys.SELECTION).orElse(null);
-        return selection instanceof GraphStructure.GroupObjects;
+        return context.getData(DataKeys.SELECTION)
+            .filter(GraphStructure.GroupObjects.class::isInstance)
+            .isPresent();
     }
 
     @Override
     public boolean isChecked(ActionContext context) {
-        var objects = (GraphStructure.GroupObjects) context.getData(DataKeys.SELECTION).orElseThrow();
-        var options = objects.options();
-        return options.contains(getOption());
+        return context.getData(DataKeys.SELECTION).stream()
+            .gather(Gatherers.instanceOf(GraphStructure.GroupObjects.class))
+            .anyMatch(objects -> objects.options().contains(getOption()));
     }
 
-    protected abstract GraphStructure.GroupObjects.Options getOption();
+    protected abstract GraphStructure.GroupObjects.Option getOption();
 }

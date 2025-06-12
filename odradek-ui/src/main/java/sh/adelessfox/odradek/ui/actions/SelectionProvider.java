@@ -9,33 +9,35 @@ import java.util.Objects;
 import java.util.Optional;
 
 interface SelectionProvider<T extends JComponent, R> {
-    /**
-     * Gets the selection for the given component.
-     *
-     * @param component the component to get the selection from
-     * @param event     the event that triggered the selection request
-     * @return an {@link Optional} containing the selection if present, otherwise empty
-     */
-    Optional<R> getSelection(T component, EventObject event);
+    static SelectionProvider<? super JTabbedPane, Integer> tabbedPaneSelection() {
+        return new SelectionProvider<>() {
+            @Override
+            public Optional<Integer> getSelection(JTabbedPane component, EventObject event) {
+                int index;
+                if (event instanceof MouseEvent me) {
+                    index = component.indexAtLocation(me.getX(), me.getY());
+                } else {
+                    index = component.getSelectedIndex();
+                }
+                return index < 0 ? Optional.empty() : Optional.of(index);
+            }
 
-    /**
-     * Sets the selection for the given component.
-     *
-     * @param component the component to set the selection on
-     * @param selection the selection to set
-     * @param event     the event that triggered the selection change
-     */
-    void setSelection(T component, R selection, EventObject event);
+            @Override
+            public void setSelection(JTabbedPane component, Integer selection, EventObject event) {
+                component.setSelectedIndex(selection);
+            }
 
-    /**
-     * Gets the location of the selection within the component.
-     *
-     * @param component the component to get the selection location from
-     * @param selection the selection for which to get the location
-     * @param event     the event that triggered the request
-     * @return a {@link Point} representing the location of the selection within the component
-     */
-    Point getSelectionLocation(T component, R selection, EventObject event);
+            @Override
+            public Point getSelectionLocation(JTabbedPane component, Integer selection, EventObject event) {
+                if (event instanceof MouseEvent me) {
+                    return me.getPoint();
+                } else {
+                    var bounds = Objects.requireNonNull(component.getBoundsAt(selection));
+                    return new Point(bounds.x, bounds.y + bounds.height);
+                }
+            }
+        };
+    }
 
     static SelectionProvider<? super JTree, ? extends TreePath> treeSelection() {
         return new SelectionProvider<>() {
@@ -93,4 +95,32 @@ interface SelectionProvider<T extends JComponent, R> {
             }
         };
     }
+
+    /**
+     * Gets the selection for the given component.
+     *
+     * @param component the component to get the selection from
+     * @param event     the event that triggered the selection request
+     * @return an {@link Optional} containing the selection if present, otherwise empty
+     */
+    Optional<R> getSelection(T component, EventObject event);
+
+    /**
+     * Sets the selection for the given component.
+     *
+     * @param component the component to set the selection on
+     * @param selection the selection to set
+     * @param event     the event that triggered the selection change
+     */
+    void setSelection(T component, R selection, EventObject event);
+
+    /**
+     * Gets the location of the selection within the component.
+     *
+     * @param component the component to get the selection location from
+     * @param selection the selection for which to get the location
+     * @param event     the event that triggered the request
+     * @return a {@link Point} representing the location of the selection within the component
+     */
+    Point getSelectionLocation(T component, R selection, EventObject event);
 }

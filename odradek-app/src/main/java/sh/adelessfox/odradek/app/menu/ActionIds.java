@@ -10,6 +10,7 @@ public final class ActionIds {
 
     public static final String OBJECT_MENU_ID = "ObjectMenu";
     public static final String GRAPH_MENU_ID = "ObjectMenu";
+    public static final String TABS_MENU_ID = "TabsMenu";
 
     private ActionIds() {
     }

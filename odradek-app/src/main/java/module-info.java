@@ -24,5 +24,6 @@ module odradek.app {
         sh.adelessfox.odradek.app.menu.actions.help.AboutAction,
         sh.adelessfox.odradek.app.menu.actions.graph.GroupObjectsByTypeAction,
         sh.adelessfox.odradek.app.menu.actions.graph.SortObjectsByCountAction,
-        sh.adelessfox.odradek.app.menu.actions.object.CopyBytesToClipboardAction;
+        sh.adelessfox.odradek.app.menu.actions.object.CopyBytesToClipboardAction,
+        sh.adelessfox.odradek.app.menu.actions.tabs.CloseAllTabsAction;
 }

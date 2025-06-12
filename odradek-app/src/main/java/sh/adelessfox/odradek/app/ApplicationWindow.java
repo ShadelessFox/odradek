@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
@@ -25,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
@@ -233,6 +235,13 @@ public class ApplicationWindow extends JComponent {
                     tabs.removeTabAt(index);
                 }
             }
+        });
+
+        Actions.installContextMenu(tabs, ActionIds.TABS_MENU_ID, key -> {
+            if (DataKeys.COMPONENT.is(key)) {
+                return Optional.of(tabs);
+            }
+            return Optional.empty();
         });
     }
 

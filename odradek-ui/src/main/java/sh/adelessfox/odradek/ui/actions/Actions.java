@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.actions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.Gatherers;
 import sh.adelessfox.odradek.ui.data.DataContext;
 
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 public final class Actions {
     private static final Map<String, ActionDescriptor> actions = loadActions();
     private static final Map<String, List<GroupDescriptor>> groups = loadGroups(actions.values());
+    private static final Logger log = LoggerFactory.getLogger(Actions.class);
 
     private Actions() {
     }
@@ -26,6 +29,7 @@ public final class Actions {
     public static void installContextMenu(JComponent component, String id, DataContext context) {
         var popupMenu = createPopupMenu(component, id, context);
         var selectionProvider = switch (component) {
+            case JTabbedPane _ -> SelectionProvider.tabbedPaneSelection();
             case JTree _ -> SelectionProvider.treeSelection();
             default -> SelectionProvider.componentSelection();
         };
@@ -34,7 +38,6 @@ public final class Actions {
     }
 
     private static <T extends JComponent, R> void installContextMenu(T component, JPopupMenu popupMenu, SelectionProvider<? super T, R> selectionProvider) {
-        component.setComponentPopupMenu(popupMenu);
         component.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -80,7 +83,15 @@ public final class Actions {
     }
 
     public static JMenuBar createMenuBar(String id, DataContext context) {
-        var group = groups.get(id).getFirst();
+        var groups = Actions.groups.get(id);
+        if (groups == null) {
+            throw new IllegalArgumentException("No action groups found for ID: " + id);
+        }
+        if (groups.size() != 1) {
+            throw new IllegalArgumentException("Expected exactly one action group for ID: " + id + ", found: " + groups.size());
+        }
+
+        var group = groups.getFirst();
         var menuBar = new JMenuBar();
 
         for (ActionDescriptor action : group.actions()) {
@@ -122,6 +133,7 @@ public final class Actions {
     private static void populateMenu(JPopupMenu menu, String id, ActionContext context) {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
+            log.debug("No action groups found for ID: {}", id);
             return;
         }
         for (GroupDescriptor group : groups) {

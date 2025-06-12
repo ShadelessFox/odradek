@@ -131,15 +131,15 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     record GroupObjects(
         StreamingGraphResource graph,
         StreamingGroupData group,
-        Set<Options> options
+        Set<Option> options
     ) implements GraphStructure {
-        public enum Options {
+        public enum Option {
             GROUP_BY_TYPE,
             SORT_BY_COUNT
         }
 
         public GroupObjects(StreamingGraphResource graph, StreamingGroupData group) {
-            this(graph, group, EnumSet.noneOf(Options.class));
+            this(graph, group, EnumSet.noneOf(Option.class));
         }
 
         @Override
@@ -277,7 +277,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 .map(inGroup -> new Group(graph, inGroup))
                 .toList();
             case GroupObjects(var graph, var group, var options) -> {
-                if (options.contains(GroupObjects.Options.GROUP_BY_TYPE)) {
+                if (options.contains(GroupObjects.Option.GROUP_BY_TYPE)) {
                     var indices = IntStream.range(0, group.typeCount())
                         .boxed()
                         .collect(Collectors.groupingBy(
@@ -285,7 +285,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                             IdentityHashMap::new,
                             Collectors.toList()
                         ));
-                    var comparator = options.contains(GroupObjects.Options.SORT_BY_COUNT)
+                    var comparator = options.contains(GroupObjects.Option.SORT_BY_COUNT)
                         ? Comparator.comparingInt((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getValue().size()).reversed()
                         : Comparator.comparing((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getKey().name().name());
                     yield indices.entrySet().stream()
