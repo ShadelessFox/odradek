@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
-@ActionRegistration(id = "sh.adelessfox.odradek.app.menu.actions.graph.SortObjectsByCountAction", name = "Sort by count")
+@ActionRegistration(name = "Sort by count")
 @ActionContribution(parent = ActionIds.GRAPH_MENU_ID, order = 2)
 public class SortObjectsByCountAction extends AbstractObjectsOptionAction {
     @Override

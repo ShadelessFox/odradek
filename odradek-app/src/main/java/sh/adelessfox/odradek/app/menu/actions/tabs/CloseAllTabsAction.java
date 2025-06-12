@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
 
-@ActionRegistration(id = "sh.adelessfox.odradek.app.menu.actions.tabs.CloseAllTabsAction", name = "Close &All Tabs")
+@ActionRegistration(name = "Close &All Tabs")
 @ActionContribution(parent = ActionIds.TABS_MENU_ID)
 public class CloseAllTabsAction extends Action {
     @Override

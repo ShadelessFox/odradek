@@ -10,8 +10,10 @@ import java.lang.annotation.Target;
 public @interface ActionRegistration {
     /**
      * A unique identifier of this action.
+     * <p>
+     * May be empty, in such case the fully qualified class name of the action will be used.
      */
-    String id();
+    String id() default "";
 
     /**
      * Display name of this action.

@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 
 import javax.swing.*;
 
-@ActionRegistration(id = "sh.adelessfox.odradek.app.menu.actions.help.AboutAction", name = "&About")
+@ActionRegistration(name = "&About")
 @ActionContribution(parent = ActionIds.HELP_MENU_ID)
 public class AboutAction extends Action {
     @Override

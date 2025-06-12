@@ -292,7 +292,11 @@ public final class Actions {
         }
 
         public String id() {
-            return registration.id();
+            if (registration.id().isEmpty()) {
+                return action.getClass().getName();
+            } else {
+                return registration.id();
+            }
         }
     }
 
