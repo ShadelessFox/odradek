@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.tree;
 
+import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Listeners;
 
 import javax.swing.*;
@@ -7,8 +9,9 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
 import java.util.Objects;
+import java.util.Optional;
 
-public class StructuredTree<T> extends JTree {
+public class StructuredTree<T> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
 
     public StructuredTree(StructuredTreeModel<T> model) {
@@ -30,6 +33,21 @@ public class StructuredTree<T> extends JTree {
                 }
             }
         });
+    }
+
+    @Override
+    public Optional<Object> getData(String key) {
+        if (DataKeys.COMPONENT.is(key)) {
+            return Optional.of(this);
+        }
+        if (DataKeys.SELECTION.is(key)) {
+            Object component = getLastSelectedPathComponent();
+            if (component instanceof TreeItem<?> item) {
+                component = item.getValue();
+            }
+            return Optional.ofNullable(component);
+        }
+        return Optional.empty();
     }
 
     @Override

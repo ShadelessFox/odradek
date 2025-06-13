@@ -4,6 +4,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
@@ -12,24 +13,22 @@ import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.ui.Viewer;
+import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
-import sh.adelessfox.odradek.ui.util.ByteContents;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
-import javax.swing.event.PopupMenuListener;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public class ApplicationWindow extends JComponent {
@@ -153,104 +152,8 @@ public class ApplicationWindow extends JComponent {
                 future.whenComplete((_, _) -> tree.setEnabled(true));
             }
         });
-
-        installGraphTreePopupMenu(tree);
+        Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, tree);
         return tree;
-    }
-
-    private void installTreePopupMenu(StructuredTree<?> tree, BiConsumer<JPopupMenu, Object> callback) {
-        var menu = new JPopupMenu();
-        menu.addPopupMenuListener(new PopupMenuListener() {
-            @Override
-            public void popupMenuWillBecomeVisible(PopupMenuEvent event) {
-                var path = tree.getSelectionPath();
-                if (path == null) {
-                    return;
-                }
-                var component = path.getLastPathComponent();
-                if (component instanceof TreeItem<?> item) {
-                    component = item.getValue();
-                }
-                if (component != null) {
-                    callback.accept(menu, component);
-                }
-            }
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-                menu.removeAll();
-            }
-
-            @Override
-            public void popupMenuCanceled(PopupMenuEvent e) {
-                menu.removeAll();
-            }
-        });
-        tree.setComponentPopupMenu(menu);
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    var path = tree.getPathForLocation(e.getX(), e.getY());
-                    if (path != null) {
-                        tree.setSelectionPath(path);
-                        tree.scrollPathToVisible(path);
-                    }
-                }
-            }
-        });
-    }
-
-    private void installGraphTreePopupMenu(StructuredTree<?> tree) {
-        installTreePopupMenu(tree, (menu, object) -> {
-            if (!(object instanceof GraphStructure.GroupObjects objects)) {
-                return;
-            }
-
-            var groupObjectsByType = new JCheckBoxMenuItem("Group objects by type");
-            groupObjectsByType.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE));
-            groupObjectsByType.addActionListener(e -> {
-                if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                    objects.options().add(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
-                } else {
-                    objects.options().remove(GraphStructure.GroupObjects.Options.GROUP_BY_TYPE);
-                }
-                tree.getModel().update(tree.getSelectionPath());
-            });
-            menu.add(groupObjectsByType);
-
-            if (groupObjectsByType.isSelected()) {
-                var sortByCount = new JCheckBoxMenuItem("Sort by count");
-                sortByCount.setSelected(objects.options().contains(GraphStructure.GroupObjects.Options.SORT_BY_COUNT));
-                sortByCount.addActionListener(e -> {
-                    if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                        objects.options().add(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
-                    } else {
-                        objects.options().remove(GraphStructure.GroupObjects.Options.SORT_BY_COUNT);
-                    }
-                    tree.getModel().update(tree.getSelectionPath());
-                });
-                menu.add(sortByCount);
-            }
-        });
-    }
-
-    private void installObjectTreePopupMenu(StructuredTree<?> tree) {
-        installTreePopupMenu(tree, (menu, object) -> {
-            if (!(object instanceof ObjectStructure structure)) {
-                return;
-            }
-            if (structure.value() instanceof byte[] bytes) {
-                menu.add(new AbstractAction("Copy to clipboard") {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        ByteContents contents = new ByteContents(bytes);
-                        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                        clipboard.setContents(contents, contents);
-                    }
-                });
-            }
-        });
     }
 
     private CompletableFuture<Void> showObjectInfo(ForbiddenWestGame game, int groupId, int objectIndex) {
@@ -333,6 +236,13 @@ public class ApplicationWindow extends JComponent {
                 }
             }
         });
+
+        Actions.installContextMenu(tabs, ActionIds.TABS_MENU_ID, key -> {
+            if (DataKeys.COMPONENT.is(key)) {
+                return Optional.of(tabs);
+            }
+            return Optional.empty();
+        });
     }
 
     private boolean revealObjectInfo(int groupId, int objectIndex) {
@@ -362,7 +272,7 @@ public class ApplicationWindow extends JComponent {
                 showObjectInfo(game, link.get().getType(), link.get(), link.group(), link.index());
             }
         });
-        installObjectTreePopupMenu(tree);
+        Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);
         return tree;
     }
 
