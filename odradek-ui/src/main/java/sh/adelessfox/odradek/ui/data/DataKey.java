@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.ui.data;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class DataKey<T> {
@@ -18,10 +17,6 @@ public final class DataKey<T> {
     public static <T> DataKey<T> create(String name) {
         Objects.requireNonNull(name, "name");
         return (DataKey<T>) index.computeIfAbsent(name, DataKey::new);
-    }
-
-    public Optional<T> get(DataContext context) {
-        return context.getData(this);
     }
 
     public boolean is(String name) {

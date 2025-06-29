@@ -102,7 +102,7 @@ public final class Actions {
     }
 
     private static JMenu createMenu(ActionDescriptor action, DataContext context) {
-        var name = TextWithMnemonic.parse(action.registration().name());
+        var name = TextWithMnemonic.parse(action.text(new ActionContext(context, null, null)));
 
         var menu = new JMenu();
         menu.setText(name.text());
@@ -144,10 +144,8 @@ public final class Actions {
         }
     }
 
-    private static void populateMenuGroup(JPopupMenu menu, GroupDescriptor descriptor, ActionContext context) {
-        var actions = descriptor.actions().stream()
-            .filter(d -> d.action().isVisible(context))
-            .toList();
+    private static void populateMenuGroup(JPopupMenu menu, ActionDescriptorProvider provider, ActionContext context) {
+        var actions = provider.create(context);
         if (actions.isEmpty()) {
             return;
         }
@@ -155,7 +153,11 @@ public final class Actions {
             menu.addSeparator();
         }
         for (ActionDescriptor action : actions) {
-            menu.add(createMenuItem(new MenuItemAction(action, context)));
+            if (action.action() instanceof ActionProvider p) {
+                populateMenuGroup(menu, ActionDescriptorProvider.wrap(p), context);
+            } else {
+                menu.add(createMenuItem(new MenuItemAction(action, context)));
+            }
         }
     }
 
@@ -197,9 +199,7 @@ public final class Actions {
                     group.id(),
                     group.order(),
                     group.actions().stream()
-                        .sorted(Comparator
-                            .comparingInt((ActionInfo action) -> action.contribution().order())
-                            .thenComparing((ActionInfo action) -> action.action().registration().name()))
+                        .sorted(Comparator.comparingInt((ActionInfo action) -> action.contribution().order()))
                         .map(ActionInfo::action)
                         .toList()))
                 .toList();
@@ -230,11 +230,11 @@ public final class Actions {
         protected abstract void perform(ActionEvent e);
 
         private void update() {
-            var name = TextWithMnemonic.parse(descriptor.registration().name());
+            var name = TextWithMnemonic.parse(descriptor.text(context));
             putValue(NAME, name.text());
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
-            putValue(SHORT_DESCRIPTION, descriptor.registration().description());
+            putValue(SHORT_DESCRIPTION, descriptor.description(context));
 
             var action = descriptor.action();
             if (action instanceof Action.Check check) {
@@ -275,7 +275,13 @@ public final class Actions {
         }
     }
 
-    private record ActionDescriptor(Action action, ActionRegistration registration, List<ActionContribution> contributions) {
+    private record ActionDescriptor(
+        Action action,
+        String id,
+        Function<ActionContext, String> textSupplier,
+        Function<ActionContext, String> descriptionSupplier,
+        List<ActionContribution> contributions
+    ) {
         static ActionDescriptor unreflect(Class<? extends Action> type, Supplier<? extends Action> supplier) {
             var registration = type.getDeclaredAnnotation(ActionRegistration.class);
             var contributions = type.getDeclaredAnnotationsByType(ActionContribution.class);
@@ -284,22 +290,59 @@ public final class Actions {
                 throw new IllegalArgumentException("Action " + type + " is not annotated with @ActionRegistration");
             }
 
+            var action = supplier.get();
+            var id = registration.id().isEmpty() ? type.getName() : registration.id();
+            Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse(registration.text());
+            Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse(registration.description());
+
             return new ActionDescriptor(
-                supplier.get(),
-                registration,
+                action,
+                id,
+                textSupplier,
+                descriptionSupplier,
                 List.of(contributions)
             );
         }
 
-        public String id() {
-            if (registration.id().isEmpty()) {
-                return action.getClass().getName();
-            } else {
-                return registration.id();
-            }
+        static ActionDescriptor wrap(Action action) {
+            var id = action.getClass().getName();
+            Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse("");
+            Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse("");
+
+            return new ActionDescriptor(
+                action,
+                id,
+                textSupplier,
+                descriptionSupplier,
+                List.of()
+            );
+        }
+
+        String text(ActionContext context) {
+            return textSupplier.apply(context);
+        }
+
+        String description(ActionContext context) {
+            return descriptionSupplier.apply(context);
         }
     }
 
-    private record GroupDescriptor(String id, int order, List<ActionDescriptor> actions) {
+    private record GroupDescriptor(String id, int order, List<ActionDescriptor> actions) implements ActionDescriptorProvider {
+        @Override
+        public List<ActionDescriptor> create(ActionContext context) {
+            return actions.stream()
+                .filter(action -> action.action().isVisible(context))
+                .toList();
+        }
+    }
+
+    private interface ActionDescriptorProvider {
+        static ActionDescriptorProvider wrap(ActionProvider provider) {
+            return context -> provider.create(context).stream()
+                .map(ActionDescriptor::wrap)
+                .toList();
+        }
+
+        List<ActionDescriptor> create(ActionContext context);
     }
 }

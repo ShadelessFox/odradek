@@ -9,13 +9,11 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
 
-@ActionRegistration(name = "Close &All Tabs")
+@ActionRegistration(text = "Close &All Tabs")
 @ActionContribution(parent = ActionIds.TABS_MENU_ID)
 public class CloseAllTabsAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        context.getData(DataKeys.COMPONENT)
-            .map(JTabbedPane.class::cast)
-            .ifPresent(JTabbedPane::removeAll);
+        context.get(DataKeys.COMPONENT, JTabbedPane.class).ifPresent(JTabbedPane::removeAll);
     }
 }

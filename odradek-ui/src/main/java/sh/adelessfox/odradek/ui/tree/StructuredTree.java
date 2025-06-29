@@ -36,7 +36,7 @@ public class StructuredTree<T> extends JTree implements DataContext {
     }
 
     @Override
-    public Optional<Object> getData(String key) {
+    public Optional<Object> get(String key) {
         if (DataKeys.COMPONENT.is(key)) {
             return Optional.of(this);
         }

@@ -22,7 +22,7 @@ public @interface ActionRegistration {
      * as E<u>x</u>it and, will allow the user to activate this action using the {@code Alt+X} keyboard shortcut
      * while within its context.
      */
-    String name();
+    String text();
 
     /**
      * Description of this action.

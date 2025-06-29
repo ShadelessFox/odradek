@@ -11,12 +11,12 @@ import sh.adelessfox.odradek.ui.util.ByteContents;
 
 import java.awt.*;
 
-@ActionRegistration(name = "Copy to clipboard", description = "Copy bytes to clipboard as binary data")
+@ActionRegistration(text = "Copy to clipboard", description = "Copy bytes to clipboard as binary data")
 @ActionContribution(parent = ActionIds.OBJECT_MENU_ID)
 public class CopyBytesToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var structure = (ObjectStructure) context.getData(DataKeys.SELECTION).orElseThrow();
+        var structure = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
         var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         var contents = new ByteContents((byte[]) structure.value());
         clipboard.setContents(contents, contents);
@@ -24,7 +24,8 @@ public class CopyBytesToClipboardAction extends Action {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        Object selection = context.getData(DataKeys.SELECTION).orElse(null);
-        return selection instanceof ObjectStructure structure && structure.value() instanceof byte[];
+        return context.get(DataKeys.SELECTION, ObjectStructure.class)
+            .filter(structure -> structure.value() instanceof byte[])
+            .isPresent();
     }
 }

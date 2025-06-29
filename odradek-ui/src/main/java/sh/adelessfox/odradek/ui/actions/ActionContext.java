@@ -8,13 +8,18 @@ import java.util.Optional;
 
 public record ActionContext(DataContext context, Object source, ActionEvent event) implements DataContext {
     @Override
-    public Optional<Object> getData(String key) {
-        return context.getData(key);
+    public Optional<Object> get(String key) {
+        return context.get(key);
     }
 
     @Override
-    public <T> Optional<T> getData(DataKey<T> key) {
-        return context.getData(key);
+    public <T> Optional<T> get(DataKey<T> key) {
+        return context.get(key);
+    }
+
+    @Override
+    public <T, R> Optional<R> get(DataKey<T> key, Class<R> type) {
+        return context.get(key, type);
     }
 
     ActionContext withEvent(ActionEvent event) {

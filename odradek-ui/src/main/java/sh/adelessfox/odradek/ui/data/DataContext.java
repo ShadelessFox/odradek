@@ -13,7 +13,7 @@ public interface DataContext {
         return key -> {
             var manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
             for (Component c = manager.getPermanentFocusOwner(); c != null; c = c.getParent()) {
-                var result = getDataContext(c).flatMap(context -> context.getData(key));
+                var result = getDataContext(c).flatMap(context -> context.get(key));
                 if (result.isPresent()) {
                     return result;
                 }
@@ -41,10 +41,16 @@ public interface DataContext {
         component.putClientProperty(DataContext.class, context);
     }
 
-    Optional<Object> getData(String key);
+    Optional<Object> get(String key);
 
     @SuppressWarnings("unchecked")
-    default <T> Optional<T> getData(DataKey<T> key) {
-        return getData(key.name()).map(x -> (T) x);
+    default <T> Optional<T> get(DataKey<T> key) {
+        return get(key.name()).map(x -> (T) x);
+    }
+
+    default <T, R> Optional<R> get(DataKey<T> key, Class<R> type) {
+        return get(key.name())
+            .filter(type::isInstance)
+            .map(type::cast);
     }
 }
