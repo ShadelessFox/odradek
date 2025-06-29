@@ -19,11 +19,13 @@ public class TextureCallback implements ExtraBinaryDataCallback<TextureCallback.
 
         void type(ETextureType value);
 
+        /** Width of the texture. Two leftmost bits represent padding width; other bits represent aligned width. */
         @Attr(name = "Width", type = "uint16", position = 1, offset = 2)
         short width();
 
         void width(short value);
 
+        /** Height of the texture. Two leftmost bits represent padding height; other bits represent aligned height. */
         @Attr(name = "Height", type = "uint16", position = 2, offset = 4)
         short height();
 

@@ -12,7 +12,6 @@ import java.util.List;
  * @see <a href="https://github.com/ShadelessFox/decima/wiki/Archives#directstorage-archive">DirectStorage archive format</a>
  */
 public class DirectStorageReader extends ChunkedBinaryReader {
-    // private static final LZ4FastDecompressor lz4 = LZ4Factory.fastestInstance().fastDecompressor();
     private final Header header;
 
     private DirectStorageReader(BinaryReader reader, Header header, List<Chunk> chunks) {

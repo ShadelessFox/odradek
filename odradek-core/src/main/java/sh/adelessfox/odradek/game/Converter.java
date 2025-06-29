@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.game;
 import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -17,9 +18,13 @@ public interface Converter<T extends Game, R> {
         return ServiceLoader.load(Converter.class).stream().map(x -> (Converter<T, ?>) x.get());
     }
 
-    static <T extends Game> Stream<Converter<T, ?>> converters(Object object) {
+    static <T extends Game> Stream<Converter<T, ?>> converters(Class<?> clazz) {
         return Converter.<T>converters()
-            .filter(c -> c.canConvert(object));
+            .filter(c -> c.convertibleTypes().stream().anyMatch(type -> type.isAssignableFrom(clazz)));
+    }
+
+    static <T extends Game> Stream<Converter<T, ?>> converters(Object object) {
+        return converters(object.getClass());
     }
 
     static <T extends Game> Optional<Converter<T, ?>> converter(Object object, Class<?> clazz) {
@@ -38,9 +43,9 @@ public interface Converter<T extends Game, R> {
             .flatMap(c -> c.convert(object, game).map(clazz::cast));
     }
 
-    boolean canConvert(Object object);
-
     Optional<R> convert(Object object, T game);
+
+    Set<Class<?>> convertibleTypes();
 
     @SuppressWarnings("unchecked")
     default Class<R> resultType() {

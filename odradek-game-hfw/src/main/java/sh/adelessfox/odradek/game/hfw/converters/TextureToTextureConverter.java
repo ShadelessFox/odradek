@@ -10,33 +10,33 @@ import sh.adelessfox.odradek.texture.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 
 public class TextureToTextureConverter implements Converter<ForbiddenWestGame, Texture> {
     private static final Logger log = LoggerFactory.getLogger(TextureToTextureConverter.class);
 
     @Override
-    public boolean canConvert(Object object) {
-        return object instanceof HorizonForbiddenWest.Texture;
+    public Optional<Texture> convert(Object object, ForbiddenWestGame game) {
+        return switch (object) {
+            case HorizonForbiddenWest.Texture t -> convertTexture(t, game);
+            case HorizonForbiddenWest.UITexture t -> convertUiTexture(t, game);
+            default -> Optional.empty();
+        };
     }
 
     @Override
-    public Optional<Texture> convert(Object object, ForbiddenWestGame game) {
-        return convert((HorizonForbiddenWest.Texture) object, game);
+    public Set<Class<?>> convertibleTypes() {
+        return Set.of(
+            HorizonForbiddenWest.Texture.class,
+            HorizonForbiddenWest.UITexture.class
+        );
     }
 
-    private static Optional<Texture> convert(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) {
+    private static Optional<Texture> convertTexture(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) {
         var format = mapFormat(texture.header().pixelFormat());
-        if (format == null) {
-            log.debug("Unsupported texture format: {}", texture.header().pixelFormat());
-            return Optional.empty();
-        }
-
         var type = mapType(texture.header().type());
-        if (type == null) {
-            log.debug("Unsupported texture type: {}", texture.header().type());
+
+        if (format == null || type == null) {
             return Optional.empty();
         }
 
@@ -91,6 +91,40 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
         ));
     }
 
+    private static Optional<Texture> convertUiTexture(HorizonForbiddenWest.UITexture texture, ForbiddenWestGame game) {
+        if (texture.animated()) {
+            log.debug("UITexture {} is animated, skipping conversion", texture);
+            return Optional.empty();
+        }
+
+        var data = texture.largeTexture();
+        var format = mapFormat(data.header().pixelFormat());
+        var type = mapType(data.header().type());
+
+        if (format == null || type == null) {
+            return Optional.empty();
+        }
+
+        assert data.header().numMips() == 1;
+        assert data.header().numSurfaces() == 0;
+        assert data.header().type() == HorizonForbiddenWest.ETextureType._2D;
+        assert data.data().streamedMips() == 0;
+
+        int width = data.header().width() & 0x3FFF;
+        int height = data.header().height() & 0x3FFF;
+        var surface = Surface.create(width, height, format, data.data().embeddedData());
+
+        return Optional.of(new Texture(
+            format,
+            type,
+            mapColorSpace(data.header().colorSpace()),
+            List.of(surface),
+            1,
+            OptionalInt.empty(),
+            OptionalInt.empty()
+        ));
+    }
+
     private static TextureFormat mapFormat(HorizonForbiddenWest.EPixelFormat format) {
         return switch (format) {
             case RGBA_8888 -> TextureFormat.R8G8B8A8_UNORM;
@@ -104,8 +138,10 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
             case BC6U -> TextureFormat.BC6_UNORM;
             case BC6S -> TextureFormat.BC6_SNORM;
             case BC7 -> TextureFormat.BC7_UNORM;
-
-            default -> null;
+            default -> {
+                log.debug("Unsupported pixel format: {}", format);
+                yield null;
+            }
         };
     }
 
@@ -122,7 +158,10 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
             case _2DArray -> TextureType.ARRAY;
             case _3D -> TextureType.VOLUME;
             case CubeMap -> TextureType.CUBEMAP;
-            default -> null;
+            default -> {
+                log.debug("Unsupported texture type: {}", type);
+                yield null;
+            }
         };
     }
 

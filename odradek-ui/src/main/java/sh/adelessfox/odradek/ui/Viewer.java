@@ -13,7 +13,7 @@ public interface Viewer<T> {
     @SuppressWarnings("unchecked")
     static <T> Stream<Viewer<T>> viewers(Class<T> clazz) {
         return viewers()
-            .filter(v -> v.objectType().isAssignableFrom(clazz))
+            .filter(v -> v.supportedType().isAssignableFrom(clazz))
             .map(v -> (Viewer<T>) v);
     }
 
@@ -22,7 +22,7 @@ public interface Viewer<T> {
     String displayName();
 
     @SuppressWarnings("unchecked")
-    default Class<T> objectType() {
+    default Class<T> supportedType() {
         return Stream.of(getClass().getGenericInterfaces())
             .map(ParameterizedType.class::cast)
             .filter(type -> type.getRawType() == Viewer.class)

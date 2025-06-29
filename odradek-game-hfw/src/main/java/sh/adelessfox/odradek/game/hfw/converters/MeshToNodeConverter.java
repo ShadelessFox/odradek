@@ -25,18 +25,6 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     private static final Logger log = LoggerFactory.getLogger(MeshToNodeConverter.class);
 
     @Override
-    public boolean canConvert(Object object) {
-        return object instanceof StaticMeshResource
-            || object instanceof RegularSkinnedMeshResource
-            || object instanceof LodMeshResource
-            || object instanceof MultiMeshResource
-            || object instanceof BodyVariant
-            || object instanceof SkinnedModelResource
-            || object instanceof DestructibilityPart
-            || object instanceof ControlledEntityResource;
-    }
-
-    @Override
     public Optional<Node> convert(Object object, ForbiddenWestGame game) {
         return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(r, game);
@@ -52,6 +40,20 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
                 yield Optional.empty();
             }
         };
+    }
+
+    @Override
+    public Set<Class<?>> convertibleTypes() {
+        return Set.of(
+            StaticMeshResource.class,
+            RegularSkinnedMeshResource.class,
+            LodMeshResource.class,
+            MultiMeshResource.class,
+            BodyVariant.class,
+            SkinnedModelResource.class,
+            DestructibilityPart.class,
+            ControlledEntityResource.class
+        );
     }
 
     private Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
