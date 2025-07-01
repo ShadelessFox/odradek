@@ -22,6 +22,8 @@ module odradek.app {
         sh.adelessfox.odradek.app.menu.FileMenu,
         sh.adelessfox.odradek.app.menu.HelpMenu,
         sh.adelessfox.odradek.app.menu.actions.help.AboutAction,
+        sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction,
+        sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction.Placeholder,
         sh.adelessfox.odradek.app.menu.actions.graph.GroupObjectsByTypeAction,
         sh.adelessfox.odradek.app.menu.actions.graph.SortObjectsByCountAction,
         sh.adelessfox.odradek.app.menu.actions.object.CopyBytesToClipboardAction,
