@@ -21,6 +21,7 @@ import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
 
 import javax.swing.*;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -141,6 +142,7 @@ public class ApplicationWindow extends JComponent {
         tree.setShowsRootHandles(true);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> item) {
@@ -149,10 +151,20 @@ public class ApplicationWindow extends JComponent {
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 tree.setEnabled(false);
                 var future = showObjectInfo(game, groupObject.group().groupID(), groupObject.index());
-                future.whenComplete((_, _) -> tree.setEnabled(true));
+                future.whenComplete((_, _) -> {
+                    tree.setEnabled(true);
+                    if (event.getSource().isControlDown()) {
+                        SwingUtilities.invokeLater(tree::requestFocusInWindow);
+                    }
+                });
             }
         });
-        Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, tree);
+        Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, key -> {
+            if (DataKeys.GAME.is(key)) {
+                return Optional.of(game);
+            }
+            return tree.get(key);
+        });
         return tree;
     }
 

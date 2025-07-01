@@ -10,7 +10,10 @@ import sh.adelessfox.odradek.texture.*;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.OptionalInt;
+import java.util.Set;
 
 public class TextureToTextureConverter implements Converter<ForbiddenWestGame, Texture> {
     private static final Logger log = LoggerFactory.getLogger(TextureToTextureConverter.class);
@@ -99,29 +102,24 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
 
         var data = texture.largeTexture();
         var format = mapFormat(data.header().pixelFormat());
-        var type = mapType(data.header().type());
 
-        if (format == null || type == null) {
+        if (format == null) {
             return Optional.empty();
         }
 
+        assert data.header().type() == HorizonForbiddenWest.ETextureType._2D;
         assert data.header().numMips() == 1;
         assert data.header().numSurfaces() == 0;
-        assert data.header().type() == HorizonForbiddenWest.ETextureType._2D;
         assert data.data().streamedMips() == 0;
 
         int width = data.header().width() & 0x3FFF;
         int height = data.header().height() & 0x3FFF;
         var surface = Surface.create(width, height, format, data.data().embeddedData());
 
-        return Optional.of(new Texture(
+        return Optional.of(Texture.of2D(
             format,
-            type,
             mapColorSpace(data.header().colorSpace()),
-            List.of(surface),
-            1,
-            OptionalInt.empty(),
-            OptionalInt.empty()
+            surface
         ));
     }
 

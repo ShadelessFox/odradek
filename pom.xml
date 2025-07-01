@@ -28,6 +28,7 @@
         <module>odradek-opengl-awt</module>
         <module>odradek-viewer-model</module>
         <module>odradek-viewer-texture</module>
+        <module>odradek-export-dds</module>
     </modules>
 
     <dependencyManagement>
@@ -76,6 +77,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-viewer-texture</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-export-dds</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

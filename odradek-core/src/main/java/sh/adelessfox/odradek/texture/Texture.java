@@ -62,6 +62,14 @@ public record Texture(
         surfaces = List.copyOf(surfaces);
     }
 
+    public static Texture of2D(TextureFormat format, TextureColorSpace colorSpace, Surface surface) {
+        return of2D(format, colorSpace, List.of(surface), 1);
+    }
+
+    public static Texture of2D(TextureFormat format, TextureColorSpace colorSpace, List<Surface> surfaces, int mips) {
+        return new Texture(format, TextureType.SURFACE, colorSpace, surfaces, mips, OptionalInt.empty(), OptionalInt.empty());
+    }
+
     public Texture convert(TextureFormat targetFormat) {
         return TextureConverter.convert(this, targetFormat);
     }

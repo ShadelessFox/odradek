@@ -33,6 +33,10 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-viewer-texture</artifactId>
         </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-export-dds</artifactId>
+        </dependency>
 
         <!-- External dependencies -->
         <dependency>
