@@ -1,9 +1,6 @@
 package sh.adelessfox.odradek.export.dds;
 
-import sh.adelessfox.odradek.texture.Surface;
-import sh.adelessfox.odradek.texture.Texture;
-import sh.adelessfox.odradek.texture.TextureColorSpace;
-import sh.adelessfox.odradek.texture.TextureType;
+import sh.adelessfox.odradek.texture.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -42,12 +39,23 @@ final class DdsWriter {
     }
 
     private static DdsHeader createHeader(Texture texture) {
+        int width = texture.width();
+        int height = texture.height();
+        var format = texture.format();
+        int pitchOrLinearSize;
+
+        if (format.isCompressed()) {
+            pitchOrLinearSize = computeLinearSize(width, height, format);
+        } else {
+            pitchOrLinearSize = computePitch(width, format);
+        }
+
         return new DdsHeader(
             computeFlags(texture),
-            texture.height(),
-            texture.width(),
-            0, // TODO: compute
-            1 << texture.depth().orElse(0),
+            height,
+            width,
+            pitchOrLinearSize,
+            texture.depth().orElse(1),
             texture.mips(),
             createPixelFormat(),
             computeCapsFlags(texture),
@@ -73,46 +81,54 @@ final class DdsWriter {
         return new DdsPixelFormat(flags, fourcc, 0, 0, 0, 0, 0);
     }
 
+    private static int computeLinearSize(int width, int height, TextureFormat format) {
+        return format.block().surfaceSize(width, height);
+    }
+
+    private static int computePitch(int width, TextureFormat format) {
+        return width * format.block().size();
+    }
+
     private static int computeFlags(Texture texture) {
-        int flags = DdsHeader.DDSD_CAPS | DdsHeader.DDSD_HEIGHT | DdsHeader.DDSD_WIDTH | DdsHeader.DDSD_PIXELFORMAT;
+        int flags = DdsHeader.DDS_HEADER_FLAGS_TEXTURE;
         if (texture.mips() > 0) {
-            flags |= DdsHeader.DDSD_MIPMAPCOUNT;
+            flags |= DdsHeader.DDS_HEADER_FLAGS_MIPMAP;
         }
         if (texture.type() == TextureType.VOLUME) {
-            flags |= DdsHeader.DDSD_DEPTH;
+            flags |= DdsHeader.DDS_HEADER_FLAGS_VOLUME;
+        }
+        if (texture.format().isCompressed()) {
+            flags |= DdsHeader.DDS_HEADER_FLAGS_LINEARSIZE;
+        } else {
+            flags |= DdsHeader.DDS_HEADER_FLAGS_PITCH;
         }
         return flags;
     }
 
     private static int computeCapsFlags(Texture texture) {
-        int flags = DdsHeader.DDSCAPS_TEXTURE;
+        int flags = DdsHeader.DDS_SURFACE_FLAGS_TEXTURE;
         if (texture.mips() > 1) {
-            flags |= DdsHeader.DDSCAPS_COMPLEX | DdsHeader.DDSCAPS_MIPMAP;
-        } else if (texture.type() == TextureType.CUBEMAP) {
-            flags |= DdsHeader.DDSCAPS_COMPLEX;
+            flags |= DdsHeader.DDS_SURFACE_FLAGS_MIPMAP;
+        }
+        if (texture.type() == TextureType.CUBEMAP) {
+            flags |= DdsHeader.DDS_SURFACE_FLAGS_CUBEMAP;
         }
         return flags;
     }
 
     private static int computeCaps2Flags(Texture texture) {
-        int flags = 0;
-        if (texture.type() == TextureType.CUBEMAP) {
-            flags |= DdsHeader.DDSCAPS2_CUBEMAP;
-            flags |= DdsHeader.DDSCAPS2_CUBEMAP_POSITIVEX | DdsHeader.DDSCAPS2_CUBEMAP_NEGATIVEX;
-            flags |= DdsHeader.DDSCAPS2_CUBEMAP_POSITIVEY | DdsHeader.DDSCAPS2_CUBEMAP_NEGATIVEY;
-            flags |= DdsHeader.DDSCAPS2_CUBEMAP_POSITIVEZ | DdsHeader.DDSCAPS2_CUBEMAP_NEGATIVEZ;
-        } else if (texture.type() == TextureType.VOLUME) {
-            flags |= DdsHeader.DDSCAPS2_VOLUME;
-        }
-        return flags;
+        return switch (texture.type()) {
+            case CUBEMAP -> DdsHeader.DDS_CUBEMAP_ALLFACES;
+            case VOLUME -> DdsHeader.DDS_VOLUME;
+            default -> 0;
+        };
     }
 
     private static int computeMiscFlags(Texture texture) {
-        int flags = 0;
-        if (texture.type() == TextureType.CUBEMAP) {
-            flags |= DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE;
-        }
-        return flags;
+        return switch (texture.type()) {
+            case CUBEMAP -> DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE;
+            default -> 0;
+        };
     }
 
     private static int mapFormat(Texture texture) {

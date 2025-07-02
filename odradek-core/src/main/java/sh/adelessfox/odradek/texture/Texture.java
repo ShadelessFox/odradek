@@ -25,7 +25,7 @@ import java.util.OptionalInt;
  * @param colorSpace The color space of the texture
  * @param surfaces   The list of all surfaces in the texture
  * @param mips       The number of mipmaps in the texture, including the <i>main</i> images.
- * @param depth      The depth of the texture if {@link #type()} is {@link TextureType#VOLUME},
+ * @param depth      The depth of the texture, in pixels, if {@link #type()} is {@link TextureType#VOLUME},
  *                   or {@link OptionalInt#empty()} if the texture is not a volume texture
  * @param arraySize  The number of elements in the texture if {@link #type()} is {@link TextureType#ARRAY},
  *                   or {@link OptionalInt#empty()} if the texture is not an array texture

@@ -89,7 +89,7 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
             mapColorSpace(texture.header().colorSpace()),
             surfaces,
             numMipmaps,
-            type == TextureType.VOLUME ? OptionalInt.of(numSurfaces) : OptionalInt.empty(),
+            type == TextureType.VOLUME ? OptionalInt.of(1 << numSurfaces) : OptionalInt.empty(),
             type == TextureType.ARRAY ? OptionalInt.of(numSurfaces) : OptionalInt.empty()
         ));
     }
