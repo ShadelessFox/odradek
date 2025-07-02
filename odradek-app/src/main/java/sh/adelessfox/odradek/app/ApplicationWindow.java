@@ -21,7 +21,6 @@ import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
 
 import javax.swing.*;
-import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
@@ -142,7 +141,6 @@ public class ApplicationWindow extends JComponent {
         tree.setShowsRootHandles(true);
         tree.setLargeModel(true);
         tree.setCellRenderer(new GraphTreeCellRenderer());
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> item) {

@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,11 +42,13 @@ public class StructuredTree<T> extends JTree implements DataContext {
             return Optional.of(this);
         }
         if (DataKeys.SELECTION.is(key)) {
-            Object component = getLastSelectedPathComponent();
-            if (component instanceof TreeItem<?> item) {
-                component = item.getValue();
+            return Optional.ofNullable(getSelectionComponent(getSelectionPath()));
+        }
+        if (DataKeys.SELECTION_LIST.is(key)) {
+            TreePath[] paths = getSelectionPaths();
+            if (paths != null) {
+                return Optional.of(Arrays.stream(paths).map(this::getSelectionComponent).toList());
             }
-            return Optional.ofNullable(component);
         }
         return Optional.empty();
     }
@@ -88,5 +91,16 @@ public class StructuredTree<T> extends JTree implements DataContext {
 
     private void fireActionListener(InputEvent event, TreePath path, int row) {
         actionListeners.broadcast().treePathSelected(new TreeActionEvent(event, path, row));
+    }
+
+    private Object getSelectionComponent(TreePath path) {
+        if (path == null) {
+            return null;
+        }
+        Object component = path.getLastPathComponent();
+        if (component instanceof TreeItem<?> item) {
+            return item.getValue();
+        }
+        return component;
     }
 }

@@ -52,7 +52,9 @@ interface SelectionProvider<T extends JComponent, R> {
 
             @Override
             public void setSelection(JTree component, TreePath selection, EventObject event) {
-                component.setSelectionPath(selection);
+                if (!component.isPathSelected(selection)) {
+                    component.setSelectionPath(selection);
+                }
                 if (!(event instanceof MouseEvent)) {
                     component.scrollPathToVisible(selection);
                 }

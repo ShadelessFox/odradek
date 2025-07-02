@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app;
 
+import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
 import sh.adelessfox.odradek.ui.util.Fugue;
-import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;

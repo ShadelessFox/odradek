@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.menu.actions.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.Gatherers;
 import sh.adelessfox.odradek.app.GraphStructure.GroupObject;
 import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.export.Exporter;
@@ -13,13 +14,13 @@ import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -48,89 +49,106 @@ public class ExportObjectAction extends Action {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Stream<? extends ExportPipeline<?>> exporters(ActionContext context) {
-        var clazz = context.get(DataKeys.SELECTION, GroupObject.class)
-            .map(object -> object.type().instanceType());
+    private static Stream<? extends Batch<?>> exporters(ActionContext context) {
+        var selection = context.get(DataKeys.SELECTION_LIST).stream()
+            .flatMap(Collection::stream)
+            .gather(Gatherers.instanceOf(GroupObject.class))
+            .toList();
 
-        if (clazz.isEmpty()) {
+        var types = selection.stream()
+            .map(object -> object.type().instanceType())
+            .distinct()
+            .toList();
+
+        var converters = types.stream()
+            .flatMap(Converter::converters)
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        if (converters.values().stream().anyMatch(matches -> types.size() != matches)) {
+            // At least one selected object can't be exported using the same converter as the others
             return Stream.empty();
         }
 
-        return clazz.stream()
-            .flatMap(Converter::converters)
+        return converters.keySet().stream()
             .flatMap(converter -> Exporter.exporters(converter.resultType())
-                .map(exporter -> new ExportPipeline(converter, exporter)))
-            .map(pipeline -> (ExportPipeline<?>) pipeline)
+                .map(exporter -> new Batch(selection, converter, exporter)))
+            .map(pipeline -> (Batch<?>) pipeline)
             .sorted(Comparator.comparing(pipeline -> pipeline.exporter().name()));
     }
 
-    private static Action action(ExportPipeline<?> pipeline) {
+    private static Action action(Batch<?> pipeline) {
         return Action.builder()
-            .perform(context -> doExportChecked(context, pipeline))
+            .perform(context -> exportBatch(context, pipeline))
             .text(_ -> Optional.of(pipeline.exporter().name()))
             .build();
     }
 
-    private static <T> void doExport(
-        ForbiddenWestGame game,
-        GroupObject selection,
-        Converter<Game, T> converter,
-        Exporter<T> exporter
-    ) throws IOException {
+    private static <T> void exportBatch(ActionContext context, Batch<T> batch) {
         var chooser = new JFileChooser();
-        chooser.setDialogTitle("Specify output file");
-        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        chooser.setFileFilter(new FileNameExtensionFilter(exporter.name(), exporter.extension()));
-        chooser.setSelectedFile(new File("exported." + exporter.extension()));
+        chooser.setDialogTitle("Specify output directory");
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         if (chooser.showSaveDialog(JOptionPane.getRootFrame()) != JFileChooser.APPROVE_OPTION) {
             log.debug("Export cancelled by user");
             return;
         }
 
-        var group = game.getStreamingReader().readGroup(selection.group().groupID());
-        var object = group.objects().get(selection.index()).object();
+        var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
+        var directory = chooser.getSelectedFile().toPath();
+        int exported = 0;
 
-        var converted = converter.convert(object, game);
-        if (converted.isEmpty()) {
+        for (GroupObject selection : batch.objects()) {
+            try {
+                var group = game.getStreamingReader().readGroup(selection.group().groupID());
+                var object = group.objects().get(selection.index()).object();
+
+                var path = directory.resolve("%s.%s".formatted(
+                    object.general().objectUUID().toDisplayString(),
+                    batch.exporter().extension()
+                ));
+
+                var converted = batch.converter().convert(object, game);
+                if (converted.isEmpty()) {
+                    log.debug("Unable to convert object {} ({}) to {}", object.general().objectUUID(), object.getType(), path);
+                    continue;
+                }
+
+                try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
+                    batch.exporter().export(converted.get(), channel);
+                }
+
+                log.debug("Exported object {} ({}) to {}", object.general().objectUUID(), object.getType(), path);
+                exported++;
+            } catch (Exception e) {
+                log.error("Failed to export object", e);
+                JOptionPane.showMessageDialog(
+                    JOptionPane.getRootFrame(),
+                    "Failed to export object: " + e.getMessage(),
+                    "Unable to export object",
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+
+        if (batch.objects().size() == exported) {
             JOptionPane.showMessageDialog(
                 JOptionPane.getRootFrame(),
-                "Failed to convert object " + object.getType() + " using " + exporter + ".\nThis may be due to unsupported object type.",
-                "Unable to export object",
+                "All selected objects were successfully exported.",
+                "Export successful",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        } else {
+            JOptionPane.showMessageDialog(
+                JOptionPane.getRootFrame(),
+                "%d out of %d selected objects were successfully exported.\nFor more information, see the console output.".formatted(
+                    exported,
+                    batch.objects().size()),
+                "Export completed",
                 JOptionPane.WARNING_MESSAGE
             );
-            return;
-        }
-
-        try (var channel = Files.newByteChannel(chooser.getSelectedFile().toPath(), WRITE, CREATE, TRUNCATE_EXISTING)) {
-            exporter.export(converted.get(), channel);
-        }
-
-        JOptionPane.showMessageDialog(
-            JOptionPane.getRootFrame(),
-            "Exported to " + chooser.getSelectedFile(),
-            "Export successful",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    private static <T> void doExportChecked(ActionContext context, ExportPipeline<T> pipeline) {
-        try {
-            var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
-            var selection = context.get(DataKeys.SELECTION, GroupObject.class).orElseThrow();
-
-            doExport(game, selection, pipeline.converter(), pipeline.exporter());
-        } catch (Exception e) {
-            log.error("Failed to export object", e);
-            JOptionPane.showMessageDialog(
-                JOptionPane.getRootFrame(),
-                "Failed to export object: " + e.getMessage(),
-                "Unable to export object",
-                JOptionPane.ERROR_MESSAGE
-            );
         }
     }
 
-    private record ExportPipeline<T>(Converter<Game, T> converter, Exporter<T> exporter) {
+    private record Batch<T>(List<GroupObject> objects, Converter<Game, T> converter, Exporter<T> exporter) {
     }
 }
