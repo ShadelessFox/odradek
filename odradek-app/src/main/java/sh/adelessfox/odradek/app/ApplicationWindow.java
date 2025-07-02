@@ -56,6 +56,24 @@ public class ApplicationWindow extends JComponent {
             }
         });
 
+        tabs.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F4"), "closeTab");
+        tabs.getActionMap().put("closeTab", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int index = tabs.getSelectedIndex();
+                if (index >= 0) {
+                    tabs.removeTabAt(index);
+                }
+            }
+        });
+
+        Actions.installContextMenu(tabs, ActionIds.TABS_MENU_ID, key -> {
+            if (DataKeys.COMPONENT.is(key)) {
+                return Optional.of(tabs);
+            }
+            return Optional.empty();
+        });
+
         var tree = createGraphTree(game);
         var treeScrollPane = new JScrollPane(tree);
 
@@ -235,24 +253,6 @@ public class ApplicationWindow extends JComponent {
         tabs.add(info.toString(), pane);
         tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, objectIndex));
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
-
-        tabs.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F4"), "closeTab");
-        tabs.getActionMap().put("closeTab", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int index = tabs.getSelectedIndex();
-                if (index >= 0) {
-                    tabs.removeTabAt(index);
-                }
-            }
-        });
-
-        Actions.installContextMenu(tabs, ActionIds.TABS_MENU_ID, key -> {
-            if (DataKeys.COMPONENT.is(key)) {
-                return Optional.of(tabs);
-            }
-            return Optional.empty();
-        });
     }
 
     private boolean revealObjectInfo(int groupId, int objectIndex) {
