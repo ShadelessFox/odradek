@@ -172,6 +172,10 @@ public final class Viewport extends JPanel {
         return canvas.getFramebufferHeight();
     }
 
+    public boolean isKeyDown(int keyCode) {
+        return input.isKeyDown(keyCode);
+    }
+
     private void ensureEDT() {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("This method must be called on the EDT");
@@ -189,16 +193,7 @@ public final class Viewport extends JPanel {
 
     private void processInput(float dt) {
         updateCamera(dt);
-        updateKeys();
         input.clear();
-    }
-
-    private void updateKeys() {
-        if (input.isKeyDown(KeyEvent.VK_X)) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        } else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
     }
 
     private void updateCamera(float dt) {
@@ -270,5 +265,4 @@ public final class Viewport extends JPanel {
         camera.position(position);
         camera.rotate(mouse.x(), mouse.y());
     }
-
 }

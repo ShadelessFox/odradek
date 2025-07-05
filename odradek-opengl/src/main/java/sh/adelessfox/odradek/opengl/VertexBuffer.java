@@ -22,32 +22,32 @@ public final class VertexBuffer implements GLObject {
 
     public void put(ByteBuffer data, int usage) {
         ensureBound();
-        glBufferData(target, ensureDirect(data), usage);
+        glBufferData(target, makeDirect(data), usage);
     }
 
     public void put(IntBuffer data, int usage) {
         ensureBound();
-        glBufferData(target, ensureDirect(data), usage);
+        glBufferData(target, makeDirect(data), usage);
     }
 
     public void put(FloatBuffer data, int usage) {
         ensureBound();
-        glBufferData(target, ensureDirect(data), usage);
+        glBufferData(target, makeDirect(data), usage);
     }
 
     public void update(ByteBuffer data, int offset) {
         ensureBound();
-        glBufferSubData(target, offset, ensureDirect(data));
+        glBufferSubData(target, offset, makeDirect(data));
     }
 
     public void update(IntBuffer data, int offset) {
         ensureBound();
-        glBufferSubData(target, offset, ensureDirect(data));
+        glBufferSubData(target, offset, makeDirect(data));
     }
 
     public void update(FloatBuffer data, int offset) {
         ensureBound();
-        glBufferSubData(target, offset, ensureDirect(data));
+        glBufferSubData(target, offset, makeDirect(data));
     }
 
     @Override
@@ -66,7 +66,7 @@ public final class VertexBuffer implements GLObject {
         glDeleteBuffers(buffer);
     }
 
-    private ByteBuffer ensureDirect(ByteBuffer buffer) {
+    private ByteBuffer makeDirect(ByteBuffer buffer) {
         if (buffer.isDirect()) {
             return buffer;
         } else {
@@ -74,7 +74,7 @@ public final class VertexBuffer implements GLObject {
         }
     }
 
-    private IntBuffer ensureDirect(IntBuffer buffer) {
+    private IntBuffer makeDirect(IntBuffer buffer) {
         if (buffer.isDirect()) {
             return buffer;
         } else {
@@ -82,7 +82,7 @@ public final class VertexBuffer implements GLObject {
         }
     }
 
-    private FloatBuffer ensureDirect(FloatBuffer buffer) {
+    private FloatBuffer makeDirect(FloatBuffer buffer) {
         if (buffer.isDirect()) {
             return buffer;
         } else {

@@ -122,6 +122,9 @@ public class ApplicationWindow extends JComponent {
 
         setLayout(new BorderLayout());
         add(splitPane, BorderLayout.CENTER);
+
+        // showObjectInfo(game, 47005, 8);
+        showObjectInfo(game, 25656, 113);
     }
 
     private SearchTextField createFilterField(FilterListener listener) {

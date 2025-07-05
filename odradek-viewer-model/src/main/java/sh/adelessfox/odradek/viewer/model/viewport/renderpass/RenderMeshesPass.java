@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
+import java.awt.event.KeyEvent;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -99,24 +100,25 @@ public final class RenderMeshesPass implements RenderPass {
         if (scene == null) {
             return;
         }
-        renderScene(activeCamera, scene);
+        renderScene(activeCamera, scene, viewport.isKeyDown(KeyEvent.VK_X));
         debug.draw(viewport, dt);
     }
 
-    private void renderScene(Camera camera, Scene scene) {
+    private void renderScene(Camera camera, Scene scene, boolean wireframe) {
         try (var program = this.program.bind()) {
             program.set("u_view", camera.view());
             program.set("u_projection", camera.projection());
             program.set("u_view_position", camera.position());
 
             for (Node node : scene.nodes()) {
-                renderNode(node, node.matrix(), camera);
+                renderNode(node, node.matrix(), camera, wireframe);
             }
         }
     }
 
-    private void renderNode(Node node, Matrix4f transform, Camera camera) {
+    private void renderNode(Node node, Matrix4f transform, Camera camera, boolean wireframe) {
         glEnable(GL_DEPTH_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 
         if (node.mesh().isPresent()) {
             GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
@@ -132,8 +134,10 @@ public final class RenderMeshesPass implements RenderPass {
         }
 
         for (Node child : node.children()) {
-            renderNode(child, transform.mul(child.matrix()), camera);
+            renderNode(child, transform.mul(child.matrix()), camera, wireframe);
         }
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         if (node.skin().isPresent()) {
             renderSkin(node.skin().get(), null, camera);
