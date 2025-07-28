@@ -46,7 +46,7 @@ public interface Renderer<T, G extends Game> {
     @SuppressWarnings("unchecked")
     default Class<T> supportedType() {
         return Reflections.getGenericInterface(getClass(), Renderer.class)
-            .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[1]))
+            .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
             .orElseThrow();
     }
 }
