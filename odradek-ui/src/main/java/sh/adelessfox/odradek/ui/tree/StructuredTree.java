@@ -79,6 +79,10 @@ public class StructuredTree<T> extends JTree implements DataContext {
         actionListeners.remove(listener);
     }
 
+    public Object getSelectionPathComponent() {
+        return getSelectionComponent(getSelectionPath());
+    }
+
     private void fireActionListener(InputEvent event) {
         TreePath[] paths = getSelectionPaths();
         if (paths == null) {

@@ -276,6 +276,7 @@ public class ApplicationWindow extends JComponent {
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new ObjectTreeCellRenderer());
+        tree.setTransferHandler(new ObjectTreeTransferHandler());
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> wrapper) {

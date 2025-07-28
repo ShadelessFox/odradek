@@ -37,7 +37,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
 
         @Override
         public String toString() {
-            return ObjectStructure.toString(this);
+            return ObjectStructure.getDisplayString(this);
         }
     }
 
@@ -66,7 +66,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
 
         @Override
         public String toString() {
-            return "%s = %s".formatted(attr.name(), ObjectStructure.toString(this));
+            return "%s = %s".formatted(attr.name(), ObjectStructure.getDisplayString(this));
         }
     }
 
@@ -96,7 +96,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
 
         @Override
         public String toString() {
-            return "[%d] = %s".formatted(index, ObjectStructure.toString(this));
+            return "[%d] = %s".formatted(index, ObjectStructure.getDisplayString(this));
         }
     }
 
@@ -134,24 +134,22 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         };
     }
 
-    static String toString(ObjectStructure element) {
-        var type = element.type();
-        var value = element.value();
-        var renderer = Renderer.renderers(type).findFirst();
+    static String getDisplayString(ObjectStructure structure) {
+        return ObjectStructure.getValueString(structure)
+            .map(v -> "{%s} %s".formatted(structure.type(), v))
+            .orElseGet(() -> "{%s}".formatted(structure.type()));
+    }
 
-        Optional<String> label;
+    static Optional<String> getValueString(ObjectStructure structure) {
+        var renderer = Renderer.renderers(structure.type()).findFirst();
 
         if (renderer.isPresent()) {
-            label = renderer.flatMap(r -> r.text(type, value, element.game()));
-        } else if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
-            label = Optional.of(String.valueOf(value));
+            return renderer.flatMap(r -> r.text(structure.type(), structure.value(), structure.game()));
+        } else if (structure.type() instanceof AtomTypeInfo || structure.type() instanceof EnumTypeInfo) {
+            return Optional.of(String.valueOf(structure.value()));
         } else {
             // Other types don't deserve a toString representation unless provided explicitly
-            label = Optional.empty();
+            return Optional.empty();
         }
-
-        return label
-            .map(s -> "{%s} %s".formatted(type, s))
-            .orElseGet(() -> "{%s}".formatted(type));
     }
 }
