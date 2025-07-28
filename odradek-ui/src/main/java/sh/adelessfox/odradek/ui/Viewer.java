@@ -1,7 +1,8 @@
 package sh.adelessfox.odradek.ui;
 
+import sh.adelessfox.odradek.Reflections;
+
 import javax.swing.*;
-import java.lang.reflect.ParameterizedType;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
@@ -23,10 +24,8 @@ public interface Viewer<T> {
 
     @SuppressWarnings("unchecked")
     default Class<T> supportedType() {
-        return Stream.of(getClass().getGenericInterfaces())
-            .map(ParameterizedType.class::cast)
-            .filter(type -> type.getRawType() == Viewer.class)
-            .map(type -> (Class<T>) type.getActualTypeArguments()[0])
-            .findFirst().orElseThrow();
+        return Reflections.getGenericInterface(getClass(), Viewer.class)
+            .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
+            .orElseThrow();
     }
 }

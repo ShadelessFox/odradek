@@ -9,31 +9,16 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>odradek-ui</artifactId>
+    <artifactId>odradek-game-hfw-ui</artifactId>
 
     <dependencies>
-        <!-- Internal dependencies -->
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-core</artifactId>
+            <artifactId>odradek-game-hfw</artifactId>
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-rtti</artifactId>
-        </dependency>
-
-        <!-- External dependencies -->
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf-extras</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <artifactId>odradek-ui</artifactId>
         </dependency>
     </dependencies>
 

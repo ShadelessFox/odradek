@@ -272,7 +272,7 @@ public class ApplicationWindow extends JComponent {
     }
 
     private StructuredTree<?> createObjectTree(Game game, ClassTypeInfo info, Object object) {
-        var model = new StructuredTreeModel<>(new ObjectStructure.Compound(info, object));
+        var model = new StructuredTreeModel<>(new ObjectStructure.Compound(game, info, object));
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new ObjectTreeCellRenderer());

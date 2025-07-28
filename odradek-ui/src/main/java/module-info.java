@@ -1,4 +1,6 @@
 module odradek.ui {
+    requires static odradek.rtti;
+
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
     requires java.desktop;
@@ -15,9 +17,14 @@ module odradek.ui {
     exports sh.adelessfox.odradek.ui.util;
     exports sh.adelessfox.odradek.ui;
 
+    uses sh.adelessfox.odradek.ui.Renderer;
     uses sh.adelessfox.odradek.ui.Viewer;
     uses sh.adelessfox.odradek.ui.actions.Action;
 
     provides com.formdev.flatlaf.FlatDefaultsAddon with
         sh.adelessfox.odradek.ui.laf.OdradekDefaultsAddon;
+
+    provides sh.adelessfox.odradek.ui.Renderer with
+        sh.adelessfox.odradek.ui.renderers.ContainerRenderer,
+        sh.adelessfox.odradek.ui.renderers.PointerRenderer;
 }

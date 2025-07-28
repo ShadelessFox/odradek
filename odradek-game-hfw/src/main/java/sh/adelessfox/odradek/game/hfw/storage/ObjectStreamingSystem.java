@@ -30,7 +30,7 @@ public final class ObjectStreamingSystem {
     }
 
     public byte[] getDataSourceData(StreamingDataSource dataSource, int offset, int length) throws IOException {
-        return getFileData((int) (dataSource.locator() & 0xffffff), Math.addExact(dataSource.locator() >>> 24, offset), length);
+        return getFileData(dataSource.fileId(), (long) dataSource.fileOffset() + offset, length);
     }
 
     public byte[] getFileData(int fileId, long offset, long length) throws IOException {

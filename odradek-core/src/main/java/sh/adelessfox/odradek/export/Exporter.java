@@ -1,7 +1,8 @@
 package sh.adelessfox.odradek.export;
 
+import sh.adelessfox.odradek.Reflections;
+
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
 import java.nio.channels.WritableByteChannel;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
@@ -26,10 +27,8 @@ public interface Exporter<T> {
 
     @SuppressWarnings("unchecked")
     default Class<T> supportedType() {
-        return Stream.of(getClass().getGenericInterfaces())
-            .map(ParameterizedType.class::cast)
-            .filter(type -> type.getRawType() == Exporter.class)
-            .map(type -> (Class<T>) type.getActualTypeArguments()[0])
-            .findFirst().orElseThrow();
+        return Reflections.getGenericInterface(getClass(), Exporter.class)
+            .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
+            .orElseThrow();
     }
 }

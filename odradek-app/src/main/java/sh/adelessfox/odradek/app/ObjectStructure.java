@@ -1,19 +1,23 @@
 package sh.adelessfox.odradek.app;
 
-import sh.adelessfox.odradek.rtti.data.Ref;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.runtime.*;
+import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.tree.TreeStructure;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
+    Game game();
+
     TypeInfo type();
 
     Object value();
 
-    record Compound(ClassTypeInfo type, Object object) implements ObjectStructure {
+    record Compound(Game game, ClassTypeInfo type, Object object) implements ObjectStructure {
         @Override
         public Object value() {
             return object;
@@ -21,7 +25,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Compound(var type1, var object1)
+            return o instanceof Compound(_, var type1, var object1)
                 && type.equals(type1)
                 && object == object1;
         }
@@ -37,10 +41,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
     }
 
-    record Attr(
-        ClassAttrInfo attr,
-        Object object
-    ) implements ObjectStructure {
+    record Attr(Game game, ClassAttrInfo attr, Object object) implements ObjectStructure {
         @Override
         public TypeInfo type() {
             return attr.type().get();
@@ -53,7 +54,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Attr(var attr1, var object1)
+            return o instanceof Attr(_, var attr1, var object1)
                 && attr.equals(attr1)
                 && object == object1;
         }
@@ -69,7 +70,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
     }
 
-    record Index(ContainerTypeInfo info, Object object, int index) implements ObjectStructure {
+    record Index(Game game, ContainerTypeInfo info, Object object, int index) implements ObjectStructure {
         @Override
         public TypeInfo type() {
             return info.itemType().get();
@@ -82,7 +83,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Index(var info1, var object1, var index1)
+            return o instanceof Index(_, var info1, var object1, var index1)
                 && info.equals(info1)
                 && object == object1
                 && index == index1;
@@ -112,10 +113,10 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         return switch (element.type()) {
             // FIXME: Base attributes are not shown (e.g. ShaderFromFileResource -> ShaderResource)
             case ClassTypeInfo c -> c.displayableAttrs().stream()
-                .map(attr -> new Attr(attr, value))
+                .map(attr -> new Attr(game(), attr, value))
                 .toList();
             case ContainerTypeInfo c -> IntStream.range(0, c.length(value))
-                .mapToObj(index -> new Index(c, value, index))
+                .mapToObj(index -> new Index(game(), c, value, index))
                 .toList();
             default -> throw new IllegalStateException();
         };
@@ -134,18 +135,23 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
     }
 
     static String toString(ObjectStructure element) {
-        var type = element.type().name().toString();
-        var value = switch (element.type()) {
-            case ClassTypeInfo _ -> null;
-            case ContainerTypeInfo container when element.value() != null -> "(%d items)".formatted(container.length(element.value()));
-            case PointerTypeInfo _ when element.value() instanceof Ref<?> ref && ref.get() instanceof TypedObject object ->
-                "<%s>".formatted(object.getType().name());
-            default -> String.valueOf(element.value());
-        };
-        if (value != null) {
-            return "{%s} %s".formatted(type, value);
+        var type = element.type();
+        var value = element.value();
+        var renderer = Renderer.renderers(type).findFirst();
+
+        Optional<String> label;
+
+        if (renderer.isPresent()) {
+            label = renderer.flatMap(r -> r.text(type, value, element.game()));
+        } else if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
+            label = Optional.of(String.valueOf(value));
         } else {
-            return "{%s}".formatted(type);
+            // Other types don't deserve a toString representation unless provided explicitly
+            label = Optional.empty();
         }
+
+        return label
+            .map(s -> "{%s} %s".formatted(type, s))
+            .orElseGet(() -> "{%s}".formatted(type));
     }
 }

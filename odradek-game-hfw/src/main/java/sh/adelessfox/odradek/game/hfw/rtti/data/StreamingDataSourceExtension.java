@@ -7,4 +7,12 @@ public interface StreamingDataSourceExtension {
     long locator();
 
     void locator(long locator);
+
+    default int fileId() {
+        return (int) (locator() & 0xffffff);
+    }
+
+    default int fileOffset() {
+        return (int) (locator() >>> 24);
+    }
 }

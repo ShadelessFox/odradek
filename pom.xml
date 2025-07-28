@@ -21,6 +21,7 @@
         <module>odradek-app</module>
         <module>odradek-core</module>
         <module>odradek-game-hfw</module>
+        <module>odradek-game-hfw-ui</module>
         <module>odradek-rtti</module>
         <module>odradek-rtti-generator</module>
         <module>odradek-ui</module>
@@ -42,6 +43,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game-hfw</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-hfw-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
