@@ -86,8 +86,9 @@ public class ApplicationWindow extends JComponent {
         filterField.setToolTipText("""
             <html>
             You can search for multiple type names separated by spaces.<br>
-            - To include only groups that have <i>root objects</i>, use <b>has:roots</b>.<br>
-            - To include only groups that have <i>child groups</i>, use <b>has:subgroups</b>.
+            - To include groups that have <i>root objects</i>, use <b>has:roots</b>.<br>
+            - To include groups that have <i>child groups</i>, use <b>has:subgroups</b>.<br>
+            - To include a particular group, use <b>group:groupId</b>, where <i>groupId</i> is the id of a group.
             </html>
             """);
         filterField.setBorder(BorderFactory.createCompoundBorder(
@@ -303,16 +304,42 @@ public class ApplicationWindow extends JComponent {
     }
 
     private static Predicate<GraphStructure> createFilterPart(String input, Filter filter) {
-        return switch (input) {
-            case "has:subgroups" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.subGroupCount() > 0;
-            case "has:roots" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.rootCount() > 0;
-            default -> s -> switch (s) {
+        int colon = input.indexOf(':');
+        if (colon < 0) {
+            return s -> switch (s) {
                 case GraphStructure.Group(var graph, var group) -> graph.types(group).anyMatch(filter::matches);
                 case GraphStructure.GraphObjectSet(_, var info, _) -> filter.matches(info);
                 case GraphStructure.GroupObject object -> filter.matches(object.type());
                 case GraphStructure.GroupObjectSet(_, _, var info, _) -> filter.matches(info);
                 default -> true;
             };
+        }
+
+        var key = input.substring(0, colon);
+        var value = input.substring(colon + 1);
+        return switch (key) {
+            case "has" -> switch (value) {
+                case "subgroups" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.subGroupCount() > 0;
+                case "roots" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.rootCount() > 0;
+                default -> {
+                    log.warn("Unknown selector '{}' for 'has' filter", value);
+                    yield _ -> false;
+                }
+            };
+            case "group" -> {
+                int groupId;
+                try {
+                    groupId = Integer.parseInt(value);
+                } catch (NumberFormatException ignored) {
+                    log.debug("Expected a number value for the 'group' filter, got {}", value);
+                    yield _ -> false;
+                }
+                yield s -> !(s instanceof GraphStructure.Group(_, var group)) || group.groupID() == groupId;
+            }
+            default -> {
+                log.warn("Unknown filter '{}'", input);
+                yield _ -> false;
+            }
         };
     }
 
