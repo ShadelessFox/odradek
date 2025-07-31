@@ -2,6 +2,7 @@ module odradek.core {
     requires be.twofold.tinybcdec;
 
     exports sh.adelessfox.odradek.compression;
+    exports sh.adelessfox.odradek.event;
     exports sh.adelessfox.odradek.export;
     exports sh.adelessfox.odradek.game;
     exports sh.adelessfox.odradek.geometry;

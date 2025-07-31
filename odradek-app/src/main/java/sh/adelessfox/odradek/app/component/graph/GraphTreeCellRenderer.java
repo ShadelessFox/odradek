@@ -1,5 +1,6 @@
-package sh.adelessfox.odradek.app;
+package sh.adelessfox.odradek.app.component.graph;
 
+import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
 import sh.adelessfox.odradek.ui.util.Fugue;
 

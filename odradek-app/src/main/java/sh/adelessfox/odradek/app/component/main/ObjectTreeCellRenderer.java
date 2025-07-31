@@ -1,5 +1,6 @@
-package sh.adelessfox.odradek.app;
+package sh.adelessfox.odradek.app.component.main;
 
+import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.ui.tree.TreeItem;
 import sh.adelessfox.odradek.ui.util.Fugue;

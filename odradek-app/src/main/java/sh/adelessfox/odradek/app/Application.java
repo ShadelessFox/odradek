@@ -63,8 +63,12 @@ public class Application {
     }
 
     private static void start(Path source, ForbiddenWestGame game) {
+        ApplicationComponent component = DaggerApplicationComponent.builder()
+            .game(game)
+            .build();
+
         var frame = new JFrame();
-        frame.add(new ApplicationWindow(game));
+        frame.add(component.presenter().getRoot());
         frame.setJMenuBar(Actions.createMenuBar(ActionIds.MAIN_MENU_ID, DataContext.focusedComponent()));
         frame.setTitle("Odradek - " + source);
         frame.setSize(1280, 720);

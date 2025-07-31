@@ -1,0 +1,139 @@
+package sh.adelessfox.odradek.app.component.graph;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import sh.adelessfox.odradek.app.ApplicationIcons;
+import sh.adelessfox.odradek.app.GraphStructure;
+import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.mvvm.View;
+import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
+import sh.adelessfox.odradek.ui.tree.TreeItem;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.Optional;
+
+@Singleton
+public class GraphView implements View<JComponent> {
+    private final EventBus eventBus;
+    private final ForbiddenWestGame game;
+
+    private final StructuredTree<GraphStructure> tree;
+    private final JPanel panel;
+
+    @Inject
+    public GraphView(EventBus eventBus, ForbiddenWestGame game) {
+        this.eventBus = eventBus;
+        this.game = game;
+
+        var filterField = createFilterField();
+        filterField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "focus-out");
+        filterField.getActionMap().put("focus-out", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tree.requestFocusInWindow();
+            }
+        });
+
+        tree = createGraphTree();
+
+        var treeScrollPane = new JScrollPane(tree);
+        treeScrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
+        treeScrollPane.getActionMap().put("focus-in", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                filterField.requestFocusInWindow();
+            }
+        });
+
+        panel = new JPanel(new BorderLayout());
+        panel.add(filterField, BorderLayout.NORTH);
+        panel.add(treeScrollPane, BorderLayout.CENTER);
+
+        Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, key -> {
+            if (DataKeys.GAME.is(key)) {
+                return Optional.of(game);
+            }
+            return tree.get(key);
+        });
+    }
+
+    @Override
+    public JComponent getRoot() {
+        return panel;
+    }
+
+    public StructuredTree<GraphStructure> getTree() {
+        return tree;
+    }
+
+    private SearchTextField createFilterField() {
+        var toggleCaseSensitive = new JToggleButton(ApplicationIcons.CASE_SENSITIVE);
+        toggleCaseSensitive.setToolTipText("Match Case");
+
+        var toggleWholeWord = new JToggleButton(ApplicationIcons.WHOLE_WORD);
+        toggleWholeWord.setToolTipText("Match Whole Word");
+
+        var filterToolbar = new JToolBar();
+        filterToolbar.add(toggleCaseSensitive);
+        filterToolbar.add(toggleWholeWord);
+        filterToolbar.add(Box.createHorizontalStrut(4));
+
+        var filterField = new SearchTextField();
+        filterField.setTrailingComponent(filterToolbar);
+        filterField.setPlaceholderText("Search by object type\u2026");
+        filterField.setToolTipText("""
+            <html>
+            You can search for multiple type names separated by spaces.<br>
+            - To include groups that have <i>root objects</i>, use <b>has:roots</b>.<br>
+            - To include groups that have <i>child groups</i>, use <b>has:subgroups</b>.<br>
+            - To include a particular group, use <b>group:groupId</b>, where <i>groupId</i> is the id of a group.
+            </html>
+            """);
+        filterField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
+            BorderFactory.createEmptyBorder(6, 8, 6, 8)
+        ));
+
+        Runnable callback = () -> eventBus.publish(new GraphViewEvent.FilterChanged(
+            filterField.getText(),
+            toggleCaseSensitive.isSelected(),
+            toggleWholeWord.isSelected()
+        ));
+
+        filterField.addActionListener(_ -> callback.run());
+        toggleCaseSensitive.addActionListener(_ -> callback.run());
+        toggleWholeWord.addActionListener(_ -> callback.run());
+
+        return filterField;
+    }
+
+    private StructuredTree<GraphStructure> createGraphTree() {
+        var model = new StructuredTreeModel<>(new GraphStructure.Graph(game.getStreamingGraph()));
+        var tree = new StructuredTree<>(model);
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
+        tree.setLargeModel(true);
+        tree.setCellRenderer(new GraphTreeCellRenderer());
+        tree.addActionListener(event -> {
+            var component = event.getLastPathComponent();
+            if (component instanceof TreeItem<?> item) {
+                component = item.getValue();
+            }
+            if (component instanceof GraphStructure.GroupObject groupObject) {
+                eventBus.publish(new GraphViewEvent.ObjectSelected(
+                    groupObject.group().groupID(),
+                    groupObject.index()
+                ));
+            }
+        });
+        return tree;
+    }
+}
