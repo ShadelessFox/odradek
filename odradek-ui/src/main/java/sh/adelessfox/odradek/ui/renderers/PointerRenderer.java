@@ -17,6 +17,6 @@ public class PointerRenderer implements Renderer<Ref<?>, Game> {
         if (object.get() instanceof TypedObject to) {
             return Optional.of("<%s>".formatted(to.getType().name()));
         }
-        return Optional.empty();
+        return Optional.of(object.toString());
     }
 }
