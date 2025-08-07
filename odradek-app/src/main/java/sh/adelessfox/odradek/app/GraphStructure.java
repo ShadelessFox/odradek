@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
-import sh.adelessfox.odradek.ui.tree.TreeStructure;
+import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.*;
 import java.util.function.Function;

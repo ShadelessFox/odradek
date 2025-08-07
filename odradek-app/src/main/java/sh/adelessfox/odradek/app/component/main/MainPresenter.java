@@ -18,9 +18,9 @@ import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
-import sh.adelessfox.odradek.ui.tree.TreeItem;
+import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
+import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 
 import javax.swing.*;
 import java.util.Objects;

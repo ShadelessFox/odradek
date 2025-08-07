@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.tree;
+package sh.adelessfox.odradek.ui.components.tree;
 
 import javax.swing.tree.TreePath;
 import java.awt.event.InputEvent;

@@ -10,10 +10,10 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
+import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.tree.StructuredTreeModel;
-import sh.adelessfox.odradek.ui.tree.TreeItem;
 
 import javax.swing.*;
 import java.awt.*;

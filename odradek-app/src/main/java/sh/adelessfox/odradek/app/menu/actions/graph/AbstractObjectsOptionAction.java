@@ -3,8 +3,8 @@ package sh.adelessfox.odradek.app.menu.actions.graph;
 import sh.adelessfox.odradek.app.GraphStructure.GroupObjects;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.tree.StructuredTree;
 
 import java.util.Objects;
 

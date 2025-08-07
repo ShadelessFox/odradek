@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.runtime.*;
 import sh.adelessfox.odradek.ui.Renderer;
-import sh.adelessfox.odradek.ui.tree.TreeStructure;
+import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.List;
 import java.util.Objects;

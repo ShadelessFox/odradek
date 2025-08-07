@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.tree;
+package sh.adelessfox.odradek.ui.components.tree;
 
 import java.util.List;
 

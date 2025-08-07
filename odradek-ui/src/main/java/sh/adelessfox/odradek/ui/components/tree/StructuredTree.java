@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.tree;
+package sh.adelessfox.odradek.ui.components.tree;
 
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;

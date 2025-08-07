@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.tree;
+package sh.adelessfox.odradek.ui.components.tree;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
