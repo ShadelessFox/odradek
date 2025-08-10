@@ -32,7 +32,7 @@ public final class Actions {
 
     @SuppressWarnings("unchecked")
     public static void installContextMenu(JComponent component, String id, DataContext context) {
-        var popupMenu = createPopupMenu(component, id, context);
+        var popupMenu = createPopupMenu(component, id, context, false);
         var selectionProvider = getSelectionProvider(component);
         installContextMenu(component, popupMenu, (SelectionProvider<JComponent, ?>) selectionProvider);
         populateActionBindings(component, id, new ActionContext(context, component, null), JComponent.WHEN_FOCUSED);
@@ -72,9 +72,9 @@ public final class Actions {
         actionMap.put(action, action);
     }
 
-    private static JPopupMenu createPopupMenu(JComponent component, String id, DataContext context) {
+    private static JPopupMenu createPopupMenu(JComponent component, String id, DataContext context, boolean includeSourceAction) {
         JPopupMenu popupMenu = new JPopupMenu();
-        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(component, popupMenu, id, context));
+        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(component, popupMenu, id, context, includeSourceAction));
         return popupMenu;
     }
 
@@ -132,7 +132,7 @@ public final class Actions {
     }
 
     private static JMenu createMenu(ActionDescriptor action, DataContext context) {
-        var name = TextWithMnemonic.parse(action.text(new ActionContext(context, null, null)));
+        var name = action.text(new ActionContext(context, null, null));
 
         var menu = new JMenu();
         menu.setText(name.text());
@@ -140,7 +140,7 @@ public final class Actions {
         menu.setDisplayedMnemonicIndex(name.mnemonicIndex());
 
         var popupMenu = menu.getPopupMenu();
-        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.id(), context));
+        popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.id(), context, false));
 
         return menu;
     }
@@ -149,7 +149,7 @@ public final class Actions {
         if (groups.containsKey(action.descriptor.id())) {
             var menu = new JMenu(action);
             var popupMenu = menu.getPopupMenu();
-            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context));
+            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context, false));
             return menu;
         } else if (action.descriptor.action() instanceof Action.Check) {
             return new JCheckBoxMenuItem(action);
@@ -160,35 +160,44 @@ public final class Actions {
         }
     }
 
-    private static void populateMenu(JPopupMenu menu, String id, ActionContext context) {
+    private static void populateMenu(JPopupMenu menu, String id, ActionContext context, boolean includeSourceAction) {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
             log.debug("No action groups found for ID: {}", id);
             return;
         }
-        for (GroupDescriptor group : groups) {
-            populateMenuGroup(menu, group, context);
+        if (includeSourceAction) {
+            var action = actions.get(id);
+            var name = action.text(context);
+            menu.add(new DisabledAction(name.text()));
+            menu.addSeparator();
         }
-        if (menu.getComponentCount() == 0) {
+        boolean contributed = false;
+        for (GroupDescriptor group : groups) {
+            contributed |= populateMenuGroup(menu, group, context, contributed);
+        }
+        if (!contributed) {
             menu.add(new DisabledAction("No actions"));
         }
     }
 
-    private static void populateMenuGroup(JPopupMenu menu, ActionDescriptorProvider provider, ActionContext context) {
+    private static boolean populateMenuGroup(JPopupMenu menu, ActionDescriptorProvider provider, ActionContext context, boolean contributed) {
         var actions = provider.create(context);
         if (actions.isEmpty()) {
-            return;
+            return false;
         }
-        if (menu.getComponentCount() > 0) {
+        if (contributed) {
             menu.addSeparator();
         }
         for (ActionDescriptor action : actions) {
             if (action.action() instanceof ActionProvider p) {
-                populateMenuGroup(menu, ActionDescriptorProvider.wrap(p), context);
+                contributed |= populateMenuGroup(menu, ActionDescriptorProvider.wrap(p), context, contributed);
             } else {
                 menu.add(createMenuItem(new MenuItemAction(action, context)));
+                contributed = true;
             }
         }
+        return contributed;
     }
 
     private static <T extends JComponent, R> void showPopupMenu(
@@ -276,7 +285,7 @@ public final class Actions {
         }
 
         private void update() {
-            var name = TextWithMnemonic.parse(descriptor.text(context));
+            var name = descriptor.text(context);
             putValue(NAME, name.text());
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
@@ -316,16 +325,22 @@ public final class Actions {
         @SuppressWarnings("unchecked")
         @Override
         public void actionPerformed(ActionEvent e) {
-            var popupMenu = createPopupMenu(component, descriptor.id(), context);
+            var popupMenu = createPopupMenu(component, descriptor.id(), context, true);
             var selectionProvider = getSelectionProvider(component);
             showPopupMenu(component, popupMenu, e, (SelectionProvider<JComponent, ?>) selectionProvider);
         }
     }
 
-    private record ActionPopupMenuListener(Object source, JPopupMenu popupMenu, String id, DataContext context) implements PopupMenuListener {
+    private record ActionPopupMenuListener(
+        Object source,
+        JPopupMenu popupMenu,
+        String id,
+        DataContext context,
+        boolean includeSourceAction
+    ) implements PopupMenuListener {
         @Override
         public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-            populateMenu(popupMenu, id, new ActionContext(context, source, null));
+            populateMenu(popupMenu, id, new ActionContext(context, source, null), includeSourceAction);
         }
 
         @Override
@@ -387,8 +402,8 @@ public final class Actions {
             );
         }
 
-        String text(ActionContext context) {
-            return textSupplier.apply(context);
+        TextWithMnemonic text(ActionContext context) {
+            return TextWithMnemonic.parse(textSupplier.apply(context));
         }
 
         String description(ActionContext context) {
