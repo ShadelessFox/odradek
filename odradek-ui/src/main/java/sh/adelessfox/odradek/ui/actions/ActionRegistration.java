@@ -28,4 +28,11 @@ public @interface ActionRegistration {
      * Description of this action.
      */
     String description() default "";
+
+    /**
+     * Keystroke that causes this action to be run.
+     *
+     * @see javax.swing.KeyStroke
+     */
+    String keystroke() default "";
 }

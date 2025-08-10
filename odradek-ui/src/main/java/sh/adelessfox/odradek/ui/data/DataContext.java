@@ -53,4 +53,12 @@ public interface DataContext {
             .filter(type::isInstance)
             .map(type::cast);
     }
+
+    default boolean has(DataKey<?> key) {
+        return get(key).isPresent();
+    }
+
+    default boolean has(DataKey<?> key, Class<?> type) {
+        return get(key, type).isPresent();
+    }
 }

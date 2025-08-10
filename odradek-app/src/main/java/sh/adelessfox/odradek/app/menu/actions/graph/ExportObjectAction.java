@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 import static java.nio.file.StandardOpenOption.*;
 
-@ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026")
+@ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", keystroke = "ctrl E")
 @ActionContribution(parent = ActionIds.GRAPH_MENU_ID)
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction";

@@ -23,6 +23,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.menu.EditMenu,
         sh.adelessfox.odradek.app.menu.FileMenu,
         sh.adelessfox.odradek.app.menu.HelpMenu,
+        sh.adelessfox.odradek.app.menu.actions.file.OpenObjectAction,
         sh.adelessfox.odradek.app.menu.actions.help.AboutAction,
         sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction,
         sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction.Placeholder,

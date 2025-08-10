@@ -13,9 +13,11 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -67,9 +69,19 @@ public class Application {
             .game(game)
             .build();
 
+        DataContext context = key -> {
+            if (ApplicationKeys.MAIN_PRESENTER.is(key)) {
+                return Optional.of(component.presenter());
+            }
+            if (DataKeys.GAME.is(key)) {
+                return Optional.of(game);
+            }
+            return Optional.empty();
+        };
+
         var frame = new JFrame();
+        Actions.installMenuBar(frame.getRootPane(), ActionIds.MAIN_MENU_ID, context);
         frame.add(component.presenter().getRoot());
-        frame.setJMenuBar(Actions.createMenuBar(ActionIds.MAIN_MENU_ID, DataContext.focusedComponent()));
         frame.setTitle("Odradek - " + source);
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);

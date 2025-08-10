@@ -35,8 +35,9 @@ public class MainPresenter implements Presenter<MainView> {
 
     private static final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 
-    private final ForbiddenWestGame game;
     private final MainView view;
+    private final GraphPresenter graphPresenter;
+    private final ForbiddenWestGame game;
 
     @Inject
     public MainPresenter(
@@ -45,17 +46,20 @@ public class MainPresenter implements Presenter<MainView> {
         MainView view,
         EventBus eventBus
     ) {
-        this.game = game;
         this.view = view;
+        this.game = game;
+        this.graphPresenter = graphPresenter;
 
-        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> {
-            if (revealObjectInfo(event.groupId(), event.objectIndex())) {
-                return;
-            }
-            graphPresenter.setBusy(true);
-            var future = showObjectInfo(event.groupId(), event.objectIndex());
-            future.whenComplete((_, _) -> graphPresenter.setBusy(false));
-        });
+        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> showObject(event.groupId(), event.objectIndex()));
+    }
+
+    public void showObject(int groupId, int objectIndex) {
+        if (revealObjectInfo(groupId, objectIndex)) {
+            return;
+        }
+        graphPresenter.setBusy(true);
+        var future = showObjectInfo(groupId, objectIndex);
+        future.whenComplete((_, _) -> graphPresenter.setBusy(false));
     }
 
     @Override

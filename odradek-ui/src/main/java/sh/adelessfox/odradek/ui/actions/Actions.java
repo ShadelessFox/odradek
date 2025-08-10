@@ -25,15 +25,17 @@ public final class Actions {
     private Actions() {
     }
 
+    public static void installMenuBar(JRootPane pane, String id, DataContext context) {
+        pane.setJMenuBar(createMenuBar(id, context));
+        populateActionBindings(pane, id, new ActionContext(context, pane, null), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    }
+
     @SuppressWarnings("unchecked")
     public static void installContextMenu(JComponent component, String id, DataContext context) {
         var popupMenu = createPopupMenu(component, id, context);
-        var selectionProvider = switch (component) {
-            case JTabbedPane _ -> SelectionProvider.tabbedPaneSelection();
-            case JTree _ -> SelectionProvider.treeSelection();
-            default -> SelectionProvider.componentSelection();
-        };
+        var selectionProvider = getSelectionProvider(component);
         installContextMenu(component, popupMenu, (SelectionProvider<JComponent, ?>) selectionProvider);
+        populateActionBindings(component, id, new ActionContext(context, component, null), JComponent.WHEN_FOCUSED);
         DataContext.putDataContext(component, context);
     }
 
@@ -51,10 +53,7 @@ public final class Actions {
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    selectionProvider.getSelection(component, e).ifPresent(selection -> {
-                        var location = selectionProvider.getSelectionLocation(component, selection, e);
-                        popupMenu.show(component, location.x, location.y);
-                    });
+                    showPopupMenu(component, popupMenu, e, selectionProvider);
                 }
             }
         });
@@ -62,10 +61,7 @@ public final class Actions {
         var action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                selectionProvider.getSelection(component, e).ifPresent(selection -> {
-                    var location = selectionProvider.getSelectionLocation(component, selection, e);
-                    popupMenu.show(component, location.x, location.y);
-                });
+                showPopupMenu(component, popupMenu, e, selectionProvider);
             }
         };
 
@@ -76,13 +72,13 @@ public final class Actions {
         actionMap.put(action, action);
     }
 
-    public static JPopupMenu createPopupMenu(JComponent component, String id, DataContext context) {
+    private static JPopupMenu createPopupMenu(JComponent component, String id, DataContext context) {
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.addPopupMenuListener(new ActionPopupMenuListener(component, popupMenu, id, context));
         return popupMenu;
     }
 
-    public static JMenuBar createMenuBar(String id, DataContext context) {
+    private static JMenuBar createMenuBar(String id, DataContext context) {
         var groups = Actions.groups.get(id);
         if (groups == null) {
             throw new IllegalArgumentException("No action groups found for ID: " + id);
@@ -99,6 +95,40 @@ public final class Actions {
         }
 
         return menuBar;
+    }
+
+    private static void populateActionBindings(JComponent component, String id, ActionContext context, int condition) {
+        var groups = Actions.groups.get(id);
+        if (groups == null || groups.isEmpty()) {
+            return;
+        }
+
+        for (GroupDescriptor group : groups) {
+            for (ActionDescriptor action : group.actions()) {
+                populateActionBindings(component, action.id(), context, condition);
+                populateActionBinding(component, action, context, condition);
+            }
+        }
+    }
+
+    @SuppressWarnings("MagicConstant")
+    private static void populateActionBinding(JComponent component, ActionDescriptor descriptor, ActionContext context, int condition) {
+        if (descriptor.accelerator() == null) {
+            return;
+        }
+
+        AbstractMenuAction menuAction;
+        if (groups.containsKey(descriptor.id())) {
+            menuAction = new PopupMenuAction(component, descriptor, context);
+        } else {
+            menuAction = new MenuItemAction(descriptor, context);
+        }
+
+        ActionMap actionMap = component.getActionMap();
+        actionMap.put(descriptor, menuAction);
+
+        InputMap inputMap = component.getInputMap(condition);
+        inputMap.put(descriptor.accelerator(), descriptor);
     }
 
     private static JMenu createMenu(ActionDescriptor action, DataContext context) {
@@ -161,6 +191,26 @@ public final class Actions {
         }
     }
 
+    private static <T extends JComponent, R> void showPopupMenu(
+        T component,
+        JPopupMenu popupMenu,
+        EventObject event,
+        SelectionProvider<? super T, R> selectionProvider
+    ) {
+        selectionProvider.getSelection(component, event).ifPresent(selection -> {
+            var location = selectionProvider.getSelectionLocation(component, selection, event);
+            popupMenu.show(component, location.x, location.y);
+        });
+    }
+
+    private static SelectionProvider<? extends JComponent, ?> getSelectionProvider(JComponent component) {
+        return switch (component) {
+            case JTabbedPane _ -> SelectionProvider.tabbedPaneSelection();
+            case JTree _ -> SelectionProvider.treeSelection();
+            default -> SelectionProvider.componentSelection();
+        };
+    }
+
     private static Map<String, ActionDescriptor> loadActions() {
         return ServiceLoader.load(Action.class).stream()
             .map(provider -> ActionDescriptor.unreflect(provider.type(), provider))
@@ -221,13 +271,9 @@ public final class Actions {
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
-            if (descriptor.action().isEnabled(context)) {
-                perform(e);
-            }
+        public boolean accept(Object sender) {
+            return descriptor.action().isEnabled(context);
         }
-
-        protected abstract void perform(ActionEvent e);
 
         private void update() {
             var name = TextWithMnemonic.parse(descriptor.text(context));
@@ -235,6 +281,7 @@ public final class Actions {
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
             putValue(SHORT_DESCRIPTION, descriptor.description(context));
+            putValue(ACCELERATOR_KEY, descriptor.accelerator());
 
             var action = descriptor.action();
             if (action instanceof Action.Check check) {
@@ -253,8 +300,25 @@ public final class Actions {
         }
 
         @Override
-        protected void perform(ActionEvent e) {
+        public void actionPerformed(ActionEvent e) {
             descriptor.action().perform(context.withEvent(e));
+        }
+    }
+
+    private static class PopupMenuAction extends AbstractMenuAction {
+        private final JComponent component;
+
+        public PopupMenuAction(JComponent component, ActionDescriptor descriptor, ActionContext context) {
+            super(descriptor, context);
+            this.component = component;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var popupMenu = createPopupMenu(component, descriptor.id(), context);
+            var selectionProvider = getSelectionProvider(component);
+            showPopupMenu(component, popupMenu, e, (SelectionProvider<JComponent, ?>) selectionProvider);
         }
     }
 
@@ -278,6 +342,7 @@ public final class Actions {
     private record ActionDescriptor(
         Action action,
         String id,
+        KeyStroke accelerator,
         Function<ActionContext, String> textSupplier,
         Function<ActionContext, String> descriptionSupplier,
         List<ActionContribution> contributions
@@ -292,12 +357,15 @@ public final class Actions {
 
             var action = supplier.get();
             var id = registration.id().isEmpty() ? type.getName() : registration.id();
+            var accelerator = registration.keystroke().isEmpty() ? null : KeyStroke.getKeyStroke(registration.keystroke());
+
             Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse(registration.text());
             Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse(registration.description());
 
             return new ActionDescriptor(
                 action,
                 id,
+                accelerator,
                 textSupplier,
                 descriptionSupplier,
                 List.of(contributions)
@@ -312,6 +380,7 @@ public final class Actions {
             return new ActionDescriptor(
                 action,
                 id,
+                null,
                 textSupplier,
                 descriptionSupplier,
                 List.of()
