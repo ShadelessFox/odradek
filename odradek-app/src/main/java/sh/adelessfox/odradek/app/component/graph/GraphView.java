@@ -4,16 +4,17 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ApplicationIcons;
 import sh.adelessfox.odradek.app.GraphStructure;
+import sh.adelessfox.odradek.app.component.common.View;
 import sh.adelessfox.odradek.app.menu.ActionIds;
-import sh.adelessfox.odradek.app.mvvm.View;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
+import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
 import java.awt.*;
@@ -116,12 +117,30 @@ public class GraphView implements View<JComponent> {
     }
 
     private StructuredTree<GraphStructure> createGraphTree() {
-        var model = new StructuredTreeModel<>(new GraphStructure.Graph(game.getStreamingGraph()));
-        var tree = new StructuredTree<>(model);
+        var tree = new StructuredTree<>(new GraphStructure.Graph(game.getStreamingGraph()));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
-        tree.setLargeModel(true);
-        tree.setCellRenderer(new GraphTreeCellRenderer());
+        tree.setLabelProvider(new TreeLabelProvider<>() {
+            @Override
+            public Optional<String> getText(GraphStructure element) {
+                return Optional.of(element.toString());
+            }
+
+            @Override
+            public Optional<Icon> getIcon(GraphStructure element) {
+                return Optional.ofNullable(switch (element) {
+                    case GraphStructure.Graph _ -> null;
+                    case GraphStructure.GraphGroups _, GraphStructure.GraphObjects _ -> Fugue.getIcon("folders-stack");
+                    case GraphStructure.GraphObjectSet _, GraphStructure.GroupObjectSet _ -> Fugue.getIcon("folder-open-document");
+                    case GraphStructure.GraphObjectSetGroup _, GraphStructure.Group _ -> Fugue.getIcon("folders");
+                    case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
+                    case GraphStructure.GroupDependencies _ -> Fugue.getIcon("folder-export");
+                    case GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
+                    case GraphStructure.GroupObjects _ -> Fugue.getIcon("folder-open-document");
+                    case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
+                });
+            }
+        });
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> item) {

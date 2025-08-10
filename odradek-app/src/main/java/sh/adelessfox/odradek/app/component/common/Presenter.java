@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.mvvm;
+package sh.adelessfox.odradek.app.component.common;
 
 import javax.swing.*;
 

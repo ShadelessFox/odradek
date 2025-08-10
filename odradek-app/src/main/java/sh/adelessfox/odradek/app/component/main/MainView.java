@@ -3,9 +3,9 @@ package sh.adelessfox.odradek.app.component.main;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import sh.adelessfox.odradek.app.component.common.View;
 import sh.adelessfox.odradek.app.component.graph.GraphView;
 import sh.adelessfox.odradek.app.menu.ActionIds;
-import sh.adelessfox.odradek.app.mvvm.View;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 

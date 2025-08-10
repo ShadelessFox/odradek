@@ -4,7 +4,7 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.GraphStructure;
-import sh.adelessfox.odradek.app.mvvm.Presenter;
+import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 

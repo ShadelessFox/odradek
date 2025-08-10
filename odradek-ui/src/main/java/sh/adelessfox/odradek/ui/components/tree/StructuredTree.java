@@ -5,8 +5,10 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Listeners;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.event.*;
 import java.util.Arrays;
 import java.util.Objects;
@@ -14,9 +16,10 @@ import java.util.Optional;
 
 public class StructuredTree<T> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
+    private TreeLabelProvider<T> labelProvider;
 
-    public StructuredTree(StructuredTreeModel<T> model) {
-        super(model);
+    public StructuredTree(TreeStructure<T> structure) {
+        super(new StructuredTreeModel<>(structure));
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -34,6 +37,8 @@ public class StructuredTree<T> extends JTree implements DataContext {
                 }
             }
         });
+
+        setLargeModel(true);
     }
 
     @Override
@@ -69,6 +74,22 @@ public class StructuredTree<T> extends JTree implements DataContext {
         super.setModel(newModel);
     }
 
+    public TreeLabelProvider<T> getLabelProvider() {
+        return labelProvider;
+    }
+
+    public void setLabelProvider(TreeLabelProvider<T> labelProvider) {
+        if (this.labelProvider != labelProvider) {
+            this.labelProvider = labelProvider;
+
+            if (labelProvider != null) {
+                setCellRenderer(new LabelProviderTreeCellRenderer<>(labelProvider));
+            } else {
+                setCellRenderer(null);
+            }
+        }
+    }
+
     public void addActionListener(TreeActionListener listener) {
         Objects.requireNonNull(listener);
         actionListeners.add(listener);
@@ -101,10 +122,49 @@ public class StructuredTree<T> extends JTree implements DataContext {
         if (path == null) {
             return null;
         }
-        Object component = path.getLastPathComponent();
-        if (component instanceof TreeItem<?> item) {
-            return item.getValue();
+        return getElement(path.getLastPathComponent());
+    }
+
+    private static Object getElement(Object value) {
+        if (value instanceof TreeItem<?> item) {
+            value = item.getValue();
         }
-        return component;
+        return value;
+    }
+
+    private static class LabelProviderTreeCellRenderer<T> extends DefaultTreeCellRenderer {
+        private final TreeLabelProvider<T> labelProvider;
+
+        LabelProviderTreeCellRenderer(TreeLabelProvider<T> labelProvider) {
+            this.labelProvider = labelProvider;
+        }
+
+        @Override
+        public Component getTreeCellRendererComponent(
+            JTree tree,
+            Object value,
+            boolean sel,
+            boolean expanded,
+            boolean leaf,
+            int row,
+            boolean hasFocus
+        ) {
+            super.getTreeCellRendererComponent(tree, null, sel, expanded, leaf, row, hasFocus);
+
+            @SuppressWarnings("unchecked")
+            var element = (T) getElement(value);
+
+            var text = labelProvider.getText(element).orElse(null);
+            setText(text);
+
+            var icon = labelProvider.getIcon(element).orElse(null);
+            if (icon == null || tree.isEnabled()) {
+                setIcon(icon);
+            } else {
+                setDisabledIcon(Objects.requireNonNullElse(UIManager.getLookAndFeel().getDisabledIcon(tree, icon), icon));
+            }
+
+            return this;
+        }
     }
 }

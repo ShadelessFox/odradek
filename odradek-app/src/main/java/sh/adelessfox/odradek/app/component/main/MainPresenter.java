@@ -6,10 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.Futures;
 import sh.adelessfox.odradek.app.ObjectStructure;
+import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.app.component.graph.GraphPresenter;
 import sh.adelessfox.odradek.app.component.graph.GraphViewEvent;
 import sh.adelessfox.odradek.app.menu.ActionIds;
-import sh.adelessfox.odradek.app.mvvm.Presenter;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
@@ -19,11 +19,13 @@ import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
+import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
+import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
@@ -131,11 +133,19 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
-        var model = new StructuredTreeModel<>(new ObjectStructure.Compound(game, object.getType(), object));
-        var tree = new StructuredTree<>(model);
-        tree.setLargeModel(true);
-        tree.setCellRenderer(new ObjectTreeCellRenderer());
+        var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
         tree.setTransferHandler(new ObjectTreeTransferHandler());
+        tree.setLabelProvider(new TreeLabelProvider<>() {
+            @Override
+            public Optional<String> getText(ObjectStructure element) {
+                return Optional.of(element.toString());
+            }
+
+            @Override
+            public Optional<Icon> getIcon(ObjectStructure element) {
+                return Optional.of(Fugue.getIcon("blue-document"));
+            }
+        });
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> wrapper) {
