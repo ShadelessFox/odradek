@@ -27,6 +27,7 @@ import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", keystroke = "ctrl E")
 @ActionContribution(parent = ActionIds.GRAPH_MENU_ID)
+@ActionContribution(parent = ActionIds.FILE_MENU_ID, group = "2000,Export")
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction";
 
@@ -37,8 +38,9 @@ public class ExportObjectAction extends Action {
     public static class Placeholder extends Action implements ActionProvider {
         @Override
         public List<Action> create(ActionContext context) {
+            var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
             return exporters(context)
-                .map(ExportObjectAction::action)
+                .map(batch -> action(game, batch))
                 .toList();
         }
     }
@@ -76,14 +78,14 @@ public class ExportObjectAction extends Action {
             .sorted(Comparator.comparing(pipeline -> pipeline.exporter().name()));
     }
 
-    private static Action action(Batch<?> pipeline) {
+    private static Action action(ForbiddenWestGame game, Batch<?> batch) {
         return Action.builder()
-            .perform(context -> exportBatch(context, pipeline))
-            .text(_ -> Optional.of(pipeline.exporter().name()))
+            .perform(_ -> exportBatch(game, batch))
+            .text(_ -> Optional.of(batch.exporter().name()))
             .build();
     }
 
-    private static <T> void exportBatch(ActionContext context, Batch<T> batch) {
+    private static <T> void exportBatch(ForbiddenWestGame game, Batch<T> batch) {
         var chooser = new JFileChooser();
         chooser.setDialogTitle("Specify output directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -93,7 +95,6 @@ public class ExportObjectAction extends Action {
             return;
         }
 
-        var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
         var directory = chooser.getSelectedFile().toPath();
         int exported = 0;
 

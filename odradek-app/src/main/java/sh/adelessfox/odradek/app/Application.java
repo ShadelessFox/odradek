@@ -13,7 +13,6 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
-import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -69,15 +68,12 @@ public class Application {
             .game(game)
             .build();
 
-        DataContext context = key -> {
+        DataContext context = DataContext.focusedComponent().or(key -> {
             if (ApplicationKeys.MAIN_PRESENTER.is(key)) {
                 return Optional.of(component.presenter());
             }
-            if (DataKeys.GAME.is(key)) {
-                return Optional.of(game);
-            }
             return Optional.empty();
-        };
+        });
 
         var frame = new JFrame();
         Actions.installMenuBar(frame.getRootPane(), ActionIds.MAIN_MENU_ID, context);

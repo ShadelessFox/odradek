@@ -31,8 +31,8 @@ public interface DataContext {
 
     static Optional<DataContext> getDataContext(Component component) {
         return switch (component) {
-            case DataContext context -> Optional.of(context);
             case JComponent c when c.getClientProperty(DataContext.class) instanceof DataContext context -> Optional.of(context);
+            case DataContext context -> Optional.of(context);
             case null, default -> Optional.empty();
         };
     }
@@ -60,5 +60,9 @@ public interface DataContext {
 
     default boolean has(DataKey<?> key, Class<?> type) {
         return get(key, type).isPresent();
+    }
+
+    default DataContext or(DataContext other) {
+        return key -> get(key).or(() -> other.get(key));
     }
 }
