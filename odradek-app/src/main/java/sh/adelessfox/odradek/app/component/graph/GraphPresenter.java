@@ -22,7 +22,7 @@ public class GraphPresenter implements Presenter<GraphView> {
     ) {
         this.view = view;
 
-        eventBus.subscribe(GraphViewEvent.FilterChanged.class, event -> {
+        eventBus.subscribe(GraphViewEvent.UpdateFilter.class, event -> {
             var treeModel = view.getTree().getModel();
             treeModel.setFilter(createFilter(event.query(), event.matchCase(), event.matchWholeWord()));
             treeModel.update();

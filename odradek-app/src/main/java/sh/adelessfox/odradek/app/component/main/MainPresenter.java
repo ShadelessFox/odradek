@@ -4,6 +4,7 @@ import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.Futures;
 import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.app.component.graph.GraphPresenter;
 import sh.adelessfox.odradek.app.component.graph.GraphViewEvent;
@@ -14,8 +15,7 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
-import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
-import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -24,8 +24,8 @@ import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 
 import javax.swing.*;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class MainPresenter implements Presenter<MainView> {
     private static final String PROP_GROUP_ID = "odradek.groupId";
@@ -46,12 +46,12 @@ public class MainPresenter implements Presenter<MainView> {
         this.game = game;
         this.view = view;
 
-        eventBus.subscribe(GraphViewEvent.ObjectSelected.class, event -> {
+        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> {
             if (revealObjectInfo(event.groupId(), event.objectIndex())) {
                 return;
             }
             graphPresenter.setBusy(true);
-            var future = showObjectInfo(game, event.groupId(), event.objectIndex());
+            var future = showObjectInfo(event.groupId(), event.objectIndex());
             future.whenComplete((_, _) -> graphPresenter.setBusy(false));
         });
     }
@@ -61,43 +61,23 @@ public class MainPresenter implements Presenter<MainView> {
         return view;
     }
 
-    private CompletableFuture<Void> showObjectInfo(ForbiddenWestGame game, int groupId, int objectIndex) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
-        new SwingWorker<StreamingObjectReader.GroupResult, Object>() {
-            @Override
-            protected StreamingObjectReader.GroupResult doInBackground() throws Exception {
-                log.debug("Reading group {}", groupId);
-                return game.getStreamingReader().readGroup(groupId);
+    private CompletableFuture<TypedObject> showObjectInfo(int groupId, int objectIndex) {
+        var future = submit(groupId, objectIndex);
+        return future.whenComplete((object, exception) -> {
+            if (object != null) {
+                SwingUtilities.invokeLater(() -> showObjectInfo(object, groupId, objectIndex));
+            } else {
+                log.error("Failed to read group {}", groupId, exception);
             }
-
-            @Override
-            protected void done() {
-                try {
-                    var result = get();
-                    var object = result.objects().get(objectIndex);
-                    SwingUtilities.invokeLater(() -> showObjectInfo(object.type(), object.object(), groupId, objectIndex));
-                } catch (ExecutionException e) {
-                    log.error("Failed to read group {}", groupId, e.getCause());
-                    future.completeExceptionally(e.getCause());
-                } catch (InterruptedException e) {
-                    log.error("Interrupted while reading group {}", groupId, e);
-                    future.completeExceptionally(e);
-                } finally {
-                    future.complete(null);
-                }
-            }
-        }.execute();
-
-        return future;
+        });
     }
 
-    private void showObjectInfo(ClassTypeInfo info, Object object, int groupId, int objectIndex) {
+    private void showObjectInfo(TypedObject object, int groupId, int objectIndex) {
         if (revealObjectInfo(groupId, objectIndex)) {
             return;
         }
 
-        log.debug("Showing object info for {} (group: {}, index: {})", info, groupId, objectIndex);
+        log.debug("Showing object info for {} (group: {}, index: {})", object.getType(), groupId, objectIndex);
 
         FlatTabbedPane pane = new FlatTabbedPane();
         pane.putClientProperty(PROP_GROUP_ID, groupId);
@@ -117,14 +97,13 @@ public class MainPresenter implements Presenter<MainView> {
             });
         });
 
-        pane.add("Object", new JScrollPane(createObjectTree(game, info, object)));
+        pane.add("Object", new JScrollPane(createObjectTree(game, object)));
         pane.setSelectedIndex(0);
 
         FlatTabbedPane tabs = view.getTabs();
-        tabs.add(info.toString(), pane);
+        tabs.add(object.getType().toString(), pane);
         tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, objectIndex));
         tabs.setSelectedIndex(tabs.getTabCount() - 1);
-
     }
 
     private boolean revealObjectInfo(int groupId, int objectIndex) {
@@ -141,8 +120,18 @@ public class MainPresenter implements Presenter<MainView> {
         return false;
     }
 
-    private StructuredTree<?> createObjectTree(Game game, ClassTypeInfo info, Object object) {
-        var model = new StructuredTreeModel<>(new ObjectStructure.Compound(game, info, object));
+    private CompletableFuture<TypedObject> submit(int groupId, int objectIndex) {
+        var callable = (Callable<TypedObject>) () -> {
+            log.debug("Reading group {}", groupId);
+            var result = game.getStreamingReader().readGroup(groupId);
+            var object = result.objects().get(objectIndex);
+            return object.object();
+        };
+        return Futures.submit(callable);
+    }
+
+    private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
+        var model = new StructuredTreeModel<>(new ObjectStructure.Compound(game, object.getType(), object));
         var tree = new StructuredTree<>(model);
         tree.setLargeModel(true);
         tree.setCellRenderer(new ObjectTreeCellRenderer());
@@ -153,7 +142,7 @@ public class MainPresenter implements Presenter<MainView> {
                 component = wrapper.getValue();
             }
             if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
-                showObjectInfo(link.get().getType(), link.get(), link.group(), link.index());
+                showObjectInfo(link.get(), link.group(), link.index());
             }
         });
         Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);

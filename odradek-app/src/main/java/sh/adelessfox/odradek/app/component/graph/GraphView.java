@@ -102,7 +102,7 @@ public class GraphView implements View<JComponent> {
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
-        Runnable callback = () -> eventBus.publish(new GraphViewEvent.FilterChanged(
+        Runnable callback = () -> eventBus.publish(new GraphViewEvent.UpdateFilter(
             filterField.getText(),
             toggleCaseSensitive.isSelected(),
             toggleWholeWord.isSelected()
@@ -128,7 +128,7 @@ public class GraphView implements View<JComponent> {
                 component = item.getValue();
             }
             if (component instanceof GraphStructure.GroupObject groupObject) {
-                eventBus.publish(new GraphViewEvent.ObjectSelected(
+                eventBus.publish(new GraphViewEvent.ShowObject(
                     groupObject.group().groupID(),
                     groupObject.index()
                 ));
