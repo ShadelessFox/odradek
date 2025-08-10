@@ -4,7 +4,6 @@ import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.Futures;
 import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.app.component.graph.GraphPresenter;
@@ -22,6 +21,7 @@ import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.util.Fugue;
+import sh.adelessfox.odradek.util.Futures;
 
 import javax.swing.*;
 import java.util.Objects;

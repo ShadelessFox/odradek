@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.io;
 
-import sh.adelessfox.odradek.Arrays;
+import sh.adelessfox.odradek.util.Arrays;
 
 import java.nio.ByteOrder;
 import java.util.Objects;

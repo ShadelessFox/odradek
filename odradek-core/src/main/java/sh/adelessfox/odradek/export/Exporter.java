@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.export;
 
-import sh.adelessfox.odradek.Reflections;
+import sh.adelessfox.odradek.util.Reflections;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;

@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.menu.actions.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.Gatherers;
 import sh.adelessfox.odradek.app.GraphStructure.GroupObject;
 import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.export.Exporter;
@@ -12,6 +11,7 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
 import java.nio.file.Files;

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game;
 
-import sh.adelessfox.odradek.Reflections;
+import sh.adelessfox.odradek.util.Reflections;
 
 import java.util.Optional;
 import java.util.ServiceLoader;

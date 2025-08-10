@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek;
+package sh.adelessfox.odradek.util;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;

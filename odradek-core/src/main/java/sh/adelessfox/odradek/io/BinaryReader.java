@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.io;
 
-import sh.adelessfox.odradek.ThrowableFunction;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,6 +21,11 @@ import java.util.function.IntFunction;
  * be controlled using {@link #order(ByteOrder)} method.
  */
 public interface BinaryReader extends Closeable {
+    @FunctionalInterface
+    interface Mapper<T> {
+        T read(BinaryReader reader) throws IOException;
+    }
+
     static BinaryReader wrap(ByteBuffer buffer) {
         if (!buffer.hasArray()) {
             throw new IllegalArgumentException("Buffer must be backed by an array");
@@ -153,18 +156,18 @@ public interface BinaryReader extends Closeable {
         };
     }
 
-    default <T> T[] readObjects(int count, ThrowableFunction<BinaryReader, T, IOException> mapper, IntFunction<T[]> creator) throws IOException {
+    default <T> T[] readObjects(int count, Mapper<T> mapper, IntFunction<T[]> creator) throws IOException {
         var dst = creator.apply(count);
         for (int i = 0; i < count; i++) {
-            dst[i] = mapper.apply(this);
+            dst[i] = mapper.read(this);
         }
         return dst;
     }
 
-    default <T> List<T> readObjects(int count, ThrowableFunction<BinaryReader, T, IOException> mapper) throws IOException {
+    default <T> List<T> readObjects(int count, Mapper<T> mapper) throws IOException {
         var dst = new ArrayList<T>(count);
         for (int i = 0; i < count; i++) {
-            dst.add(mapper.apply(this));
+            dst.add(mapper.read(this));
         }
         return List.copyOf(dst);
     }

@@ -1,9 +1,9 @@
 package sh.adelessfox.viewer.texture;
 
-import sh.adelessfox.odradek.Arrays;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.ui.Viewer;
+import sh.adelessfox.odradek.util.Arrays;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;

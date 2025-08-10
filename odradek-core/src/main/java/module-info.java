@@ -11,6 +11,7 @@ module odradek.core {
     exports sh.adelessfox.odradek.math;
     exports sh.adelessfox.odradek.scene;
     exports sh.adelessfox.odradek.texture;
+    exports sh.adelessfox.odradek.util;
     exports sh.adelessfox.odradek;
 
     uses sh.adelessfox.odradek.export.Exporter;

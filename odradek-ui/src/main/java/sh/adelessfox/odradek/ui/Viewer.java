@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.ui;
 
-import sh.adelessfox.odradek.Reflections;
+import sh.adelessfox.odradek.util.Reflections;
 
 import javax.swing.*;
 import java.util.ServiceLoader;

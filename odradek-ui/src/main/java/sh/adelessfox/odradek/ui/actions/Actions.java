@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.ui.actions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.Gatherers;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek;
+package sh.adelessfox.odradek.util;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

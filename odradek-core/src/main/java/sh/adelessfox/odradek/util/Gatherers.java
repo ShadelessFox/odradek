@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek;
+package sh.adelessfox.odradek.util;
 
 import java.util.HashSet;
 import java.util.function.Function;

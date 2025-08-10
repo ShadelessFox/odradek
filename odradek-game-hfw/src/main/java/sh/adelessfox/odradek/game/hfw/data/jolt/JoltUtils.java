@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.game.hfw.data.jolt;
 
-import sh.adelessfox.odradek.ThrowableFunction;
 import sh.adelessfox.odradek.game.hfw.data.jolt.geometry.AABox;
 import sh.adelessfox.odradek.game.hfw.data.jolt.math.Mat44;
 import sh.adelessfox.odradek.game.hfw.data.jolt.math.Quat;
@@ -68,7 +67,7 @@ public final class JoltUtils {
         return new AABox(readAlignedVector3(reader), readAlignedVector3(reader));
     }
 
-    public static <T> List<T> readObjects(BinaryReader reader, ThrowableFunction<BinaryReader, T, IOException> mapper) throws IOException {
+    public static <T> List<T> readObjects(BinaryReader reader, BinaryReader.Mapper<T> mapper) throws IOException {
         return reader.readObjects(readCount(reader), mapper);
     }
 

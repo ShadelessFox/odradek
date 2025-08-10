@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.hashing;
 
-import sh.adelessfox.odradek.Arrays;
+import sh.adelessfox.odradek.util.Arrays;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

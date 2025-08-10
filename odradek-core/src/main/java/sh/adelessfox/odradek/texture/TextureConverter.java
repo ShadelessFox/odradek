@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.texture;
 
 import be.twofold.tinybcdec.BlockDecoder;
 import be.twofold.tinybcdec.BlockFormat;
-import sh.adelessfox.odradek.Arrays;
+import sh.adelessfox.odradek.util.Arrays;
 
 import java.nio.ByteOrder;
 import java.util.Optional;
