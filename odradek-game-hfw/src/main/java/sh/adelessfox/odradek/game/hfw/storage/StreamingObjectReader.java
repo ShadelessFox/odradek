@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
+import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
 import sh.adelessfox.odradek.game.hfw.rtti.data.UUIDRef;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
@@ -176,7 +177,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         } else if (info.name().name().equals("UUIDRef")) {
             return new UUIDRef<>((GGUUID) readCompound(factory.get(GGUUID.class), reader, factory));
         } else {
-            return resolveStreamingLink(info);
+            return resolveLink(info);
         }
     }
 
@@ -185,7 +186,7 @@ public class StreamingObjectReader extends HFWTypeReader {
             return;
         }
 
-        if (dataSource.channel() != -1 && dataSource.length() > 0) {
+        if (dataSource.isValid()) {
             var locator = graph.locatorTable().get(streamingLocatorIndex++).data();
 
             if (log.isDebugEnabled()) {
@@ -201,7 +202,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
     }
 
-    private Ref<?> resolveStreamingLink(PointerTypeInfo info) {
+    private Ref<?> resolveLink(PointerTypeInfo info) {
         if (!resolveStreamingLinksAndLocators) {
             return null;
         }
@@ -213,8 +214,8 @@ public class StreamingObjectReader extends HFWTypeReader {
         streamingLinkIndex = result.position();
 
         if (info.name().name().equals("StreamingRef")) {
-            // Can't resolve streaming references without actually running the game
-            return null;
+            // If linkGroup != -1, then it's the id of a group; it's an equivalent of doing graph.group(linkGroup)
+            return new StreamingRef<>(linkGroup, linkIndex);
         }
 
         GroupResult group;

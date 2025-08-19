@@ -156,7 +156,7 @@ public class MainPresenter implements Presenter<MainView> {
                 component = wrapper.getValue();
             }
             if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
-                showObjectInfo(link.get(), link.group(), link.index());
+                showObjectInfo(link.get(), link.groupId(), link.objectIndex());
             }
         });
         Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);

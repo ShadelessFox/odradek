@@ -3,13 +3,14 @@ package sh.adelessfox.odradek.game.hfw.storage;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingDataSource;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public final class ObjectStreamingSystem {
     /**
      * Represents the result of reading a link from the link table.
      *
      * @param position The new position of the link in the link table
-     * @param group    The group index
+     * @param group    The relative subgroup index of a {@code Ref}, or the {@code groupID} of a {@code StreamingRef}
      * @param index    The index of object within the group
      */
     public record LinkReadResult(int position, int group, int index) {
@@ -17,12 +18,12 @@ public final class ObjectStreamingSystem {
 
     private final StorageReadDevice device;
     private final StreamingGraphResource graph;
-    private final byte[] links;
+    private final ByteBuffer links;
 
     public ObjectStreamingSystem(StorageReadDevice device, StreamingGraphResource graph) throws IOException {
         this.device = device;
         this.graph = graph;
-        this.links = getFileData(Math.toIntExact(graph.linkTableID()), 0, graph.linkTableSize());
+        this.links = ByteBuffer.wrap(getFileData(Math.toIntExact(graph.linkTableID()), 0, graph.linkTableSize()));
     }
 
     public byte[] getDataSourceData(StreamingDataSource dataSource) throws IOException {
@@ -58,31 +59,32 @@ public final class ObjectStreamingSystem {
     }
 
     public LinkReadResult readLink(int position) {
-        int v7 = links[position++];
+        return readLink(links.position(position));
+    }
 
-        int linkIndex = v7 & 0x3f;
-        if ((v7 & 0x80) != 0) {
-            byte v10;
-            do {
-                v10 = links[position++];
-                linkIndex = (linkIndex << 7) | (v10 & 0x7f);
-            } while ((v10 & 0x80) != 0);
+    private static LinkReadResult readLink(ByteBuffer buffer) {
+        int linkIndex;
+        int linkGroup;
+
+        int first = buffer.get();
+        if ((first & 0x40) != 0) {
+            linkGroup = readVarInt(buffer, first & 0xbf);
+            linkIndex = readVarInt(buffer, buffer.get());
+        } else {
+            linkGroup = -1;
+            linkIndex = readVarInt(buffer, first & 0xbf);
         }
 
-        var linkGroup = -1;
-        if ((v7 & 0x40) != 0) {
-            linkGroup = linkIndex;
-            var v14 = links[position++];
-            linkIndex = v14 & 0x7f;
-            if ((v14 & 0x80) != 0) {
-                byte v16;
-                do {
-                    v16 = links[position++];
-                    linkIndex = (linkIndex << 7) | (v16 & 0x7f);
-                } while ((v16 & 0x80) != 0);
-            }
-        }
+        return new LinkReadResult(buffer.position(), linkGroup, linkIndex);
+    }
 
-        return new LinkReadResult(position, linkGroup, linkIndex);
+    private static int readVarInt(ByteBuffer buffer, int initial) {
+        int temp = initial;
+        int value = initial & 0x7f;
+        while ((temp & 0x80) != 0) {
+            temp = buffer.get();
+            value = (value << 7) | (temp & 0x7f);
+        }
+        return value;
     }
 }
