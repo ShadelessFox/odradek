@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.texture;
 
 import be.twofold.tinybcdec.BlockDecoder;
-import be.twofold.tinybcdec.BlockFormat;
 import sh.adelessfox.odradek.util.Arrays;
 
 import java.nio.ByteOrder;
@@ -46,23 +45,23 @@ final class TextureConverter {
             default -> throw new UnsupportedOperationException(srcFormat.name());
         };
 
-        var decoder = BlockDecoder.create(switch (srcFormat) {
-            case BC1_UNORM -> BlockFormat.BC1;
-            case BC2_UNORM -> BlockFormat.BC2;
-            case BC3_UNORM -> BlockFormat.BC3;
-            case BC4_UNORM -> BlockFormat.BC4U;
-            case BC4_SNORM -> BlockFormat.BC4S;
-            case BC5_UNORM -> BlockFormat.BC5U;
-            case BC5_SNORM -> BlockFormat.BC5S;
-            case BC6_UNORM -> BlockFormat.BC6H_UF16;
-            case BC6_SNORM -> BlockFormat.BC6H_SF16;
-            case BC7_UNORM -> BlockFormat.BC7;
+        var decoder = switch (srcFormat) {
+            case BC1_UNORM -> BlockDecoder.bc1(true);
+            case BC2_UNORM -> BlockDecoder.bc2();
+            case BC3_UNORM -> BlockDecoder.bc3();
+            case BC4_UNORM -> BlockDecoder.bc4(false);
+            case BC4_SNORM -> BlockDecoder.bc4(true);
+            case BC5_UNORM -> BlockDecoder.bc5(false);
+            case BC5_SNORM -> BlockDecoder.bc5(true);
+            case BC6_UNORM -> BlockDecoder.bc6h(false);
+            case BC6_SNORM -> BlockDecoder.bc6h(true);
+            case BC7_UNORM -> BlockDecoder.bc7();
             default -> throw new UnsupportedOperationException(srcFormat.name());
-        });
+        };
 
         UnaryOperator<Surface> operator = surface -> {
             var result = Surface.create(surface.width(), surface.height(), format);
-            decoder.decode(surface.width(), surface.height(), surface.data(), 0, result.data(), 0);
+            decoder.decode(surface.data(), 0, surface.width(), surface.height(), result.data(), 0);
             return result;
         };
 
