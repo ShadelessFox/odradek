@@ -13,9 +13,13 @@ module odradek.app {
     requires odradek.game.hfw;
     requires odradek.rtti;
     requires odradek.ui;
+    requires org.slf4j;
+
+    // Runtime only
+    requires odradek.export.dds;
+    requires odradek.game.hfw.ui;
     requires odradek.viewer.model;
     requires odradek.viewer.texture;
-    requires org.slf4j;
 
     opens sh.adelessfox.odradek.app to info.picocli;
 
