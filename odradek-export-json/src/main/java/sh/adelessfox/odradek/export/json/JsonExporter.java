@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class JsonExporter implements Exporter<TypedObject> {
     @Override
@@ -51,6 +52,10 @@ public class JsonExporter implements Exporter<TypedObject> {
                     writer.name(attr.name());
                     write(writer, attr.type().get(), attr.get(object));
                 }
+            }
+            case ContainerTypeInfo _ when object instanceof byte[] bytes -> {
+                writer.name("data");
+                writer.value(Base64.getEncoder().encodeToString(bytes));
             }
             case ContainerTypeInfo container -> {
                 writer.name("items");
