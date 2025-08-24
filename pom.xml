@@ -20,16 +20,17 @@
     <modules>
         <module>odradek-app</module>
         <module>odradek-core</module>
-        <module>odradek-game-hfw</module>
+        <module>odradek-export-dds</module>
+        <module>odradek-export-json</module>
         <module>odradek-game-hfw-ui</module>
-        <module>odradek-rtti</module>
-        <module>odradek-rtti-generator</module>
-        <module>odradek-ui</module>
-        <module>odradek-opengl</module>
+        <module>odradek-game-hfw</module>
         <module>odradek-opengl-awt</module>
+        <module>odradek-opengl</module>
+        <module>odradek-rtti-generator</module>
+        <module>odradek-rtti</module>
+        <module>odradek-ui</module>
         <module>odradek-viewer-model</module>
         <module>odradek-viewer-texture</module>
-        <module>odradek-export-dds</module>
     </modules>
 
     <dependencyManagement>
@@ -88,6 +89,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-dds</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-export-json</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

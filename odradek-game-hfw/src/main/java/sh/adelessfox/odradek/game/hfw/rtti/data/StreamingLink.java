@@ -21,6 +21,6 @@ public record StreamingLink<T extends RTTIRefObject>(T object, int groupId, int 
 
     @Override
     public String toString() {
-        return "<streaming link to " + object.getType() + ">";
+        return "<streaming link to " + groupId + ":" + objectIndex + ">";
     }
 }

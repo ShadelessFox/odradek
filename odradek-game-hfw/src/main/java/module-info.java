@@ -83,5 +83,6 @@ module odradek.game.hfw {
 
     provides sh.adelessfox.odradek.game.Converter with
         sh.adelessfox.odradek.game.hfw.converters.MeshToNodeConverter,
+        sh.adelessfox.odradek.game.hfw.converters.ObjectToTypedObjectConverter,
         sh.adelessfox.odradek.game.hfw.converters.TextureToTextureConverter;
 }

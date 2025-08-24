@@ -41,6 +41,10 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-export-dds</artifactId>
         </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-export-json</artifactId>
+        </dependency>
 
         <!-- External dependencies -->
         <dependency>

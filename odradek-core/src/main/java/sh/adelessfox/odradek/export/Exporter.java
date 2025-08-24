@@ -15,8 +15,8 @@ public interface Exporter<T> {
     @SuppressWarnings("unchecked")
     static <T> Stream<Exporter<T>> exporters(Class<T> clazz) {
         return exporters()
-            .filter(v -> v.supportedType().isAssignableFrom(clazz))
-            .map(v -> (Exporter<T>) v);
+            .filter(e -> e.supportedType().isAssignableFrom(clazz))
+            .map(e -> (Exporter<T>) e);
     }
 
     void export(T object, WritableByteChannel channel) throws IOException;

@@ -11,6 +11,6 @@ public record UUIDRef<T>(HorizonForbiddenWest.GGUUID objectUUID) implements Ref<
 
     @Override
     public String toString() {
-        return objectUUID.toDisplayString();
+        return "<uuid ref to " + objectUUID.toDisplayString() + ">";
     }
 }

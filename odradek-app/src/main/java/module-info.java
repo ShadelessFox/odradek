@@ -17,6 +17,7 @@ module odradek.app {
 
     // Runtime only
     requires odradek.export.dds;
+    requires odradek.export.json;
     requires odradek.game.hfw.ui;
     requires odradek.viewer.model;
     requires odradek.viewer.texture;
