@@ -15,10 +15,7 @@ import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
 import java.nio.file.Files;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,12 +61,10 @@ public class ExportObjectAction extends Action {
 
         var converters = types.stream()
             .flatMap(Converter::converters)
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-        if (converters.values().stream().anyMatch(matches -> types.size() != matches)) {
-            // At least one selected object can't be exported using the same converter as the others
-            return Stream.empty();
-        }
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+            .entrySet().stream()
+            .filter(entry -> entry.getValue() == types.size())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return converters.keySet().stream()
             .flatMap(converter -> Exporter.exporters(converter.resultType())
