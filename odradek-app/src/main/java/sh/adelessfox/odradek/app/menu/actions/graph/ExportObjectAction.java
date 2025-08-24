@@ -61,8 +61,7 @@ public class ExportObjectAction extends Action {
 
         var converters = types.stream()
             .flatMap(Converter::converters)
-            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-            .entrySet().stream()
+            .gather(Gatherers.groupingBy(Function.identity(), Collectors.counting()))
             .filter(entry -> entry.getValue() == types.size())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 

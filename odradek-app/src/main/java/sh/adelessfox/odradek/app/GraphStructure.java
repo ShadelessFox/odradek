@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupDa
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
+import sh.adelessfox.odradek.util.Gatherers;
 
 import java.util.*;
 import java.util.function.Function;
@@ -228,17 +229,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 .map(group -> new Group(graph, group))
                 .sorted()
                 .toList();
-            case GraphObjects(var graph) -> {
-                var types = graph.types().stream().collect(Collectors.groupingBy(
-                    Function.identity(),
-                    IdentityHashMap::new,
-                    Collectors.counting()
-                ));
-                yield types.entrySet().stream()
-                    .sorted(Comparator.comparing(x -> x.getKey().name()))
-                    .map(entry -> new GraphObjectSet(graph, entry.getKey(), Math.toIntExact(entry.getValue())))
-                    .toList();
-            }
+            case GraphObjects(var graph) -> graph.types().stream()
+                .gather(Gatherers.groupingBy(Function.identity(), IdentityHashMap::new, Collectors.counting()))
+                .sorted(Comparator.comparing(x -> x.getKey().name()))
+                .map(entry -> new GraphObjectSet(graph, entry.getKey(), Math.toIntExact(entry.getValue())))
+                .toList();
             case GraphObjectSet(var graph, var info, var _) -> graph.groups().stream()
                 .filter(group -> graph.types(group).anyMatch(type -> type == info))
                 .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
@@ -278,19 +273,18 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 .toList();
             case GroupObjects(var graph, var group, var options) -> {
                 if (options.contains(GroupObjects.Option.GROUP_BY_TYPE)) {
-                    var indices = IntStream.range(0, group.typeCount())
-                        .boxed()
-                        .collect(Collectors.groupingBy(
-                            index -> graph.types().get(group.typeStart() + index),
-                            IdentityHashMap::new,
-                            Collectors.toList()
-                        ));
                     var comparator = options.contains(GroupObjects.Option.SORT_BY_COUNT)
                         ? Comparator.comparingInt((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getValue().size()).reversed()
                         : Comparator.comparing((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getKey().name().name());
-                    yield indices.entrySet().stream()
+                    yield IntStream.range(0, group.typeCount())
+                        .boxed()
+                        .gather(Gatherers.groupingBy(
+                            index -> graph.types().get(group.typeStart() + index),
+                            IdentityHashMap::new,
+                            Collectors.toList()))
                         .sorted(comparator)
-                        .map(entry -> new GroupObjectSet(graph,
+                        .map(entry -> new GroupObjectSet(
+                            graph,
                             group,
                             entry.getKey(),
                             entry.getValue().stream().mapToInt(x -> x).toArray()))
