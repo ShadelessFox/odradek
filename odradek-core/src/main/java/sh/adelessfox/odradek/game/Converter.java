@@ -2,9 +2,11 @@ package sh.adelessfox.odradek.game;
 
 import sh.adelessfox.odradek.util.Reflections;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -15,7 +17,12 @@ import java.util.stream.Stream;
  */
 public interface Converter<G extends Game, R> {
     static Stream<Converter<?, ?>> converters() {
-        return ServiceLoader.load(Converter.class).stream().map(x -> (Converter<?, ?>) x.get());
+        class Holder {
+            static final List<Converter<?, ?>> converters = ServiceLoader.load(Converter.class).stream()
+                .map(x -> (Converter<?, ?>) x.get())
+                .collect(Collectors.toUnmodifiableList());
+        }
+        return Holder.converters.stream();
     }
 
     @SuppressWarnings("unchecked")

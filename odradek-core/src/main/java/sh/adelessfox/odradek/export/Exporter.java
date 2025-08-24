@@ -4,12 +4,19 @@ import sh.adelessfox.odradek.util.Reflections;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
+import java.util.List;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface Exporter<T> {
     static Stream<Exporter<?>> exporters() {
-        return ServiceLoader.load(Exporter.class).stream().map(x -> (Exporter<?>) x.get());
+        class Holder {
+            static final List<Exporter<?>> exporters = ServiceLoader.load(Exporter.class).stream()
+                .map(x -> (Exporter<?>) x.get())
+                .collect(Collectors.toUnmodifiableList());
+        }
+        return Holder.exporters.stream();
     }
 
     @SuppressWarnings("unchecked")

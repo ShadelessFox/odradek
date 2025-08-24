@@ -4,8 +4,10 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.util.Reflections;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -16,7 +18,12 @@ import java.util.stream.Stream;
  */
 public interface Renderer<T, G extends Game> {
     static Stream<Renderer<?, ?>> renderers() {
-        return ServiceLoader.load(Renderer.class).stream().map(x -> (Renderer<?, ?>) x.get());
+        class Holder {
+            static final List<Renderer<?, ?>> renderers = ServiceLoader.load(Renderer.class).stream()
+                .map(x -> (Renderer<?, ?>) x.get())
+                .collect(Collectors.toUnmodifiableList());
+        }
+        return Holder.renderers.stream();
     }
 
     @SuppressWarnings("unchecked")

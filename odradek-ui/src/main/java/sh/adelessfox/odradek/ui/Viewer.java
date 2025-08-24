@@ -3,12 +3,19 @@ package sh.adelessfox.odradek.ui;
 import sh.adelessfox.odradek.util.Reflections;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public interface Viewer<T> {
     static Stream<Viewer<?>> viewers() {
-        return ServiceLoader.load(Viewer.class).stream().map(x -> (Viewer<?>) x.get());
+        class Holder {
+            static final List<Viewer<?>> viewers = ServiceLoader.load(Viewer.class).stream()
+                .map(x -> (Viewer<?>) x.get())
+                .collect(Collectors.toUnmodifiableList());
+        }
+        return Holder.viewers.stream();
     }
 
     @SuppressWarnings("unchecked")
