@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.ui.actions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.ui.data.DataContext;
-import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -223,17 +222,23 @@ public final class Actions {
     private static Map<String, ActionDescriptor> loadActions() {
         return ServiceLoader.load(Action.class).stream()
             .map(provider -> ActionDescriptor.unreflect(provider.type(), provider))
-            .gather(Gatherers.ensureDistinct(
-                ActionDescriptor::id,
-                d -> new IllegalArgumentException("Duplicate action ID: " + d.id() + " for " + d.action().getClass())))
             .collect(Collectors.toMap(
                 ActionDescriptor::id,
-                Function.identity()));
+                Function.identity(),
+                (a, b) -> {
+                    throw new IllegalArgumentException("Duplicate action ID '" + a.id()
+                        + "': conflicting definitions are " + a.action().getClass().getName()
+                        + " and " + b.action().getClass().getName());
+                }
+            ));
     }
 
     private static Map<String, List<GroupDescriptor>> loadGroups(Collection<ActionDescriptor> actions) {
-        record ActionInfo(ActionDescriptor action, ActionContribution contribution) {}
-        record GroupInfo(String id, int order, List<ActionInfo> actions) {}
+        record ActionInfo(ActionDescriptor action, ActionContribution contribution) {
+        }
+
+        record GroupInfo(String id, int order, List<ActionInfo> actions) {
+        }
 
         Map<String, Map<String, GroupInfo>> collected = new HashMap<>();
         for (ActionDescriptor action : actions) {
@@ -411,7 +416,8 @@ public final class Actions {
         }
     }
 
-    private record GroupDescriptor(String id, int order, List<ActionDescriptor> actions) implements ActionDescriptorProvider {
+    private record GroupDescriptor(String id, int order,
+                                   List<ActionDescriptor> actions) implements ActionDescriptorProvider {
         @Override
         public List<ActionDescriptor> create(ActionContext context) {
             return actions.stream()
