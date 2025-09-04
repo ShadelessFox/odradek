@@ -58,7 +58,7 @@ public class GraphPresenter implements Presenter<GraphView> {
                 case GraphStructure.Group(var graph, var group) -> graph.types(group).anyMatch(filter::matches);
                 case GraphStructure.GraphObjectSet(_, var info, _) -> filter.matches(info);
                 case GraphStructure.GroupObject object -> filter.matches(object.type());
-                case GraphStructure.GroupObjectSet(_, _, var info, _) -> filter.matches(info);
+                case GraphStructure.GroupedByType<?> groupedByType -> filter.matches(groupedByType.info());
                 default -> true;
             };
         }

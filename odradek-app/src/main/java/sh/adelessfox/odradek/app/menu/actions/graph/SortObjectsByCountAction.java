@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.menu.actions.graph;
 
-import sh.adelessfox.odradek.app.GraphStructure.GroupObjects;
+import sh.adelessfox.odradek.app.GraphStructure.GroupableByType;
 import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -12,13 +12,13 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 public class SortObjectsByCountAction extends AbstractObjectsOptionAction {
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION, GroupObjects.class)
-            .filter(objects -> objects.options().contains(GroupObjects.Option.GROUP_BY_TYPE))
+        return context.get(DataKeys.SELECTION, GroupableByType.class)
+            .filter(objects -> objects.options().contains(GroupableByType.Option.GROUP_BY_TYPE))
             .isPresent();
     }
 
     @Override
-    protected GroupObjects.Option getOption() {
-        return GroupObjects.Option.SORT_BY_COUNT;
+    protected GroupableByType.Option getOption() {
+        return GroupableByType.Option.SORT_BY_COUNT;
     }
 }

@@ -214,8 +214,13 @@ public class StreamingObjectReader extends HFWTypeReader {
         streamingLinkIndex = result.position();
 
         if (info.name().name().equals("StreamingRef")) {
-            // If linkGroup != -1, then it's the id of a group; it's an equivalent of doing graph.group(linkGroup)
-            return new StreamingRef<>(linkGroup, linkIndex);
+            // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
+            if (linkGroup != -1) {
+                return new StreamingRef<>(linkGroup, linkIndex);
+            }
+
+            // No idea how to resolve it otherwise. Likely relies on runtime
+            return null;
         }
 
         GroupResult group;

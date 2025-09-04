@@ -131,13 +131,15 @@ public class GraphView implements View<JComponent> {
                 return Optional.ofNullable(switch (element) {
                     case GraphStructure.Graph _ -> null;
                     case GraphStructure.GraphGroups _, GraphStructure.GraphObjects _ -> Fugue.getIcon("folders-stack");
-                    case GraphStructure.GraphObjectSet _, GraphStructure.GroupObjectSet _ -> Fugue.getIcon("folder-open-document");
-                    case GraphStructure.GraphObjectSetGroup _, GraphStructure.Group _ -> Fugue.getIcon("folders");
-                    case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
+                    case GraphStructure.Group _ -> Fugue.getIcon("folders");
                     case GraphStructure.GroupDependencies _ -> Fugue.getIcon("folder-export");
-                    case GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
-                    case GraphStructure.GroupObjects _ -> Fugue.getIcon("folder-open-document");
+                    case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
                     case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
+                    case GraphStructure.GraphRoots _,
+                         GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
+                    case GraphStructure.GroupableByType<?> _,
+                         GraphStructure.GroupedByType<?> _,
+                         GraphStructure.GraphObjectSet _ -> Fugue.getIcon("folder-open-document");
                 });
             }
         });
