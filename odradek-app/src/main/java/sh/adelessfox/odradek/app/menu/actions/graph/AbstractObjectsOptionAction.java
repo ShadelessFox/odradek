@@ -12,10 +12,10 @@ abstract class AbstractObjectsOptionAction extends Action implements Action.Chec
     @Override
     public void perform(ActionContext context) {
         var tree = context.get(DataKeys.COMPONENT, StructuredTree.class).orElseThrow();
-        var objects = (GroupableByType<?>) context.get(DataKeys.SELECTION, GroupableByType.class).orElseThrow();
+        var groupable = (GroupableByType<?>) context.get(DataKeys.SELECTION, GroupableByType.class).orElseThrow();
 
         var option = getOption();
-        var options = objects.options();
+        var options = groupable.options();
         if (!options.remove(option)) {
             options.add(option);
         }
