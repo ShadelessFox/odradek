@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import static java.nio.file.StandardOpenOption.*;
 
-@ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", keystroke = "ctrl E")
+@ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026\u3000\u3000\u3000Ctrl+E", keystroke = "ctrl E")
 @ActionContribution(parent = ActionIds.GRAPH_MENU_ID)
 @ActionContribution(parent = ActionIds.FILE_MENU_ID, group = "2000,Export")
 public class ExportObjectAction extends Action {
