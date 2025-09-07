@@ -3,14 +3,11 @@ package sh.adelessfox.odradek.app;
 import dagger.BindsInstance;
 import dagger.Component;
 import jakarta.inject.Singleton;
-import sh.adelessfox.odradek.app.component.EventBusModule;
 import sh.adelessfox.odradek.app.component.main.MainPresenter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 
 @Singleton
-@Component(modules = {
-    EventBusModule.class
-})
+@Component(modules = ApplicationModule.class)
 interface ApplicationComponent {
     MainPresenter presenter();
 

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.component.main;
+package sh.adelessfox.odradek.app.editors;
 
 import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
-class ObjectTreeTransferHandler extends TransferHandler {
+class ObjectEditorTransferHandler extends TransferHandler {
     @Override
     protected Transferable createTransferable(JComponent c) {
         var tree = (StructuredTree<?>) c;

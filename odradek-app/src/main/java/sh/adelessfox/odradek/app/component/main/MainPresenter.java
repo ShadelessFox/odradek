@@ -1,54 +1,45 @@
 package sh.adelessfox.odradek.app.component.main;
 
-import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.app.component.graph.GraphPresenter;
 import sh.adelessfox.odradek.app.component.graph.GraphViewEvent;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
-import sh.adelessfox.odradek.ui.Viewer;
-import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.components.tree.TreeItem;
-import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
-import sh.adelessfox.odradek.ui.util.Fugue;
+import sh.adelessfox.odradek.ui.editors.Editor;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.editors.EditorManager.Activation;
 import sh.adelessfox.odradek.util.Futures;
 
 import javax.swing.*;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 public class MainPresenter implements Presenter<MainView> {
-    private static final String PROP_GROUP_ID = "odradek.groupId";
-    private static final String PROP_OBJECT_INDEX = "odradek.objectIndex";
-
     private static final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 
     private final MainView view;
     private final GraphPresenter graphPresenter;
+    private final EditorManager editorManager;
     private final ForbiddenWestGame game;
 
     @Inject
     public MainPresenter(
         ForbiddenWestGame game,
         GraphPresenter graphPresenter,
+        EditorManager editorManager,
         MainView view,
         EventBus eventBus
     ) {
         this.view = view;
         this.game = game;
         this.graphPresenter = graphPresenter;
+        this.editorManager = editorManager;
 
         eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> showObject(event.groupId(), event.objectIndex()));
     }
@@ -68,7 +59,7 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private CompletableFuture<TypedObject> showObjectInfo(int groupId, int objectIndex) {
-        var future = submit(groupId, objectIndex);
+        var future = readGroup(groupId, objectIndex);
         return future.whenComplete((object, exception) -> {
             if (object != null) {
                 SwingUtilities.invokeLater(() -> showObjectInfo(object, groupId, objectIndex));
@@ -82,51 +73,20 @@ public class MainPresenter implements Presenter<MainView> {
         if (revealObjectInfo(groupId, objectIndex)) {
             return;
         }
-
         log.debug("Showing object info for {} (group: {}, index: {})", object.getType(), groupId, objectIndex);
-
-        FlatTabbedPane pane = new FlatTabbedPane();
-        pane.putClientProperty(PROP_GROUP_ID, groupId);
-        pane.putClientProperty(PROP_OBJECT_INDEX, objectIndex);
-        pane.setTabPlacement(SwingConstants.BOTTOM);
-        pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-
-        Converter.converters(object).forEach(converter -> {
-            @SuppressWarnings("unchecked")
-            var clazz = (Class<Object>) converter.resultType();
-            Viewer.viewers(clazz).forEach(viewer -> {
-                var result = converter.convert(object, game);
-                if (result.isEmpty()) {
-                    return;
-                }
-                pane.add(viewer.displayName(), viewer.createPreview(result.get()));
-            });
-        });
-
-        pane.add("Object", new JScrollPane(createObjectTree(game, object)));
-        pane.setSelectedIndex(0);
-
-        FlatTabbedPane tabs = view.getTabs();
-        tabs.add(object.getType().toString(), pane);
-        tabs.setToolTipTextAt(tabs.getTabCount() - 1, "Group: %d\nObject: %d".formatted(groupId, objectIndex));
-        tabs.setSelectedIndex(tabs.getTabCount() - 1);
+        editorManager.openEditor(new ObjectEditorInput(game, object, groupId, objectIndex), Activation.REVEAL_AND_FOCUS);
     }
 
     private boolean revealObjectInfo(int groupId, int objectIndex) {
-        var tabs = view.getTabs();
-        for (int i = 0; i < tabs.getTabCount(); i++) {
-            var tab = (JComponent) tabs.getComponentAt(i);
-            if (Objects.equals(groupId, tab.getClientProperty(PROP_GROUP_ID)) &&
-                Objects.equals(objectIndex, tab.getClientProperty(PROP_OBJECT_INDEX))
-            ) {
-                tabs.setSelectedIndex(i);
-                return true;
-            }
-        }
-        return false;
+        Optional<Editor> editor = editorManager.findEditor(ei ->
+            ei instanceof ObjectEditorInput(_, _, int groupId1, int objectIndex1)
+                && groupId1 == groupId
+                && objectIndex1 == objectIndex);
+        editor.ifPresent(e -> editorManager.openEditor(e.getInput(), Activation.REVEAL_AND_FOCUS));
+        return editor.isPresent();
     }
 
-    private CompletableFuture<TypedObject> submit(int groupId, int objectIndex) {
+    private CompletableFuture<TypedObject> readGroup(int groupId, int objectIndex) {
         var callable = (Callable<TypedObject>) () -> {
             log.debug("Reading group {}", groupId);
             var result = game.getStreamingReader().readGroup(groupId);
@@ -134,32 +94,5 @@ public class MainPresenter implements Presenter<MainView> {
             return object.object();
         };
         return Futures.submit(callable);
-    }
-
-    private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
-        var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
-        tree.setTransferHandler(new ObjectTreeTransferHandler());
-        tree.setLabelProvider(new TreeLabelProvider<>() {
-            @Override
-            public Optional<String> getText(ObjectStructure element) {
-                return Optional.of(element.toString());
-            }
-
-            @Override
-            public Optional<Icon> getIcon(ObjectStructure element) {
-                return Optional.of(Fugue.getIcon("blue-document"));
-            }
-        });
-        tree.addActionListener(event -> {
-            var component = event.getLastPathComponent();
-            if (component instanceof TreeItem<?> wrapper) {
-                component = wrapper.getValue();
-            }
-            if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
-                showObjectInfo(link.get(), link.groupId(), link.objectIndex());
-            }
-        });
-        Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);
-        return tree;
     }
 }
