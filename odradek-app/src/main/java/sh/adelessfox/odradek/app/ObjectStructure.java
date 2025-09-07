@@ -141,12 +141,19 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
     }
 
     static Optional<String> getValueString(ObjectStructure structure) {
-        var renderer = Renderer.renderers(structure.type()).findFirst();
+        var value = structure.value();
+        if (value == null) {
+            return Optional.of("null");
+        }
+
+        var type = structure.type();
+        var renderer = Renderer.renderers(type).findFirst();
 
         if (renderer.isPresent()) {
-            return renderer.flatMap(r -> r.text(structure.type(), structure.value(), structure.game()));
-        } else if (structure.type() instanceof AtomTypeInfo || structure.type() instanceof EnumTypeInfo) {
-            return Optional.of(String.valueOf(structure.value()));
+            return renderer.flatMap(r -> r.text(type, value, structure.game()));
+        } else if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
+            // Special case for primitive values; could become a dedicated renderer later
+            return Optional.of(String.valueOf(value));
         } else {
             // Other types don't deserve a toString representation unless provided explicitly
             return Optional.empty();
