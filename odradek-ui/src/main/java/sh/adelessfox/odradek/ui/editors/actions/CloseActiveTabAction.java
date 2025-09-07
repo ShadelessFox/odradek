@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "&Close", keystroke = "ctrl F4")
-@ActionContribution(parent = EditorActionIds.MENU_ID, order = 1000)
+@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_CLOSE, order = 1000)
 public class CloseActiveTabAction extends Action {
     @Override
     public void perform(ActionContext context) {

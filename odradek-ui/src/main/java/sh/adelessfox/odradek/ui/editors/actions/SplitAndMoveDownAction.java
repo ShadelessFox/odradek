@@ -5,22 +5,16 @@ import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.editors.Editor;
+import sh.adelessfox.odradek.ui.editors.stack.EditorStack;
 
-@ActionRegistration(text = "Close &Other Tabs")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_CLOSE, order = 2000)
-public class CloseOtherTabsAction extends Action {
+@ActionRegistration(text = "Split and Move Down")
+@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_SPLIT, order = 2000)
+public class SplitAndMoveDownAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var manager = context.get(DataKeys.EDITOR_MANAGER).orElseThrow();
-        var editor = context.get(DataKeys.EDITOR).orElseThrow();
         var stack = context.get(DataKeys.EDITOR_STACK).orElseThrow();
-
-        for (Editor other : manager.getEditors(stack)) {
-            if (editor != other) {
-                manager.closeEditor(other);
-            }
-        }
+        var editor = context.get(DataKeys.EDITOR).orElseThrow();
+        stack.move(editor, stack, EditorStack.Position.BOTTOM);
     }
 
     @Override

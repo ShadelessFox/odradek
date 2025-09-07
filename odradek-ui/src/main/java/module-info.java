@@ -34,5 +34,8 @@ module odradek.ui {
     provides sh.adelessfox.odradek.ui.actions.Action with
         sh.adelessfox.odradek.ui.editors.actions.CloseActiveTabAction,
         sh.adelessfox.odradek.ui.editors.actions.CloseAllTabsAction,
-        sh.adelessfox.odradek.ui.editors.actions.CloseOtherTabsAction;
+        sh.adelessfox.odradek.ui.editors.actions.CloseOtherTabsAction,
+        sh.adelessfox.odradek.ui.editors.actions.MoveToOppositeGroupAction,
+        sh.adelessfox.odradek.ui.editors.actions.SplitAndMoveDownAction,
+        sh.adelessfox.odradek.ui.editors.actions.SplitAndMoveRightAction;
 }

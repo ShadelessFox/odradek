@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.editors.stack;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Optional;
 
 /**
  * Hosts a single {@link EditorStack} or a split pane with two {@link EditorStackContainer}s.
@@ -70,7 +71,7 @@ public class EditorStackContainer extends JComponent {
             invalidate();
         }
 
-        EditorStackContainer parent = (EditorStackContainer) SwingUtilities.getAncestorOfClass(EditorStackContainer.class, this);
+        EditorStackContainer parent = getParentContainer();
         if (parent != null) {
             parent.compact();
         }
@@ -97,6 +98,36 @@ public class EditorStackContainer extends JComponent {
     public EditorStackContainer getRightContainer() {
         assert isSplit();
         return (EditorStackContainer) ((JSplitPane) getComponent(0)).getRightComponent();
+    }
+
+    public EditorStackContainer getSplitContainer() {
+        EditorStackContainer container = this;
+        while (container != null && !container.isSplit()) {
+            container = container.getParentContainer();
+        }
+        return container;
+    }
+
+    public Optional<EditorStackContainer> getOpposite(EditorStackContainer container) {
+        EditorStackContainer parent = getSplitContainer();
+        if (parent == null) {
+            return Optional.empty();
+        }
+
+        EditorStackContainer left = parent.getLeftContainer();
+        EditorStackContainer right = parent.getRightContainer();
+
+        if (left == container) {
+            return Optional.of(right);
+        } else if (right == container) {
+            return Optional.of(left);
+        } else {
+            throw new IllegalStateException("Container is not a child of this container");
+        }
+    }
+
+    private EditorStackContainer getParentContainer() {
+        return (EditorStackContainer) SwingUtilities.getAncestorOfClass(EditorStackContainer.class, this);
     }
 
     public void layoutContainer() {
