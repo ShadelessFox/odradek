@@ -55,7 +55,7 @@ public class GraphPresenter implements Presenter<GraphView> {
         int colon = input.indexOf(':');
         if (colon < 0) {
             return s -> switch (s) {
-                case GraphStructure.Group(var graph, var group) -> graph.types(group).anyMatch(filter::matches);
+                case GraphStructure.Group(var graph, var group, _) -> graph.types(group).anyMatch(filter::matches);
                 case GraphStructure.GraphObjectSet(_, var info, _) -> filter.matches(info);
                 case GraphStructure.GroupObject object -> filter.matches(object.type());
                 case GraphStructure.GroupedByType<?> groupedByType -> filter.matches(groupedByType.info());
@@ -67,8 +67,8 @@ public class GraphPresenter implements Presenter<GraphView> {
         var value = input.substring(colon + 1);
         return switch (key) {
             case "has" -> switch (value) {
-                case "subgroups" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.subGroupCount() > 0;
-                case "roots" -> s -> !(s instanceof GraphStructure.Group(_, var group)) || group.rootCount() > 0;
+                case "subgroups" -> s -> !(s instanceof GraphStructure.Group(_, var group, _)) || group.subGroupCount() > 0;
+                case "roots" -> s -> !(s instanceof GraphStructure.Group(_, var group, _)) || group.rootCount() > 0;
                 default -> {
                     log.warn("Unknown selector '{}' for 'has' filter", value);
                     yield _ -> false;
@@ -82,7 +82,7 @@ public class GraphPresenter implements Presenter<GraphView> {
                     log.debug("Expected a number value for the 'group' filter, got {}", value);
                     yield _ -> false;
                 }
-                yield s -> !(s instanceof GraphStructure.Group(_, var group)) || group.groupID() == groupId;
+                yield s -> !(s instanceof GraphStructure.Group(_, var group, var filterable)) || !filterable || group.groupID() == groupId;
             }
             default -> {
                 log.warn("Unknown filter '{}'", input);

@@ -168,7 +168,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record Group(StreamingGraphResource graph, StreamingGroupData group) implements GraphStructure, Comparable<Group> {
+    record Group(StreamingGraphResource graph, StreamingGroupData group, boolean filterable) implements GraphStructure, Comparable<Group> {
         @Override
         public int compareTo(Group o) {
             return Integer.compare(group.groupID(), o.group.groupID());
@@ -349,7 +349,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 new GraphRoots(graph)
             );
             case GraphGroups(var graph) -> graph.groups().stream()
-                .map(group -> new Group(graph, group))
+                .map(group -> new Group(graph, group, true))
                 .sorted()
                 .toList();
             case GraphObjects(var graph) -> graph.types().stream()
@@ -367,7 +367,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                     return new GraphObjectSetGroup(graph, group, indices);
                 })
                 .toList();
-            case Group(var graph, var group) -> List.of(
+            case Group(var graph, var group, _) -> List.of(
                 new GroupObjects(graph, group),
                 new GroupRoots(graph, group),
                 new GroupDependencies(graph, group),
@@ -377,11 +377,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 Arrays.stream(graph.subGroups(), group.subGroupStart(), group.subGroupStart() + group.subGroupCount())
                     .mapToObj(graph::group)
                     .map(Objects::requireNonNull)
-                    .map(subGroup -> new Group(graph, subGroup))
+                    .map(subGroup -> new Group(graph, subGroup, false))
                     .toList();
             case GroupDependents(var graph, var group) -> graph.incomingGroups(group).stream()
                 .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
-                .map(inGroup -> new Group(graph, inGroup))
+                .map(inGroup -> new Group(graph, inGroup, false))
                 .toList();
 
             case GroupableByType<?> groupableByType -> groupableByType.getChildren();
