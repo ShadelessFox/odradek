@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -28,6 +29,7 @@ public class GraphView implements View<JComponent> {
 
     private final StructuredTree<GraphStructure> tree;
     private final JPanel panel;
+    private final ValidationPopup filterValidationPopup;
 
     @Inject
     public GraphView(EventBus eventBus, ForbiddenWestGame game) {
@@ -42,6 +44,8 @@ public class GraphView implements View<JComponent> {
                 tree.requestFocusInWindow();
             }
         });
+
+        filterValidationPopup = new ValidationPopup(filterField);
 
         tree = createGraphTree();
 
@@ -73,6 +77,10 @@ public class GraphView implements View<JComponent> {
 
     public StructuredTree<GraphStructure> getTree() {
         return tree;
+    }
+
+    public ValidationPopup getFilterValidationPopup() {
+        return filterValidationPopup;
     }
 
     private SearchTextField createFilterField() {

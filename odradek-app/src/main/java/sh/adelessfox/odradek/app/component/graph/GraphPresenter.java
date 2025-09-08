@@ -1,18 +1,18 @@
 package sh.adelessfox.odradek.app.component.graph;
 
 import jakarta.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
+import sh.adelessfox.odradek.ui.components.ValidationPopup;
+import sh.adelessfox.odradek.util.Result;
 
 import java.util.function.Predicate;
 
+@Singleton
 public class GraphPresenter implements Presenter<GraphView> {
-    private static final Logger log = LoggerFactory.getLogger(GraphPresenter.class);
-
     private final GraphView view;
 
     @Inject
@@ -22,11 +22,24 @@ public class GraphPresenter implements Presenter<GraphView> {
     ) {
         this.view = view;
 
+        // TODO: Update the selection model as well
         eventBus.subscribe(GraphViewEvent.UpdateFilter.class, event -> {
             var treeModel = view.getTree().getModel();
-            treeModel.setFilter(createFilter(event.query(), event.matchCase(), event.matchWholeWord()));
-            treeModel.update();
-            // TODO: Update the selection model as well
+            var filter = createFilter(event.query(), event.matchCase(), event.matchWholeWord());
+            var validation = view.getFilterValidationPopup();
+
+            switch (filter) {
+                case Result.Error(var message) -> {
+                    validation.setMessage(message);
+                    validation.setSeverity(ValidationPopup.Severity.ERROR);
+                    validation.setVisible(true);
+                }
+                case Result.Ok(var predicate) -> {
+                    validation.setVisible(false);
+                    treeModel.setFilter(predicate);
+                    treeModel.update();
+                }
+            }
         });
     }
 
@@ -39,55 +52,56 @@ public class GraphPresenter implements Presenter<GraphView> {
         view.getTree().setEnabled(!busy);
     }
 
-    private static Predicate<GraphStructure> createFilter(String input, boolean matchCase, boolean matchWholeWord) {
+    private static Result<Predicate<GraphStructure>, String> createFilter(String input, boolean matchCase, boolean matchWholeWord) {
         if (input.isBlank()) {
-            return null;
+            return Result.ok(null);
         }
-        Predicate<GraphStructure> predicate = _ -> false;
+        Predicate<GraphStructure> result = null;
         for (String part : input.split("\\s+")) {
             var filter = new Filter(part, matchCase, matchWholeWord);
-            predicate = predicate.or(createFilterPart(part, filter));
+            var other = createFilterPart(part, filter);
+            if (other.isError()) {
+                return other;
+            }
+            if (result == null) {
+                result = other.ok().orElseThrow();
+            } else {
+                result = result.or(other.ok().orElseThrow());
+            }
         }
-        return predicate;
+        return Result.ok(result);
     }
 
-    private static Predicate<GraphStructure> createFilterPart(String input, Filter filter) {
+    private static Result<Predicate<GraphStructure>, String> createFilterPart(String input, Filter filter) {
         int colon = input.indexOf(':');
         if (colon < 0) {
-            return s -> switch (s) {
+            return Result.ok(s -> switch (s) {
                 case GraphStructure.Group(var graph, var group, _) -> graph.types(group).anyMatch(filter::matches);
                 case GraphStructure.GraphObjectSet(_, var info, _) -> filter.matches(info);
                 case GraphStructure.GroupObject object -> filter.matches(object.type());
                 case GraphStructure.GroupedByType<?> groupedByType -> filter.matches(groupedByType.info());
                 default -> true;
-            };
+            });
         }
 
         var key = input.substring(0, colon);
         var value = input.substring(colon + 1);
         return switch (key) {
             case "has" -> switch (value) {
-                case "subgroups" -> s -> !(s instanceof GraphStructure.Group(_, var group, _)) || group.subGroupCount() > 0;
-                case "roots" -> s -> !(s instanceof GraphStructure.Group(_, var group, _)) || group.rootCount() > 0;
-                default -> {
-                    log.warn("Unknown selector '{}' for 'has' filter", value);
-                    yield _ -> false;
-                }
+                case "subgroups" -> Result.ok(s -> !(s instanceof GraphStructure.Group(_, var group, _)) || group.subGroupCount() > 0);
+                case "roots" -> Result.ok(s -> !(s instanceof GraphStructure.Group(_, var group, _)) || group.rootCount() > 0);
+                default -> Result.error("Unknown selector '%s' for 'has' filter".formatted(value));
             };
             case "group" -> {
                 int groupId;
                 try {
                     groupId = Integer.parseInt(value);
                 } catch (NumberFormatException ignored) {
-                    log.debug("Expected a number value for the 'group' filter, got {}", value);
-                    yield _ -> false;
+                    yield Result.error("Expected a number value for the 'group' filter, got '%s'".formatted(value));
                 }
-                yield s -> !(s instanceof GraphStructure.Group(_, var group, var filterable)) || !filterable || group.groupID() == groupId;
+                yield Result.ok(s -> !(s instanceof GraphStructure.Group(_, var group, var filterable)) || !filterable || group.groupID() == groupId);
             }
-            default -> {
-                log.warn("Unknown filter '{}'", input);
-                yield _ -> false;
-            }
+            default -> Result.error("Unknown filter '%s'".formatted(input));
         };
     }
 

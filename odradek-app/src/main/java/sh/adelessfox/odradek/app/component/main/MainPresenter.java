@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.component.main;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ObjectStructure;
@@ -29,6 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
+@Singleton
 public class MainPresenter implements Presenter<MainView> {
     private static final String PROP_GROUP_ID = "odradek.groupId";
     private static final String PROP_OBJECT_INDEX = "odradek.objectIndex";
