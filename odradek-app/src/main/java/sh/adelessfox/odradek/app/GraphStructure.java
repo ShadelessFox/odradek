@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
-    abstract sealed class GroupableByType<K> implements GraphStructure {
+    abstract sealed class GroupableByType<K> {
         public enum Option {
             GROUP_BY_TYPE,
             SORT_BY_COUNT
@@ -125,7 +125,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    final class GraphObjectSetGroup extends GroupableByType<Integer> {
+    final class GraphObjectSetGroup extends GroupableByType<Integer> implements GraphStructure {
         private final StreamingGroupData group;
         private final int[] indices;
 
@@ -205,7 +205,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    final class GroupObjects extends GroupableByType<Integer> {
+    final class GroupObjects extends GroupableByType<Integer> implements GraphStructure {
         private final StreamingGroupData group;
 
         public GroupObjects(StreamingGraphResource graph, StreamingGroupData group) {
@@ -245,7 +245,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    final class GroupRoots extends GroupableByType<Integer> {
+    final class GroupRoots extends GroupableByType<Integer> implements GraphStructure {
         private final StreamingGroupData group;
 
         public GroupRoots(StreamingGraphResource graph, StreamingGroupData group) {
@@ -309,7 +309,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    final class GraphRoots extends GroupableByType<Integer> {
+    final class GraphRoots extends GroupableByType<Integer> implements GraphStructure {
         GraphRoots(StreamingGraphResource graph) {
             super(graph);
         }
