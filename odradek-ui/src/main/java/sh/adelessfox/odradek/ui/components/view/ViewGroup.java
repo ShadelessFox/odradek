@@ -31,6 +31,15 @@ final class ViewGroup {
         return info;
     }
 
+    ViewInfo findView(View view) {
+        for (ViewInfo info : views) {
+            if (info.view() == view) {
+                return info;
+            }
+        }
+        return null;
+    }
+
     boolean selectView(ViewInfo info) {
         if (selection == info) {
             return false;
@@ -52,14 +61,5 @@ final class ViewGroup {
 
     JComponent getComponent() {
         return panel;
-    }
-
-    private ViewInfo findView(View view) {
-        for (ViewInfo info : views) {
-            if (info.view() == view) {
-                return info;
-            }
-        }
-        return null;
     }
 }

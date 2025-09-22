@@ -23,7 +23,7 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent> {
+public class GraphView implements View<JComponent>, sh.adelessfox.odradek.ui.components.view.View {
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
 
@@ -61,6 +61,7 @@ public class GraphView implements View<JComponent> {
         panel = new JPanel(new BorderLayout());
         panel.add(filterField, BorderLayout.NORTH);
         panel.add(treeScrollPane, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(300, 300));
 
         Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, key -> {
             if (DataKeys.GAME.is(key)) {
@@ -68,6 +69,21 @@ public class GraphView implements View<JComponent> {
             }
             return tree.get(key);
         });
+    }
+
+    @Override
+    public JComponent createComponent() {
+        return panel;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return tree.isFocusOwner();
+    }
+
+    @Override
+    public void setFocus() {
+        tree.requestFocusInWindow();
     }
 
     @Override

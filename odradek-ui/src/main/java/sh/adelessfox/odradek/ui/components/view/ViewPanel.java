@@ -66,10 +66,6 @@ public final class ViewPanel extends JPanel {
         addView(text, icon, view, false);
     }
 
-    public void selectView(View view, boolean select) {
-        // TODO don't forget about button selection
-    }
-
     private void addView(String text, Icon icon, View view, boolean primary) {
         var viewGroup = primary ? primaryGroup : secondaryGroup;
         var viewInfo = viewGroup.addView(view);
@@ -89,6 +85,28 @@ public final class ViewPanel extends JPanel {
         if (buttonsPanel.getComponentCount() != separatorIndex) {
             buttonsPanel.add(new JSeparator(), "growx", separatorIndex);
         }
+    }
+
+    public void showView(View view) {
+        selectView(view, true);
+    }
+
+    public void hideView(View view) {
+        selectView(view, false);
+    }
+
+    private void selectView(View view, boolean select) {
+        ViewInfo info = primaryGroup.findView(view);
+        if (info != null) {
+            selectView(primaryGroup, info, select);
+            return;
+        }
+        info = secondaryGroup.findView(view);
+        if (info != null) {
+            selectView(secondaryGroup, info, select);
+            return;
+        }
+        throw new IllegalArgumentException("View does not belong to this panel");
     }
 
     private void selectView(ViewGroup group, ViewInfo info, boolean select) {
