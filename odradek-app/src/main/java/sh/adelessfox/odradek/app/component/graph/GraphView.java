@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
+import sh.adelessfox.odradek.ui.components.toolwindow.ToolWindowPane;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -23,7 +24,7 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent> {
+public class GraphView implements View<JComponent>, ToolWindowPane {
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
 
@@ -61,6 +62,7 @@ public class GraphView implements View<JComponent> {
         panel = new JPanel(new BorderLayout());
         panel.add(filterField, BorderLayout.NORTH);
         panel.add(treeScrollPane, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(300, 300));
 
         Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, key -> {
             if (DataKeys.GAME.is(key)) {
@@ -68,6 +70,21 @@ public class GraphView implements View<JComponent> {
             }
             return tree.get(key);
         });
+    }
+
+    @Override
+    public JComponent createComponent() {
+        return panel;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return tree.isFocusOwner();
+    }
+
+    @Override
+    public void setFocus() {
+        tree.requestFocusInWindow();
     }
 
     @Override

@@ -21,6 +21,10 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-rtti</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.miglayout</groupId>
+            <artifactId>miglayout-swing</artifactId>
+        </dependency>
 
         <!-- External dependencies -->
         <dependency>
