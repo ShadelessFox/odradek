@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.components.view;
+package sh.adelessfox.odradek.ui.components.toolwindow;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.UIScale;
@@ -10,15 +10,15 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-final class ViewButton extends JComponent {
-    private final ViewGroup group;
-    private final ViewInfo info;
+final class ToolWindowButton extends JComponent {
+    private final ToolWindowGroup group;
+    private final ToolWindowInfo info;
     private final Icon icon;
 
     private boolean rollover;
     private boolean armed;
 
-    ViewButton(ViewGroup group, ViewInfo info, Icon icon, Runnable clicked) {
+    ToolWindowButton(ToolWindowGroup group, ToolWindowInfo info, Icon icon, Runnable clicked) {
         this.group = group;
         this.info = info;
         this.icon = icon;

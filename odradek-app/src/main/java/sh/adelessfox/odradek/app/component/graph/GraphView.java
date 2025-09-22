@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
+import sh.adelessfox.odradek.ui.components.toolwindow.ToolWindowPane;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -23,7 +24,7 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent>, sh.adelessfox.odradek.ui.components.view.View {
+public class GraphView implements View<JComponent>, ToolWindowPane {
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
 

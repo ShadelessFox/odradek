@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.app.component.common.View;
 import sh.adelessfox.odradek.app.component.graph.GraphView;
 import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.view.ViewPanel;
+import sh.adelessfox.odradek.ui.components.toolwindow.ToolWindowPanel;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
@@ -19,17 +19,17 @@ import java.util.Optional;
 
 @Singleton
 public class MainView implements View<JComponent> {
-    private final ViewPanel root;
+    private final ToolWindowPanel root;
     private final FlatTabbedPane tabs;
 
     @Inject
     public MainView(GraphView graphView) {
         tabs = createTabsPane();
 
-        root = new ViewPanel(ViewPanel.Placement.LEFT);
-        root.addPrimaryView("Object graph", Fugue.getIcon("blue-document"), graphView);
+        root = new ToolWindowPanel(ToolWindowPanel.Placement.LEFT);
+        root.addPrimaryPane("Object graph", Fugue.getIcon("blue-document"), graphView);
         root.setContent(tabs);
-        root.showView(graphView);
+        root.showPane(graphView);
 
         Actions.installContextMenu(tabs, ActionIds.TABS_MENU_ID, key -> {
             if (DataKeys.COMPONENT.is(key)) {

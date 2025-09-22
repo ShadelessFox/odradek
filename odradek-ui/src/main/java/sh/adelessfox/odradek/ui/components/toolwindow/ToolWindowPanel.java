@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.components.view;
+package sh.adelessfox.odradek.ui.components.toolwindow;
 
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.Focusable;
@@ -14,15 +14,15 @@ import java.util.List;
  * A panel with buttons on either sides that reveal contents when clicked.
  * Clicking on an already selected button will unselect it and hide the contents.
  */
-public final class ViewPanel extends JPanel {
+public final class ToolWindowPanel extends JPanel {
     private final Splitter groupSplitter = new Splitter(true); // splitter between primary and secondary groups
     private final Splitter outerSplitter = new Splitter(false); // splitter between the panel and contents
     private final JPanel buttonsPanel;
 
-    private final List<ViewButton> primaryButtons = new ArrayList<>();
-    private final List<ViewButton> secondaryButtons = new ArrayList<>();
-    private final ViewGroup primaryGroup = new ViewGroup();
-    private final ViewGroup secondaryGroup = new ViewGroup();
+    private final List<ToolWindowButton> primaryButtons = new ArrayList<>();
+    private final List<ToolWindowButton> secondaryButtons = new ArrayList<>();
+    private final ToolWindowGroup primaryGroup = new ToolWindowGroup();
+    private final ToolWindowGroup secondaryGroup = new ToolWindowGroup();
     private final Placement placement;
 
     public enum Placement {
@@ -30,7 +30,7 @@ public final class ViewPanel extends JPanel {
         RIGHT
     }
 
-    public ViewPanel(Placement placement) {
+    public ToolWindowPanel(Placement placement) {
         this.placement = placement;
         this.buttonsPanel = createButtonPane(placement);
 
@@ -58,20 +58,20 @@ public final class ViewPanel extends JPanel {
         }
     }
 
-    public void addPrimaryView(String text, Icon icon, View view) {
-        addView(text, icon, view, true);
+    public void addPrimaryPane(String text, Icon icon, ToolWindowPane pane) {
+        addView(text, icon, pane, true);
     }
 
-    public void addSecondaryView(String text, Icon icon, View view) {
-        addView(text, icon, view, false);
+    public void addSecondaryPane(String text, Icon icon, ToolWindowPane pane) {
+        addView(text, icon, pane, false);
     }
 
-    private void addView(String text, Icon icon, View view, boolean primary) {
-        var viewGroup = primary ? primaryGroup : secondaryGroup;
-        var viewInfo = viewGroup.addView(view);
+    private void addView(String text, Icon icon, ToolWindowPane pane, boolean primary) {
+        var paneGroup = primary ? primaryGroup : secondaryGroup;
+        var paneInfo = paneGroup.addPane(pane);
 
-        var callback = (Runnable) () -> selectView(viewGroup, viewInfo, !viewGroup.isSelected(viewInfo));
-        var button = new ViewButton(viewGroup, viewInfo, icon, callback);
+        var callback = (Runnable) () -> selectPane(paneGroup, paneInfo, !paneGroup.isSelected(paneInfo));
+        var button = new ToolWindowButton(paneGroup, paneInfo, icon, callback);
         button.setToolTipText(text);
 
         var buttonGroup = primary ? primaryButtons : secondaryButtons;
@@ -87,30 +87,30 @@ public final class ViewPanel extends JPanel {
         }
     }
 
-    public void showView(View view) {
-        selectView(view, true);
+    public void showPane(ToolWindowPane pane) {
+        selectPane(pane, true);
     }
 
-    public void hideView(View view) {
-        selectView(view, false);
+    public void hidePane(ToolWindowPane pane) {
+        selectPane(pane, false);
     }
 
-    private void selectView(View view, boolean select) {
-        ViewInfo info = primaryGroup.findView(view);
+    private void selectPane(ToolWindowPane pane, boolean select) {
+        ToolWindowInfo info = primaryGroup.findPane(pane);
         if (info != null) {
-            selectView(primaryGroup, info, select);
+            selectPane(primaryGroup, info, select);
             return;
         }
-        info = secondaryGroup.findView(view);
+        info = secondaryGroup.findPane(pane);
         if (info != null) {
-            selectView(secondaryGroup, info, select);
+            selectPane(secondaryGroup, info, select);
             return;
         }
-        throw new IllegalArgumentException("View does not belong to this panel");
+        throw new IllegalArgumentException("Pane does not belong to this panel");
     }
 
-    private void selectView(ViewGroup group, ViewInfo info, boolean select) {
-        if (!group.selectView(select ? info : null)) {
+    private void selectPane(ToolWindowGroup group, ToolWindowInfo info, boolean select) {
+        if (!group.selectPane(select ? info : null)) {
             return;
         }
 
@@ -127,7 +127,7 @@ public final class ViewPanel extends JPanel {
         }
 
         if (select) {
-            info.view().setFocus();
+            info.pane().setFocus();
         } else if (getContent() instanceof Focusable focusable) {
             focusable.setFocus();
         }
@@ -229,31 +229,31 @@ public final class ViewPanel extends JPanel {
                     Object oldValue = e.getOldValue();
                     Object newValue = e.getNewValue();
                     if (oldValue instanceof Component component) {
-                        repaintSelectedViewButtons(component);
+                        repaintSelectedPaneButtons(component);
                     }
                     if (newValue instanceof Component component) {
-                        repaintSelectedViewButtons(component);
+                        repaintSelectedPaneButtons(component);
                     }
                 }
                 case "activeWindow" -> {
                     Component permanentFocusOwner = keyboardFocusManager.getPermanentFocusOwner();
                     if (permanentFocusOwner != null) {
-                        repaintSelectedViewButtons(permanentFocusOwner);
+                        repaintSelectedPaneButtons(permanentFocusOwner);
                     }
                 }
             }
         }
 
-        private static void repaintSelectedViewButtons(Component c) {
-            if (c instanceof ViewPanel panel) {
-                repaintSelectedViewButton(panel);
+        private static void repaintSelectedPaneButtons(Component c) {
+            if (c instanceof ToolWindowPanel panel) {
+                repaintSelectedPaneButton(panel);
             }
-            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ViewPanel.class, c2)) != null; ) {
-                repaintSelectedViewButton((ViewPanel) c2);
+            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolWindowPanel.class, c2)) != null; ) {
+                repaintSelectedPaneButton((ToolWindowPanel) c2);
             }
         }
 
-        private static void repaintSelectedViewButton(ViewPanel panel) {
+        private static void repaintSelectedPaneButton(ToolWindowPanel panel) {
             panel.buttonsPanel.repaint();
         }
     }
