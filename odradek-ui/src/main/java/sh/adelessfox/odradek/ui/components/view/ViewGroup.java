@@ -42,6 +42,10 @@ final class ViewGroup {
         return true;
     }
 
+    boolean isSelected(ViewInfo info) {
+        return selection == info;
+    }
+
     boolean hasSelection() {
         return selection != null;
     }

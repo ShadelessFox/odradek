@@ -2,28 +2,31 @@ package sh.adelessfox.odradek.ui.components.view;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.UIScale;
-import sh.adelessfox.odradek.ui.util.Listeners;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public final class ViewButton extends JComponent {
-    private final Listeners<ActionListener> actionListeners = new Listeners<>(ActionListener.class);
+final class ViewButton extends JComponent {
+    private final ViewGroup group;
+    private final ViewInfo info;
+    private final Icon icon;
 
-    private String text;
-    private Icon icon;
     private boolean rollover;
+    private boolean armed;
 
-    ViewButton(ViewGroup group, ViewInfo info) {
-        Handler handler = new Handler();
+    ViewButton(ViewGroup group, ViewInfo info, Icon icon, Runnable clicked) {
+        this.group = group;
+        this.info = info;
+        this.icon = icon;
+
+        Handler handler = new Handler(clicked);
         addMouseListener(handler);
-
-        setText(text);
-        setIcon(icon);
+        addFocusListener(handler);
+        setFocusable(true);
     }
 
     @Override
@@ -34,13 +37,17 @@ public final class ViewButton extends JComponent {
 
             int arc = UIScale.scale(10);
             Color defaultColor = UIManager.getColor("Button.default.hoverBackground");
-            Color hoverColor = UIManager.getColor("Button.default.pressedBackground");
-            Color accentColor = UIManager.getColor("Component.accentColor");
+            Color rolloverColor = UIManager.getColor("Button.default.pressedBackground");
+            Color selectionColor = UIManager.getColor("Button.selectedBackground");
+            Color focusSelectionColor = UIManager.getColor("Button.default.borderColor");
 
-            g2.setColor(rollover ? hoverColor : defaultColor);
+            boolean isRollover = rollover;
+            boolean isSelected = group.isSelected(info);
+            boolean isFocused = isButtonOrChildFocused();
+
+            g2.setColor(isSelected ? (isFocused ? focusSelectionColor : selectionColor) : isRollover ? rolloverColor : defaultColor);
             g2.fillRoundRect(4, 4, 24, 24, arc, arc);
 
-            Icon icon = getIcon();
             if (icon != null) {
                 icon.paintIcon(this, g2, 16 - icon.getIconWidth() / 2, 16 - icon.getIconHeight() / 2);
             }
@@ -64,31 +71,42 @@ public final class ViewButton extends JComponent {
         return getPreferredSize();
     }
 
-    public void addActionListener(ActionListener listener) {
-        actionListeners.add(listener);
+    private boolean isButtonOrChildFocused() {
+        KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        Component focusOwner = keyboardFocusManager.getPermanentFocusOwner();
+        return focusOwner != null
+            && SwingUtilities.isDescendingFrom(focusOwner, group.getComponent())
+            && isInActiveWindow(focusOwner, keyboardFocusManager.getActiveWindow());
     }
 
-    public String getText() {
-        return text;
+    static boolean isInActiveWindow(Component c, Window activeWindow) {
+        Window window = SwingUtilities.windowForComponent(c);
+        return window == activeWindow
+            || window != null && window.getType() == Window.Type.POPUP && window.getOwner() == activeWindow;
     }
 
-    public void setText(String text) {
-        String oldValue = this.text;
-        this.text = text;
-        firePropertyChange("text", oldValue, text);
-    }
+    private class Handler extends MouseAdapter implements FocusListener {
+        private final Runnable clicked;
 
-    public Icon getIcon() {
-        return icon;
-    }
+        public Handler(Runnable clicked) {
+            this.clicked = clicked;
+        }
 
-    public void setIcon(Icon icon) {
-        Icon oldValue = this.icon;
-        this.icon = icon;
-        firePropertyChange("icon", oldValue, icon);
-    }
+        @Override
+        public void mousePressed(MouseEvent e) {
+            armed = true;
+            repaint();
+        }
 
-    private class Handler extends MouseAdapter {
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (armed && rollover) {
+                clicked.run();
+            }
+            armed = false;
+            repaint();
+        }
+
         @Override
         public void mouseEntered(MouseEvent e) {
             rollover = true;
@@ -102,15 +120,13 @@ public final class ViewButton extends JComponent {
         }
 
         @Override
-        public void mouseClicked(MouseEvent e) {
-            ActionEvent event = new ActionEvent(
-                this,
-                ActionEvent.ACTION_PERFORMED,
-                null,
-                EventQueue.getMostRecentEventTime(),
-                0
-            );
-            actionListeners.broadcast().actionPerformed(event);
+        public void focusGained(FocusEvent e) {
+            repaint();
+        }
+
+        @Override
+        public void focusLost(FocusEvent e) {
+            repaint();
         }
     }
 }

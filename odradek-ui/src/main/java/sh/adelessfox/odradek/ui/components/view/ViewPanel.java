@@ -1,11 +1,14 @@
 package sh.adelessfox.odradek.ui.components.view;
 
-import com.formdev.flatlaf.extras.components.FlatButton;
-import com.formdev.flatlaf.extras.components.FlatToggleButton;
 import net.miginfocom.swing.MigLayout;
+import sh.adelessfox.odradek.ui.Focusable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A panel with buttons on either sides that reveal contents when clicked.
@@ -16,8 +19,8 @@ public final class ViewPanel extends JPanel {
     private final Splitter outerSplitter = new Splitter(false); // splitter between the panel and contents
     private final JPanel buttonsPanel;
 
-    private final ToggleButtonGroup primaryButtonGroup = new ToggleButtonGroup();
-    private final ToggleButtonGroup secondaryButtonGroup = new ToggleButtonGroup();
+    private final List<ViewButton> primaryButtons = new ArrayList<>();
+    private final List<ViewButton> secondaryButtons = new ArrayList<>();
     private final ViewGroup primaryGroup = new ViewGroup();
     private final ViewGroup secondaryGroup = new ViewGroup();
     private final Placement placement;
@@ -37,6 +40,15 @@ public final class ViewPanel extends JPanel {
             case LEFT -> BorderLayout.WEST;
             case RIGHT -> BorderLayout.EAST;
         });
+
+        ButtonRepainter.install();
+    }
+
+    public JComponent getContent() {
+        return switch (placement) {
+            case LEFT -> outerSplitter.getSecondComponent();
+            case RIGHT -> outerSplitter.getFirstComponent();
+        };
     }
 
     public void setContent(JComponent content) {
@@ -62,21 +74,18 @@ public final class ViewPanel extends JPanel {
         var viewGroup = primary ? primaryGroup : secondaryGroup;
         var viewInfo = viewGroup.addView(view);
 
-        var buttonGroup = primary ? primaryButtonGroup : secondaryButtonGroup;
-        var button = createButton(text, icon);
+        var callback = (Runnable) () -> selectView(viewGroup, viewInfo, !viewGroup.isSelected(viewInfo));
+        var button = new ViewButton(viewGroup, viewInfo, icon, callback);
+        button.setToolTipText(text);
 
-        button.addActionListener(_ -> selectView(viewGroup, viewInfo, buttonGroup.getSelection() != null));
+        var buttonGroup = primary ? primaryButtons : secondaryButtons;
         buttonGroup.add(button);
 
         // TODO: Find a better way to insert a separator when both groups are present
         buttonsPanel.removeAll();
-        for (var e = primaryButtonGroup.getElements(); e.hasMoreElements(); ) {
-            buttonsPanel.add(e.nextElement());
-        }
+        primaryButtons.forEach(buttonsPanel::add);
         int separatorIndex = buttonsPanel.getComponentCount();
-        for (var e = secondaryButtonGroup.getElements(); e.hasMoreElements(); ) {
-            buttonsPanel.add(e.nextElement());
-        }
+        secondaryButtons.forEach(buttonsPanel::add);
         if (buttonsPanel.getComponentCount() != separatorIndex) {
             buttonsPanel.add(new JSeparator(), "growx", separatorIndex);
         }
@@ -98,6 +107,12 @@ public final class ViewPanel extends JPanel {
             case LEFT -> outerSplitter.setFirstComponent(content);
             case RIGHT -> outerSplitter.setSecondComponent(content);
         }
+
+        if (select) {
+            info.view().setFocus();
+        } else if (getContent() instanceof Focusable focusable) {
+            focusable.setFocus();
+        }
     }
 
     private static JPanel createButtonPane(Placement placement) {
@@ -113,36 +128,6 @@ public final class ViewPanel extends JPanel {
         return panel;
     }
 
-    private AbstractButton createButton(String text, Icon icon) {
-        var underlinePlacement = switch (placement) {
-            case LEFT -> SwingConstants.RIGHT;
-            case RIGHT -> SwingConstants.LEFT;
-        };
-
-        var button = new FlatToggleButton();
-        button.setIcon(icon);
-        button.setToolTipText(text);
-        button.setButtonType(FlatButton.ButtonType.tab);
-        button.setTabUnderlinePlacement(underlinePlacement);
-        button.setMinimumSize(new Dimension(32, 32));
-
-        return button;
-    }
-
-    /**
-     * A button group that clears the selection when selecting an already selected button.
-     */
-    private static final class ToggleButtonGroup extends ButtonGroup {
-        @Override
-        public void setSelected(ButtonModel m, boolean b) {
-            if (isSelected(m) && !b) {
-                super.clearSelection();
-            } else if (b) {
-                super.setSelected(m, true);
-            }
-        }
-    }
-
     private static final class Splitter extends JPanel {
         private final JSplitPane pane;
         private JComponent firstComponent;
@@ -156,11 +141,19 @@ public final class ViewPanel extends JPanel {
             setLayout(new BorderLayout());
         }
 
+        JComponent getFirstComponent() {
+            return firstComponent;
+        }
+
         void setFirstComponent(JComponent component) {
             if (this.firstComponent != component) {
                 expand(component, true);
                 this.firstComponent = component;
             }
+        }
+
+        JComponent getSecondComponent() {
+            return secondComponent;
         }
 
         void setSecondComponent(JComponent component) {
@@ -190,6 +183,60 @@ public final class ViewPanel extends JPanel {
             }
 
             revalidate();
+        }
+    }
+
+    private static class ButtonRepainter implements PropertyChangeListener {
+        private static ButtonRepainter instance;
+        private final KeyboardFocusManager keyboardFocusManager;
+
+        static void install() {
+            synchronized (ButtonRepainter.class) {
+                if (instance != null) {
+                    return;
+                }
+                instance = new ButtonRepainter();
+            }
+        }
+
+        ButtonRepainter() {
+            keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            keyboardFocusManager.addPropertyChangeListener(this);
+        }
+
+        @Override
+        public void propertyChange(PropertyChangeEvent e) {
+            switch (e.getPropertyName()) {
+                case "permanentFocusOwner" -> {
+                    Object oldValue = e.getOldValue();
+                    Object newValue = e.getNewValue();
+                    if (oldValue instanceof Component component) {
+                        repaintSelectedViewButtons(component);
+                    }
+                    if (newValue instanceof Component component) {
+                        repaintSelectedViewButtons(component);
+                    }
+                }
+                case "activeWindow" -> {
+                    Component permanentFocusOwner = keyboardFocusManager.getPermanentFocusOwner();
+                    if (permanentFocusOwner != null) {
+                        repaintSelectedViewButtons(permanentFocusOwner);
+                    }
+                }
+            }
+        }
+
+        private static void repaintSelectedViewButtons(Component c) {
+            if (c instanceof ViewPanel panel) {
+                repaintSelectedViewButton(panel);
+            }
+            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ViewPanel.class, c2)) != null; ) {
+                repaintSelectedViewButton((ViewPanel) c2);
+            }
+        }
+
+        private static void repaintSelectedViewButton(ViewPanel panel) {
+            panel.buttonsPanel.repaint();
         }
     }
 }
