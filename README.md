@@ -14,7 +14,7 @@ Prerequisites:
 
 Open the terminal and execute the following commands:
 1. `git clone https://github.com/ShadelessFox/odradek`
-2. `cd decima`
+2. `cd odradek`
 3. `./mvnw clean package`
 
 Ready-to-use distributions can be found under the `odradek-app/target/dist` directory.
