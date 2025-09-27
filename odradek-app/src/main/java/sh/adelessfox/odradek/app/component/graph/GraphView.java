@@ -162,8 +162,8 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
                     case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
                     case GraphStructure.GraphRoots _,
                          GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
-                    case GraphStructure.GroupableByType<?> _,
-                         GraphStructure.GroupedByType<?> _,
+                    case GraphStructure.GroupableByType _,
+                         GraphStructure.GroupedByType _,
                          GraphStructure.GraphObjectSet _ -> Fugue.getIcon("folder-open-document");
                 });
             }
