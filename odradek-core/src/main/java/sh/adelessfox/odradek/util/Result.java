@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.util;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -32,6 +33,10 @@ sealed public interface Result<T, E> {
     T orElseGet(Supplier<? extends T> supplier);
 
     record Ok<T, E>(T value) implements Result<T, E> {
+        public Ok {
+            Objects.requireNonNull(value);
+        }
+
         @Override
         public boolean isOk() {
             return true;
@@ -80,6 +85,10 @@ sealed public interface Result<T, E> {
     }
 
     record Error<T, E>(E value) implements Result<T, E> {
+        public Error {
+            Objects.requireNonNull(value);
+        }
+
         @Override
         public boolean isOk() {
             return false;

@@ -9,6 +9,8 @@ import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.util.Result;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 @Singleton
@@ -29,15 +31,15 @@ public class GraphPresenter implements Presenter<GraphView> {
             var validation = view.getFilterValidationPopup();
 
             switch (filter) {
-                case Result.Error(var message) -> {
-                    validation.setMessage(message);
-                    validation.setSeverity(ValidationPopup.Severity.ERROR);
-                    validation.setVisible(true);
-                }
                 case Result.Ok(var predicate) -> {
                     validation.setVisible(false);
                     treeModel.setFilter(predicate);
                     treeModel.update();
+                }
+                case Result.Error(var message) -> {
+                    validation.setMessage(message);
+                    validation.setSeverity(ValidationPopup.Severity.ERROR);
+                    validation.setVisible(true);
                 }
             }
         });
@@ -56,20 +58,20 @@ public class GraphPresenter implements Presenter<GraphView> {
         if (input.isBlank()) {
             return Result.ok(null);
         }
-        Predicate<GraphStructure> result = null;
+        List<Predicate<GraphStructure>> predicates = new ArrayList<>();
         for (String part : input.split("\\s+")) {
             var filter = new Filter(part, matchCase, matchWholeWord);
             var other = createFilterPart(part, filter);
-            if (other.isError()) {
+            if (other instanceof Result.Ok(var predicate)) {
+                predicates.add(predicate);
+            } else {
                 return other;
             }
-            if (result == null) {
-                result = other.ok().orElseThrow();
-            } else {
-                result = result.or(other.ok().orElseThrow());
-            }
         }
-        return Result.ok(result);
+        Predicate<GraphStructure> predicate = predicates.stream()
+            .reduce(Predicate::or)
+            .orElse(null);
+        return Result.ok(predicate);
     }
 
     private static Result<Predicate<GraphStructure>, String> createFilterPart(String input, Filter filter) {
