@@ -68,10 +68,10 @@ public final class ToolWindowPanel extends JPanel {
 
     private void addView(String text, Icon icon, ToolWindowPane pane, boolean primary) {
         var paneGroup = primary ? primaryGroup : secondaryGroup;
-        var paneInfo = paneGroup.addPane(pane);
+        paneGroup.addPane(pane);
 
-        var callback = (Runnable) () -> selectPane(paneGroup, paneInfo, !paneGroup.isSelected(paneInfo));
-        var button = new ToolWindowButton(paneGroup, paneInfo, icon, callback);
+        var callback = (Runnable) () -> selectPane(paneGroup, pane, !paneGroup.isSelected(pane));
+        var button = new ToolWindowButton(paneGroup, pane, icon, callback);
         button.setToolTipText(text);
 
         var buttonGroup = primary ? primaryButtons : secondaryButtons;
@@ -96,21 +96,15 @@ public final class ToolWindowPanel extends JPanel {
     }
 
     private void selectPane(ToolWindowPane pane, boolean select) {
-        ToolWindowInfo info = primaryGroup.findPane(pane);
-        if (info != null) {
-            selectPane(primaryGroup, info, select);
-            return;
+        if (primaryGroup.hasPane(pane)) {
+            selectPane(primaryGroup, pane, select);
+        } else {
+            selectPane(secondaryGroup, pane, select);
         }
-        info = secondaryGroup.findPane(pane);
-        if (info != null) {
-            selectPane(secondaryGroup, info, select);
-            return;
-        }
-        throw new IllegalArgumentException("Pane does not belong to this panel");
     }
 
-    private void selectPane(ToolWindowGroup group, ToolWindowInfo info, boolean select) {
-        if (!group.selectPane(select ? info : null)) {
+    private void selectPane(ToolWindowGroup group, ToolWindowPane pane, boolean select) {
+        if (!group.selectPane(select ? pane : null)) {
             return;
         }
 
@@ -127,7 +121,7 @@ public final class ToolWindowPanel extends JPanel {
         }
 
         if (select) {
-            info.pane().setFocus();
+            pane.setFocus();
         } else if (getContent() instanceof Focusable focusable) {
             focusable.setFocus();
         }

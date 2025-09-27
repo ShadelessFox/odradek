@@ -2,57 +2,52 @@ package sh.adelessfox.odradek.ui.components.toolwindow;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 final class ToolWindowGroup {
-    private final List<ToolWindowInfo> panes = new ArrayList<>();
-    private final JPanel panel;
+    private final Map<ToolWindowPane, ToolWindowInfo> panes = new HashMap<>();
+    private final JPanel container;
     private final CardLayout layout;
-    private ToolWindowInfo selection;
+    private ToolWindowPane selection;
 
     ToolWindowGroup() {
         layout = new CardLayout();
-        panel = new JPanel(layout);
+        container = new JPanel(layout);
     }
 
-    ToolWindowInfo addPane(ToolWindowPane pane) {
-        if (findPane(pane) != null) {
-            throw new IllegalArgumentException("Pane is already added to the group");
+    void addPane(ToolWindowPane pane) {
+        if (panes.containsKey(pane)) {
+            throw new IllegalArgumentException("Pane is already added to this group");
         }
-
-        var component = pane.createComponent();
-        var id = String.valueOf(panes.size());
-        panel.add(component, id);
-
-        var info = new ToolWindowInfo(id, pane);
-        panes.add(info);
-
-        return info;
+        panes.put(pane, new ToolWindowInfo(String.valueOf(panes.size())));
     }
 
-    ToolWindowInfo findPane(ToolWindowPane pane) {
-        for (ToolWindowInfo info : panes) {
-            if (info.pane() == pane) {
-                return info;
-            }
-        }
-        return null;
+    boolean hasPane(ToolWindowPane pane) {
+        return panes.containsKey(pane);
     }
 
-    boolean selectPane(ToolWindowInfo info) {
-        if (selection == info) {
+    boolean selectPane(ToolWindowPane pane) {
+        if (selection == pane) {
             return false;
         }
-        if (info != null) {
-            layout.show(panel, info.id());
+        if (pane != null) {
+            ToolWindowInfo info = panes.get(pane);
+            if (info == null) {
+                throw new IllegalArgumentException("Pane doesn't belong to this group");
+            }
+            if (info.component == null) {
+                info.component = pane.createComponent();
+                container.add(info.component, info.id);
+            }
+            layout.show(container, info.id);
         }
-        selection = info;
+        selection = pane;
         return true;
     }
 
-    boolean isSelected(ToolWindowInfo info) {
-        return selection == info;
+    boolean isSelected(ToolWindowPane pane) {
+        return selection == pane;
     }
 
     boolean hasSelection() {
@@ -60,6 +55,15 @@ final class ToolWindowGroup {
     }
 
     JComponent getComponent() {
-        return panel;
+        return container;
+    }
+
+    private static final class ToolWindowInfo {
+        private final String id;
+        private JComponent component;
+
+        ToolWindowInfo(String id) {
+            this.id = id;
+        }
     }
 }

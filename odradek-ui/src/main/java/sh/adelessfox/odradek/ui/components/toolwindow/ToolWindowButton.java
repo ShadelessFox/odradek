@@ -12,15 +12,15 @@ import java.awt.event.MouseEvent;
 
 final class ToolWindowButton extends JComponent {
     private final ToolWindowGroup group;
-    private final ToolWindowInfo info;
+    private final ToolWindowPane pane;
     private final Icon icon;
 
     private boolean rollover;
     private boolean armed;
 
-    ToolWindowButton(ToolWindowGroup group, ToolWindowInfo info, Icon icon, Runnable clicked) {
+    ToolWindowButton(ToolWindowGroup group, ToolWindowPane pane, Icon icon, Runnable clicked) {
         this.group = group;
-        this.info = info;
+        this.pane = pane;
         this.icon = icon;
 
         Handler handler = new Handler(clicked);
@@ -42,7 +42,7 @@ final class ToolWindowButton extends JComponent {
             Color focusSelectionColor = UIManager.getColor("Button.default.borderColor");
 
             boolean isRollover = rollover;
-            boolean isSelected = group.isSelected(info);
+            boolean isSelected = group.isSelected(pane);
             boolean isFocused = isButtonOrChildFocused();
 
             g2.setColor(isSelected ? (isFocused ? focusSelectionColor : selectionColor) : isRollover ? rolloverColor : defaultColor);
