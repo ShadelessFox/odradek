@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.rtti.data;
 
 import java.util.Iterator;
 
+@FunctionalInterface
 public interface Ref<T> {
     T get();
 

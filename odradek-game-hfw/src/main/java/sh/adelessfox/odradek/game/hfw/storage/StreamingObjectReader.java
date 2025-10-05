@@ -7,12 +7,12 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
 import sh.adelessfox.odradek.game.hfw.rtti.data.UUIDRef;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.ClassAttrInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.rtti.runtime.ClassAttrInfo;
-import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.PointerTypeInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -114,7 +114,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         var objects = new ArrayList<ObjectInfo>(group.numObjects());
         for (int i = 0; i < group.numObjects(); i++) {
             var type = graph.types().get(group.typeStart() + objects.size());
-            var object = (RTTIRefObject) type.newInstance();
+            var object = (RTTIRefObject) factory.newInstance(type);
             objects.add(new ObjectInfo(type, object));
         }
 
@@ -151,8 +151,9 @@ public class StreamingObjectReader extends HFWTypeReader {
 
     private void fillCompound(ObjectInfo info, BinaryReader reader) throws IOException {
         var object = info.object();
-        for (ClassAttrInfo attr : info.type().serializableAttrs()) {
-            attr.set(object, read(attr.type().get(), reader, factory));
+        var type = info.type();
+        for (ClassAttrInfo attr : type.orderedAttrs()) {
+            type.set(attr, object, read(attr.type(), reader, factory));
         }
         if (object instanceof ExtraBinaryDataHolder holder) {
             holder.deserialize(reader, factory);
@@ -174,8 +175,8 @@ public class StreamingObjectReader extends HFWTypeReader {
     protected Ref<?> readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
         if (!reader.readByteBoolean()) {
             return null;
-        } else if (info.name().name().equals("UUIDRef")) {
-            return new UUIDRef<>((GGUUID) readCompound(factory.get(GGUUID.class), reader, factory));
+        } else if (info.pointerType().equals("UUIDRef")) {
+            return new UUIDRef<>((GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
         } else {
             return resolveLink(info);
         }
@@ -213,7 +214,7 @@ public class StreamingObjectReader extends HFWTypeReader {
 
         streamingLinkIndex = result.position();
 
-        if (info.name().name().equals("StreamingRef")) {
+        if (info.pointerType().equals("StreamingRef")) {
             // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
             if (linkGroup != -1) {
                 return new StreamingRef<>(linkGroup, linkIndex);
@@ -233,7 +234,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
 
         var object = group.objects().get(linkIndex);
-        var matches = info.itemType().get().type().isInstance(object.object());
+        var matches = info.itemType().asClass().isAssignableFrom(object.type());
 
         if (log.isDebugEnabled()) {
             log.debug(

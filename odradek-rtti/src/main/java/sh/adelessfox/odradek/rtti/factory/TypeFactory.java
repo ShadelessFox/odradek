@@ -1,13 +1,20 @@
 package sh.adelessfox.odradek.rtti.factory;
 
-import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 
 public interface TypeFactory {
-    ClassTypeInfo get(TypeId id);
+    TypeInfo get(String name);
 
-    ClassTypeInfo get(Class<?> cls);
+    TypeInfo get(TypeId id);
 
-    default <T> T newInstance(Class<T> cls) {
-        return cls.cast(get(cls).newInstance());
+    <T> T newInstance(ClassTypeInfo info);
+
+    default <T> T newInstance(String name) {
+        return newInstance(get(name).asClass());
+    }
+
+    default <T> T newInstance(Class<T> clazz) {
+        return newInstance(clazz.getSimpleName());
     }
 }

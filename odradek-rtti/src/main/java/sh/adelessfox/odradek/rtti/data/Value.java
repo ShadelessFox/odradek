@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.rtti.data;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 @SuppressWarnings("unused")
 public sealed interface Value<T>
@@ -27,7 +26,7 @@ public sealed interface Value<T>
     }
 
     static <T extends Enum<T> & OfEnumSet<T>> OfEnumSet<T> setOf(Class<T> enumClass, int value) {
-        Set<Value<T>> values = new HashSet<>();
+        var values = new HashSet<Value<T>>();
         for (T constant : enumClass.getEnumConstants()) {
             if ((constant.value() & value) != 0) {
                 value &= ~constant.value();
@@ -41,4 +40,9 @@ public sealed interface Value<T>
     }
 
     int value();
+
+    @SuppressWarnings("unchecked")
+    default T unwrap() {
+        return (T) this;
+    }
 }

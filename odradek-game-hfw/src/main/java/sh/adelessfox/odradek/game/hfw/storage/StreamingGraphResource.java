@@ -7,8 +7,8 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingDataSou
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingSourceSpan;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,7 +47,7 @@ public class StreamingGraphResource {
         for (var group : groups) {
             for (int i = 0; i < group.subGroupCount(); i++) {
                 var subgroup = group(graph.subGroups()[group.subGroupStart() + i]);
-                dependentGroups.computeIfAbsent(subgroup, x -> new ArrayList<>()).add(group);
+                dependentGroups.computeIfAbsent(subgroup, _ -> new ArrayList<>()).add(group);
             }
         }
     }
@@ -140,7 +140,7 @@ public class StreamingGraphResource {
             var index = Short.toUnsignedInt(reader.readShort());
             var hash = graph.typeHashes()[index];
             var type = factory.get(HFWTypeId.of(hash));
-            types.add(type);
+            types.add(type.asClass()); // FIXME not just classes
         }
 
         return List.copyOf(types);

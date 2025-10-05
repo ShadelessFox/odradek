@@ -10,6 +10,30 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.MODULE)
 public @interface GenerateBindings {
+    @interface Input {
+        /**
+         * Path to the file containing type definitions ({@code .json})
+         */
+        String types();
+
+        /**
+         * Path to the file containing extensions for types ({@code .json})
+         */
+        String extensions();
+    }
+
+    @interface Builtin {
+        /**
+         * Name of the type
+         */
+        String type();
+
+        /**
+         * Class that represents the type at runtime
+         */
+        Class<?> repr();
+    }
+
     @interface Callback {
         /**
          * Name of the type for which the handler is registered
@@ -20,18 +44,6 @@ public @interface GenerateBindings {
          * Handler class
          */
         Class<? extends ExtraBinaryDataCallback<?>> handler();
-    }
-
-    @interface Builtin {
-        /**
-         * Name of the type
-         */
-        String type();
-
-        /**
-         * Class that can represent that type at runtime
-         */
-        Class<?> javaType();
     }
 
     @interface Extension {
@@ -47,9 +59,9 @@ public @interface GenerateBindings {
     }
 
     /**
-     * Path to the file containing type definitions ({@code .json})
+     * An input data
      */
-    String source();
+    Input input();
 
     /**
      * A fully-qualified name of an interface under which the generated bindings will be placed
@@ -57,17 +69,17 @@ public @interface GenerateBindings {
     String target();
 
     /**
-     * Collection of builtin types, such as numerics, strings, etc.
+     * A collection of builtin types, such as numerics, strings, etc.
      */
     Builtin[] builtins() default {};
 
     /**
-     * Collection of {@code MsgReadBinary} handlers
+     * A collection of {@code MsgReadBinary} handlers.
      */
     Callback[] callbacks() default {};
 
     /**
-     * Collection of {@code Extension} handlers
+     * A collection of {@code Extension}s that extend types with additional functionality via default interface methods.
      */
     Extension[] extensions() default {};
 }

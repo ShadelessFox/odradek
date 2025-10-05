@@ -100,6 +100,23 @@ public interface BinaryReader extends Closeable {
         return dst;
     }
 
+    default float readHalf() throws IOException {
+        return Float.float16ToFloat(readShort());
+    }
+
+    default void readHalfs(float[] dst, int off, int len) throws IOException {
+        Objects.checkFromIndexSize(off, len, dst.length);
+        for (int i = 0; i < len; i++) {
+            dst[off + i] = readHalf();
+        }
+    }
+
+    default float[] readHalfs(int count) throws IOException {
+        var dst = new float[count];
+        readFloats(dst, 0, count);
+        return dst;
+    }
+
     float readFloat() throws IOException;
 
     default void readFloats(float[] dst, int off, int len) throws IOException {

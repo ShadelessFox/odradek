@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETexColorSpace;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureType;
 import sh.adelessfox.odradek.texture.*;
 
 import java.io.IOException;
@@ -36,8 +39,8 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
     }
 
     private static Optional<Texture> convertTexture(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) {
-        var format = mapFormat(texture.header().pixelFormat());
-        var type = mapType(texture.header().type());
+        var format = mapFormat(texture.header().pixelFormat().unwrap());
+        var type = mapType(texture.header().type().unwrap());
 
         if (format == null || type == null) {
             return Optional.empty();
@@ -86,7 +89,7 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
         return Optional.of(new Texture(
             format,
             type,
-            mapColorSpace(texture.header().colorSpace()),
+            mapColorSpace(texture.header().colorSpace().unwrap()),
             surfaces,
             numMipmaps,
             type == TextureType.VOLUME ? OptionalInt.of(1 << numSurfaces) : OptionalInt.empty(),
@@ -101,13 +104,13 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
         }
 
         var data = texture.largeTexture();
-        var format = mapFormat(data.header().pixelFormat());
+        var format = mapFormat(data.header().pixelFormat().unwrap());
 
         if (format == null) {
             return Optional.empty();
         }
 
-        assert data.header().type() == HorizonForbiddenWest.ETextureType._2D;
+        assert data.header().type() == ETextureType._2D;
         assert data.header().numMips() == 1;
         assert data.header().numSurfaces() == 0;
         assert data.data().streamedMips() == 0;
@@ -118,12 +121,12 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
 
         return Optional.of(Texture.of2D(
             format,
-            mapColorSpace(data.header().colorSpace()),
+            mapColorSpace(data.header().colorSpace().unwrap()),
             surface
         ));
     }
 
-    private static TextureFormat mapFormat(HorizonForbiddenWest.EPixelFormat format) {
+    private static TextureFormat mapFormat(EPixelFormat format) {
         return switch (format) {
             case RGBA_8888 -> TextureFormat.R8G8B8A8_UNORM;
             case BC1 -> TextureFormat.BC1_UNORM;
@@ -143,14 +146,14 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
         };
     }
 
-    private static TextureColorSpace mapColorSpace(HorizonForbiddenWest.ETexColorSpace colorSpace) {
+    private static TextureColorSpace mapColorSpace(ETexColorSpace colorSpace) {
         return switch (colorSpace) {
             case Linear -> TextureColorSpace.LINEAR;
             case sRGB -> TextureColorSpace.SRGB;
         };
     }
 
-    private static TextureType mapType(HorizonForbiddenWest.ETextureType type) {
+    private static TextureType mapType(ETextureType type) {
         return switch (type) {
             case _2D -> TextureType.SURFACE;
             case _2DArray -> TextureType.ARRAY;

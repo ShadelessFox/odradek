@@ -1,11 +1,11 @@
 package sh.adelessfox.odradek.rtti.io;
 
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.rtti.runtime.*;
 
 import java.io.IOException;
 
@@ -21,9 +21,9 @@ public abstract class AbstractTypeReader {
     }
 
     protected Object readCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        Object object = info.newInstance();
-        for (ClassAttrInfo attr : info.serializableAttrs()) {
-            attr.set(object, read(attr.type().get(), reader, factory));
+        Object object = factory.newInstance(info);
+        for (ClassAttrInfo attr : info.orderedAttrs()) {
+            info.set(attr, object, read(attr.type(), reader, factory));
         }
         if (object instanceof ExtraBinaryDataHolder holder) {
             holder.deserialize(reader, factory);

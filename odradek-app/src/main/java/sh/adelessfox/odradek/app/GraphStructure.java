@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
-import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
 
@@ -30,7 +30,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             if (options.contains(Option.GROUP_BY_TYPE)) {
                 var comparator = options.contains(Option.SORT_BY_COUNT)
                     ? Comparator.comparingInt((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getValue().size()).reversed()
-                    : Comparator.comparing((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getKey().name().name());
+                    : Comparator.comparing((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getKey().name());
                 return keys()
                     .boxed()
                     .gather(Gatherers.groupingBy(this::type, IdentityHashMap::new, Collectors.toList()))

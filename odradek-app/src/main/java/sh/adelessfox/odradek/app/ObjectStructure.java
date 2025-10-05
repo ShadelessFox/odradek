@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.rtti.runtime.*;
+import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
@@ -41,20 +41,21 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
     }
 
-    record Attr(Game game, ClassAttrInfo attr, Object object) implements ObjectStructure {
+    record Attr(Game game, ClassTypeInfo info, ClassAttrInfo attr, Object object) implements ObjectStructure {
         @Override
         public TypeInfo type() {
-            return attr.type().get();
+            return attr.type();
         }
 
         @Override
         public Object value() {
-            return attr.get(object);
+            return info.get(attr, object);
         }
 
         @Override
         public boolean equals(Object o) {
-            return o instanceof Attr(_, var attr1, var object1)
+            return o instanceof Attr(_, var clazz1, var attr1, var object1)
+                && info.equals(clazz1)
                 && attr.equals(attr1)
                 && object == object1;
         }
@@ -73,7 +74,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
     record Index(Game game, ContainerTypeInfo info, Object object, int index) implements ObjectStructure {
         @Override
         public TypeInfo type() {
-            return info.itemType().get();
+            return info.itemType();
         }
 
         @Override
@@ -112,8 +113,8 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
         return switch (element.type()) {
             // FIXME: Base attributes are not shown (e.g. ShaderFromFileResource -> ShaderResource)
-            case ClassTypeInfo c -> c.displayableAttrs().stream()
-                .map(attr -> new Attr(game(), attr, value))
+            case ClassTypeInfo c -> c.allAttrs().stream()
+                .map(attr -> new Attr(game(), c, attr, value))
                 .toList();
             case ContainerTypeInfo c -> IntStream.range(0, c.length(value))
                 .mapToObj(index -> new Index(game(), c, value, index))

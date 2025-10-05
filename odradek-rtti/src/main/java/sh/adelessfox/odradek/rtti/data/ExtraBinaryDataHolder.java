@@ -7,7 +7,8 @@ import java.io.IOException;
 
 public interface ExtraBinaryDataHolder {
     default void deserialize(BinaryReader reader, TypeFactory factory) throws IOException {
-        throw new UnsupportedOperationException("Missing callback for '"
+        throw new UnsupportedOperationException(
+            "Missing callback for '"
             + getClass().getInterfaces()[0].getSimpleName()
             + "' required to read extra data at position " + reader.position());
     }

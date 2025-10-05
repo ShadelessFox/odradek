@@ -1,27 +1,15 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.DebugMouseCursorPS4;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.rtti.Attr;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class DebugMouseCursorPS4Callback implements ExtraBinaryDataCallback<DebugMouseCursorPS4Callback.DebugMouseCursorData> {
-    public interface DebugMouseCursorData {
-        @Attr(name = "Stride", type = "uint32", position = 0)
-        int stride();
-
-        void stride(int value);
-
-        @Attr(name = "Data", type = "Array<uint8>", position = 1)
-        byte[] data();
-
-        void data(byte[] value);
-    }
-
+public class DebugMouseCursorPS4Callback implements ExtraBinaryDataCallback<DebugMouseCursorPS4> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, DebugMouseCursorData object) throws IOException {
+    public void deserialize(BinaryReader reader, TypeFactory factory, DebugMouseCursorPS4 object) throws IOException {
         object.stride(reader.readInt());
         object.data(reader.readBytes(reader.readInt()));
     }

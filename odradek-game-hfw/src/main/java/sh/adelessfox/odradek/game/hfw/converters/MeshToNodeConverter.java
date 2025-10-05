@@ -254,7 +254,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             var stride = stream.stride();
 
             ByteBuffer view;
-            if (vertexArray.streaming()) {
+            if (vertexArray.isStreaming()) {
                 view = readDataAligned(buffer, count, stride);
             } else {
                 view = ByteBuffer.wrap(stream.data());
@@ -263,7 +263,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             for (var element : stream.elements()) {
                 var offset = Byte.toUnsignedInt(element.offset());
 
-                var semantic = switch (element.element()) {
+                var semantic = switch (element.element().unwrap()) {
                     case Pos -> Semantic.POSITION;
                     case Tangent -> Semantic.TANGENT;
                     case Normal -> Semantic.NORMAL;
@@ -299,7 +299,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
                     continue;
                 }
 
-                var accessor = switch (element.storageType()) {
+                var accessor = switch (element.storageType().unwrap()) {
                     // @formatter:off
                     case UnsignedByte ->
                         new Accessor(view, elementType, ComponentType.UNSIGNED_BYTE, offset, count, stride, false);
@@ -334,16 +334,16 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     }
 
     private static Accessor buildIndexAccessor(IndexArrayResource indexArray, ByteBuffer buffer, int startIndex, int endIndex) {
-        var component = switch (indexArray.format()) {
+        var component = switch (indexArray.format().unwrap()) {
             case Index16 -> ComponentType.UNSIGNED_SHORT;
             case Index32 -> ComponentType.UNSIGNED_INT;
         };
 
         var count = indexArray.count();
-        var stride = indexArray.format().stride();
+        var stride = indexArray.format().unwrap().stride();
 
         ByteBuffer view;
-        if (indexArray.streaming()) {
+        if (indexArray.isStreaming()) {
             view = readDataAligned(buffer, count, stride);
         } else {
             view = ByteBuffer.wrap(indexArray.data());

@@ -11,6 +11,7 @@
     <artifactId>odradek-rtti-generator</artifactId>
 
     <dependencies>
+        <!-- Internal -->
         <dependency>
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-core</artifactId>
@@ -19,6 +20,7 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-rtti</artifactId>
         </dependency>
+
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

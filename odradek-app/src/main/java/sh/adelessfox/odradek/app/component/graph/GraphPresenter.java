@@ -5,7 +5,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.util.Result;
 
@@ -109,7 +109,7 @@ public class GraphPresenter implements Presenter<GraphView> {
 
     private record Filter(String query, boolean matchCase, boolean matchWholeWord) {
         boolean matches(TypeInfo info) {
-            return matches(info.toString());
+            return matches(info.name());
         }
 
         boolean matches(String input) {
