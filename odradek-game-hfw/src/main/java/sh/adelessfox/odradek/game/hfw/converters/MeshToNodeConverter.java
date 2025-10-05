@@ -219,7 +219,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         ForbiddenWestGame game
     ) {
         var buffer = readDataSource(dataSource, game);
-        var primitives = new ArrayList<Primitive>();
+        var primitives = new ArrayList<Primitive>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
 

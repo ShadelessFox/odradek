@@ -30,7 +30,7 @@ public non-sealed interface ClassTypeInfo extends TypeInfo {
     }
 
     default List<ClassAttrInfo> allAttrs() {
-        var attrs = new ArrayList<ClassAttrInfo>();
+        var attrs = new ArrayList<ClassAttrInfo>(attrs().size());
         for (ClassBaseInfo base : bases()) {
             attrs.addAll(base.type().allAttrs());
         }

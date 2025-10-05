@@ -65,7 +65,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             cb.withFlags(AccessFlag.PUBLIC, AccessFlag.FINAL);
             cb.withInterfaceSymbols(toClassDesc(info));
 
-            List<Consumer<CodeBuilder>> constructor = new ArrayList<>();
+            List<Consumer<CodeBuilder>> constructor = new ArrayList<>(1);
             int nestedClassIndex = 1;
 
             // Type

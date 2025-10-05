@@ -134,7 +134,7 @@ public class StreamingGraphResource {
             throw new IOException("Unexpected unknown value: " + unk10);
         }
 
-        var types = new ArrayList<ClassTypeInfo>();
+        var types = new ArrayList<ClassTypeInfo>(count);
 
         for (int i = 0; i < count; i++) {
             var index = Short.toUnsignedInt(reader.readShort());
