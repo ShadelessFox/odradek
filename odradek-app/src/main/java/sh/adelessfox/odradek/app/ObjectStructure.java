@@ -112,7 +112,6 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
             return List.of();
         }
         return switch (element.type()) {
-            // FIXME: Base attributes are not shown (e.g. ShaderFromFileResource -> ShaderResource)
             case ClassTypeInfo c -> c.allAttrs().stream()
                 .map(attr -> new Attr(game(), c, attr, value))
                 .toList();

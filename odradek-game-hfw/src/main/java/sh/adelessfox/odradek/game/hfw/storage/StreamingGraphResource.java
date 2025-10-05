@@ -140,7 +140,7 @@ public class StreamingGraphResource {
             var index = Short.toUnsignedInt(reader.readShort());
             var hash = graph.typeHashes()[index];
             var type = factory.get(HFWTypeId.of(hash));
-            types.add(type.asClass()); // FIXME not just classes
+            types.add(type.asClass());
         }
 
         return List.copyOf(types);
