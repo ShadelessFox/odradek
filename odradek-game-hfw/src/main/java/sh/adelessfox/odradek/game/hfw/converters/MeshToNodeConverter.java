@@ -28,6 +28,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     public Optional<Node> convert(Object object, ForbiddenWestGame game) {
         return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(r, game);
+            case StaticMeshInstance r -> convertStaticMeshInstance(r, game);
             case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(r, game);
             case LodMeshResource r -> convertLodMeshResource(r, game);
             case MultiMeshResource r -> convertMultiMeshResource(r, game);
@@ -35,6 +36,8 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             case SkinnedModelResource r -> convertSkinnedModelResource(r, game);
             case DestructibilityPart r -> convertDestructibilityPart(r, game);
             case ControlledEntityResource r -> convertControlledEntityResource(r, game);
+            case PrefabResource r -> convertPrefabResource(r, game);
+            case PrefabInstance r -> convertPrefabInstance(r, game);
             default -> {
                 log.error("Unsupported resource type: {}", object);
                 yield Optional.empty();
@@ -46,14 +49,40 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     public Set<Class<?>> convertibleTypes() {
         return Set.of(
             StaticMeshResource.class,
+            StaticMeshInstance.class,
             RegularSkinnedMeshResource.class,
             LodMeshResource.class,
             MultiMeshResource.class,
             BodyVariant.class,
             SkinnedModelResource.class,
             DestructibilityPart.class,
-            ControlledEntityResource.class
+            ControlledEntityResource.class,
+            PrefabResource.class,
+            PrefabInstance.class
         );
+    }
+
+    private Optional<Node> convertPrefabResource(PrefabResource resource, ForbiddenWestGame game) {
+        var collection = resource.general().objectCollection().get();
+        var children = new ArrayList<Node>();
+
+        for (var object : Ref.unwrap(collection.general().objects())) {
+            convert(object, game).ifPresent(children::add);
+        }
+
+        if (children.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Node.of(children));
+    }
+
+    private Optional<Node> convertPrefabInstance(PrefabInstance instance, ForbiddenWestGame game) {
+        for (PrefabObjectOverrides override : instance.general().overrides()) {
+            assert !override.isRemoved();
+            assert !override.isTransformOverridden();
+        }
+        return convert(instance.general().prefab().get(), game);
     }
 
     private Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
@@ -102,6 +131,10 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             return Optional.empty();
         }
         return convert(resource.general().meshResource().get(), game);
+    }
+
+    private Optional<Node> convertStaticMeshInstance(StaticMeshInstance instance, ForbiddenWestGame game) {
+        return convert(instance.general().resource().get(), game);
     }
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
