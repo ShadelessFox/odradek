@@ -10,7 +10,7 @@ import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.Arrays;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.RTTIRefObject;
 
@@ -145,7 +145,7 @@ public class HFWTypeReader extends AbstractTypeReader {
             items[i] = read(item, reader, factory);
         }
 
-        return List.of(items);
+        return Arrays.asList(items);
     }
 
     private Object readHashContainer(ContainerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
@@ -162,7 +162,7 @@ public class HFWTypeReader extends AbstractTypeReader {
         }
 
         // TODO: Use specialized type (Map, Set, etc.)
-        return List.of(items);
+        return Arrays.asList(items);
     }
 
     private static String readString(BinaryReader reader) throws IOException {
