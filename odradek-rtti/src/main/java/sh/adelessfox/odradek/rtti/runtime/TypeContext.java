@@ -456,11 +456,11 @@ public class TypeContext {
         }
 
         @Override
-        public int length(Object object) {
+        public Object newInstance(int count) {
             if (isArray()) {
-                return Array.getLength(object);
+                return Array.newInstance(itemType().type(), count);
             } else {
-                return ((List<?>) object).size();
+                return Arrays.asList(new Object[count]);
             }
         }
 
@@ -480,6 +480,15 @@ public class TypeContext {
                 Array.set(object, index, value);
             } else {
                 ((List<Object>) object).set(index, value);
+            }
+        }
+
+        @Override
+        public int length(Object object) {
+            if (isArray()) {
+                return Array.getLength(object);
+            } else {
+                return ((List<?>) object).size();
             }
         }
 
