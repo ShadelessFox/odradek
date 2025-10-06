@@ -8,5 +8,6 @@ module odradek.game.hfw.ui {
         sh.adelessfox.odradek.game.hfw.ui.renderers.GGUUIDRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.MurmurHashValueRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.StreamingDataSourceRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.TextureSetTextureDescRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.UnsignedIntRenderer;
 }
