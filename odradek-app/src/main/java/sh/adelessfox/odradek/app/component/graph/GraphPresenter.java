@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.util.Result;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 @Singleton
@@ -33,7 +34,7 @@ public class GraphPresenter implements Presenter<GraphView> {
             switch (filter) {
                 case Result.Ok(var predicate) -> {
                     validation.setVisible(false);
-                    treeModel.setFilter(predicate);
+                    treeModel.setFilter(predicate.orElse(null));
                     treeModel.update();
                 }
                 case Result.Error(var message) -> {
@@ -54,9 +55,9 @@ public class GraphPresenter implements Presenter<GraphView> {
         view.getTree().setEnabled(!busy);
     }
 
-    private static Result<Predicate<GraphStructure>, String> createFilter(String input, boolean matchCase, boolean matchWholeWord) {
+    private static Result<Optional<Predicate<GraphStructure>>, String> createFilter(String input, boolean matchCase, boolean matchWholeWord) {
         if (input.isBlank()) {
-            return Result.ok(null);
+            return Result.ok(Optional.empty());
         }
         List<Predicate<GraphStructure>> predicates = new ArrayList<>();
         for (String part : input.split("\\s+")) {
@@ -65,13 +66,13 @@ public class GraphPresenter implements Presenter<GraphView> {
             if (other instanceof Result.Ok(var predicate)) {
                 predicates.add(predicate);
             } else {
-                return other;
+                return other.map(Optional::of);
             }
         }
         Predicate<GraphStructure> predicate = predicates.stream()
             .reduce(Predicate::or)
             .orElse(null);
-        return Result.ok(predicate);
+        return Result.ok(Optional.ofNullable(predicate));
     }
 
     private static Result<Predicate<GraphStructure>, String> createFilterPart(String input, Filter filter) {
