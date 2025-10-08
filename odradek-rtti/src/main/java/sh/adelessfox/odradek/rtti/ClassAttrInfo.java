@@ -3,6 +3,9 @@ package sh.adelessfox.odradek.rtti;
 import java.util.Optional;
 
 public interface ClassAttrInfo {
+    // ERTTIAttrFlags
+    int ATTR_DONT_SERIALIZE_BINARY = 2;
+
     String name();
 
     Optional<String> group();
@@ -17,5 +20,9 @@ public interface ClassAttrInfo {
 
     int flags();
 
-    boolean property();
+    boolean isProperty();
+
+    default boolean isSerialized() {
+        return (flags() & ATTR_DONT_SERIALIZE_BINARY) == 0;
+    }
 }

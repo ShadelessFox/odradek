@@ -49,7 +49,7 @@ public class JsonExporter implements Exporter<TypedObject> {
                 }
             }
             case ClassTypeInfo clazz -> {
-                for (ClassAttrInfo attr : clazz.allAttrs()) {
+                for (ClassAttrInfo attr : clazz.serializedAttrs()) {
                     writer.name(attr.name());
                     write(writer, attr.type(), clazz.get(attr, object));
                 }

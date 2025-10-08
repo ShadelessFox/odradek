@@ -29,14 +29,14 @@ public non-sealed interface ClassTypeInfo extends TypeInfo {
         handle(attr).set(object, value);
     }
 
-    default List<ClassAttrInfo> allAttrs() {
+    default List<ClassAttrInfo> serializedAttrs() {
         var attrs = new ArrayList<ClassAttrInfo>(attrs().size());
         for (ClassBaseInfo base : bases()) {
-            attrs.addAll(base.type().allAttrs());
+            attrs.addAll(base.type().serializedAttrs());
         }
         for (ClassAttrInfo attr : attrs()) {
-            // FIXME Flags check should be game-specific (flag 2 means it's a save-state attribute)
-            if (!attr.property() && (attr.flags() & 2) == 0) {
+            // NOTE: We can display non-serializable attributes in case they have property getters
+            if (attr.isSerialized() && !attr.isProperty()) {
                 attrs.add(attr);
             }
         }

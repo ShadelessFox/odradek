@@ -33,7 +33,7 @@ public class HFWTypeFactory extends AbstractTypeFactory {
     @Override
     protected void filterOrderedAttributes(List<OrderedAttr> attrs) {
         // Remove save-state attribute
-        attrs.removeIf(attr -> (attr.attr().flags() & 2) != 0);
+        attrs.removeIf(attr -> !attr.attr().isSerialized());
     }
 
     @Override

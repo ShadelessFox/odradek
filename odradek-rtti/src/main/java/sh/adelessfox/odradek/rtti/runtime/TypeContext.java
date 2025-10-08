@@ -363,7 +363,7 @@ public class TypeContext {
         }
 
         @Override
-        public boolean property() {
+        public boolean isProperty() {
             return property;
         }
 
