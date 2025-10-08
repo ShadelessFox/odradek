@@ -112,7 +112,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
             return List.of();
         }
         return switch (element.type()) {
-            case ClassTypeInfo c -> c.allAttrs().stream()
+            case ClassTypeInfo c -> c.serializedAttrs().stream()
                 .map(attr -> new Attr(game(), c, attr, value))
                 .toList();
             case ContainerTypeInfo c -> IntStream.range(0, c.length(value))

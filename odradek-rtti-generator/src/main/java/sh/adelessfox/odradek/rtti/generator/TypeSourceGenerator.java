@@ -27,7 +27,6 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
     private static final ClassName NAME_Value = ClassName.get(Value.class);
 
     private final Set<TypeInfo> types = new TreeSet<>(Comparator.comparing(TypeInfo::name));
-
     private final String packageName;
     private final String className;
 
@@ -46,25 +45,25 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
 
     JavaFile build() {
         log.debug("Generating interfaces");
-        return JavaFile.builder(packageName, generateNamespace()).build();
+        return JavaFile.builder(packageName, buildNamespace()).build();
     }
 
-    private TypeSpec generateNamespace() {
+    private TypeSpec buildNamespace() {
         var builder = TypeSpec.interfaceBuilder(toTypeName())
             .addModifiers(Modifier.PUBLIC);
 
         for (TypeInfo info : types) {
             if (info instanceof ClassTypeInfo i) {
-                builder.addType(generateClass(i));
+                builder.addType(buildClass(i));
             } else if (info instanceof EnumTypeInfo i) {
-                builder.addType(generateEnum(i));
+                builder.addType(buildEnum(i));
             }
         }
 
         return builder.build();
     }
 
-    private TypeSpec generateClass(ClassTypeInfo info) {
+    private TypeSpec buildClass(ClassTypeInfo info) {
         var builder = TypeSpec.interfaceBuilder(toTypeName(info))
             .addJavadoc("flags = $L, version = $L", info.flags(), info.version())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -113,7 +112,7 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
         // Group interfaces
         for (ClassGroupInfo group : groups) {
             var groupMethods = attrs.getOrDefault(Optional.of(group.name()), List.of()).stream()
-                .map(this::generateClassAttr).flatMap(Collection::stream)
+                .map(this::buildAttr).flatMap(Collection::stream)
                 .toList();
             var groupInterfaces = group.inherits().stream()
                 .map(inheritee -> toGroupName(inheritee, group))
@@ -127,28 +126,33 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
 
         // Direct attribute accessors
         for (ClassAttrInfo attr : attrs.getOrDefault(Optional.<String>empty(), List.of())) {
-            builder.addMethods(generateClassAttr(attr));
+            builder.addMethods(buildAttr(attr));
         }
 
         return builder.build();
     }
 
-    private List<MethodSpec> generateClassAttr(ClassAttrInfo attr) {
+    private List<MethodSpec> buildAttr(ClassAttrInfo attr) {
+        var getter = MethodSpec.methodBuilder(toGetterName(attr))
+            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .returns(toJavaType(attr.type()));
+
+        var setter = MethodSpec.methodBuilder(toSetterName(attr))
+            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+            .addParameter(toJavaType(attr.type()), "value");
+
+        if (!attr.isSerialized() && attr.isProperty()) {
+            getter.addJavadoc("@deprecated This is a <b>non-serializable property</b> attribute. Retrieving its value will result in an exception.");
+            setter.addJavadoc("@deprecated This is a <b>non-serializable property</b> attribute. Updating its value will result in an exception.");
+        }
+
         return List.of(
-            // Getter
-            MethodSpec.methodBuilder(toGetterName(attr))
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .returns(toJavaType(attr.type()))
-                .build(),
-            // Setter
-            MethodSpec.methodBuilder(toSetterName(attr))
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addParameter(toJavaType(attr.type()), "value")
-                .build()
+            getter.build(),
+            setter.build()
         );
     }
 
-    private TypeSpec generateEnum(EnumTypeInfo info) {
+    private TypeSpec buildEnum(EnumTypeInfo info) {
         var type = info instanceof EnumSetTypeInfo ? Value.OfEnumSet.class : Value.OfEnum.class;
         var size = switch (info.size()) {
             case 1 -> TypeName.BYTE;

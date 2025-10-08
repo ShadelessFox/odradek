@@ -22,10 +22,16 @@ public non-sealed interface ClassTypeInfo extends TypeInfo {
     VarHandle handle(ClassAttrInfo attr);
 
     default Object get(ClassAttrInfo attr, Object object) {
+        if (!attr.isSerialized() && attr.isProperty()) {
+            throw new UnsupportedOperationException("attempt to access a non-serializable property attribute");
+        }
         return handle(attr).get(object);
     }
 
     default void set(ClassAttrInfo attr, Object object, Object value) {
+        if (!attr.isSerialized() && attr.isProperty()) {
+            throw new UnsupportedOperationException("attempt to access a non-serializable property attribute");
+        }
         handle(attr).set(object, value);
     }
 
@@ -36,7 +42,7 @@ public non-sealed interface ClassTypeInfo extends TypeInfo {
         }
         for (ClassAttrInfo attr : attrs()) {
             // NOTE: We can display non-serializable attributes in case they have property getters
-            if (attr.isSerialized() && !attr.isProperty()) {
+            if (attr.isSerialized()) {
                 attrs.add(attr);
             }
         }

@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 
+import java.lang.classfile.ClassBuilder;
 import java.lang.classfile.ClassFile;
 import java.lang.classfile.CodeBuilder;
 import java.lang.classfile.TypeKind;
@@ -23,6 +24,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     private static final ClassDesc CD_List = List.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_StableValue = StableValue.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_ClassTypeInfo = ClassTypeInfo.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_UnsupportedOperationException = UnsupportedOperationException.class.describeConstable().orElseThrow();
 
     private final Map<ClassTypeInfo, Class<?>> classes = new IdentityHashMap<>();
     private final MethodHandles.Lookup lookup;
@@ -119,22 +121,14 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 var attrField = toFieldName(attr);
                 var attrDesc = toClassDesc(attr.type(), true);
 
-                // Field
-                cb.withField(attrField, attrDesc, ClassFile.ACC_PRIVATE);
+                if (attr.isSerialized() || !attr.isProperty()) {
+                    // Non-serialized property values are evaluated via functions; they don't have any explicit storage.
+                    cb.withField(attrField, attrDesc, ClassFile.ACC_PRIVATE);
+                }
 
                 // Getter and setter, if no group
                 if (attr.group().isEmpty()) {
-                    cb.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
-                        .withCode(cob -> cob
-                            .aload(0)
-                            .getfield(desc, attrField, attrDesc)
-                            .return_(TypeKind.from(attrDesc))));
-                    cb.withMethod(toSetterName(attr), MethodTypeDesc.of(ConstantDescs.CD_void, attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
-                        .withCode(cob -> cob
-                            .aload(0)
-                            .loadLocal(TypeKind.from(attrDesc), 1)
-                            .putfield(desc, attrField, attrDesc)
-                            .return_()));
+                    buildAttr(cb, desc, attr);
                 }
             }
 
@@ -164,13 +158,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void bindTypeVariable(Class<?> clazz, ClassTypeInfo info) throws ReflectiveOperationException {
-        var handle = lookup.findStaticVarHandle(clazz, "$type", StableValue.class);
-        var holder = (StableValue<ClassTypeInfo>) handle.get();
-        holder.setOrThrow(info);
-    }
-
     private void generateGroupClass(ClassTypeInfo host, ClassDesc hostDesc, ClassGroupInfo group, ClassDesc groupDesc, ClassDesc groupImplDesc) {
         byte[] data = ClassFile.of().build(groupImplDesc, cb -> {
             cb.withInterfaceSymbols(groupDesc);
@@ -193,29 +180,9 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
 
             // Attributes
             for (ClassAttrInfo attr : collectAttributes(host)) {
-                if (attr.group().isEmpty() || !attr.group().get().equals(group.name())) {
-                    continue;
+                if (attr.group().isPresent() && attr.group().get().equals(group.name())) {
+                    buildAttr(cb, hostDesc, groupImplDesc, attr);
                 }
-
-                var attrField = toFieldName(attr);
-                var attrDesc = toClassDesc(attr.type(), true);
-
-                // Getter
-                cb.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
-                    .withCode(cob -> cob
-                        .aload(0)
-                        .getfield(groupImplDesc, "this$0", hostDesc)
-                        .getfield(hostDesc, attrField, attrDesc)
-                        .return_(TypeKind.from(attrDesc))));
-
-                // Setter
-                cb.withMethod(toGetterName(attr), MethodTypeDesc.of(ConstantDescs.CD_void, attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
-                    .withCode(cob -> cob
-                        .aload(0)
-                        .getfield(groupImplDesc, "this$0", hostDesc)
-                        .loadLocal(TypeKind.from(attrDesc), 1)
-                        .putfield(hostDesc, attrField, attrDesc)
-                        .return_()));
             }
         });
 
@@ -224,6 +191,86 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void bindTypeVariable(Class<?> clazz, ClassTypeInfo info) throws ReflectiveOperationException {
+        var handle = lookup.findStaticVarHandle(clazz, "$type", StableValue.class);
+        var holder = (StableValue<ClassTypeInfo>) handle.get();
+        holder.setOrThrow(info);
+    }
+
+    private void buildAttr(ClassBuilder builder, ClassDesc desc, ClassAttrInfo attr) {
+        if (attr.isSerialized() || !attr.isProperty()) {
+            buildInstanceAttr(builder, desc, attr);
+        } else {
+            buildPropertyAttr(builder, attr);
+        }
+    }
+
+    private void buildAttr(ClassBuilder builder, ClassDesc hostDesc, ClassDesc groupDesc, ClassAttrInfo attr) {
+        if (attr.isSerialized() || !attr.isProperty()) {
+            buildInstanceAttr(builder, hostDesc, groupDesc, attr);
+        } else {
+            buildPropertyAttr(builder, attr);
+        }
+    }
+
+    private void buildInstanceAttr(ClassBuilder builder, ClassDesc desc, ClassAttrInfo attr) {
+        var attrField = toFieldName(attr);
+        var attrDesc = toClassDesc(attr.type(), true);
+
+        builder.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+            .withCode(cob -> cob
+                .aload(0)
+                .getfield(desc, attrField, attrDesc)
+                .return_(TypeKind.from(attrDesc))));
+
+        builder.withMethod(toSetterName(attr), MethodTypeDesc.of(ConstantDescs.CD_void, attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+            .withCode(cob -> cob
+                .aload(0)
+                .loadLocal(TypeKind.from(attrDesc), 1)
+                .putfield(desc, attrField, attrDesc)
+                .return_()));
+    }
+
+    private void buildInstanceAttr(ClassBuilder builder, ClassDesc hostDesc, ClassDesc groupDesc, ClassAttrInfo attr) {
+        var attrField = toFieldName(attr);
+        var attrDesc = toClassDesc(attr.type(), true);
+
+        builder.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+            .withCode(cob -> cob
+                .aload(0)
+                .getfield(groupDesc, "this$0", hostDesc)
+                .getfield(hostDesc, attrField, attrDesc)
+                .return_(TypeKind.from(attrDesc))));
+
+        builder.withMethod(toSetterName(attr), MethodTypeDesc.of(ConstantDescs.CD_void, attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+            .withCode(cob -> cob
+                .aload(0)
+                .getfield(groupDesc, "this$0", hostDesc)
+                .loadLocal(TypeKind.from(attrDesc), 1)
+                .putfield(hostDesc, attrField, attrDesc)
+                .return_()));
+    }
+
+    private void buildPropertyAttr(ClassBuilder builder, ClassAttrInfo attr) {
+        var attrDesc = toClassDesc(attr.type(), true);
+
+        builder.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+            .withCode(TypeRuntimeGenerator::buildPropertyAccessException));
+
+        builder.withMethod(toSetterName(attr), MethodTypeDesc.of(ConstantDescs.CD_void, attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+            .withCode(TypeRuntimeGenerator::buildPropertyAccessException));
+    }
+
+    private static void buildPropertyAccessException(CodeBuilder builder) {
+        builder
+            .new_(CD_UnsupportedOperationException)
+            .dup()
+            .ldc("attempt to access a non-serializable property attribute")
+            .invokespecial(CD_UnsupportedOperationException, ConstantDescs.INIT_NAME, MethodTypeDesc.of(ConstantDescs.CD_void, ConstantDescs.CD_String))
+            .athrow();
     }
 
     private ClassDesc toImplClassDesc(ClassTypeInfo info) {
