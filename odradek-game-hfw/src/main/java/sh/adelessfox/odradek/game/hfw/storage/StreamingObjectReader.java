@@ -7,10 +7,8 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
 import sh.adelessfox.odradek.game.hfw.rtti.data.UUIDRef;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.rtti.ClassAttrInfo;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
-import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -142,33 +140,20 @@ public class StreamingObjectReader extends HFWTypeReader {
                     );
                 }
 
-                fillCompound(object, reader);
+                fillCompound(object.type(), reader, factory, object.object());
             }
         }
 
         return result;
     }
 
-    private void fillCompound(ObjectInfo info, BinaryReader reader) throws IOException {
-        var object = info.object();
-        var type = info.type();
-        for (ClassAttrInfo attr : type.orderedAttrs()) {
-            type.set(attr, object, read(attr.type(), reader, factory));
-        }
-        if (object instanceof ExtraBinaryDataHolder holder) {
-            holder.deserialize(reader, factory);
-        }
-    }
-
     @Override
-    protected Object readCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        Object object = super.readCompound(info, reader, factory);
+    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
+        super.fillCompound(info, reader, factory, object);
 
         if (object instanceof StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
         }
-
-        return object;
     }
 
     @Override

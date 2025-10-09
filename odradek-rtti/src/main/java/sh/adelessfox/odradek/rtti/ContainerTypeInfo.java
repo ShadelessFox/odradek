@@ -5,7 +5,7 @@ public non-sealed interface ContainerTypeInfo extends TypeInfo {
 
     TypeInfo itemType();
 
-    Object newInstance(int count);
+    Object newInstance(int length);
 
     Object get(Object object, int index);
 

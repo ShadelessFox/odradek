@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
 
 import java.io.IOException;
+import java.lang.invoke.VarHandle;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -16,26 +17,26 @@ import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.RTTIRefOb
 
 public class HFWTypeReader extends AbstractTypeReader {
     private static final Map<String, AtomReader> READERS = Map.ofEntries(
-        Map.entry("wchar", AtomReader.of(r -> (char) r.readShort())),
-        Map.entry("tchar", AtomReader.of(r -> (char) r.readShort())),
-        Map.entry("bool", AtomReader.of(BinaryReader::readByteBoolean)),
-        Map.entry("uint8", AtomReader.of(BinaryReader::readByte, BinaryReader::readBytes)),
-        Map.entry("int8", AtomReader.of(BinaryReader::readByte, BinaryReader::readBytes)),
-        Map.entry("uint16", AtomReader.of(BinaryReader::readShort, BinaryReader::readShorts)),
-        Map.entry("int16", AtomReader.of(BinaryReader::readShort, BinaryReader::readShorts)),
-        Map.entry("uint", AtomReader.of(BinaryReader::readInt, BinaryReader::readInts)),
-        Map.entry("int", AtomReader.of(BinaryReader::readInt, BinaryReader::readInts)),
-        Map.entry("uint32", AtomReader.of(BinaryReader::readInt, BinaryReader::readInts)),
-        Map.entry("int32", AtomReader.of(BinaryReader::readInt, BinaryReader::readInts)),
-        Map.entry("ucs4", AtomReader.of(BinaryReader::readInt, BinaryReader::readInts)),
-        Map.entry("uint64", AtomReader.of(BinaryReader::readLong, BinaryReader::readLongs)),
-        Map.entry("int64", AtomReader.of(BinaryReader::readLong, BinaryReader::readLongs)),
-        Map.entry("uintptr", AtomReader.of(BinaryReader::readLong, BinaryReader::readLongs)),
-        Map.entry("HalfFloat", AtomReader.of(BinaryReader::readHalf, BinaryReader::readHalfs)),
-        Map.entry("float", AtomReader.of(BinaryReader::readFloat, BinaryReader::readFloats)),
-        Map.entry("double", AtomReader.of(BinaryReader::readDouble, BinaryReader::readDoubles)),
-        Map.entry("String", AtomReader.of(HFWTypeReader::readString)),
-        Map.entry("WString", AtomReader.of(HFWTypeReader::readWString))
+        Map.entry("wchar", AtomReader.of(r -> (char) r.readShort(), (r, o, h) -> h.set(o, (char) r.readShort()))),
+        Map.entry("tchar", AtomReader.of(r -> (char) r.readShort(), (r, o, h) -> h.set(o, (char) r.readShort()))),
+        Map.entry("bool", AtomReader.of(BinaryReader::readByteBoolean, (r, o, h) -> h.set(o, r.readByteBoolean()))),
+        Map.entry("uint8", AtomReader.BYTE),
+        Map.entry("int8", AtomReader.BYTE),
+        Map.entry("uint16", AtomReader.SHORT),
+        Map.entry("int16", AtomReader.SHORT),
+        Map.entry("uint", AtomReader.INT),
+        Map.entry("int", AtomReader.INT),
+        Map.entry("uint32", AtomReader.INT),
+        Map.entry("int32", AtomReader.INT),
+        Map.entry("ucs4", AtomReader.INT),
+        Map.entry("uint64", AtomReader.LONG),
+        Map.entry("int64", AtomReader.LONG),
+        Map.entry("uintptr", AtomReader.LONG),
+        Map.entry("HalfFloat", AtomReader.HALF),
+        Map.entry("float", AtomReader.FLOAT),
+        Map.entry("double", AtomReader.DOUBLE),
+        Map.entry("String", AtomReader.of(HFWTypeReader::readString, (r, o, h) -> h.set(o, readString(r)))),
+        Map.entry("WString", AtomReader.of(HFWTypeReader::readWString, (r, o, h) -> h.set(o, readWString(r))))
     );
 
     public record ObjectInfo(ClassTypeInfo type, RTTIRefObject object) {
@@ -64,6 +65,11 @@ public class HFWTypeReader extends AbstractTypeReader {
         }
 
         return new ObjectInfo(type, refObject);
+    }
+
+    @Override
+    protected void readAtomHandle(AtomTypeInfo info, BinaryReader reader, TypeFactory factory, Object object, VarHandle handle) throws IOException {
+        getAtomReader(info).readSingle(reader, object, handle);
     }
 
     @Override
@@ -158,13 +164,25 @@ public class HFWTypeReader extends AbstractTypeReader {
         var name = info.base().isPresent() ? info.base().get().name() : info.name();
         var reader = READERS.get(name);
         if (reader == null) {
-            throw new IllegalArgumentException("Unknown atom type: " + info.name());
+            throw new IllegalArgumentException("Unknown atom type: " + info.name() + " (" + name + ")");
         }
         return reader;
     }
 
-
     private interface AtomReader {
+        AtomReader BYTE = of((r, o, h) -> h.set(o, r.readByte()), BinaryReader::readByte, BinaryReader::readBytes);
+        AtomReader SHORT = of((r, o, h) -> h.set(o, r.readShort()), BinaryReader::readShort, BinaryReader::readShorts);
+        AtomReader INT = of((r, o, h) -> h.set(o, r.readInt()), BinaryReader::readInt, BinaryReader::readInts);
+        AtomReader LONG = of((r, o, h) -> h.set(o, r.readLong()), BinaryReader::readLong, BinaryReader::readLongs);
+        AtomReader HALF = of((r, o, h) -> h.set(o, r.readHalf()), BinaryReader::readHalf, BinaryReader::readHalfs);
+        AtomReader FLOAT = of((r, o, h) -> h.set(o, r.readFloat()), BinaryReader::readFloat, BinaryReader::readFloats);
+        AtomReader DOUBLE = of((r, o, h) -> h.set(o, r.readDouble()), BinaryReader::readDouble, BinaryReader::readDoubles);
+
+        @FunctionalInterface
+        interface ReadSingleHandle {
+            void read(BinaryReader reader, Object object, VarHandle handle) throws IOException;
+        }
+
         @FunctionalInterface
         interface ReadSingle {
             Object read(BinaryReader reader) throws IOException;
@@ -175,11 +193,16 @@ public class HFWTypeReader extends AbstractTypeReader {
             Object read(BinaryReader reader, int count) throws IOException;
         }
 
-        static AtomReader of(ReadSingle readSingle, ReadArray readArray) {
+        static AtomReader of(ReadSingleHandle readSingleHandle, ReadSingle readSingle, ReadArray readArray) {
             return new AtomReader() {
                 @Override
                 public Object readSingle(BinaryReader reader) throws IOException {
                     return readSingle.read(reader);
+                }
+
+                @Override
+                public void readSingle(BinaryReader reader, Object object, VarHandle handle) throws IOException {
+                    readSingleHandle.read(reader, object, handle);
                 }
 
                 @Override
@@ -189,7 +212,7 @@ public class HFWTypeReader extends AbstractTypeReader {
             };
         }
 
-        static AtomReader of(ReadSingle readSingle) {
+        static AtomReader of(ReadSingle readSingle, ReadSingleHandle readSingleHandle) {
             return new AtomReader() {
                 @Override
                 public Object readSingle(BinaryReader reader) throws IOException {
@@ -197,15 +220,22 @@ public class HFWTypeReader extends AbstractTypeReader {
                 }
 
                 @Override
+                public void readSingle(BinaryReader reader, Object object, VarHandle handle) throws IOException {
+                    readSingleHandle.read(reader, object, handle);
+                }
+
+                @Override
                 public Object readMultiple(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
                     Object result = info.newInstance(count);
                     for (int i = 0; i < count; i++) {
-                        info.set(result, i, readSingle.read(reader));
+                        info.set(result, i, readSingle(reader));
                     }
                     return result;
                 }
             };
         }
+
+        void readSingle(BinaryReader reader, Object object, VarHandle handle) throws IOException;
 
         Object readSingle(BinaryReader reader) throws IOException;
 

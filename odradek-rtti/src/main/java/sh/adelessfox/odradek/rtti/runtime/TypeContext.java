@@ -456,11 +456,11 @@ public class TypeContext {
         }
 
         @Override
-        public Object newInstance(int count) {
+        public Object newInstance(int length) {
             if (isArray()) {
-                return Array.newInstance(itemType().type(), count);
+                return Array.newInstance(itemType().type(), length);
             } else {
-                return Arrays.asList(new Object[count]);
+                return Arrays.asList(new Object[length]);
             }
         }
 
