@@ -1,5 +1,6 @@
 module odradek.core {
     requires be.twofold.tinybcdec;
+    requires org.lz4.java;
 
     exports sh.adelessfox.odradek.compression;
     exports sh.adelessfox.odradek.event;
