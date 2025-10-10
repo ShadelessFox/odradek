@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.storage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeId;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.GGUUID;
@@ -18,6 +20,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class StreamingGraphResource {
+    private static final Logger log = LoggerFactory.getLogger(StreamingGraphResource.class);
+
     private final HorizonForbiddenWest.StreamingGraphResource graph;
 
     private final List<ClassTypeInfo> types;
@@ -34,6 +38,8 @@ public class StreamingGraphResource {
         var rootUuids = graph.rootUUIDs();
         var rootIndices = graph.rootIndices();
         var groups = graph.groups();
+
+        log.debug("Building group index");
 
         for (var group : groups) {
             groupById.put(group.groupID(), group);
@@ -113,6 +119,8 @@ public class StreamingGraphResource {
     }
 
     private static List<ClassTypeInfo> readTypeTable(HorizonForbiddenWest.StreamingGraphResource graph, TypeFactory factory) throws IOException {
+        log.debug("Reading type table");
+
         var reader = BinaryReader.wrap(graph.typeTableData());
 
         var compression = reader.readInt();

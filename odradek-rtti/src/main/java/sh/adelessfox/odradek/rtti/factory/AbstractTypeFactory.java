@@ -34,7 +34,6 @@ public abstract class AbstractTypeFactory implements TypeFactory {
             throw new UncheckedIOException(e);
         }
 
-        log.debug("Initializing type generator");
         generator = new TypeRuntimeGenerator(lookup, namespace.getPackageName(), namespace.getSimpleName());
         generator.addBuiltins(getBuiltins());
 

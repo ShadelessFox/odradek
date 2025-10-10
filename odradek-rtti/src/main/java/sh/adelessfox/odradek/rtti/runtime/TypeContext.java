@@ -31,7 +31,7 @@ public class TypeContext {
         var typesObject = readJson(typesUrl);
         var extensionsObject = readJson(extensionsUrl);
 
-        log.debug("Loading extensions");
+        log.debug("Loading type extensions");
         for (var entry : extensionsObject.getAsJsonObject("types").entrySet()) {
             var typeName = entry.getKey();
             var typeInfo = process(typeName, entry.getValue().getAsJsonObject());
@@ -46,14 +46,14 @@ public class TypeContext {
             extensions.put(typeName, typeExtensions);
         }
 
-        log.debug("Loading types");
+        log.debug("Loading type definitions");
         for (var entry : typesObject.entrySet()) {
             var typeName = entry.getKey();
             var typeInfo = process(typeName, entry.getValue().getAsJsonObject());
             types.put(typeName, typeInfo);
         }
 
-        log.debug("Resolving references");
+        log.debug("Resolving type references");
         pending.forEach((holder, name) -> {
             var type = Objects.requireNonNull(types.get(name), "Couldn't find type '" + name + "'");
             holder.setOrThrow(type);
