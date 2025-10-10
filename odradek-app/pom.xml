@@ -175,6 +175,7 @@
                         <javaOption>--enable-native-access=org.lwjgl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
+                        <javaOption>--enable-native-access=org.lz4.java</javaOption>
                         <javaOption>--enable-preview</javaOption>
                     </javaOptions>
                     <module>odradek.app/sh.adelessfox.odradek.app.Application</module>
