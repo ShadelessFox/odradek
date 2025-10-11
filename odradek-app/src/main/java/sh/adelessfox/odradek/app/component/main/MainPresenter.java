@@ -15,6 +15,8 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
+import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -25,6 +27,7 @@ import sh.adelessfox.odradek.ui.util.Fugue;
 import sh.adelessfox.odradek.util.Futures;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -151,6 +154,11 @@ public class MainPresenter implements Presenter<MainView> {
             public Optional<Icon> getIcon(ObjectStructure element) {
                 return Optional.of(Fugue.getIcon("blue-document"));
             }
+
+            @Override
+            public Optional<String> getToolTip(ObjectStructure element) {
+                return Optional.of(getElementToolTip(element));
+            }
         });
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
@@ -163,5 +171,105 @@ public class MainPresenter implements Presenter<MainView> {
         });
         Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);
         return tree;
+    }
+
+    private static String getElementToolTip(ObjectStructure element) {
+        TypeInfo type = element.type();
+        StringBuilder buf = new StringBuilder();
+
+        buf.append("<html><table>");
+        switch (type) {
+            case AtomTypeInfo i -> {
+                appendSection(buf, "Atom");
+                appendRow(buf, "Type", getTypeHierarchy(type, false));
+                appendRow(buf, "Base", getTypeHierarchy(i.base().orElse(i), false));
+            }
+            case EnumTypeInfo i -> {
+                var value = (Value<?>) element.value();
+                appendSection(buf, "Enum");
+                appendRow(buf, "Type", getTypeHierarchy(type, false));
+                appendRow(buf, "Size", i.size() == 1 ? "1 byte" : i.size() + " bytes");
+                appendRow(buf, "Value", toText(value.value()));
+            }
+            case ClassTypeInfo i -> {
+                appendSection(buf, "Class");
+                appendRow(buf, "Type", getTypeHierarchy(type, true));
+                appendRow(buf, "Version", toText(i.version()));
+                appendRow(buf, "Flags", toText(i.flags()));
+            }
+            case ContainerTypeInfo i -> {
+                appendSection(buf, "Container");
+                appendRow(buf, "Type", getTypeHierarchy(type, false));
+                appendRow(buf, "Name", i.containerType());
+                appendRow(buf, "Item", getTypeHierarchy(i.itemType(), false));
+            }
+            case PointerTypeInfo i -> {
+                appendSection(buf, "Pointer");
+                appendRow(buf, "Type", getTypeHierarchy(type, false));
+                appendRow(buf, "Name", i.pointerType());
+                appendRow(buf, "Item", getTypeHierarchy(i.itemType(), false));
+            }
+        }
+        if (element instanceof ObjectStructure.Attr(_, _, var attr, _)) {
+            appendSection(buf, "Attribute");
+            appendRow(buf, "Flags", toText(attr.flags()));
+            appendRow(buf, "Min value", attr.min().orElse("NOT SET"));
+            appendRow(buf, "Max value", attr.max().orElse("NOT SET"));
+        }
+        buf.append("</table></html>");
+
+        return buf.toString();
+    }
+
+    private static String getTypeHierarchy(TypeInfo info, boolean classHierarchy) {
+        StringBuilder buf = new StringBuilder(100);
+        getTypeHierarchy0(buf, info, classHierarchy ? 0 : -1);
+        return buf.toString();
+    }
+
+    private static void getTypeHierarchy0(StringBuilder buf, TypeInfo info, int level) {
+        if (level > 0) {
+            buf.append("<br>&nbsp;");
+            buf.append("&nbsp;&nbsp;&nbsp;&nbsp;".repeat(level - 1));
+            buf.append("╰ ");
+        }
+
+        buf.append(info.name());
+        buf.append(' ').append(toDimmedText("(" + info.type().getName() + ")"));
+
+        if (level >= 0 && info instanceof ClassTypeInfo clazz) {
+            for (ClassBaseInfo base : clazz.bases()) {
+                getTypeHierarchy0(buf, base.type(), level + 1);
+            }
+        }
+    }
+
+    private static void appendSection(StringBuilder buf, String name) {
+        buf.append("<tr><td><b>")
+            .append(name)
+            .append("</b></td></tr>");
+    }
+
+    private static void appendRow(StringBuilder buf, String key, Object value) {
+        buf.append("<tr><td valign=\"top\">")
+            .append(key)
+            .append(":</td><td>")
+            .append(value)
+            .append("</td></tr>");
+    }
+
+    private static String toText(int value) {
+        return value + toDimmedText(" (%#x)".formatted(value));
+    }
+
+    private static String toDimmedText(String text) {
+        Color color = UIManager.getColor("Label.disabledForeground");
+        if (color == null) {
+            color = UIManager.getColor("Label.disabledText");
+        }
+        if (color == null) {
+            color = Color.GRAY;
+        }
+        return String.format("<span color=\"#%06x\">%s</span>", color.getRGB() & 0xffffff, text);
     }
 }

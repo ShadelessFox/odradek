@@ -39,6 +39,9 @@ public class StructuredTree<T> extends JTree implements DataContext {
         });
 
         setLargeModel(true);
+
+        // Required for TreeLabelProvider#getToolTip
+        ToolTipManager.sharedInstance().registerComponent(this);
     }
 
     @Override
@@ -56,6 +59,35 @@ public class StructuredTree<T> extends JTree implements DataContext {
             }
         }
         return Optional.empty();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String getToolTipText(MouseEvent event) {
+        if (event == null) {
+            return getToolTipText();
+        }
+
+        if (labelProvider != null) {
+            int row = getRowForLocation(event.getX(), event.getY());
+            if (row < 0) {
+                return null;
+            }
+
+            TreePath path = getPathForRow(row);
+            if (path == null) {
+                return null;
+            }
+
+            T element = (T) getElement(path.getLastPathComponent());
+            if (element == null) {
+                return null;
+            }
+
+            return labelProvider.getToolTip(element).orElse(null);
+        }
+
+        return super.getToolTipText(event);
     }
 
     @Override
