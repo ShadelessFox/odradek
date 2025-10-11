@@ -67,9 +67,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             cb.withFlags(AccessFlag.PUBLIC, AccessFlag.FINAL);
             cb.withInterfaceSymbols(toClassDesc(info));
 
-            List<Consumer<CodeBuilder>> constructor = new ArrayList<>(1);
-            int nestedClassIndex = 1;
-
             // Type
             cb.withField("$type", CD_StableValue, ClassFile.ACC_STATIC | ClassFile.ACC_FINAL | ClassFile.ACC_SYNTHETIC);
             cb.withMethod(ConstantDescs.CLASS_INIT_NAME, ConstantDescs.MTD_void, ClassFile.ACC_STATIC, mb -> mb
@@ -84,10 +81,17 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                     .checkcast(CD_ClassTypeInfo)
                     .areturn()));
 
+            List<Consumer<CodeBuilder>> constructor = new ArrayList<>(1);
+            List<ClassDesc> groupClasses = new ArrayList<>();
+
             // Groups
             for (ClassGroupInfo group : collectGroups(info)) {
                 var groupField = toFieldName(group);
                 var groupDesc = toClassDesc(group);
+                var groupImplDesc = desc.nested(toTypeName(group));
+
+                // Let the host class know about ourselves
+                groupClasses.add(groupImplDesc);
 
                 // Field
                 cb.withField(groupField, groupDesc, ClassFile.ACC_FINAL | ClassFile.ACC_SYNTHETIC);
@@ -98,10 +102,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                         .aload(0)
                         .getfield(desc, groupField, groupDesc)
                         .areturn()));
-
-                var groupImplDesc = desc.nested(String.valueOf(nestedClassIndex++));
-                cb.with(NestMembersAttribute.ofSymbols(groupImplDesc));
-                cb.with(InnerClassesAttribute.of(InnerClassInfo.of(groupImplDesc, Optional.empty(), Optional.empty())));
 
                 // Constructor initializer
                 constructor.add(cob -> cob
@@ -115,6 +115,12 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 // Class
                 generateGroupClass(info, desc, group, groupDesc, groupImplDesc);
             }
+
+            // Integrate information about nested group classes
+            cb.with(NestMembersAttribute.ofSymbols(groupClasses));
+            cb.with(InnerClassesAttribute.of(groupClasses.stream()
+                .map(d -> InnerClassInfo.of(d, Optional.empty(), Optional.empty()))
+                .toList()));
 
             // Attributes
             for (ClassAttrInfo attr : collectAttributes(info)) {
