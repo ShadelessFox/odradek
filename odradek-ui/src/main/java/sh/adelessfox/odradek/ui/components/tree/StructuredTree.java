@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.ui.components.tree;
 
+import com.formdev.flatlaf.util.UIScale;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Listeners;
@@ -17,6 +18,10 @@ import java.util.Optional;
 public class StructuredTree<T> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
     private TreeLabelProvider<T> labelProvider;
+
+    // For caching last shown tooltip while hovering over the same row
+    private int lastRowIndex = -1;
+    private int lastRowCount = -1;
 
     public StructuredTree(TreeStructure<T> structure) {
         super(new StructuredTreeModel<>(structure));
@@ -62,29 +67,47 @@ public class StructuredTree<T> extends JTree implements DataContext {
     }
 
     @Override
+    public Point getToolTipLocation(MouseEvent event) {
+        if (event == null) {
+            return null;
+        }
+        int offset = UIScale.scale(10);
+        return new Point(event.getX() + offset, event.getY() + offset);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public String getToolTipText(MouseEvent event) {
         if (event == null) {
-            return getToolTipText();
+            return null;
         }
 
         if (labelProvider != null) {
-            int row = getRowForLocation(event.getX(), event.getY());
-            if (row < 0) {
+            int rowIndex = getRowForLocation(event.getX(), event.getY());
+            if (rowIndex < 0) {
                 return null;
             }
 
-            TreePath path = getPathForRow(row);
+            int visibleRows = getRowCount();
+            if (lastRowIndex == rowIndex && lastRowCount == visibleRows) {
+                return super.getToolTipText();
+            }
+
+            var path = getPathForRow(rowIndex);
             if (path == null) {
                 return null;
             }
 
-            T element = (T) getElement(path.getLastPathComponent());
+            var element = (T) getElement(path.getLastPathComponent());
             if (element == null) {
                 return null;
             }
 
-            return labelProvider.getToolTip(element).orElse(null);
+            lastRowIndex = rowIndex;
+            lastRowCount = visibleRows;
+            putClientProperty(TOOL_TIP_TEXT_KEY, labelProvider.getToolTip(element).orElse(null));
+
+            return super.getToolTipText();
         }
 
         return super.getToolTipText(event);
