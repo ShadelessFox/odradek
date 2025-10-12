@@ -84,6 +84,33 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.moditect</groupId>
+                <artifactId>moditect-maven-plugin</artifactId>
+                <version>1.3.0.Final</version>
+                <configuration>
+                    <modules>
+                        <module>
+                            <artifact>
+                                <groupId>org.lz4</groupId>
+                                <artifactId>lz4-java</artifactId>
+                            </artifact>
+                            <moduleInfo>
+                                <name>org.lz4.java</name>
+                            </moduleInfo>
+                        </module>
+                    </modules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>add-module-infos</id>
+                        <goals>
+                            <goal>add-module-info</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
@@ -148,6 +175,8 @@
                         <javaOption>--enable-native-access=org.lwjgl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
+                        <javaOption>--enable-native-access=org.lz4.java</javaOption>
+                        <javaOption>--enable-preview</javaOption>
                     </javaOptions>
                     <module>odradek.app/sh.adelessfox.odradek.app.Application</module>
                 </configuration>

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.component.main;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.component.common.Presenter;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
+@Singleton
 public class MainPresenter implements Presenter<MainView> {
     private static final Logger log = LoggerFactory.getLogger(MainPresenter.class);
 

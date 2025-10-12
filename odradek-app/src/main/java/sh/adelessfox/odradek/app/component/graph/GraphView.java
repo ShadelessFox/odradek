@@ -10,6 +10,8 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
+import sh.adelessfox.odradek.ui.components.ValidationPopup;
+import sh.adelessfox.odradek.ui.components.toolwindow.ToolWindowPane;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -22,12 +24,13 @@ import java.awt.event.ActionEvent;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent> {
+public class GraphView implements View<JComponent>, ToolWindowPane {
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
 
     private final StructuredTree<GraphStructure> tree;
     private final JPanel panel;
+    private final ValidationPopup filterValidationPopup;
 
     @Inject
     public GraphView(EventBus eventBus, ForbiddenWestGame game) {
@@ -43,6 +46,8 @@ public class GraphView implements View<JComponent> {
             }
         });
 
+        filterValidationPopup = new ValidationPopup(filterField);
+
         tree = createGraphTree();
 
         var treeScrollPane = new JScrollPane(tree);
@@ -57,6 +62,7 @@ public class GraphView implements View<JComponent> {
         panel = new JPanel(new BorderLayout());
         panel.add(filterField, BorderLayout.NORTH);
         panel.add(treeScrollPane, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(300, 300));
 
         Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, key -> {
             if (DataKeys.GAME.is(key)) {
@@ -67,12 +73,31 @@ public class GraphView implements View<JComponent> {
     }
 
     @Override
+    public JComponent createComponent() {
+        return panel;
+    }
+
+    @Override
+    public boolean isFocused() {
+        return tree.isFocusOwner();
+    }
+
+    @Override
+    public void setFocus() {
+        tree.requestFocusInWindow();
+    }
+
+    @Override
     public JComponent getRoot() {
         return panel;
     }
 
     public StructuredTree<GraphStructure> getTree() {
         return tree;
+    }
+
+    public ValidationPopup getFilterValidationPopup() {
+        return filterValidationPopup;
     }
 
     private SearchTextField createFilterField() {
@@ -137,8 +162,8 @@ public class GraphView implements View<JComponent> {
                     case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
                     case GraphStructure.GraphRoots _,
                          GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
-                    case GraphStructure.GroupableByType<?> _,
-                         GraphStructure.GroupedByType<?> _,
+                    case GraphStructure.GroupableByType _,
+                         GraphStructure.GroupedByType _,
                          GraphStructure.GraphObjectSet _ -> Fugue.getIcon("folder-open-document");
                 });
             }

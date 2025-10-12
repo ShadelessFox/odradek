@@ -28,6 +28,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     public Optional<Node> convert(Object object, ForbiddenWestGame game) {
         return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(r, game);
+            case StaticMeshInstance r -> convertStaticMeshInstance(r, game);
             case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(r, game);
             case LodMeshResource r -> convertLodMeshResource(r, game);
             case MultiMeshResource r -> convertMultiMeshResource(r, game);
@@ -35,6 +36,8 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             case SkinnedModelResource r -> convertSkinnedModelResource(r, game);
             case DestructibilityPart r -> convertDestructibilityPart(r, game);
             case ControlledEntityResource r -> convertControlledEntityResource(r, game);
+            case PrefabResource r -> convertPrefabResource(r, game);
+            case PrefabInstance r -> convertPrefabInstance(r, game);
             default -> {
                 log.error("Unsupported resource type: {}", object);
                 yield Optional.empty();
@@ -46,14 +49,40 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     public Set<Class<?>> convertibleTypes() {
         return Set.of(
             StaticMeshResource.class,
+            StaticMeshInstance.class,
             RegularSkinnedMeshResource.class,
             LodMeshResource.class,
             MultiMeshResource.class,
             BodyVariant.class,
             SkinnedModelResource.class,
             DestructibilityPart.class,
-            ControlledEntityResource.class
+            ControlledEntityResource.class,
+            PrefabResource.class,
+            PrefabInstance.class
         );
+    }
+
+    private Optional<Node> convertPrefabResource(PrefabResource resource, ForbiddenWestGame game) {
+        var collection = resource.general().objectCollection().get();
+        var children = new ArrayList<Node>();
+
+        for (var object : Ref.unwrap(collection.general().objects())) {
+            convert(object, game).ifPresent(children::add);
+        }
+
+        if (children.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(Node.of(children));
+    }
+
+    private Optional<Node> convertPrefabInstance(PrefabInstance instance, ForbiddenWestGame game) {
+        for (PrefabObjectOverrides override : instance.general().overrides()) {
+            assert !override.isRemoved();
+            assert !override.isTransformOverridden();
+        }
+        return convert(instance.general().prefab().get(), game);
     }
 
     private Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
@@ -102,6 +131,10 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             return Optional.empty();
         }
         return convert(resource.general().meshResource().get(), game);
+    }
+
+    private Optional<Node> convertStaticMeshInstance(StaticMeshInstance instance, ForbiddenWestGame game) {
+        return convert(instance.general().resource().get(), game);
     }
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
@@ -219,7 +252,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         ForbiddenWestGame game
     ) {
         var buffer = readDataSource(dataSource, game);
-        var primitives = new ArrayList<Primitive>();
+        var primitives = new ArrayList<Primitive>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
 
@@ -254,7 +287,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             var stride = stream.stride();
 
             ByteBuffer view;
-            if (vertexArray.streaming()) {
+            if (vertexArray.isStreaming()) {
                 view = readDataAligned(buffer, count, stride);
             } else {
                 view = ByteBuffer.wrap(stream.data());
@@ -263,7 +296,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             for (var element : stream.elements()) {
                 var offset = Byte.toUnsignedInt(element.offset());
 
-                var semantic = switch (element.element()) {
+                var semantic = switch (element.element().unwrap()) {
                     case Pos -> Semantic.POSITION;
                     case Tangent -> Semantic.TANGENT;
                     case Normal -> Semantic.NORMAL;
@@ -299,7 +332,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
                     continue;
                 }
 
-                var accessor = switch (element.storageType()) {
+                var accessor = switch (element.storageType().unwrap()) {
                     // @formatter:off
                     case UnsignedByte ->
                         new Accessor(view, elementType, ComponentType.UNSIGNED_BYTE, offset, count, stride, false);
@@ -334,16 +367,16 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     }
 
     private static Accessor buildIndexAccessor(IndexArrayResource indexArray, ByteBuffer buffer, int startIndex, int endIndex) {
-        var component = switch (indexArray.format()) {
+        var component = switch (indexArray.format().unwrap()) {
             case Index16 -> ComponentType.UNSIGNED_SHORT;
             case Index32 -> ComponentType.UNSIGNED_INT;
         };
 
         var count = indexArray.count();
-        var stride = indexArray.format().stride();
+        var stride = indexArray.format().unwrap().stride();
 
         ByteBuffer view;
-        if (indexArray.streaming()) {
+        if (indexArray.isStreaming()) {
             view = readDataAligned(buffer, count, stride);
         } else {
             view = ByteBuffer.wrap(indexArray.data());

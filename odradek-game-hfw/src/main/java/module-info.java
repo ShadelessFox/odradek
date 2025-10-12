@@ -1,4 +1,5 @@
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
+import sh.adelessfox.odradek.game.hfw.rtti.data.EIndexFormatExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.GGUUIDExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.MurmurHashValueExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingDataSourceExtension;
@@ -10,31 +11,34 @@ import sh.adelessfox.odradek.rtti.generator.GenerateBindings.Extension;
 import java.math.BigInteger;
 
 @GenerateBindings(
-    source = "data/horizon_forbidden_west_rtti.json",
+    input = @GenerateBindings.Input(
+        types = "types.json",
+        extensions = "extensions.json"
+    ),
     target = "sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest",
     builtins = {
-        @Builtin(type = "bool", javaType = boolean.class),
-        @Builtin(type = "int", javaType = int.class),
-        @Builtin(type = "int8", javaType = byte.class),
-        @Builtin(type = "int16", javaType = short.class),
-        @Builtin(type = "int32", javaType = int.class),
-        @Builtin(type = "int64", javaType = long.class),
-        @Builtin(type = "intptr", javaType = long.class),
-        @Builtin(type = "uint", javaType = int.class),
-        @Builtin(type = "uint8", javaType = byte.class),
-        @Builtin(type = "uint16", javaType = short.class),
-        @Builtin(type = "uint32", javaType = int.class),
-        @Builtin(type = "uint64", javaType = long.class),
-        @Builtin(type = "uint128", javaType = BigInteger.class),
-        @Builtin(type = "uintptr", javaType = long.class),
-        @Builtin(type = "float", javaType = float.class),
-        @Builtin(type = "double", javaType = double.class),
-        @Builtin(type = "HalfFloat", javaType = float.class),
-        @Builtin(type = "tchar", javaType = char.class),
-        @Builtin(type = "wchar", javaType = char.class),
-        @Builtin(type = "ucs4", javaType = int.class),
-        @Builtin(type = "String", javaType = String.class),
-        @Builtin(type = "WString", javaType = String.class),
+        @Builtin(type = "bool", repr = boolean.class),
+        @Builtin(type = "int", repr = int.class),
+        @Builtin(type = "int8", repr = byte.class),
+        @Builtin(type = "int16", repr = short.class),
+        @Builtin(type = "int32", repr = int.class),
+        @Builtin(type = "int64", repr = long.class),
+        @Builtin(type = "intptr", repr = long.class),
+        @Builtin(type = "uint", repr = int.class),
+        @Builtin(type = "uint8", repr = byte.class),
+        @Builtin(type = "uint16", repr = short.class),
+        @Builtin(type = "uint32", repr = int.class),
+        @Builtin(type = "uint64", repr = long.class),
+        @Builtin(type = "uint128", repr = BigInteger.class),
+        @Builtin(type = "uintptr", repr = long.class),
+        @Builtin(type = "float", repr = float.class),
+        @Builtin(type = "double", repr = double.class),
+        @Builtin(type = "HalfFloat", repr = float.class),
+        @Builtin(type = "tchar", repr = char.class),
+        @Builtin(type = "wchar", repr = char.class),
+        @Builtin(type = "ucs4", repr = int.class),
+        @Builtin(type = "String", repr = String.class),
+        @Builtin(type = "WString", repr = String.class),
     },
     callbacks = {
         @Callback(type = "DataBufferResource", handler = DataBufferResourceCallback.class),
@@ -59,6 +63,7 @@ import java.math.BigInteger;
         @Callback(type = "WorldMapSuperTile", handler = WorldMapSuperTileCallback.class),
     },
     extensions = {
+        @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
         @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)

@@ -3,6 +3,7 @@ module odradek.ui {
 
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
+    requires com.miglayout.swing;
     requires java.desktop;
     requires org.slf4j;
     requires odradek.core;
@@ -12,6 +13,7 @@ module odradek.ui {
     exports sh.adelessfox.odradek.ui.actions;
     exports sh.adelessfox.odradek.ui.components.laf;
     exports sh.adelessfox.odradek.ui.components.tree;
+    exports sh.adelessfox.odradek.ui.components.toolwindow;
     exports sh.adelessfox.odradek.ui.components;
     exports sh.adelessfox.odradek.ui.data;
     exports sh.adelessfox.odradek.ui.editors.stack;

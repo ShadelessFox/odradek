@@ -54,8 +54,12 @@ public class ExportObjectAction extends Action {
             .gather(Gatherers.instanceOf(GroupObject.class))
             .toList();
 
+        if (selection.isEmpty()) {
+            return Stream.empty();
+        }
+
         var types = selection.stream()
-            .map(object -> object.type().instanceType())
+            .map(object -> object.type().type())
             .distinct()
             .toList();
 

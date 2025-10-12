@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.storage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeId;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.GGUUID;
@@ -7,8 +9,8 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingDataSou
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingSourceSpan;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.rtti.runtime.ClassTypeInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class StreamingGraphResource {
+    private static final Logger log = LoggerFactory.getLogger(StreamingGraphResource.class);
+
     private final HorizonForbiddenWest.StreamingGraphResource graph;
 
     private final List<ClassTypeInfo> types;
@@ -35,6 +39,8 @@ public class StreamingGraphResource {
         var rootIndices = graph.rootIndices();
         var groups = graph.groups();
 
+        log.debug("Building group index");
+
         for (var group : groups) {
             groupById.put(group.groupID(), group);
 
@@ -47,7 +53,7 @@ public class StreamingGraphResource {
         for (var group : groups) {
             for (int i = 0; i < group.subGroupCount(); i++) {
                 var subgroup = group(graph.subGroups()[group.subGroupStart() + i]);
-                dependentGroups.computeIfAbsent(subgroup, x -> new ArrayList<>()).add(group);
+                dependentGroups.computeIfAbsent(subgroup, _ -> new ArrayList<>()).add(group);
             }
         }
     }
@@ -113,6 +119,8 @@ public class StreamingGraphResource {
     }
 
     private static List<ClassTypeInfo> readTypeTable(HorizonForbiddenWest.StreamingGraphResource graph, TypeFactory factory) throws IOException {
+        log.debug("Reading type table");
+
         var reader = BinaryReader.wrap(graph.typeTableData());
 
         var compression = reader.readInt();
@@ -134,13 +142,13 @@ public class StreamingGraphResource {
             throw new IOException("Unexpected unknown value: " + unk10);
         }
 
-        var types = new ArrayList<ClassTypeInfo>();
+        var types = new ArrayList<ClassTypeInfo>(count);
 
         for (int i = 0; i < count; i++) {
             var index = Short.toUnsignedInt(reader.readShort());
             var hash = graph.typeHashes()[index];
             var type = factory.get(HFWTypeId.of(hash));
-            types.add(type);
+            types.add(type.asClass());
         }
 
         return List.copyOf(types);

@@ -20,3 +20,8 @@ ij_java_method_parameters_wrap = off
 ij_java_doc_do_not_wrap_if_one_line = true
 ij_java_line_comment_at_first_column = false
 ij_any_line_comment_add_space = true
+
+[*.json]
+indent_size = 2
+indent_style = tab
+ij_json_object_wrapping = off

@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.ui;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.util.Reflections;
 
 import java.util.List;

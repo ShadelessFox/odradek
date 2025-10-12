@@ -4,7 +4,8 @@ import com.google.gson.FormattingStyle;
 import com.google.gson.Strictness;
 import com.google.gson.stream.JsonWriter;
 import sh.adelessfox.odradek.export.Exporter;
-import sh.adelessfox.odradek.rtti.runtime.*;
+import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -36,7 +37,7 @@ public class JsonExporter implements Exporter<TypedObject> {
 
     private static void write(JsonWriter writer, TypeInfo info, Object object) throws IOException {
         writer.beginObject();
-        writer.name("$type").value(info.name().fullName());
+        writer.name("$type").value(info.name());
 
         switch (info) {
             case AtomTypeInfo _ -> {
@@ -47,10 +48,10 @@ public class JsonExporter implements Exporter<TypedObject> {
                     writer.value(String.valueOf(object));
                 }
             }
-            case ClassTypeInfo class_ -> {
-                for (ClassAttrInfo attr : class_.displayableAttrs()) {
+            case ClassTypeInfo clazz -> {
+                for (ClassAttrInfo attr : clazz.serializedAttrs()) {
                     writer.name(attr.name());
-                    write(writer, attr.type().get(), attr.get(object));
+                    write(writer, attr.type(), clazz.get(attr, object));
                 }
             }
             case ContainerTypeInfo _ when object instanceof byte[] bytes -> {
@@ -61,7 +62,7 @@ public class JsonExporter implements Exporter<TypedObject> {
                 writer.name("items");
                 writer.beginArray();
                 for (int i = 0, length = container.length(object); i < length; i++) {
-                    write(writer, container.itemType().get(), container.get(object, i));
+                    write(writer, container.itemType(), container.get(object, i));
                 }
                 writer.endArray();
             }

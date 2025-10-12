@@ -12,11 +12,15 @@ record Value$OfSet<T extends Enum<T> & Value.OfEnumSet<T>>(Set<Value<T>> values)
 
     @Override
     public int value() {
-        return values.stream().mapToInt(Value::value).reduce(0, (a, b) -> a | b);
+        return values.stream()
+            .mapToInt(Value::value)
+            .reduce(0, (a, b) -> a | b);
     }
 
     @Override
     public String toString() {
-        return values.stream().map(Objects::toString).collect(Collectors.joining("|"));
+        return values.stream()
+            .map(Objects::toString)
+            .collect(Collectors.joining("|"));
     }
 }

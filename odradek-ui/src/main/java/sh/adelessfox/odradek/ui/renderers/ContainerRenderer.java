@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.ui.renderers;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.rtti.runtime.ContainerTypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.TypeInfo;
+import sh.adelessfox.odradek.rtti.ContainerTypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;

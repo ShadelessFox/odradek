@@ -4,7 +4,7 @@
   "patternProperties": {
     "^[A-Za-z0-9_]+$": {
       "oneOf": [
-        { "$ref": "#/definitions/RTTIClass" },
+        { "$ref": "#/definitions/RTTICompound" },
         { "$ref": "#/definitions/RTTIEnum" },
         { "$ref": "#/definitions/RTTIAtom" },
         { "$ref": "#/definitions/RTTIContainer" },
@@ -13,10 +13,10 @@
     }
   },
   "definitions": {
-    "RTTIClass": {
+    "RTTICompound": {
       "type": "object",
       "properties": {
-        "kind": { "enum": ["class"] },
+        "kind": { "enum": ["compound"] },
         "version": { "type": "integer", "minimum": 0 },
         "flags": { "type": "integer", "minimum": 0 },
         "messages": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
@@ -39,7 +39,7 @@
     "RTTIAtom": {
       "type": "object",
       "properties": {
-        "kind": { "enum": ["primitive"] },
+        "kind": { "enum": ["atom"] },
         "base_type": { "type": "string" }
       },
       "required": ["kind", "base_type"],
