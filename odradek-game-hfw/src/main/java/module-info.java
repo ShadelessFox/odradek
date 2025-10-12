@@ -3,10 +3,10 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.EIndexFormatExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.GGUUIDExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.MurmurHashValueExtension;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingDataSourceExtension;
-import sh.adelessfox.odradek.rtti.generator.GenerateBindings;
-import sh.adelessfox.odradek.rtti.generator.GenerateBindings.Builtin;
-import sh.adelessfox.odradek.rtti.generator.GenerateBindings.Callback;
-import sh.adelessfox.odradek.rtti.generator.GenerateBindings.Extension;
+import sh.adelessfox.odradek.rtti.GenerateBindings;
+import sh.adelessfox.odradek.rtti.GenerateBindings.Builtin;
+import sh.adelessfox.odradek.rtti.GenerateBindings.Callback;
+import sh.adelessfox.odradek.rtti.GenerateBindings.Extension;
 
 import java.math.BigInteger;
 

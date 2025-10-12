@@ -2,10 +2,7 @@ package sh.adelessfox.odradek.rtti.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.rtti.ClassAttrInfo;
-import sh.adelessfox.odradek.rtti.ClassBaseInfo;
-import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.runtime.TypeContext;
 import sh.adelessfox.odradek.rtti.runtime.TypeRuntimeGenerator;
 
@@ -15,6 +12,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class AbstractTypeFactory implements TypeFactory {
     private static final Logger log = LoggerFactory.getLogger(AbstractTypeFactory.class);
@@ -22,20 +21,23 @@ public abstract class AbstractTypeFactory implements TypeFactory {
     private final Map<ClassTypeInfo, Class<?>> classes = new IdentityHashMap<>();
     private final Map<TypeId, TypeInfo> types = new HashMap<>();
 
+    private final Class<?> namespace;
     private final TypeContext context;
     private final TypeRuntimeGenerator generator;
 
     public AbstractTypeFactory(Class<?> namespace, MethodHandles.Lookup lookup) {
+        this.namespace = namespace;
+
+        generator = new TypeRuntimeGenerator(lookup, namespace.getPackageName(), namespace.getSimpleName());
+        generator.addBuiltins(getBuiltins());
+        context = new FactoryTypeContext();
+
         try {
             log.debug("Loading type context");
-            context = new FactoryTypeContext();
             context.load(getTypes(), getExtensions());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
-        generator = new TypeRuntimeGenerator(lookup, namespace.getPackageName(), namespace.getSimpleName());
-        generator.addBuiltins(getBuiltins());
 
         log.debug("Computing type ids");
         context.getAll().forEach(info -> {
@@ -91,11 +93,22 @@ public abstract class AbstractTypeFactory implements TypeFactory {
 
     protected abstract void filterOrderedAttributes(List<OrderedAttr> attrs);
 
-    protected abstract URL getTypes();
+    protected URL getTypes() {
+        return namespace.getClassLoader().getResource(getAnnotation().input().types());
+    }
 
-    protected abstract URL getExtensions();
+    protected URL getExtensions() {
+        return namespace.getClassLoader().getResource(getAnnotation().input().extensions());
+    }
 
-    protected abstract Map<String, Class<?>> getBuiltins();
+    protected Map<String, Class<?>> getBuiltins() {
+        return Stream.of(getAnnotation().builtins())
+            .collect(Collectors.toMap(GenerateBindings.Builtin::type, GenerateBindings.Builtin::repr));
+    }
+
+    private GenerateBindings getAnnotation() {
+        return namespace.getModule().getDeclaredAnnotation(GenerateBindings.class);
+    }
 
     protected record OrderedAttr(ClassTypeInfo parent, ClassAttrInfo attr, int offset) {
     }

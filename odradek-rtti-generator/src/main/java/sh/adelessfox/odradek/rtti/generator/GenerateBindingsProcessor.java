@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.rtti.generator;
 
+import sh.adelessfox.odradek.rtti.GenerateBindings;
 import sh.adelessfox.odradek.rtti.runtime.TypeContext;
 
 import javax.annotation.processing.AbstractProcessor;

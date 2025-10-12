@@ -10,11 +10,9 @@ public interface TypeFactory {
 
     <T> T newInstance(ClassTypeInfo info);
 
-    default <T> T newInstance(String name) {
-        return newInstance(get(name).asClass());
-    }
-
     default <T> T newInstance(Class<T> clazz) {
-        return newInstance(clazz.getSimpleName());
+        var name = clazz.getSimpleName();
+        var info = get(name).asClass();
+        return newInstance(info);
     }
 }

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.rtti.generator;
+package sh.adelessfox.odradek.rtti;
 
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 
@@ -7,7 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.MODULE)
 public @interface GenerateBindings {
     @interface Input {

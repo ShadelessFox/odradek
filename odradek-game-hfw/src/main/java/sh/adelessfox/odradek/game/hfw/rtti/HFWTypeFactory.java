@@ -6,12 +6,9 @@ import sh.adelessfox.odradek.rtti.factory.AbstractTypeFactory;
 import sh.adelessfox.odradek.rtti.factory.TypeId;
 
 import java.lang.invoke.MethodHandles;
-import java.math.BigInteger;
-import java.net.URL;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 public class HFWTypeFactory extends AbstractTypeFactory {
     public HFWTypeFactory() {
@@ -27,49 +24,16 @@ public class HFWTypeFactory extends AbstractTypeFactory {
 
     @Override
     protected void sortOrderedAttributes(List<OrderedAttr> attrs) {
-        quicksort(attrs, Comparator.comparingInt(OrderedAttr::offset), 0, attrs.size() - 1, 0);
+        quicksort(attrs, Comparator.comparingInt(OrderedAttr::offset));
     }
 
     @Override
     protected void filterOrderedAttributes(List<OrderedAttr> attrs) {
-        // Remove save-state attribute
         attrs.removeIf(attr -> !attr.attr().isSerialized());
     }
 
-    @Override
-    protected URL getTypes() {
-        return getClass().getResource("/types.json");
-    }
-
-    @Override
-    protected URL getExtensions() {
-        return getClass().getResource("/extensions.json");
-    }
-
-    @Override
-    protected Map<String, Class<?>> getBuiltins() {
-        return Map.ofEntries(
-            Map.entry("HalfFloat", float.class),
-            Map.entry("float", float.class),
-            Map.entry("double", double.class),
-            Map.entry("bool", boolean.class),
-            Map.entry("wchar", char.class),
-            Map.entry("ucs4", int.class),
-            Map.entry("uint", int.class),
-            Map.entry("uint8", byte.class),
-            Map.entry("uint16", short.class),
-            Map.entry("uint32", int.class),
-            Map.entry("uint64", long.class),
-            Map.entry("uint128", BigInteger.class),
-            Map.entry("uintptr", long.class),
-            Map.entry("int", int.class),
-            Map.entry("int8", byte.class),
-            Map.entry("int16", short.class),
-            Map.entry("int32", int.class),
-            Map.entry("int64", long.class),
-            Map.entry("String", String.class),
-            Map.entry("WString", String.class)
-        );
+    private static <T> void quicksort(List<T> items, Comparator<T> comparator) {
+        quicksort(items, comparator, 0, items.size() - 1, 0);
     }
 
     private static <T> int quicksort(List<T> items, Comparator<T> comparator, int left, int right, int state) {
