@@ -121,7 +121,7 @@ final class ObjectEditor implements Editor {
             case AtomTypeInfo i -> {
                 appendSection(buf, "Atom");
                 appendRow(buf, "Type", getTypeHierarchy(type, false));
-                appendRow(buf, "Base", getTypeHierarchy(i.base().orElse(i), false));
+                appendRow(buf, "Base", getTypeHierarchy(i.base(), false));
             }
             case EnumTypeInfo i -> {
                 var value = (Value<?>) element.value();

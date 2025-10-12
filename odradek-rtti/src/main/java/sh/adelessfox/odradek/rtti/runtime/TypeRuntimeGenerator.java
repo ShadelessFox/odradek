@@ -303,12 +303,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         return switch (info) {
             case ClassTypeInfo i -> toClassDesc(i);
             case EnumTypeInfo i -> useWrapperType ? CD_Value : toClassDesc(i);
-            case AtomTypeInfo i -> {
-                if (i.base().isPresent()) {
-                    i = i.base().get();
-                }
-                yield getBuiltin(i.name()).flatMap(Class::describeConstable).orElseThrow();
-            }
+            case AtomTypeInfo i -> getBuiltin(i.base().name()).flatMap(Class::describeConstable).orElseThrow();
             case ContainerTypeInfo i -> {
                 var itemType = toClassDesc(i.itemType(), useWrapperType);
                 if (itemType.isPrimitive()) {

@@ -94,11 +94,7 @@ public class TypeContext {
 
     private AtomTypeInfo processAtom(String name, JsonObject object) {
         var baseType = object.get("base_type").getAsString();
-        if (baseType.equals(name)) {
-            return new AtomTypeInfoImpl(name, StableValue.of(null));
-        } else {
-            return new AtomTypeInfoImpl(name, resolveType(baseType));
-        }
+        return new AtomTypeInfoImpl(name, resolveType(baseType));
     }
 
     private ClassTypeInfoImpl processCompound(String name, JsonObject object) {
@@ -267,8 +263,8 @@ public class TypeContext {
         }
 
         @Override
-        public Optional<AtomTypeInfo> base() {
-            return Optional.ofNullable((AtomTypeInfo) base.orElseThrow());
+        public AtomTypeInfo base() {
+            return (AtomTypeInfo) base.orElseThrow();
         }
     }
 

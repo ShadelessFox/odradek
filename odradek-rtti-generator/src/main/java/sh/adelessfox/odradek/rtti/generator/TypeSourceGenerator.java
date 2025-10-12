@@ -230,12 +230,7 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
                 var name = toTypeName(i);
                 yield ParameterizedTypeName.get(NAME_Value, name);
             }
-            case AtomTypeInfo i -> {
-                if (i.base().isPresent()) {
-                    i = i.base().get();
-                }
-                yield getBuiltin(i.name()).map(TypeName::get).orElseThrow();
-            }
+            case AtomTypeInfo i -> getBuiltin(i.base().name()).map(TypeName::get).orElseThrow();
             case ContainerTypeInfo i -> {
                 var itemType = toJavaType(i.itemType());
                 if (itemType.isPrimitive()) {
