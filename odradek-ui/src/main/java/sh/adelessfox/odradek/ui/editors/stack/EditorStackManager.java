@@ -41,7 +41,7 @@ public class EditorStackManager implements EditorManager {
 
     @Override
     public Editor openEditor(EditorInput input, Activation activation) {
-        EditorComponent component = findEditorComponent(e -> input.equals(e.getInput())).orElse(null);
+        EditorComponent component = findEditorComponent(e -> input.representsSameInput(e.getInput())).orElse(null);
         EditorStack stack;
 
         if (component == null) {
@@ -77,7 +77,7 @@ public class EditorStackManager implements EditorManager {
 
     @Override
     public Optional<Editor> findEditor(EditorInput input) {
-        return findEditorComponent(e -> input.equals(e.getInput())).map(e -> e.editor);
+        return findEditorComponent(e -> input.representsSameInput(e.getInput())).map(e -> e.editor);
     }
 
     @Override

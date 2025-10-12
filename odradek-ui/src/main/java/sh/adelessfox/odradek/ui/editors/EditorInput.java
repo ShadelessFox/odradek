@@ -21,5 +21,5 @@ public interface EditorInput {
      * @param other other editor input
      * @return {@code true} if both inputs represent the same input, {@code false} otherwise
      */
-    boolean equals(EditorInput other);
+    boolean representsSameInput(EditorInput other);
 }

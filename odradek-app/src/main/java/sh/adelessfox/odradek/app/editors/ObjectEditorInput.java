@@ -16,7 +16,7 @@ public record ObjectEditorInput(Game game, TypedObject object, int groupId, int 
     }
 
     @Override
-    public boolean equals(EditorInput other) {
-        return equals((Object) other);
+    public boolean representsSameInput(EditorInput other) {
+        return equals(other);
     }
 }
