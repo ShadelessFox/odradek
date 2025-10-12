@@ -5,12 +5,12 @@ package sh.adelessfox.odradek.ui.editors;
  */
 public interface EditorInput {
     /**
-     * The name of this input
+     * Returns the name of this input
      */
     String getName();
 
     /**
-     * The description of this input
+     * Returns the description of this input
      */
     String getDescription();
 
