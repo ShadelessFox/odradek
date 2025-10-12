@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.editors;
 
 import sh.adelessfox.odradek.ui.editors.stack.EditorStack;
+import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
 
 import javax.swing.*;
 import java.util.List;
@@ -12,6 +13,13 @@ public interface EditorManager {
         NO,
         REVEAL,
         REVEAL_AND_FOCUS
+    }
+
+    static EditorManager sharedInstance() {
+        class Holder {
+            static final EditorManager instance = new EditorStackManager();
+        }
+        return Holder.instance;
     }
 
     Editor openEditor(EditorInput input);

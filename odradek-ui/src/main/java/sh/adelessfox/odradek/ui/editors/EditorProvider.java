@@ -1,12 +1,18 @@
 package sh.adelessfox.odradek.ui.editors;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
 
 public interface EditorProvider {
     static Stream<EditorProvider> providers() {
-        return ServiceLoader.load(EditorProvider.class).stream().map(ServiceLoader.Provider::get);
+        class Holder {
+            static final List<EditorProvider> providers = ServiceLoader.load(EditorProvider.class).stream()
+                .map(ServiceLoader.Provider::get)
+                .toList();
+        }
+        return Holder.providers.stream();
     }
 
     static Stream<EditorProvider> providers(EditorInput input) {
