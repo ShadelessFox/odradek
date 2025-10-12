@@ -12,7 +12,11 @@ public interface DataContext {
     static DataContext focusedComponent() {
         return key -> {
             var manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            for (Component c = manager.getPermanentFocusOwner(); c != null; c = c.getParent()) {
+            var focusOwner = manager.getPermanentFocusOwner();
+            if (focusOwner == null) {
+                focusOwner = manager.getFocusOwner();
+            }
+            for (Component c = focusOwner; c != null; c = c.getParent()) {
                 var result = getDataContext(c).flatMap(context -> context.get(key));
                 if (result.isPresent()) {
                     return result;
@@ -41,7 +45,7 @@ public interface DataContext {
         component.putClientProperty(DataContext.class, context);
     }
 
-    Optional<Object> get(String key);
+    Optional<?> get(String key);
 
     @SuppressWarnings("unchecked")
     default <T> Optional<T> get(DataKey<T> key) {
@@ -63,6 +67,12 @@ public interface DataContext {
     }
 
     default DataContext or(DataContext other) {
-        return key -> get(key).or(() -> other.get(key));
+        return key -> {
+            Optional<?> result = get(key);
+            if (result.isPresent()) {
+                return result;
+            }
+            return other.get(key);
+        };
     }
 }

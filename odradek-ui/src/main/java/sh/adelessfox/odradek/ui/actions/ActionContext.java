@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public record ActionContext(DataContext context, Object source, ActionEvent event) implements DataContext {
     @Override
-    public Optional<Object> get(String key) {
+    public Optional<?> get(String key) {
         return context.get(key);
     }
 

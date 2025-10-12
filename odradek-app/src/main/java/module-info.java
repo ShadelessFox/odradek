@@ -36,4 +36,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.menu.actions.graph.SortObjectsByCountAction,
         sh.adelessfox.odradek.app.menu.actions.object.CopyBytesToClipboardAction,
         sh.adelessfox.odradek.app.menu.actions.tabs.CloseAllTabsAction;
+
+    provides sh.adelessfox.odradek.ui.editors.EditorProvider with
+        sh.adelessfox.odradek.app.editors.ObjectEditorProvider;
 }
