@@ -2,10 +2,7 @@ package sh.adelessfox.odradek.ui.editors.stack;
 
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.editors.Editor;
-import sh.adelessfox.odradek.ui.editors.EditorInput;
-import sh.adelessfox.odradek.ui.editors.EditorManager;
-import sh.adelessfox.odradek.ui.editors.EditorProvider;
+import sh.adelessfox.odradek.ui.editors.*;
 import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
 
 import javax.swing.*;
@@ -20,6 +17,7 @@ import java.util.function.Predicate;
 
 public class EditorStackManager implements EditorManager {
     private final EditorStackContainer root;
+    private final EditorSite sharedSite = new MyEditorSite();
 
     public EditorStackManager() {
         root = new EditorStackContainer(this, createStack());
@@ -171,7 +169,7 @@ public class EditorStackManager implements EditorManager {
 
         for (EditorProvider provider : providers) {
             try {
-                return new EditorResult(provider.createEditor(input), provider);
+                return new EditorResult(provider.createEditor(input, sharedSite), provider);
             } catch (Exception e) {
                 exception = e;
             }
@@ -254,5 +252,12 @@ public class EditorStackManager implements EditorManager {
     }
 
     private record EditorResult(Editor editor, EditorProvider provider) {
+    }
+
+    private class MyEditorSite implements EditorSite {
+        @Override
+        public EditorManager getManager() {
+            return EditorStackManager.this;
+        }
     }
 }

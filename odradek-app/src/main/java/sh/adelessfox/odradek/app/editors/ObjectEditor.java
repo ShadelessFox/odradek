@@ -16,7 +16,7 @@ import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
-import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.editors.EditorSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -25,10 +25,12 @@ import java.util.Optional;
 
 final class ObjectEditor implements Editor {
     private final ObjectEditorInput input;
+    private final EditorSite site;
     private FlatTabbedPane pane;
 
-    public ObjectEditor(ObjectEditorInput input) {
+    public ObjectEditor(ObjectEditorInput input, EditorSite site) {
         this.input = input;
+        this.site = site;
     }
 
     @Override
@@ -54,7 +56,7 @@ final class ObjectEditor implements Editor {
         pane.getSelectedComponent().requestFocusInWindow();
     }
 
-    private static FlatTabbedPane createRoot(Game game, TypedObject object) {
+    private FlatTabbedPane createRoot(Game game, TypedObject object) {
         FlatTabbedPane pane = new FlatTabbedPane();
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -77,7 +79,7 @@ final class ObjectEditor implements Editor {
         return pane;
     }
 
-    private static StructuredTree<?> createObjectTree(Game game, TypedObject object) {
+    private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
         tree.setTransferHandler(new ObjectEditorTransferHandler());
         tree.setLabelProvider(new TreeLabelProvider<>() {
@@ -103,7 +105,7 @@ final class ObjectEditor implements Editor {
             }
             if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
                 var input = new ObjectEditorInput(game, link.get(), link.groupId(), link.objectIndex());
-                EditorManager.sharedInstance().openEditor(input);
+                site.getManager().openEditor(input);
             }
         });
         Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);

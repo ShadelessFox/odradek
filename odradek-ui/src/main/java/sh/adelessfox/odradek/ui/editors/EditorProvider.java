@@ -21,7 +21,7 @@ public interface EditorProvider {
             .sorted(Comparator.comparing(provider -> provider.matches(input)));
     }
 
-    Editor createEditor(EditorInput input);
+    Editor createEditor(EditorInput input, EditorSite site);
 
     Match matches(EditorInput input);
 
