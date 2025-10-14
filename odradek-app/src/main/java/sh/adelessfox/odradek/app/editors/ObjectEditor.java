@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.EditorSite;
@@ -61,7 +62,7 @@ final class ObjectEditor implements Editor {
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
-        Converter.converters(object).forEach(converter -> {
+        Converter.converters(object.getType()).forEach(converter -> {
             @SuppressWarnings("unchecked")
             var clazz = (Class<Object>) converter.resultType();
             Viewer.viewers(clazz).forEach(viewer -> {
@@ -108,7 +109,12 @@ final class ObjectEditor implements Editor {
                 site.getManager().openEditor(input);
             }
         });
-        Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree);
+        Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree.or(key -> {
+            if (DataKeys.GAME.is(key)) {
+                return Optional.of(input.game());
+            }
+            return Optional.empty();
+        }));
         return tree;
     }
 

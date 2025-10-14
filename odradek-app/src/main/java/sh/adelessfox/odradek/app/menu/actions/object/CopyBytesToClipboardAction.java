@@ -2,6 +2,8 @@ package sh.adelessfox.odradek.app.menu.actions.object;
 
 import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.game.Converter;
+import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -9,6 +11,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.ByteContents;
 
+import javax.swing.*;
 import java.awt.*;
 
 @ActionRegistration(text = "Copy to clipboard", description = "Copy bytes to clipboard as binary data")
@@ -16,16 +19,28 @@ import java.awt.*;
 public class CopyBytesToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {
+        var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
         var structure = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
-        var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        var contents = new ByteContents((byte[]) structure.value());
-        clipboard.setContents(contents, contents);
+        var bytes = Converter.convert(structure.type(), structure.value(), game, byte[].class);
+
+        if (bytes.isPresent()) {
+            var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            var contents = new ByteContents(bytes.get());
+            clipboard.setContents(contents, contents);
+        } else {
+            JOptionPane.showMessageDialog(
+                JOptionPane.getRootFrame(),
+                "Unable to copy data to clipboard",
+                "Copy to clipboard",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     @Override
     public boolean isVisible(ActionContext context) {
         return context.get(DataKeys.SELECTION, ObjectStructure.class)
-            .filter(structure -> structure.value() instanceof byte[])
+            .flatMap(structure -> Converter.converter(structure.type(), byte[].class))
             .isPresent();
     }
 }
