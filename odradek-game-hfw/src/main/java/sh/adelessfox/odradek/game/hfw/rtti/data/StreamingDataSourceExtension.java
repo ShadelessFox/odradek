@@ -17,4 +17,9 @@ public interface StreamingDataSourceExtension {
         var dataSource = (StreamingDataSource) this;
         return dataSource.channel() != -1 /* EStreamingDataChannel.Invalid */ && dataSource.length() > 0;
     }
+
+    default boolean isPresent() {
+        var dataSource = (StreamingDataSource) this;
+        return dataSource.locator() != 0 && dataSource.length() > 0;
+    }
 }

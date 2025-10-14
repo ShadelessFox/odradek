@@ -11,6 +11,9 @@ import java.util.Optional;
 public class StreamingDataSourceRenderer implements Renderer<StreamingDataSource, ForbiddenWestGame> {
     @Override
     public Optional<String> text(TypeInfo info, StreamingDataSource object, ForbiddenWestGame game) {
+        if (!object.isPresent()) {
+            return Optional.of("<empty>");
+        }
         var graph = game.getStreamingGraph();
         var text = "%s (%d bytes, %s)".formatted(
             graph.files().get(object.fileId()),
