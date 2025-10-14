@@ -2,6 +2,7 @@ module odradek.game.hfw.ui {
     requires odradek.game.hfw;
     requires odradek.ui;
     requires odradek.core;
+    requires odradek.game;
     requires odradek.rtti;
 
     provides sh.adelessfox.odradek.ui.Renderer with

@@ -14,6 +14,10 @@
     <dependencies>
         <dependency>
             <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-game</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-game-hfw</artifactId>
         </dependency>
         <dependency>

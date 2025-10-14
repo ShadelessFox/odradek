@@ -7,6 +7,7 @@ module odradek.ui {
     requires java.desktop;
     requires org.slf4j;
     requires odradek.core;
+    requires odradek.game;
 
     opens sh.adelessfox.odradek.ui.components.laf to com.formdev.flatlaf;
 

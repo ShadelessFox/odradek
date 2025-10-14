@@ -14,7 +14,7 @@ public class ObjectToTypedObjectConverter implements Converter<ForbiddenWestGame
     }
 
     @Override
-    public Set<Class<?>> convertibleTypes() {
+    public Set<Class<?>> supportedTypes() {
         return Set.of(TypedObject.class);
     }
 }

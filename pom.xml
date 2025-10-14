@@ -20,6 +20,7 @@
         <module>odradek-core</module>
         <module>odradek-export-dds</module>
         <module>odradek-export-json</module>
+        <module>odradek-game</module>
         <module>odradek-game-hfw-ui</module>
         <module>odradek-game-hfw</module>
         <module>odradek-opengl-awt</module>
@@ -105,6 +106,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-json</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

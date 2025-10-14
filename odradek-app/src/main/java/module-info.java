@@ -10,6 +10,7 @@ module odradek.app {
     requires jakarta.inject;
     requires java.desktop;
     requires odradek.core;
+    requires odradek.game;
     requires odradek.game.hfw;
     requires odradek.rtti;
     requires odradek.ui;

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.export.dds;
 
-import sh.adelessfox.odradek.export.Exporter;
+import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.texture.Texture;
 
 import java.io.IOException;

@@ -31,7 +31,7 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
     }
 
     @Override
-    public Set<Class<?>> convertibleTypes() {
+    public Set<Class<?>> supportedTypes() {
         return Set.of(
             HorizonForbiddenWest.Texture.class,
             HorizonForbiddenWest.UITexture.class

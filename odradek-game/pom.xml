@@ -9,7 +9,7 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>odradek-export-dds</artifactId>
+    <artifactId>odradek-game</artifactId>
 
     <dependencies>
         <dependency>
@@ -18,7 +18,7 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-game</artifactId>
+            <artifactId>odradek-rtti</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.export;
+package sh.adelessfox.odradek.game;
 
 import sh.adelessfox.odradek.util.Reflections;
 

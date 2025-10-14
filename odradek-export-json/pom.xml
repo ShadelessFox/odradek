@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-core</artifactId>
+            <artifactId>odradek-game</artifactId>
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>

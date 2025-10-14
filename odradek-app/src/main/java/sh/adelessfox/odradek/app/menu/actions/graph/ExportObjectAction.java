@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.GraphStructure.GroupObject;
 import sh.adelessfox.odradek.app.menu.ActionIds;
-import sh.adelessfox.odradek.export.Exporter;
 import sh.adelessfox.odradek.game.Converter;
+import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -59,7 +59,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(object -> object.type().type())
+            .map(GroupObject::type)
             .distinct()
             .toList();
 
@@ -116,7 +116,7 @@ public class ExportObjectAction extends Action {
                     batch.exporter().export(converted.get(), channel);
                 }
 
-                log.debug("Exported object {} ({}) to {}", object.general().objectUUID(), object.getType(), path);
+                log.debug("Exported object {} ({}) to {}", object.general().objectUUID().toDisplayString(), object.getType(), path);
                 exported++;
             } catch (Exception e) {
                 log.error("Failed to export object", e);

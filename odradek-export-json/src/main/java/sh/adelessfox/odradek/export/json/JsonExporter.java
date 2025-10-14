@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.export.json;
 import com.google.gson.FormattingStyle;
 import com.google.gson.Strictness;
 import com.google.gson.stream.JsonWriter;
-import sh.adelessfox.odradek.export.Exporter;
+import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 

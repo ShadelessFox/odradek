@@ -46,7 +46,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     }
 
     @Override
-    public Set<Class<?>> convertibleTypes() {
+    public Set<Class<?>> supportedTypes() {
         return Set.of(
             StaticMeshResource.class,
             StaticMeshInstance.class,
