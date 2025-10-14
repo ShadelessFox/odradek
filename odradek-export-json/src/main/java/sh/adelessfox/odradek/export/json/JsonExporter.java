@@ -21,7 +21,7 @@ public class JsonExporter implements Exporter<TypedObject> {
             writer.setHtmlSafe(false);
             writer.setFormattingStyle(FormattingStyle.PRETTY);
 
-            write(writer, object.getType(), object);
+            write(writer, object.getType(), object, true);
         }
     }
 
@@ -35,13 +35,9 @@ public class JsonExporter implements Exporter<TypedObject> {
         return "json";
     }
 
-    private static void write(JsonWriter writer, TypeInfo info, Object object) throws IOException {
-        writer.beginObject();
-        writer.name("$type").value(info.name());
-
+    private static void write(JsonWriter writer, TypeInfo info, Object object, boolean root) throws IOException {
         switch (info) {
             case AtomTypeInfo _ -> {
-                writer.name("value");
                 if (object instanceof Number number) {
                     writer.value(number);
                 } else {
@@ -49,28 +45,29 @@ public class JsonExporter implements Exporter<TypedObject> {
                 }
             }
             case ClassTypeInfo clazz -> {
+                writer.beginObject();
+                if (root) {
+                    writer.name("$type").value(info.name());
+                }
                 for (ClassAttrInfo attr : clazz.serializedAttrs()) {
                     writer.name(attr.name());
-                    write(writer, attr.type(), clazz.get(attr, object));
+                    write(writer, attr.type(), clazz.get(attr, object), false);
                 }
+                writer.endObject();
             }
             case ContainerTypeInfo _ when object instanceof byte[] bytes -> {
-                writer.name("data");
                 writer.value(Base64.getEncoder().encodeToString(bytes));
             }
             case ContainerTypeInfo container -> {
-                writer.name("items");
                 writer.beginArray();
                 for (int i = 0, length = container.length(object); i < length; i++) {
-                    write(writer, container.itemType(), container.get(object, i));
+                    write(writer, container.itemType(), container.get(object, i), false);
                 }
                 writer.endArray();
             }
             case EnumTypeInfo _, PointerTypeInfo _ -> {
-                writer.name("value").value(String.valueOf(object));
+                writer.value(String.valueOf(object));
             }
         }
-
-        writer.endObject();
     }
 }
