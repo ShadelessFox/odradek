@@ -1,7 +1,7 @@
-package sh.adelessfox.odradek.app.menu.actions.file;
+package sh.adelessfox.odradek.app.menu.main.file;
 
 import sh.adelessfox.odradek.app.ApplicationKeys;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.menu.main.MainMenu;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -10,7 +10,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import javax.swing.*;
 
 @ActionRegistration(text = "&Open Object\u2026", keystroke = "ctrl O")
-@ActionContribution(parent = ActionIds.FILE_MENU_ID)
+@ActionContribution(parent = MainMenu.File.ID)
 public class OpenObjectAction extends Action {
     @Override
     public void perform(ActionContext context) {

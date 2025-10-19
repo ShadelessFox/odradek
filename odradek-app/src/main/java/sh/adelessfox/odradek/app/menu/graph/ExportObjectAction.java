@@ -1,11 +1,11 @@
-package sh.adelessfox.odradek.app.menu.actions.graph;
+package sh.adelessfox.odradek.app.menu.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.GraphStructure.GroupObject;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.menu.main.MainMenu;
+import sh.adelessfox.odradek.export.Exporter;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -23,10 +23,10 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026\u3000\u3000\u3000Ctrl+E", keystroke = "ctrl E")
-@ActionContribution(parent = ActionIds.GRAPH_MENU_ID)
-@ActionContribution(parent = ActionIds.FILE_MENU_ID, group = "2000,Export")
+@ActionContribution(parent = GraphMenu.ID)
+@ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
 public class ExportObjectAction extends Action {
-    public static final String ID = "sh.adelessfox.odradek.app.menu.actions.graph.ExportObjectAction";
+    public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
 
     private static final Logger log = LoggerFactory.getLogger(ExportObjectAction.class);
 

@@ -1,14 +1,13 @@
-package sh.adelessfox.odradek.app.menu.actions.graph;
+package sh.adelessfox.odradek.app.menu.graph;
 
 import sh.adelessfox.odradek.app.GraphStructure.GroupableByType;
-import sh.adelessfox.odradek.app.menu.ActionIds;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "Group objects by type")
-@ActionContribution(parent = ActionIds.GRAPH_MENU_ID, order = 1)
+@ActionContribution(parent = GraphMenu.ID, order = 1)
 public class GroupObjectsByTypeAction extends AbstractObjectsOptionAction {
     @Override
     public boolean isVisible(ActionContext context) {

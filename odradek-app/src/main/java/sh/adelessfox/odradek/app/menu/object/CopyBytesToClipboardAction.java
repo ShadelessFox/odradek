@@ -1,7 +1,6 @@
-package sh.adelessfox.odradek.app.menu.actions.object;
+package sh.adelessfox.odradek.app.menu.object;
 
-import sh.adelessfox.odradek.app.ObjectStructure;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.editors.ObjectStructure;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Action;
@@ -15,7 +14,7 @@ import javax.swing.*;
 import java.awt.*;
 
 @ActionRegistration(text = "Copy to clipboard", description = "Copy bytes to clipboard as binary data")
-@ActionContribution(parent = ActionIds.OBJECT_MENU_ID)
+@ActionContribution(parent = ObjectMenu.ID)
 public class CopyBytesToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.menu.actions.graph;
+package sh.adelessfox.odradek.app.menu.graph;
 
 import sh.adelessfox.odradek.app.GraphStructure.GroupableByType;
 import sh.adelessfox.odradek.ui.actions.Action;

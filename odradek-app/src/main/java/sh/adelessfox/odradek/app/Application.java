@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -76,7 +76,7 @@ public class Application {
         });
 
         var frame = new JFrame();
-        Actions.installMenuBar(frame.getRootPane(), ActionIds.MAIN_MENU_ID, context);
+        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, context);
         frame.add(component.presenter().getRoot());
         frame.setTitle("Odradek - " + source);
         frame.setSize(1280, 720);

@@ -5,7 +5,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ApplicationIcons;
 import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.app.component.common.View;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -64,7 +64,7 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
         panel.add(treeScrollPane, BorderLayout.CENTER);
         panel.setPreferredSize(new Dimension(300, 300));
 
-        Actions.installContextMenu(tree, ActionIds.GRAPH_MENU_ID, key -> {
+        Actions.installContextMenu(tree, GraphMenu.ID, key -> {
             if (DataKeys.GAME.is(key)) {
                 return Optional.of(game);
             }

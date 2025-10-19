@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.app.ObjectStructure;
-import sh.adelessfox.odradek.app.menu.ActionIds;
+import sh.adelessfox.odradek.app.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
@@ -109,7 +109,7 @@ final class ObjectEditor implements Editor {
                 site.getManager().openEditor(input);
             }
         });
-        Actions.installContextMenu(tree, ActionIds.OBJECT_MENU_ID, tree.or(key -> {
+        Actions.installContextMenu(tree, ObjectMenu.ID, tree.or(key -> {
             if (DataKeys.GAME.is(key)) {
                 return Optional.of(input.game());
             }
