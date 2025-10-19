@@ -2,10 +2,10 @@ package sh.adelessfox.odradek.app.menu.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.GraphStructure.GroupObject;
+import sh.adelessfox.odradek.app.component.graph.GraphStructure.GroupObject;
 import sh.adelessfox.odradek.app.menu.main.MainMenu;
-import sh.adelessfox.odradek.export.Exporter;
 import sh.adelessfox.odradek.game.Converter;
+import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.*;

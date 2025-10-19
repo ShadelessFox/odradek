@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.menu.graph;
 
-import sh.adelessfox.odradek.app.GraphStructure.GroupableByType;
+import sh.adelessfox.odradek.app.component.graph.GraphStructure.GroupableByType;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;

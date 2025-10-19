@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.editors;
 
-import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 
 import javax.swing.*;

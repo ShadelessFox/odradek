@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.app.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
-import sh.adelessfox.odradek.app.ObjectStructure;
 import sh.adelessfox.odradek.app.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;

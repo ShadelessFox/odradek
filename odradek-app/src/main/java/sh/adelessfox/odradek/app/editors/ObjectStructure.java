@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app;
+package sh.adelessfox.odradek.app.editors;
 
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.*;

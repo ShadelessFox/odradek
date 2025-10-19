@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.component.graph;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.app.component.common.Presenter;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.rtti.TypeInfo;

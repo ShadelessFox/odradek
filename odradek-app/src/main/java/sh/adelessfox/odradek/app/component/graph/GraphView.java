@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.app.component.graph;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ApplicationIcons;
-import sh.adelessfox.odradek.app.GraphStructure;
 import sh.adelessfox.odradek.app.component.common.View;
 import sh.adelessfox.odradek.app.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app;
+package sh.adelessfox.odradek.app.component.graph;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
