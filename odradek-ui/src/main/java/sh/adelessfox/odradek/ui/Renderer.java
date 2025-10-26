@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 
 /**
  * Provides an inline renderer for objects show in the object tree.
+ * <p>
+ * It is expected to operate over raw game assets.
  *
  * @param <T> the type of the object this renderer operates on
  * @param <G> the type of the game

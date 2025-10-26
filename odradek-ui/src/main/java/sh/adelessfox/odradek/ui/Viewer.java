@@ -8,6 +8,14 @@ import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Provides a viewer for an object of the given type.
+ * <p>
+ * It should not operate over raw game assets but rather
+ * use intermediate representations obtained via {@link sh.adelessfox.odradek.game.Converter}.
+ *
+ * @param <T>
+ */
 public interface Viewer<T> {
     static Stream<Viewer<?>> viewers() {
         class Holder {
