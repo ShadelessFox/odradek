@@ -129,8 +129,8 @@ public final class ToolWindowPanel extends JPanel {
 
     private static JPanel createButtonPane(Placement placement) {
         var border = switch (placement) {
-            case LEFT -> BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("Separator.foreground"));
-            case RIGHT -> BorderFactory.createMatteBorder(0, 1, 0, 0, UIManager.getColor("Separator.foreground"));
+            case LEFT -> BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("Component.borderColor"));
+            case RIGHT -> BorderFactory.createMatteBorder(0, 1, 0, 0, UIManager.getColor("Component.borderColor"));
         };
 
         var panel = new JPanel();

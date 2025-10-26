@@ -6,11 +6,11 @@ import java.awt.*;
 public class ImageViewport extends JViewport {
     private static final int TILE_SIZE = 8;
 
-    public ImageViewport(ImagePanel panel) {
+    public ImageViewport(ImageView view) {
         final JPanel inner = new JPanel();
         inner.setLayout(new GridBagLayout());
         inner.setOpaque(false);
-        inner.add(panel);
+        inner.add(view);
 
         setView(inner);
         setBackground(null);
