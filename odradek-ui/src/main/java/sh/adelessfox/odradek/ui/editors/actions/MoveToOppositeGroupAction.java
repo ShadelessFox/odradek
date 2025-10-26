@@ -6,7 +6,9 @@ import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
-@ActionRegistration(text = "&Move to Opposite Group")
+import java.util.Optional;
+
+@ActionRegistration(text = "&Move to Opposite Group", icon = "fugue:layout-join")
 @ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_SPLIT, order = 3000)
 public class MoveToOppositeGroupAction extends Action {
     @Override
@@ -21,5 +23,15 @@ public class MoveToOppositeGroupAction extends Action {
     public boolean isVisible(ActionContext context) {
         var stack = context.get(DataKeys.EDITOR_STACK).orElseThrow();
         return stack.getOpposite().isPresent();
+    }
+
+    @Override
+    public Optional<String> getIcon(ActionContext context) {
+        var stack = context.get(DataKeys.EDITOR_STACK).orElseThrow();
+        var container = stack.getContainer().getSplitContainer();
+        return Optional.of(switch (container.getOrientation()) {
+            case VERTICAL -> "fugue:layout-join-vertical";
+            case HORIZONTAL -> "fugue:layout-join";
+        });
     }
 }

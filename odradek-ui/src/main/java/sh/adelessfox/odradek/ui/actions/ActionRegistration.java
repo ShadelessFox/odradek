@@ -30,6 +30,16 @@ public @interface ActionRegistration {
     String description() default "";
 
     /**
+     * Icon of this action. Leave empty for no icon.
+     * <p>
+     * Supports the following schemes:
+     * <ul>
+     *     <li>{@code fugue:{fugue-icon-name}}</li>
+     * </ul>
+     */
+    String icon() default "";
+
+    /**
      * Keystroke that causes this action to be run.
      *
      * @see javax.swing.KeyStroke

@@ -12,6 +12,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Optional;
 
 public class JsonExporter implements Exporter<TypedObject> {
     @Override
@@ -33,6 +34,11 @@ public class JsonExporter implements Exporter<TypedObject> {
     @Override
     public String extension() {
         return "json";
+    }
+
+    @Override
+    public Optional<String> icon() {
+        return Optional.of("fugue:json");
     }
 
     private static void write(JsonWriter writer, TypeInfo info, Object object, boolean root) throws IOException {

@@ -18,6 +18,7 @@ import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.EditorSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
+import sh.adelessfox.odradek.ui.util.Icons;
 
 import javax.swing.*;
 import java.awt.*;
@@ -69,11 +70,23 @@ final class ObjectEditor implements Editor {
                 if (result.isEmpty()) {
                     return;
                 }
-                pane.add(viewer.displayName(), viewer.createPreview(result.get()));
+                pane.insertTab(
+                    viewer.name(),
+                    viewer.icon().flatMap(Icons::getIconFromUri).orElse(null),
+                    viewer.createComponent(result.get()),
+                    null,
+                    pane.getTabCount()
+                );
             });
         });
 
-        pane.add("Object", new JScrollPane(createObjectTree(game, object)));
+        pane.insertTab(
+            "Object",
+            Fugue.getIcon("block"),
+            new JScrollPane(createObjectTree(game, object)),
+            null,
+            pane.getTabCount()
+        );
         pane.setSelectedIndex(0);
 
         return pane;

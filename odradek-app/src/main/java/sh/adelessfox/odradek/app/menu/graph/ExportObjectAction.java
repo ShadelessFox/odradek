@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import static java.nio.file.StandardOpenOption.*;
 
-@ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026\u3000\u3000\u3000Ctrl+E", keystroke = "ctrl E")
+@ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026\u3000\u3000\u3000Ctrl+E", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = GraphMenu.ID)
 @ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
 public class ExportObjectAction extends Action {
@@ -80,6 +80,7 @@ public class ExportObjectAction extends Action {
         return Action.builder()
             .perform(_ -> exportBatch(game, batch))
             .text(_ -> Optional.of(batch.exporter().name()))
+            .icon(_ -> batch.exporter().icon())
             .build();
     }
 

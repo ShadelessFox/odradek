@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteOrder;
+import java.util.Optional;
 
 public class TextureViewer implements Viewer<Texture> {
     private static final float ZOOM_STEP = 0.2f;
@@ -16,7 +17,7 @@ public class TextureViewer implements Viewer<Texture> {
     private static final float ZOOM_MAX_LEVEL = (float) Math.pow(2, 7);
 
     @Override
-    public JComponent createPreview(Texture texture) {
+    public JComponent createComponent(Texture texture) {
         var imagePanel = new ImagePanel();
         imagePanel.setImage(createImage(texture));
 
@@ -66,7 +67,12 @@ public class TextureViewer implements Viewer<Texture> {
     }
 
     @Override
-    public String displayName() {
+    public String name() {
         return "Texture";
+    }
+
+    @Override
+    public Optional<String> icon() {
+        return Optional.of("fugue:image");
     }
 }

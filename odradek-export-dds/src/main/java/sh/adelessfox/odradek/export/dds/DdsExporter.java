@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.texture.Texture;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
+import java.util.Optional;
 
 public final class DdsExporter implements Exporter<Texture> {
     @Override
@@ -20,5 +21,10 @@ public final class DdsExporter implements Exporter<Texture> {
     @Override
     public String extension() {
         return "dds";
+    }
+
+    @Override
+    public Optional<String> icon() {
+        return Optional.of("fugue:image");
     }
 }

@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.util.Reflections;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,9 +34,13 @@ public interface Viewer<T> {
             .map(v -> (Viewer<T>) v);
     }
 
-    JComponent createPreview(T object);
+    JComponent createComponent(T object);
 
-    String displayName();
+    String name();
+
+    default Optional<String> icon() {
+        return Optional.empty();
+    }
 
     @SuppressWarnings("unchecked")
     default Class<T> supportedType() {

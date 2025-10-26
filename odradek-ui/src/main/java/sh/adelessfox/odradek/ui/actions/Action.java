@@ -30,6 +30,10 @@ public abstract class Action {
         return Optional.empty();
     }
 
+    public Optional<String> getIcon(ActionContext context) {
+        return Optional.empty();
+    }
+
     public interface Check {
         boolean isChecked(ActionContext context);
     }
@@ -44,6 +48,7 @@ public abstract class Action {
         private Predicate<ActionContext> isVisible;
         private Function<ActionContext, Optional<String>> textSupplier;
         private Function<ActionContext, Optional<String>> descriptionSupplier;
+        private Function<ActionContext, Optional<String>> iconSupplier;
 
         private Builder() {
         }
@@ -70,6 +75,11 @@ public abstract class Action {
 
         public Builder description(Function<ActionContext, Optional<String>> descriptionSupplier) {
             this.descriptionSupplier = descriptionSupplier;
+            return this;
+        }
+
+        public Builder icon(Function<ActionContext, Optional<String>> iconSupplier) {
+            this.iconSupplier = iconSupplier;
             return this;
         }
 
@@ -100,6 +110,11 @@ public abstract class Action {
                 @Override
                 public Optional<String> getDescription(ActionContext context) {
                     return descriptionSupplier != null ? descriptionSupplier.apply(context) : Optional.empty();
+                }
+
+                @Override
+                public Optional<String> getIcon(ActionContext context) {
+                    return iconSupplier != null ? iconSupplier.apply(context) : Optional.empty();
                 }
             };
         }

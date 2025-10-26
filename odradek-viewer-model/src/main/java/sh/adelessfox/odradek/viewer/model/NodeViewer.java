@@ -11,10 +11,11 @@ import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderMeshesPass;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Optional;
 
 public class NodeViewer implements Viewer<Node> {
     @Override
-    public JComponent createPreview(Node node) {
+    public JComponent createComponent(Node node) {
         Scene scene = Scene.of(node);
 
         Camera camera = new Camera(30.f, 0.01f, 1000.f);
@@ -31,7 +32,12 @@ public class NodeViewer implements Viewer<Node> {
     }
 
     @Override
-    public String displayName() {
+    public String name() {
         return "Model";
+    }
+
+    @Override
+    public Optional<String> icon() {
+        return Optional.of("fugue:block");
     }
 }

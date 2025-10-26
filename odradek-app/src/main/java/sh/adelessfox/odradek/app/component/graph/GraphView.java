@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.component.graph;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import sh.adelessfox.odradek.app.ApplicationIcons;
 import sh.adelessfox.odradek.app.component.common.View;
 import sh.adelessfox.odradek.app.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
@@ -100,10 +99,10 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
     }
 
     private SearchTextField createFilterField() {
-        var toggleCaseSensitive = new JToggleButton(ApplicationIcons.CASE_SENSITIVE);
+        var toggleCaseSensitive = new JToggleButton(Fugue.getIcon("edit-small-caps"));
         toggleCaseSensitive.setToolTipText("Match Case");
 
-        var toggleWholeWord = new JToggleButton(ApplicationIcons.WHOLE_WORD);
+        var toggleWholeWord = new JToggleButton(Fugue.getIcon("edit-space"));
         toggleWholeWord.setToolTipText("Match Whole Word");
 
         var filterToolbar = new JToolBar();

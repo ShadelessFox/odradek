@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStack;
 
-@ActionRegistration(text = "Split and Move Right")
+@ActionRegistration(text = "Split and Move Right", icon = "fugue:layout-split")
 @ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_SPLIT, order = 1000)
 public class SplitAndMoveRightAction extends Action {
     @Override

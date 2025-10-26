@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.util.Reflections;
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -31,6 +32,10 @@ public interface Exporter<T> {
     String name();
 
     String extension();
+
+    default Optional<String> icon() {
+        return Optional.empty();
+    }
 
     @SuppressWarnings("unchecked")
     default Class<T> supportedType() {

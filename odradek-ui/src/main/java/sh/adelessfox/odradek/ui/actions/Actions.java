@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.ui.actions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.util.Icons;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -295,6 +296,7 @@ public final class Actions {
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
             putValue(SHORT_DESCRIPTION, descriptor.description(context));
+            putValue(SMALL_ICON, descriptor.icon(context));
             putValue(ACCELERATOR_KEY, descriptor.accelerator());
 
             var action = descriptor.action();
@@ -365,6 +367,7 @@ public final class Actions {
         KeyStroke accelerator,
         Function<ActionContext, String> textSupplier,
         Function<ActionContext, String> descriptionSupplier,
+        Function<ActionContext, Icon> iconSupplier,
         List<ActionContribution> contributions
     ) {
         static ActionDescriptor unreflect(Class<? extends Action> type, Supplier<? extends Action> supplier) {
@@ -381,6 +384,7 @@ public final class Actions {
 
             Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse(registration.text());
             Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse(registration.description());
+            Function<ActionContext, Icon> iconSupplier = c -> Icons.getIconFromUri(action.getIcon(c).orElse(registration.icon())).orElse(null);
 
             return new ActionDescriptor(
                 action,
@@ -388,6 +392,7 @@ public final class Actions {
                 accelerator,
                 textSupplier,
                 descriptionSupplier,
+                iconSupplier,
                 List.of(contributions)
             );
         }
@@ -396,6 +401,7 @@ public final class Actions {
             var id = action.getClass().getName();
             Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse("");
             Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse("");
+            Function<ActionContext, Icon> iconSupplier = c -> action.getIcon(c).flatMap(Icons::getIconFromUri).orElse(null);
 
             return new ActionDescriptor(
                 action,
@@ -403,6 +409,7 @@ public final class Actions {
                 null,
                 textSupplier,
                 descriptionSupplier,
+                iconSupplier,
                 List.of()
             );
         }
@@ -414,10 +421,17 @@ public final class Actions {
         String description(ActionContext context) {
             return descriptionSupplier.apply(context);
         }
+
+        Icon icon(ActionContext context) {
+            return iconSupplier.apply(context);
+        }
     }
 
-    private record GroupDescriptor(String id, int order,
-                                   List<ActionDescriptor> actions) implements ActionDescriptorProvider {
+    private record GroupDescriptor(
+        String id,
+        int order,
+        List<ActionDescriptor> actions
+    ) implements ActionDescriptorProvider {
         @Override
         public List<ActionDescriptor> create(ActionContext context) {
             return actions.stream()
