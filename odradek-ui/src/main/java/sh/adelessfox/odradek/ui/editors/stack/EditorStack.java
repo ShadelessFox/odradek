@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
-import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
 
@@ -9,12 +9,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.IntConsumer;
 
 /**
  * A holder for one or more editors grouped together.
  */
-public class EditorStack extends JTabbedPane {
+public class EditorStack extends FlatTabbedPane {
     public enum Position {
         TOP,
         BOTTOM,
@@ -28,9 +27,10 @@ public class EditorStack extends JTabbedPane {
     EditorStack(EditorStackManager manager) {
         this.manager = manager;
 
-        putClientProperty(FlatClientProperties.TABBED_PANE_TAB_CLOSABLE, true);
-        putClientProperty(FlatClientProperties.TABBED_PANE_TAB_CLOSE_TOOLTIPTEXT, "Close");
-        putClientProperty(FlatClientProperties.TABBED_PANE_TAB_CLOSE_CALLBACK, (IntConsumer) index -> {
+        setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        setTabsClosable(true);
+        setTabCloseToolTipText("Close");
+        setTabCloseCallback((_, index) -> {
             var component = (JComponent) getComponentAt(index);
             var editor = manager.findEditor(component).orElseThrow();
             manager.closeEditor(editor);
