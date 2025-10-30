@@ -35,6 +35,13 @@ public interface Renderer<T, G extends Game> {
             .map(r -> (Renderer<T, G>) r);
     }
 
+    @SuppressWarnings("unchecked")
+    static <T, G extends Game> Optional<Renderer<T, G>> renderer(TypeInfo info) {
+        return renderers(info)
+            .findFirst()
+            .map(r -> (Renderer<T, G>) r);
+    }
+
     /**
      * Retrieves the text that is shown as a label the object tree.
      * <p>

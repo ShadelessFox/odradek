@@ -147,7 +147,7 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         }
 
         var type = structure.type();
-        var renderer = Renderer.renderers(type).findFirst();
+        var renderer = Renderer.renderer(type);
 
         if (renderer.isPresent()) {
             return renderer.flatMap(r -> r.text(type, value, structure.game()));

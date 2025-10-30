@@ -15,7 +15,9 @@ public class PointerRenderer implements Renderer<Ref<?>, Game> {
             return Optional.of("null");
         }
         if (object.get() instanceof TypedObject to) {
-            return Optional.of("<%s>".formatted(to.getType().name()));
+            return Renderer.renderer(to.getType())
+                .flatMap(x -> x.text(to.getType(), to, game))
+                .or(() -> Optional.of("<%s>".formatted(to.getType().name())));
         }
         return Optional.of(object.toString());
     }
