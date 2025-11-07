@@ -16,6 +16,8 @@ public interface ClassAttrInfo {
 
     Optional<String> max();
 
+    Optional<String> comment();
+
     int offset();
 
     int flags();

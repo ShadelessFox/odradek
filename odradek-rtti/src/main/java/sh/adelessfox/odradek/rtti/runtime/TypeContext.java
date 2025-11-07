@@ -138,6 +138,7 @@ public class TypeContext {
                 var attrFlags = attr.get("flags").getAsInt();
                 var attrMin = attr.has("min") ? attr.get("min").getAsString() : null;
                 var attrMax = attr.has("max") ? attr.get("max").getAsString() : null;
+                var attrComment = attr.has("comment") ? attr.get("comment").getAsString() : null;
                 var attrProperty = attr.has("property") && attr.get("property").getAsBoolean();
 
                 attrs.add(new ClassAttrInfoImpl(
@@ -146,6 +147,7 @@ public class TypeContext {
                     resolveType(attrType),
                     attrMin,
                     attrMax,
+                    attrComment,
                     attrOffset,
                     attrFlags,
                     attrProperty
@@ -299,6 +301,7 @@ public class TypeContext {
         private final StableValue<TypeInfo> type;
         private final String min;
         private final String max;
+        private final String comment;
         private final int offset;
         private final int flags;
         private final boolean property;
@@ -309,6 +312,7 @@ public class TypeContext {
             StableValue<TypeInfo> type,
             String min,
             String max,
+            String comment,
             int offset,
             int flags,
             boolean property
@@ -318,6 +322,7 @@ public class TypeContext {
             this.type = type;
             this.min = min;
             this.max = max;
+            this.comment = comment;
             this.offset = offset;
             this.flags = flags;
             this.property = property;
@@ -346,6 +351,11 @@ public class TypeContext {
         @Override
         public Optional<String> max() {
             return Optional.ofNullable(max);
+        }
+
+        @Override
+        public Optional<String> comment() {
+            return Optional.ofNullable(comment);
         }
 
         @Override

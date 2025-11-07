@@ -141,6 +141,9 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
             .addParameter(toJavaType(attr.type()), "value");
 
+        // Add the comment, if present
+        attr.comment().ifPresent(getter::addJavadoc);
+
         if (!attr.isSerialized() && attr.isProperty()) {
             getter.addJavadoc("@deprecated This is a <b>non-serializable property</b> attribute. Retrieving its value will result in an exception.");
             setter.addJavadoc("@deprecated This is a <b>non-serializable property</b> attribute. Updating its value will result in an exception.");

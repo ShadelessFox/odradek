@@ -143,8 +143,8 @@
 		"TextureHeader": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Type", "type": "ETextureType", "offset": 0, "flags": 0},
-				{"name": "Width", "type": "uint16", "offset": 0, "flags": 0},
-				{"name": "Height", "type": "uint16", "offset": 0, "flags": 0},
+				{"name": "Width", "type": "uint16", "offset": 0, "flags": 0, "comment": "Width of the texture. Two leftmost bits represent padding width; other bits represent aligned width."},
+				{"name": "Height", "type": "uint16", "offset": 0, "flags": 0, "comment": "Height of the texture. Two leftmost bits represent padding height; other bits represent aligned height."},
 				{"name": "NumSurfaces", "type": "uint16", "offset": 0, "flags": 0},
 				{"name": "NumMips", "type": "uint8", "offset": 0, "flags": 0},
 				{"name": "PixelFormat", "type": "EPixelFormat", "offset": 0, "flags": 0},
