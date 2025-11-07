@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.game.hfw.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.FileSystem;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
@@ -38,7 +37,7 @@ public final class ForbiddenWestGame implements Game {
         var fileSystem = new ForbiddenWestFileSystem(source, platform);
 
         log.debug("Loading streaming graph");
-        streamingGraph = readStreamingGraph(fileSystem, typeFactory);
+        streamingGraph = readStreamingGraph(fileSystem);
 
         log.debug("Loading storage files");
         storageDevice = new StorageReadDevice(fileSystem);
@@ -75,22 +74,12 @@ public final class ForbiddenWestGame implements Game {
         storageDevice.close();
     }
 
-    private static StreamingGraphResource readStreamingGraph(FileSystem fileSystem, TypeFactory factory) throws IOException {
+    private static StreamingGraphResource readStreamingGraph(ForbiddenWestFileSystem fileSystem) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
-            var result = new HFWTypeReader().readObject(reader, factory);
-            return new StreamingGraphResource((HorizonForbiddenWest.StreamingGraphResource) result.object(), factory);
+            var result = new HFWTypeReader().readObject(reader, typeFactory);
+            var graph = (HorizonForbiddenWest.StreamingGraphResource) result.object();
+            return new StreamingGraphResource(graph, typeFactory);
         }
     }
 
-    private record ForbiddenWestFileSystem(Path source, EPlatform platform) implements FileSystem {
-        @Override
-        public Path resolve(String path) {
-            String[] parts = path.split(":", 2);
-            return switch (parts[0]) {
-                case "source" -> source.resolve(parts[1]);
-                case "cache" -> resolve("source:LocalCache" + platform).resolve(parts[1]);
-                default -> throw new IllegalArgumentException("Unknown device path: " + path);
-            };
-        }
-    }
 }
