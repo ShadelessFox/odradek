@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -48,6 +49,13 @@ public final class ForbiddenWestGame implements Game {
 
         streamingSystem = new ObjectStreamingSystem(storageDevice, streamingGraph);
         streamingReader = new StreamingObjectReader(streamingSystem, typeFactory);
+    }
+
+    @Override
+    public TypedObject readObject(int groupId, int objectIndex) throws IOException {
+        synchronized (streamingReader) {
+            return streamingReader.readGroup(groupId).objects().get(objectIndex).object();
+        }
     }
 
     public StreamingGraphResource getStreamingGraph() {

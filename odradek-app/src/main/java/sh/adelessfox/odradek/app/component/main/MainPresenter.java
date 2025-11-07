@@ -18,7 +18,6 @@ import sh.adelessfox.odradek.util.Futures;
 
 import javax.swing.*;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
 @Singleton
@@ -61,7 +60,7 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private CompletableFuture<TypedObject> showObjectInfo(int groupId, int objectIndex) {
-        var future = readGroup(groupId, objectIndex);
+        var future = readObject(groupId, objectIndex);
         return future.whenComplete((object, exception) -> {
             if (object != null) {
                 SwingUtilities.invokeLater(() -> showObjectInfo(object, groupId, objectIndex));
@@ -88,13 +87,7 @@ public class MainPresenter implements Presenter<MainView> {
         return editor.isPresent();
     }
 
-    private CompletableFuture<TypedObject> readGroup(int groupId, int objectIndex) {
-        var callable = (Callable<TypedObject>) () -> {
-            log.debug("Reading group {}", groupId);
-            var result = game.getStreamingReader().readGroup(groupId);
-            var object = result.objects().get(objectIndex);
-            return object.object();
-        };
-        return Futures.submit(callable);
+    private CompletableFuture<TypedObject> readObject(int groupId, int objectIndex) {
+        return Futures.submit(() -> game.readObject(groupId, objectIndex));
     }
 }

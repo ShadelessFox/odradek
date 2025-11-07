@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.app.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -35,7 +34,7 @@ public class ExportObjectAction extends Action {
     public static class Placeholder extends Action implements ActionProvider {
         @Override
         public List<Action> create(ActionContext context) {
-            var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
+            var game = context.get(DataKeys.GAME).orElseThrow();
             return exporters(context)
                 .map(batch -> action(game, batch))
                 .toList();
@@ -76,7 +75,7 @@ public class ExportObjectAction extends Action {
             .sorted(Comparator.comparing(pipeline -> pipeline.exporter().name()));
     }
 
-    private static Action action(ForbiddenWestGame game, Batch<?> batch) {
+    private static Action action(Game game, Batch<?> batch) {
         return Action.builder()
             .perform(_ -> exportBatch(game, batch))
             .text(_ -> Optional.of(batch.exporter().name()))
@@ -84,7 +83,7 @@ public class ExportObjectAction extends Action {
             .build();
     }
 
-    private static <T> void exportBatch(ForbiddenWestGame game, Batch<T> batch) {
+    private static <T> void exportBatch(Game game, Batch<T> batch) {
         var chooser = new JFileChooser();
         chooser.setDialogTitle("Specify output directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -99,17 +98,20 @@ public class ExportObjectAction extends Action {
 
         for (GroupObject selection : batch.objects()) {
             try {
-                var group = game.getStreamingReader().readGroup(selection.group().groupID());
-                var object = group.objects().get(selection.index()).object();
-
-                var path = directory.resolve("%s.%s".formatted(
-                    object.general().objectUUID().toDisplayString(),
+                var object = game.readObject(selection.group().groupID(), selection.index());
+                var type = object.getType();
+                var name = "%s_%s_%s.%s".formatted(
+                    type.name(),
+                    selection.group().groupID(),
+                    selection.index(),
                     batch.exporter().extension()
-                ));
+                );
+
+                var path = directory.resolve(name);
 
                 var converted = batch.converter().convert(object, game);
                 if (converted.isEmpty()) {
-                    log.debug("Unable to convert object {} ({}) to {}", object.general().objectUUID(), object.getType(), path);
+                    log.debug("Unable to convert object {} ({}) to {}", object, type, path);
                     continue;
                 }
 
@@ -117,7 +119,7 @@ public class ExportObjectAction extends Action {
                     batch.exporter().export(converted.get(), channel);
                 }
 
-                log.debug("Exported object {} ({}) to {}", object.general().objectUUID().toDisplayString(), object.getType(), path);
+                log.debug("Exported object {} ({}) to {}", object, type, path);
                 exported++;
             } catch (Exception e) {
                 log.error("Failed to export object", e);

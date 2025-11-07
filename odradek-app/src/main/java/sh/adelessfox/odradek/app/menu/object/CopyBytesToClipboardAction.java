@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.menu.object;
 
 import sh.adelessfox.odradek.app.editors.ObjectStructure;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -18,7 +17,7 @@ import java.awt.*;
 public class CopyBytesToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var game = context.get(DataKeys.GAME, ForbiddenWestGame.class).orElseThrow();
+        var game = context.get(DataKeys.GAME).orElseThrow();
         var structure = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
         var bytes = Converter.convert(structure.type(), structure.value(), game, byte[].class);
 
