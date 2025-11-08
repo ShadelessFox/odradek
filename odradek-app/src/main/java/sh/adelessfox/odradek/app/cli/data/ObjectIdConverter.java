@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app.cli.data;
 
-import picocli.CommandLine;
+import picocli.CommandLine.ITypeConverter;
 
-public final class ObjectIdConverter implements CommandLine.ITypeConverter<ObjectId> {
+public final class ObjectIdConverter implements ITypeConverter<ObjectId> {
     @Override
     public ObjectId convert(String value) {
         var parts = value.split(":");
