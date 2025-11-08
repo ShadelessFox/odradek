@@ -201,8 +201,23 @@ public record Matrix4f(
         );
     }
 
-    public Vector3f translation() {
+    public Vector3f toTranslation() {
         return new Vector3f(m30, m31, m32);
+    }
+
+    public Vector3f toScale() {
+        float x = (float) Math.sqrt(m00 * m00 + m01 * m01 + m02 * m02);
+        float y = (float) Math.sqrt(m10 * m10 + m11 * m11 + m12 * m12);
+        float z = (float) Math.sqrt(m20 * m20 + m21 * m21 + m22 * m22);
+        return new Vector3f(x, y, z);
+    }
+
+    public Quaternionf toRotation() {
+        return Quaternionf.fromMatrix(
+            m00, m01, m02,
+            m10, m11, m12,
+            m20, m21, m22
+        );
     }
 
     public FloatBuffer get(FloatBuffer dst) {
