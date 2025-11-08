@@ -37,8 +37,8 @@ public class CastExporter implements Exporter<Node> {
     }
 
     @Override
-    public Optional<String> icon() {
-        return Optional.of("fugue:paint-can");
+    public String id() {
+        return "cast";
     }
 
     @Override
@@ -49,6 +49,11 @@ public class CastExporter implements Exporter<Node> {
     @Override
     public String extension() {
         return "cast";
+    }
+
+    @Override
+    public Optional<String> icon() {
+        return Optional.of("fugue:paint-can");
     }
 
     private static void exportNode(CastNodes.Root root, Node node, Matrix4f transform) {

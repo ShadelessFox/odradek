@@ -27,6 +27,11 @@ public class JsonExporter implements Exporter<TypedObject> {
     }
 
     @Override
+    public String id() {
+        return "json";
+    }
+
+    @Override
     public String name() {
         return "JSON (JavaScript Object Notation)";
     }

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.game;
 
 import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.util.Reflections;
 
 import java.util.List;
@@ -51,6 +52,11 @@ public interface Converter<G extends Game, R> {
 
     static <G extends Game, R> Optional<R> convert(TypeInfo info, Object object, G game, Class<R> result) {
         return Converter.converter(info, result)
+            .flatMap(c -> c.convert(object, game));
+    }
+
+    static <G extends Game, R> Optional<R> convert(TypedObject object, G game, Class<R> result) {
+        return Converter.converter(object.getType(), result)
             .flatMap(c -> c.convert(object, game));
     }
 

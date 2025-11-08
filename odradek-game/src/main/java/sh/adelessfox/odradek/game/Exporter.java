@@ -27,7 +27,15 @@ public interface Exporter<T> {
             .map(e -> (Exporter<T>) e);
     }
 
+    static Optional<Exporter<?>> exporter(String id) {
+        return exporters()
+            .filter(e -> e.id().equals(id))
+            .findFirst();
+    }
+
     void export(T object, WritableByteChannel channel) throws IOException;
+
+    String id();
 
     String name();
 

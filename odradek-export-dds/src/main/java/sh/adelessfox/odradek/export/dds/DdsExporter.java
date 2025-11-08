@@ -14,6 +14,11 @@ public final class DdsExporter implements Exporter<Texture> {
     }
 
     @Override
+    public String id() {
+        return "dds";
+    }
+
+    @Override
     public String name() {
         return "DDS (DirectDraw Surface)";
     }
