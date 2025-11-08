@@ -4,6 +4,7 @@ module odradek.app {
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
     requires com.github.weisj.jsvg;
+    requires com.google.gson;
     requires com.miglayout.swing;
     requires dagger;
     requires info.picocli;
@@ -12,14 +13,17 @@ module odradek.app {
     requires odradek.core;
     requires odradek.game;
     requires odradek.game.hfw;
+    requires odradek.game.hfw.ui;
     requires odradek.rtti;
     requires odradek.ui;
     requires org.slf4j;
 
-    // Runtime only
+    // Exporters
+    requires odradek.export.cast;
     requires odradek.export.dds;
     requires odradek.export.json;
-    requires odradek.game.hfw.ui;
+
+    // Viewers
     requires odradek.viewer.model;
     requires odradek.viewer.texture;
 

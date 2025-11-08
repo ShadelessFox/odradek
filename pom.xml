@@ -30,6 +30,7 @@
         <module>odradek-ui</module>
         <module>odradek-viewer-model</module>
         <module>odradek-viewer-texture</module>
+        <module>odradek-export-cast</module>
     </modules>
 
     <build>
@@ -100,6 +101,11 @@
             </dependency>
             <dependency>
                 <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-export-cast</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-dds</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -115,11 +121,6 @@
             </dependency>
 
             <!-- External dependencies -->
-            <dependency>
-                <groupId>be.twofold</groupId>
-                <artifactId>tinybcdec</artifactId>
-                <version>1.0</version>
-            </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
