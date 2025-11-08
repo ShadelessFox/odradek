@@ -28,19 +28,22 @@ module odradek.app {
     requires odradek.viewer.texture;
 
     opens sh.adelessfox.odradek.app to info.picocli;
+    opens sh.adelessfox.odradek.app.ui to info.picocli;
+    opens sh.adelessfox.odradek.app.cli to info.picocli;
+    opens sh.adelessfox.odradek.app.cli.data to info.picocli;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
-        sh.adelessfox.odradek.app.menu.main.MainMenu.File,
-        sh.adelessfox.odradek.app.menu.main.MainMenu.Edit,
-        sh.adelessfox.odradek.app.menu.main.MainMenu.Help,
-        sh.adelessfox.odradek.app.menu.main.file.OpenObjectAction,
-        sh.adelessfox.odradek.app.menu.main.help.AboutAction,
-        sh.adelessfox.odradek.app.menu.graph.ExportObjectAction,
-        sh.adelessfox.odradek.app.menu.graph.ExportObjectAction.Placeholder,
-        sh.adelessfox.odradek.app.menu.graph.GroupObjectsByTypeAction,
-        sh.adelessfox.odradek.app.menu.graph.SortObjectsByCountAction,
-        sh.adelessfox.odradek.app.menu.object.CopyBytesToClipboardAction;
+        sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
+        sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
+        sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,
+        sh.adelessfox.odradek.app.ui.menu.main.file.OpenObjectAction,
+        sh.adelessfox.odradek.app.ui.menu.main.help.AboutAction,
+        sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction,
+        sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,
+        sh.adelessfox.odradek.app.ui.menu.graph.GroupObjectsByTypeAction,
+        sh.adelessfox.odradek.app.ui.menu.graph.SortObjectsByCountAction,
+        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction;
 
     provides sh.adelessfox.odradek.ui.editors.EditorProvider with
-        sh.adelessfox.odradek.app.editors.ObjectEditorProvider;
+        sh.adelessfox.odradek.app.ui.editors.ObjectEditorProvider;
 }
