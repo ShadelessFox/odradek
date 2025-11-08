@@ -16,6 +16,7 @@ import sh.adelessfox.odradek.scene.Node;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -290,7 +291,9 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             if (vertexArray.isStreaming()) {
                 view = readDataAligned(buffer, count, stride);
             } else {
-                view = ByteBuffer.wrap(stream.data());
+                view = ByteBuffer
+                    .wrap(stream.data())
+                    .order(ByteOrder.LITTLE_ENDIAN);
             }
 
             for (var element : stream.elements()) {
@@ -379,7 +382,9 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         if (indexArray.isStreaming()) {
             view = readDataAligned(buffer, count, stride);
         } else {
-            view = ByteBuffer.wrap(indexArray.data());
+            view = ByteBuffer
+                .wrap(indexArray.data())
+                .order(ByteOrder.LITTLE_ENDIAN);
         }
 
         return new Accessor(view, ElementType.SCALAR, component, startIndex * stride, endIndex - startIndex, stride);
@@ -388,7 +393,9 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     private static ByteBuffer readDataAligned(ByteBuffer buffer, int count, int stride) {
         int position = alignUp(buffer.position(), stride);
         int size = count * stride;
-        var view = buffer.slice(position, size);
+        var view = buffer
+            .slice(position, size)
+            .order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(position + size);
         return view;
     }
@@ -398,7 +405,9 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             return null;
         }
         try {
-            return ByteBuffer.wrap(game.getStreamingSystem().getDataSourceData(dataSource));
+            return ByteBuffer
+                .wrap(game.getStreamingSystem().getDataSourceData(dataSource))
+                .order(ByteOrder.LITTLE_ENDIAN);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
