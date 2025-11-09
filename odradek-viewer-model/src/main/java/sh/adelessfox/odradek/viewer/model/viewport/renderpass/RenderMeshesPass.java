@@ -27,8 +27,13 @@ public final class RenderMeshesPass implements RenderPass {
     private static final Logger log = LoggerFactory.getLogger(RenderMeshesPass.class);
 
     // region Shaders
+    private static final int FLAG_HAS_NORMAL = 1;
+    private static final int FLAG_HAS_UV = 1 << 1;
+
     private static final ShaderSource VERTEX_SHADER = new ShaderSource("main.vert", """
         #version 330 core
+        #define FLAG_HAS_NORMAL (1<<0)
+        #define FLAG_HAS_UV     (1<<1)
         
         layout (location = 0) in vec3 in_position;
         layout (location = 1) in vec3 in_normal;
@@ -41,17 +46,22 @@ public final class RenderMeshesPass implements RenderPass {
         uniform mat4 u_model;
         uniform mat4 u_view;
         uniform mat4 u_projection;
+        uniform int  u_flags;
         
         void main() {
             io_position = vec3(u_model * vec4(in_position, 1.0));
-            io_normal = mat3(transpose(inverse(u_model))) * in_normal;
-            io_uv = in_uv;
+            if ((u_flags & FLAG_HAS_NORMAL) != 0)
+                io_normal = mat3(transpose(inverse(u_model))) * in_normal;
+            if ((u_flags & FLAG_HAS_UV) != 0)
+                io_uv = in_uv;
         
             gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);
         }""");
 
     private static final ShaderSource FRAGMENT_SHADER = new ShaderSource("main.frag", """
         #version 330 core
+        #define FLAG_HAS_NORMAL (1<<0)
+        #define FLAG_HAS_UV     (1<<1)
         
         in vec3 io_position;
         in vec3 io_normal;
@@ -61,13 +71,22 @@ public final class RenderMeshesPass implements RenderPass {
         
         uniform vec3 u_view_position;
         uniform vec3 u_color;
+        uniform int  u_flags;
         uniform sampler2D u_texture;
         
         void main() {
-            vec3 normal = normalize(io_normal);
+            vec3 normal;
+            if ((u_flags & FLAG_HAS_NORMAL) != 0) {
+                normal = normalize(io_normal);
+            } else {
+                normal = normalize(cross(dFdx(io_position), dFdy(io_position)));
+            }
+        
             vec3 view = normalize(u_view_position - io_position);
-            vec3 tint = vec3(abs(dot(view, normal))) * u_color;
-            vec3 color = texture(u_texture, io_uv).rgb * tint;
+            vec3 color = vec3(abs(dot(view, normal))) * u_color;
+        
+            if ((u_flags & FLAG_HAS_UV) != 0)
+                color *= texture(u_texture, io_uv).rgb;
         
             out_color = vec4(color, 1.0);
         }""");
@@ -144,9 +163,12 @@ public final class RenderMeshesPass implements RenderPass {
             GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
 
             for (GpuPrimitive primitive : data.primitives()) {
+                int flags = primitive.buildFlags();
+
                 program.set("u_model", transform);
                 program.set("u_color", primitive.color);
                 program.set("u_texture", 0);
+                program.set("u_flags", flags);
 
                 try (VertexArray ignored = primitive.vao.bind()) {
                     glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
@@ -201,22 +223,29 @@ public final class RenderMeshesPass implements RenderPass {
         var indices = primitive.indices();
 
         int location = 0;
+        var semantics = new HashSet<Semantic>();
 
         for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL, Semantic.TEXTURE_0)) {
             var accessor = vertices.get(semantic);
+            var location1 = location++;
             if (accessor == null) {
-                log.error("Missing required vertex attribute: {}", semantic);
-                return Optional.empty();
+                continue;
             }
             var attributes = buffers.computeIfAbsent(accessor.buffer(), _ -> new ArrayList<>());
             attributes.add(new VertexAttribute(
-                location++,
+                location1,
                 accessor.elementType(),
                 accessor.componentType(),
                 accessor.offset(),
                 accessor.stride(),
                 accessor.normalized()
             ));
+            semantics.add(semantic);
+        }
+
+        if (!semantics.contains(Semantic.POSITION)) {
+            log.error("Missing required vertex attribute: {}", Semantic.POSITION);
+            return Optional.empty();
         }
 
         try (var vao = new VertexArray().bind()) {
@@ -243,7 +272,7 @@ public final class RenderMeshesPass implements RenderPass {
                 random.nextFloat(0.5f, 1.0f)
             );
 
-            return Optional.of(new GpuPrimitive(count, type, vao, color));
+            return Optional.of(new GpuPrimitive(count, type, vao, color, semantics));
         }
     }
 
@@ -264,8 +293,23 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3f color) {
-        public void dispose() {
+    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3f color, Set<Semantic> semantics) {
+        private GpuPrimitive {
+            semantics = Set.copyOf(semantics);
+        }
+
+        int buildFlags() {
+            int flags = 0;
+            if (semantics.contains(Semantic.NORMAL)) {
+                flags |= FLAG_HAS_NORMAL;
+            }
+            if (semantics.contains(Semantic.TEXTURE_0)) {
+                flags |= FLAG_HAS_UV;
+            }
+            return flags;
+        }
+
+        void dispose() {
             vao.dispose();
         }
     }
