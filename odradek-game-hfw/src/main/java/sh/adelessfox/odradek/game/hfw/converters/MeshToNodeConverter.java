@@ -139,9 +139,6 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     }
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
-        if (resource.meshDescription().isMoss()) {
-            return Optional.empty();
-        }
         var mesh = convertMesh(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
