@@ -6,16 +6,17 @@ import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
-import sh.adelessfox.odradek.opengl.ShaderProgram;
-import sh.adelessfox.odradek.opengl.ShaderSource;
-import sh.adelessfox.odradek.opengl.VertexArray;
-import sh.adelessfox.odradek.opengl.VertexAttribute;
+import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
+import javax.imageio.ImageIO;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -31,9 +32,11 @@ public final class RenderMeshesPass implements RenderPass {
         
         layout (location = 0) in vec3 in_position;
         layout (location = 1) in vec3 in_normal;
+        layout (location = 2) in vec2 in_uv;
         
         out vec3 io_position;
         out vec3 io_normal;
+        out vec2 io_uv;
         
         uniform mat4 u_model;
         uniform mat4 u_view;
@@ -42,6 +45,7 @@ public final class RenderMeshesPass implements RenderPass {
         void main() {
             io_position = vec3(u_model * vec4(in_position, 1.0));
             io_normal = mat3(transpose(inverse(u_model))) * in_normal;
+            io_uv = in_uv;
         
             gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);
         }""");
@@ -51,16 +55,19 @@ public final class RenderMeshesPass implements RenderPass {
         
         in vec3 io_position;
         in vec3 io_normal;
+        in vec2 io_uv;
         
         out vec4 out_color;
         
         uniform vec3 u_view_position;
         uniform vec3 u_color;
+        uniform sampler2D u_texture;
         
         void main() {
             vec3 normal = normalize(io_normal);
             vec3 view = normalize(u_view_position - io_position);
-            vec3 color = vec3(abs(dot(view, normal))) * u_color;
+            vec3 tint = vec3(abs(dot(view, normal))) * u_color;
+            vec3 color = texture(u_texture, io_uv).rgb * tint;
         
             out_color = vec4(color, 1.0);
         }""");
@@ -69,6 +76,7 @@ public final class RenderMeshesPass implements RenderPass {
     private final Map<Node, GpuNode> cache = new IdentityHashMap<>();
 
     private ShaderProgram program;
+    private Texture texture;
     private Scene scene;
 
     private DebugRenderPass debug;
@@ -78,12 +86,22 @@ public final class RenderMeshesPass implements RenderPass {
         program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
         debug = new DebugRenderPass();
         debug.init();
+
+        try (var _ = texture = new Texture().bind()) {
+            texture.put(loadImage());
+        } catch (IOException e) {
+            log.error("Unable to load the UV texture", e);
+            texture.dispose();
+            texture = null;
+        }
     }
 
     @Override
     public void dispose() {
+        cache.clear();
         program.dispose();
         debug.dispose();
+        texture.dispose();
     }
 
     @Override
@@ -105,7 +123,9 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void renderScene(Camera camera, Scene scene, boolean wireframe) {
-        try (var program = this.program.bind()) {
+        try (var program = this.program.bind();
+             var _ = this.texture.bind()
+        ) {
             program.set("u_view", camera.view());
             program.set("u_projection", camera.projection());
             program.set("u_view_position", camera.position());
@@ -126,6 +146,7 @@ public final class RenderMeshesPass implements RenderPass {
             for (GpuPrimitive primitive : data.primitives()) {
                 program.set("u_model", transform);
                 program.set("u_color", primitive.color);
+                program.set("u_texture", 0);
 
                 try (VertexArray ignored = primitive.vao.bind()) {
                     glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
@@ -181,7 +202,7 @@ public final class RenderMeshesPass implements RenderPass {
 
         int location = 0;
 
-        for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL)) {
+        for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL, Semantic.TEXTURE_0)) {
             var accessor = vertices.get(semantic);
             if (accessor == null) {
                 log.error("Missing required vertex attribute: {}", semantic);
@@ -223,6 +244,15 @@ public final class RenderMeshesPass implements RenderPass {
             );
 
             return Optional.of(new GpuPrimitive(count, type, vao, color));
+        }
+    }
+
+    private BufferedImage loadImage() throws IOException {
+        try (InputStream is = getClass().getResourceAsStream("/assets/textures/color.png")) {
+            if (is == null) {
+                throw new IOException("Image not found");
+            }
+            return ImageIO.read(is);
         }
     }
 

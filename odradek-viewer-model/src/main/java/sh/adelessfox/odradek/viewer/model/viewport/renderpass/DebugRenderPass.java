@@ -11,7 +11,6 @@ import sh.adelessfox.odradek.math.Vector2f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.math.Vector4f;
 import sh.adelessfox.odradek.opengl.*;
-import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
@@ -105,8 +104,14 @@ class DebugRenderPass implements RenderPass {
 
     @Override
     public void draw(Viewport viewport, double dt) {
-        Camera camera = viewport.getCamera();
-        if ((!lines.isEmpty() || !points.isEmpty()) && camera != null) {
+        var camera = viewport.getCamera();
+        if (camera == null) {
+            return;
+        }
+
+        var depthTest = GLCapability.DEPTH_TEST.save();
+
+        if (!lines.isEmpty() || !points.isEmpty()) {
             try (var _ = debugProgram.bind()) {
                 debugProgram.set("u_view", camera.view());
                 debugProgram.set("u_projection", camera.projection());
@@ -127,6 +132,8 @@ class DebugRenderPass implements RenderPass {
                 drawTexts(width, height);
             }
         }
+
+        depthTest.restore();
     }
 
     public void point(Vector3f position, Vector3f color, float size, boolean depthTest) {
@@ -270,11 +277,7 @@ class DebugRenderPass implements RenderPass {
     }
 
     private void flush(int mode, boolean depthTest) {
-        if (depthTest) {
-            glEnable(GL_DEPTH_TEST);
-        } else {
-            glDisable(GL_DEPTH_TEST);
-        }
+        GLCapability.DEPTH_TEST.set(depthTest);
 
         final int count = buffer.position() / VERTEX_SIZE;
 
