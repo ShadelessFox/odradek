@@ -65,4 +65,8 @@ public record Vector3f(float x, float y, float z) {
             Math.fma(x, other.y, -y * other.x)
         );
     }
+
+    public Vector3f negate() {
+        return new Vector3f(-x, -y, -z);
+    }
 }

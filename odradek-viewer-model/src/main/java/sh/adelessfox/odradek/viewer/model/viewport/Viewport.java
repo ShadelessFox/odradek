@@ -212,10 +212,10 @@ public final class Viewport extends JPanel {
             updateFlyCamera(dt, mouseDelta);
         } else if (input.isMouseDown(MouseEvent.BUTTON2)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
-            // updatePan(input, dt, mouseDelta);
+            updatePanCamera(dt, mouseDelta);
         } else if (input.isMouseDown(MouseEvent.BUTTON3)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
-            // updateOrbit(input, dt, mouseDelta);
+            updateOrbitCamera(mouseDelta);
         }
     }
 
@@ -264,5 +264,18 @@ public final class Viewport extends JPanel {
 
         camera.position(position);
         camera.rotate(mouse.x(), mouse.y());
+    }
+
+    private void updatePanCamera(float dt, Vector2f mouse) {
+        var speed = (float) (Math.sqrt(cameraDistance) * dt);
+        camera.move(camera.right().mul(mouse.x() * speed).negate());
+        camera.move(camera.up().mul(mouse.y() * speed));
+    }
+
+    private void updateOrbitCamera(Vector2f mouse) {
+        var target = camera.forward();
+        camera.rotate(mouse.x(), mouse.y());
+        var distance = target.sub(camera.forward()).mul(cameraDistance);
+        camera.move(distance);
     }
 }

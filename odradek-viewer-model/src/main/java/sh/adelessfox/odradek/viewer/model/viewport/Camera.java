@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.math.Vector3f;
 
 public final class Camera {
     private static final float PITCH_LIMIT = (float) Math.PI / 2 - 0.01f;
+    private static final Vector3f UP = new Vector3f(0.f, 0.f, -1.f);
 
     private int width, height;
     private float x, y, z;
@@ -48,7 +49,7 @@ public final class Camera {
     public Matrix4f view() {
         var eye = position();
         var center = forward().add(eye);
-        return Matrix4f.lookAt(eye, center, up());
+        return Matrix4f.lookAt(eye, center, UP);
     }
 
     public Vector3f position() {
@@ -61,8 +62,14 @@ public final class Camera {
         this.z = position.z();
     }
 
+    public void move(Vector3f delta) {
+        this.x += delta.x();
+        this.y += delta.y();
+        this.z += delta.z();
+    }
+
     public Vector3f up() {
-        return new Vector3f(0.f, 0.f, -1.f);
+        return right().cross(forward());
     }
 
     public Vector3f forward() {
