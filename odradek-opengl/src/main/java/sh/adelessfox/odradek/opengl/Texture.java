@@ -7,13 +7,11 @@ import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.opengl.ARBBindlessTexture.glGetTextureHandleARB;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL45.*;
 
 public class Texture implements GLObject {
     private final int name;
-    private final long handle;
 
     private Texture(int width, int height, ByteBuffer buffer, int format, int type) {
         if (!GL.getCapabilities().GL_ARB_bindless_texture) {
@@ -23,7 +21,6 @@ public class Texture implements GLObject {
         name = glCreateTextures(GL_TEXTURE_2D);
         glTextureStorage2D(name, 1, GL_RGBA8, width, height);
         glTextureSubImage2D(name, 0, 0, 0, width, height, format, type, buffer);
-        handle = glGetTextureHandleARB(name);
     }
 
     public static Texture load(BufferedImage image) {
