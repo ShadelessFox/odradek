@@ -13,6 +13,13 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int 
         if (indices.normalized()) {
             throw new IllegalArgumentException("indices cannot be normalized");
         }
+        if (!vertices.containsKey(Semantic.POSITION)) {
+            throw new IllegalArgumentException("vertices must contain POSITION semantic");
+        }
         vertices = Map.copyOf(vertices);
+    }
+
+    public Accessor positions() {
+        return vertices.get(Semantic.POSITION);
     }
 }
