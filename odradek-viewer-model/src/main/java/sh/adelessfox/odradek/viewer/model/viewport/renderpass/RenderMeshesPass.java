@@ -39,8 +39,6 @@ public final class RenderMeshesPass implements RenderPass {
     private Sampler diffuseSampler;
     private Scene scene;
 
-    private DebugRenderPass debug;
-
     @Override
     public void init() {
         try {
@@ -52,9 +50,6 @@ public final class RenderMeshesPass implements RenderPass {
             log.error("Failed to load shaders", e);
             return;
         }
-
-        debug = new DebugRenderPass();
-        debug.init();
 
         try {
             diffuseTexture = Texture.load(loadImage());
@@ -81,7 +76,6 @@ public final class RenderMeshesPass implements RenderPass {
     public void dispose() {
         cache.clear();
         program.dispose();
-        debug.dispose();
         diffuseTexture.dispose();
         diffuseSampler.dispose();
     }
@@ -101,7 +95,6 @@ public final class RenderMeshesPass implements RenderPass {
             return;
         }
         renderScene(activeCamera, scene, viewport.isKeyDown(KeyEvent.VK_X));
-        debug.draw(viewport, dt);
     }
 
     private void renderScene(Camera camera, Scene scene, boolean wireframe) {
@@ -144,29 +137,6 @@ public final class RenderMeshesPass implements RenderPass {
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        if (node.skin().isPresent()) {
-            renderSkin(node.skin().get(), null, camera);
-        }
-    }
-
-    private void renderSkin(Node node, Node parent, Camera camera) {
-        if (parent != null) {
-            var translation = node.matrix().toTranslation();
-            debug.point(translation, new Vector3f(1, 0, 1), 10f, false);
-            debug.line(parent.matrix().toTranslation(), translation, new Vector3f(0, 1, 0), false);
-
-            if (node.name().isPresent()) {
-                float distance = translation.distance(camera.position());
-                float size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
-
-                debug.projectedText(node.name().get(), translation, camera.projectionView(), new Vector3f(1, 1, 1), size);
-            }
-        }
-
-        for (Node child : node.children()) {
-            renderSkin(child, node, camera);
-        }
     }
 
     private GpuNode uploadNode(Node node) {

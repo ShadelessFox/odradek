@@ -241,7 +241,7 @@ class DebugRenderPass implements RenderPass {
         float nx = (clip.x() / clip.w() * 0.5f) + 0.5f;
         float ny = ((-(clip.y() / clip.w()) * 0.5f) + 0.5f);
 
-        text(text, nx, ny, r, g, b, scale, true, true);
+        text(text, nx, ny, r, g, b, scale, true, false);
     }
 
     public void billboardText(String text, Vector2f position, Vector3f color, float scale) {
