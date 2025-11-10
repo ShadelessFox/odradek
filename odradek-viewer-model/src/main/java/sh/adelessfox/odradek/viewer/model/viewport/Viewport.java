@@ -40,7 +40,7 @@ public final class Viewport extends JPanel {
 
         GLData data = new GLData();
         data.majorVersion = 4;
-        data.minorVersion = 4;
+        data.minorVersion = 5;
         data.swapInterval = 1;
         data.profile = GLData.Profile.CORE;
 

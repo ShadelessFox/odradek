@@ -26,71 +26,8 @@ import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 public final class RenderMeshesPass implements RenderPass {
     private static final Logger log = LoggerFactory.getLogger(RenderMeshesPass.class);
 
-    // region Shaders
     private static final int FLAG_HAS_NORMAL = 1;
     private static final int FLAG_HAS_UV = 1 << 1;
-
-    private static final ShaderSource VERTEX_SHADER = new ShaderSource("main.vert", """
-        #version 330 core
-        #define FLAG_HAS_NORMAL (1<<0)
-        #define FLAG_HAS_UV     (1<<1)
-        
-        layout (location = 0) in vec3 in_position;
-        layout (location = 1) in vec3 in_normal;
-        layout (location = 2) in vec2 in_uv;
-        
-        out vec3 io_position;
-        out vec3 io_normal;
-        out vec2 io_uv;
-        
-        uniform mat4 u_model;
-        uniform mat4 u_view;
-        uniform mat4 u_projection;
-        uniform int  u_flags;
-        
-        void main() {
-            io_position = vec3(u_model * vec4(in_position, 1.0));
-            if ((u_flags & FLAG_HAS_NORMAL) != 0)
-                io_normal = mat3(transpose(inverse(u_model))) * in_normal;
-            if ((u_flags & FLAG_HAS_UV) != 0)
-                io_uv = in_uv;
-        
-            gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);
-        }""");
-
-    private static final ShaderSource FRAGMENT_SHADER = new ShaderSource("main.frag", """
-        #version 330 core
-        #define FLAG_HAS_NORMAL (1<<0)
-        #define FLAG_HAS_UV     (1<<1)
-        
-        in vec3 io_position;
-        in vec3 io_normal;
-        in vec2 io_uv;
-        
-        out vec4 out_color;
-        
-        uniform vec3 u_view_position;
-        uniform vec3 u_color;
-        uniform int  u_flags;
-        uniform sampler2D u_texture;
-        
-        void main() {
-            vec3 normal;
-            if ((u_flags & FLAG_HAS_NORMAL) != 0) {
-                normal = normalize(io_normal);
-            } else {
-                normal = normalize(cross(dFdx(io_position), dFdy(io_position)));
-            }
-        
-            vec3 view = normalize(u_view_position - io_position);
-            vec3 color = vec3(abs(dot(view, normal))) * u_color;
-        
-            if ((u_flags & FLAG_HAS_UV) != 0)
-                color *= texture(u_texture, io_uv).rgb;
-        
-            out_color = vec4(color, 1.0);
-        }""");
-    // endregion
 
     private final Map<Node, GpuNode> cache = new IdentityHashMap<>();
 
@@ -102,12 +39,21 @@ public final class RenderMeshesPass implements RenderPass {
 
     @Override
     public void init() {
-        program = new ShaderProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+        try {
+            program = new ShaderProgram(
+                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/mesh.vert")),
+                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/mesh.frag"))
+            );
+        } catch (IOException e) {
+            log.error("Failed to load shaders", e);
+            return;
+        }
+
         debug = new DebugRenderPass();
         debug.init();
 
-        try (var _ = texture = new Texture().bind()) {
-            texture.put(loadImage());
+        try {
+            texture = Texture.load(loadImage());
         } catch (IOException e) {
             log.error("Unable to load the UV texture", e);
             texture.dispose();
@@ -167,7 +113,7 @@ public final class RenderMeshesPass implements RenderPass {
 
                 program.set("u_model", transform);
                 program.set("u_color", primitive.color);
-                program.set("u_texture", 0);
+                program.set("u_texture", texture);
                 program.set("u_flags", flags);
 
                 try (VertexArray ignored = primitive.vao.bind()) {

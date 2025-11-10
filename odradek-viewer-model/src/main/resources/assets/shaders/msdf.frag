@@ -1,4 +1,5 @@
 #version 330 core
+#extension GL_ARB_bindless_texture : require
 
 in vec2 io_uv;
 in vec3 io_color;

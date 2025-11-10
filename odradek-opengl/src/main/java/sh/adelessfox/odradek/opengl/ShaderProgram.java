@@ -9,6 +9,7 @@ import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.lwjgl.opengl.ARBBindlessTexture.glUniformHandleui64ARB;
 import static org.lwjgl.opengl.GL20.*;
 
 public final class ShaderProgram implements GLObject {
@@ -29,6 +30,11 @@ public final class ShaderProgram implements GLObject {
 
         glDeleteShader(vertexShaderId);
         glDeleteShader(fragmentShaderId);
+    }
+
+    public void set(String name, Texture texture) {
+        ensureBound();
+        glUniformHandleui64ARB(uniformLocation(name), texture.handle());
     }
 
     public void set(String name, int value) {

@@ -68,9 +68,9 @@ class DebugRenderPass implements RenderPass {
             log.error("Failed to load shaders", e);
         }
 
-        try (var _ = msdfTexture = new Texture().bind()) {
+        try {
             var metadata = loadFontMetadata();
-            msdfTexture.put(loadFontImage());
+            msdfTexture = Texture.load(loadFontImage());
             msdfAtlas = metadata.atlas();
             for (Glyph glyph : metadata.glyphs()) {
                 glyphs.put(glyph.unicode(), glyph);
@@ -126,7 +126,7 @@ class DebugRenderPass implements RenderPass {
                 int height = viewport.getFramebufferHeight();
 
                 msdfProgram.set("u_transform", Matrix4f.ortho2D(0, width, height, 0));
-                msdfProgram.set("u_msdf", 0);
+                msdfProgram.set("u_msdf", msdfTexture);
                 msdfProgram.set("u_distance_range", (float) msdfAtlas.distanceRange / msdfAtlas.width);
 
                 drawTexts(width, height);
