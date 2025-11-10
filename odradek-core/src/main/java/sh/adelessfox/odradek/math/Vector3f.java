@@ -38,6 +38,13 @@ public record Vector3f(float x, float y, float z) {
         return mul(xyz, xyz, xyz);
     }
 
+    public Vector3f fma(float mul, Vector3f add) {
+        float x = Math.fma(this.x, mul, add.x);
+        float y = Math.fma(this.y, mul, add.y);
+        float z = Math.fma(this.z, mul, add.z);
+        return new Vector3f(x, y, z);
+    }
+
     public float distance(Vector3f other) {
         return distance(other.x, other.y, other.z);
     }

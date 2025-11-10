@@ -4,6 +4,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLDebugMessageCallback;
 import sh.adelessfox.odradek.math.Vector2f;
+import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.awt.AWTGLCanvas;
 import sh.adelessfox.odradek.opengl.awt.GLData;
 import sh.adelessfox.odradek.scene.Scene;
@@ -30,6 +31,7 @@ public final class Viewport extends JPanel {
 
     private float cameraSpeed = 5.f;
     private float cameraDistance = 1.f;
+    private boolean cameraOriginShown;
     private long lastUpdateTime;
 
     private Camera camera;
@@ -156,6 +158,14 @@ public final class Viewport extends JPanel {
         this.camera = camera;
     }
 
+    public Vector3f getCameraOrigin() {
+        return camera.forward().fma(cameraDistance, camera.position());
+    }
+
+    public boolean isCameraOriginShown() {
+        return cameraOriginShown;
+    }
+
     public Scene getScene() {
         return scene;
     }
@@ -213,9 +223,13 @@ public final class Viewport extends JPanel {
         } else if (input.isMouseDown(MouseEvent.BUTTON2)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updatePanCamera(dt, mouseDelta);
+            cameraOriginShown = true;
         } else if (input.isMouseDown(MouseEvent.BUTTON3)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updateOrbitCamera(mouseDelta);
+            cameraOriginShown = true;
+        } else {
+            cameraOriginShown = false;
         }
     }
 
