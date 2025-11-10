@@ -101,9 +101,6 @@ public final class RenderMeshesPass implements RenderPass {
             return;
         }
         renderScene(activeCamera, scene, viewport.isKeyDown(KeyEvent.VK_X));
-        if (viewport.isCameraOriginShown()) {
-            debug.cross(viewport.getCameraOrigin(), 0.1f, false);
-        }
         debug.draw(viewport, dt);
     }
 

@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.GridRenderPass;
+import sh.adelessfox.odradek.viewer.model.viewport.renderpass.OverlayRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderMeshesPass;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ public class SceneViewer implements Viewer<Scene> {
         viewport.setMinimumSize(new Dimension(100, 100));
         viewport.addRenderPass(new RenderMeshesPass());
         viewport.addRenderPass(new GridRenderPass());
+        viewport.addRenderPass(new OverlayRenderPass());
         viewport.setCamera(camera);
         viewport.setScene(scene);
 
