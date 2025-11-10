@@ -39,6 +39,10 @@ public record Accessor(
         this(buffer, elementType, componentType, offset, count, elementType.size() * componentType.size());
     }
 
+    public int componentCount() {
+        return elementType().size();
+    }
+
     public ByteView asByteView() {
         return switch (componentType) {
             case BYTE, UNSIGNED_BYTE -> ByteView.ofByte(this, buffer);

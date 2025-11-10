@@ -4,10 +4,7 @@ import be.twofold.tinycast.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.geometry.ComponentType;
-import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.geometry.Primitive;
-import sh.adelessfox.odradek.geometry.Semantic;
+import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
@@ -86,29 +83,10 @@ public class CastExporter implements Exporter<Scene> {
             // Vertices
             primitive.vertices().forEach((semantic, accessor) -> {
                 switch (semantic) {
-                    case Semantic.Position _,
-                         Semantic.Normal _ -> {
-                        var buffer = FloatBuffer.allocate(accessor.count() * 3);
-                        var view = accessor.asFloatView();
-                        for (int i = 0; i < accessor.count(); i++) {
-                            buffer.put(view.get(i, 0));
-                            buffer.put(view.get(i, 1));
-                            buffer.put(view.get(i, 2));
-                        }
-                        if (semantic instanceof Semantic.Position) {
-                            result.setVertexPositionBuffer(buffer.flip());
-                        } else {
-                            result.setVertexNormalBuffer(buffer.flip());
-                        }
-                    }
+                    case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
+                    case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
                     case Semantic.Texture _ -> {
-                        var buffer = FloatBuffer.allocate(accessor.count() * 2);
-                        var view = accessor.asFloatView();
-                        for (int i = 0; i < accessor.count(); i++) {
-                            buffer.put(view.get(i, 0));
-                            buffer.put(view.get(i, 1));
-                        }
-                        result.addVertexUVBuffer(buffer.flip());
+                        result.addVertexUVBuffer(toFloatBuffer(accessor));
                         result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
                     }
                     case Semantic.Color _ -> {
@@ -131,20 +109,43 @@ public class CastExporter implements Exporter<Scene> {
             // Indices
             var indices = primitive.indices();
             if (indices.componentType() == ComponentType.UNSIGNED_SHORT) {
-                var buffer = ShortBuffer.allocate(indices.count());
-                var view = indices.asShortView();
-                for (int i = 0; i < indices.count(); i++) {
-                    buffer.put(view.get(i, 0));
-                }
-                result.setFaceBuffer(buffer.flip());
+                result.setFaceBuffer(toShortBuffer(indices));
             } else {
-                var buffer = IntBuffer.allocate(indices.count());
-                var view = indices.asIntView();
-                for (int i = 0; i < indices.count(); i++) {
-                    buffer.put(view.get(i, 0));
-                }
-                result.setFaceBuffer(buffer.flip());
+                result.setFaceBuffer(toIntBuffer(indices));
             }
         }
+    }
+
+    private static ShortBuffer toShortBuffer(Accessor accessor) {
+        var buffer = ShortBuffer.allocate(accessor.count() * accessor.componentCount());
+        var view = accessor.asShortView();
+        for (int i = 0; i < accessor.count(); i++) {
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                buffer.put(view.get(i, j));
+            }
+        }
+        return buffer.flip();
+    }
+
+    private static IntBuffer toIntBuffer(Accessor accessor) {
+        var buffer = IntBuffer.allocate(accessor.count() * accessor.componentCount());
+        var view = accessor.asIntView();
+        for (int i = 0; i < accessor.count(); i++) {
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                buffer.put(view.get(i, j));
+            }
+        }
+        return buffer.flip();
+    }
+
+    private static FloatBuffer toFloatBuffer(Accessor accessor) {
+        var buffer = FloatBuffer.allocate(accessor.count() * accessor.componentCount());
+        var view = accessor.asFloatView();
+        for (int i = 0; i < accessor.count(); i++) {
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                buffer.put(view.get(i, j));
+            }
+        }
+        return buffer.flip();
     }
 }
