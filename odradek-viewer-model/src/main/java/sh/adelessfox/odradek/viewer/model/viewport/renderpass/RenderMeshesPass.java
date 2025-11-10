@@ -153,8 +153,8 @@ public final class RenderMeshesPass implements RenderPass {
     private void renderSkin(Node node, Node parent, Camera camera) {
         if (parent != null) {
             var translation = node.matrix().toTranslation();
-            debug.point(translation, new Vector3f(1, 0, 1), 10f, false);
-            debug.line(parent.matrix().toTranslation(), translation, new Vector3f(0, 1, 0), false);
+            debug.point(translation, new Vector3f(1, 0, 1), 10f);
+            debug.line(parent.matrix().toTranslation(), translation, new Vector3f(0, 1, 0));
 
             if (node.name().isPresent()) {
                 float distance = translation.distance(camera.position());

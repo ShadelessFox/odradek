@@ -147,6 +147,10 @@ class DebugRenderPass implements RenderPass {
         depthTest.restore();
     }
 
+    public void point(Vector3f position, Vector3f color, float size) {
+        point(position, color, size, true);
+    }
+
     public void point(Vector3f position, Vector3f color, float size, boolean depthTest) {
         point(position.x(), position.y(), position.z(), color.x(), color.y(), color.z(), size, depthTest);
     }
@@ -158,6 +162,10 @@ class DebugRenderPass implements RenderPass {
         }
 
         points.add(new Point(x, y, z, r, g, b, size, depthTest));
+    }
+
+    public void line(Vector3f from, Vector3f to, Vector3f color) {
+        line(from, to, color, true);
     }
 
     public void line(Vector3f from, Vector3f to, Vector3f color, boolean depthTest) {
@@ -173,12 +181,20 @@ class DebugRenderPass implements RenderPass {
         lines.add(new Line(x1, y1, z1, x2, y2, z2, r, g, b, depthTest));
     }
 
+    public void box(Vector3f[] points, Vector3f color) {
+        box(points, color, true);
+    }
+
     public void box(Vector3f[] points, Vector3f color, boolean depthTest) {
         for (int i = 0; i < 4; i++) {
             line(points[i], points[(i + 1) % 4], color, depthTest);
             line(points[i + 4], points[(i + 1) % 4 + 4], color, depthTest);
             line(points[i], points[i + 4], color, depthTest);
         }
+    }
+
+    public void aabb(Vector3f min, Vector3f max, Vector3f color) {
+        aabb(min, max, color, true);
     }
 
     public void aabb(Vector3f min, Vector3f max, Vector3f color, boolean depthTest) {
@@ -194,6 +210,10 @@ class DebugRenderPass implements RenderPass {
         };
 
         box(points, color, depthTest);
+    }
+
+    public void cross(Vector3f center, float length) {
+        cross(center, length, true);
     }
 
     public void cross(Vector3f center, float length, boolean depthTest) {
@@ -275,7 +295,7 @@ class DebugRenderPass implements RenderPass {
     }
 
     private void drawTexts(int width, int height) {
-        drawTexts(width, height, false);
+        drawTexts(width, height, true);
         texts.clear();
     }
 
