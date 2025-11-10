@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.scene.Node;
+import sh.adelessfox.odradek.scene.Scene;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -19,15 +20,17 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public class CastExporter implements Exporter<Node> {
+public class CastExporter implements Exporter<Scene> {
     private static final Logger log = LoggerFactory.getLogger(CastExporter.class);
 
     @Override
-    public void export(Node object, WritableByteChannel channel) throws IOException {
+    public void export(Scene object, WritableByteChannel channel) throws IOException {
         var cast = Cast.create();
         var root = cast.createRoot();
 
-        exportNode(root, object, Matrix4f.identity());
+        for (Node node : object.nodes()) {
+            exportNode(root, node, Matrix4f.identity());
+        }
 
         try {
             cast.write(Channels.newOutputStream(channel));

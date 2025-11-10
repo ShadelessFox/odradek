@@ -10,5 +10,5 @@ module odradek.viewer.model {
     opens sh.adelessfox.odradek.viewer.model.viewport.renderpass to com.google.gson;
 
     provides sh.adelessfox.odradek.ui.Viewer with
-        sh.adelessfox.odradek.viewer.model.NodeViewer;
+        sh.adelessfox.odradek.viewer.model.SceneViewer;
 }

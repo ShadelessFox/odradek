@@ -12,6 +12,7 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Node;
+import sh.adelessfox.odradek.scene.Scene;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -22,11 +23,15 @@ import java.util.stream.IntStream;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
 
-public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, Node> {
-    private static final Logger log = LoggerFactory.getLogger(MeshToNodeConverter.class);
+public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, Scene> {
+    private static final Logger log = LoggerFactory.getLogger(MeshToSceneConverter.class);
 
     @Override
-    public Optional<Node> convert(Object object, ForbiddenWestGame game) {
+    public Optional<Scene> convert(Object object, ForbiddenWestGame game) {
+        return convertNode(object, game).map(Scene::of);
+    }
+
+    private Optional<Node> convertNode(Object object, ForbiddenWestGame game) {
         return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(r, game);
             case StaticMeshInstance r -> convertStaticMeshInstance(r, game);
@@ -68,7 +73,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         var children = new ArrayList<Node>();
 
         for (var object : Ref.unwrap(collection.general().objects())) {
-            convert(object, game).ifPresent(children::add);
+            convertNode(object, game).ifPresent(children::add);
         }
 
         if (children.isEmpty()) {
@@ -83,7 +88,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
             assert !override.isRemoved();
             assert !override.isTransformOverridden();
         }
-        return convert(instance.general().prefab().get(), game);
+        return convertNode(instance.general().prefab().get(), game);
     }
 
     private Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
@@ -131,11 +136,11 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
         if (resource.general().meshResource() == null) {
             return Optional.empty();
         }
-        return convert(resource.general().meshResource().get(), game);
+        return convertNode(resource.general().meshResource().get(), game);
     }
 
     private Optional<Node> convertStaticMeshInstance(StaticMeshInstance instance, ForbiddenWestGame game) {
-        return convert(instance.general().resource().get(), game);
+        return convertNode(instance.general().resource().get(), game);
     }
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
@@ -204,7 +209,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
 
     private Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {
         var part = resource.runtimeMeshes().getFirst();
-        return convert(part.mesh().get(), game);
+        return convertNode(part.mesh().get(), game);
     }
 
     private Optional<Node> convertMultiMeshResource(MultiMeshResource resource, ForbiddenWestGame game) {
@@ -219,7 +224,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
     }
 
     private Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
-        var child = convert(resource, game);
+        var child = convertNode(resource, game);
         var matrix = transform != null ? convertMat34(transform) : Matrix4f.identity();
 
         return child.map(c -> c.transform(matrix));
@@ -227,7 +232,7 @@ public final class MeshToNodeConverter implements Converter<ForbiddenWestGame, N
 
     private Optional<Node> convertBodyVariant(BodyVariant resource, ForbiddenWestGame game) {
         List<Node> children = resource.logic().modelPartResources().stream()
-            .map(part -> convert(part.get().general().meshResource().get(), game))
+            .map(part -> convertNode(part.get().general().meshResource().get(), game))
             .flatMap(Optional::stream)
             .toList();
 
