@@ -48,12 +48,12 @@ class DebugRenderPass implements RenderPass {
     private final List<Text> texts = new ArrayList<>(MAX_TEXTS);
     private final Map<Integer, Glyph> glyphs = new HashMap<>();
 
-    private Atlas msdfAtlas;
+    private Font msdfFont;
+    private Texture msdfTexture;
+    private Sampler msdfSampler;
 
     private ShaderProgram debugProgram;
     private ShaderProgram msdfProgram;
-    private Texture msdfTexture;
-    private Sampler msdfSampler;
     private VertexArray vao;
     private VertexBuffer vbo;
 
@@ -73,7 +73,7 @@ class DebugRenderPass implements RenderPass {
         }
 
         try {
-            var metadata = loadFontMetadata();
+            msdfFont = loadFontMetadata();
             msdfTexture = Texture.load(loadFontImage());
             msdfSampler = msdfTexture.createSampler(new SamplerDescriptor(
                 AddressMode.CLAMP_TO_EDGE,
@@ -81,8 +81,7 @@ class DebugRenderPass implements RenderPass {
                 FilterMode.LINEAR,
                 FilterMode.LINEAR
             ));
-            msdfAtlas = metadata.atlas();
-            for (Glyph glyph : metadata.glyphs()) {
+            for (Glyph glyph : msdfFont.glyphs()) {
                 glyphs.put(glyph.unicode(), glyph);
             }
         } catch (IOException e) {
@@ -138,7 +137,7 @@ class DebugRenderPass implements RenderPass {
 
                 msdfProgram.set("u_transform", Matrix4f.ortho2D(0, width, height, 0));
                 msdfProgram.set("u_msdf", msdfSampler);
-                msdfProgram.set("u_distance_range", (float) msdfAtlas.distanceRange / msdfAtlas.width);
+                msdfProgram.set("u_distance_range", (float) msdfFont.atlas().distanceRange() / msdfFont.atlas().width());
 
                 drawTexts(width, height);
             }
@@ -242,7 +241,7 @@ class DebugRenderPass implements RenderPass {
         float nx = (clip.x() / clip.w() * 0.5f) + 0.5f;
         float ny = ((-(clip.y() / clip.w()) * 0.5f) + 0.5f);
 
-        text(text, nx, ny, r, g, b, scale, true);
+        text(text, nx, ny, r, g, b, scale, true, true);
     }
 
     public void billboardText(String text, Vector2f position, Vector3f color, float scale) {
@@ -250,16 +249,16 @@ class DebugRenderPass implements RenderPass {
     }
 
     public void billboardText(String text, float x, float y, float r, float g, float b, float scale) {
-        text(text, x, y, r, g, b, scale, false);
+        text(text, x, y, r, g, b, scale, false, false);
     }
 
-    private void text(String text, float x, float y, float r, float g, float b, float scale, boolean normalized) {
+    private void text(String text, float x, float y, float r, float g, float b, float scale, boolean normalized, boolean depthTest) {
         if (texts.size() >= MAX_TEXTS) {
             log.warn("Max texts reached, skipping further text draws");
             return;
         }
 
-        texts.add(new Text(text, x, y, r, g, b, scale, normalized));
+        texts.add(new Text(text, x, y, r, g, b, scale, normalized, depthTest));
     }
 
     private void drawPoints() {
@@ -295,13 +294,16 @@ class DebugRenderPass implements RenderPass {
     }
 
     private void drawTexts(int width, int height) {
+        drawTexts(width, height, false);
         drawTexts(width, height, true);
         texts.clear();
     }
 
     private void drawTexts(int width, int height, boolean depthTest) {
         for (Text text : texts) {
-            push(text, width, height, depthTest);
+            if (text.depthTest == depthTest) {
+                push(text, width, height, depthTest);
+            }
         }
 
         flush(GL_TRIANGLES, depthTest);
@@ -352,24 +354,32 @@ class DebugRenderPass implements RenderPass {
             y *= height;
         }
 
+        float originalX = x;
+
         for (int i = 0; i < length; i++) {
             var codePoint = text.text.codePointAt(i);
-            var glyph = glyphs.get(codePoint);
+            if (codePoint == '\n') {
+                y += msdfFont.metrics.lineHeight * text.scale;
+                x = originalX;
+                continue;
+            }
 
+            var glyph = glyphs.get(codePoint);
             if (glyph == null) {
                 continue;
             }
 
             if (glyph.planeBounds != null) {
-                float x1 = x + glyph.planeBounds.left * text.scale;
-                float y1 = y + glyph.planeBounds.top * text.scale;
-                float x2 = x + glyph.planeBounds.right * text.scale;
-                float y2 = y + glyph.planeBounds.bottom * text.scale;
+                // Border takes up approximately 10% of the text's scale.
+                float x1 = x + (glyph.planeBounds.left + 0.1f) * text.scale;
+                float y1 = y + (glyph.planeBounds.top + 0.9f) * text.scale;
+                float x2 = x + (glyph.planeBounds.right + 0.1f) * text.scale;
+                float y2 = y + (glyph.planeBounds.bottom + 0.9f) * text.scale;
 
-                float u1 = glyph.atlasBounds.left / msdfAtlas.width;
-                float v1 = glyph.atlasBounds.top / msdfAtlas.height;
-                float u2 = glyph.atlasBounds.right / msdfAtlas.width;
-                float v2 = glyph.atlasBounds.bottom / msdfAtlas.height;
+                float u1 = glyph.atlasBounds.left / msdfFont.atlas.width;
+                float v1 = glyph.atlasBounds.top / msdfFont.atlas.height;
+                float u2 = glyph.atlasBounds.right / msdfFont.atlas.width;
+                float v2 = glyph.atlasBounds.bottom / msdfFont.atlas.height;
 
                 if (buffer.remaining() < VERTEX_SIZE * 6) {
                     flush(GL_TRIANGLES, depthTest);
@@ -384,7 +394,7 @@ class DebugRenderPass implements RenderPass {
                 push(x2, y2, u2, v2, text.r, text.g, text.b);
             }
 
-            x += glyph.advance * text.scale;
+            x += glyph.advance * text.scale * 1.1f;
         }
     }
 
@@ -422,13 +432,16 @@ class DebugRenderPass implements RenderPass {
     private record Point(float x, float y, float z, float r, float g, float b, float size, boolean depthTest) {
     }
 
-    private record Text(String text, float x, float y, float r, float g, float b, float scale, boolean normalized) {
+    private record Text(String text, float x, float y, float r, float g, float b, float scale, boolean normalized, boolean depthTest) {
     }
 
-    private record Font(Atlas atlas, Glyph[] glyphs) {
+    private record Font(Atlas atlas, Metrics metrics, Glyph[] glyphs) {
     }
 
     private record Atlas(int distanceRange, int width, int height) {
+    }
+
+    private record Metrics(float lineHeight, float ascender, float descender) {
     }
 
     private record Glyph(int unicode, float advance, Bounds planeBounds, Bounds atlasBounds) {
