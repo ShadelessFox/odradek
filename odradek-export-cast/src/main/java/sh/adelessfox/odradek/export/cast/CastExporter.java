@@ -101,7 +101,17 @@ public class CastExporter implements Exporter<Scene> {
                             result.setVertexNormalBuffer(buffer.flip());
                         }
                     }
-                    case Semantic.Color(var n) when n == 0 -> {
+                    case Semantic.Texture _ -> {
+                        var buffer = FloatBuffer.allocate(accessor.count() * 2);
+                        var view = accessor.asFloatView();
+                        for (int i = 0; i < accessor.count(); i++) {
+                            buffer.put(view.get(i, 0));
+                            buffer.put(view.get(i, 1));
+                        }
+                        result.addVertexUVBuffer(buffer.flip());
+                        result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
+                    }
+                    case Semantic.Color _ -> {
                         var buffer = IntBuffer.allocate(accessor.count());
                         var view = accessor.asByteView();
                         for (int i = 0; i < accessor.count(); i++) {
@@ -112,6 +122,7 @@ public class CastExporter implements Exporter<Scene> {
                             buffer.put((a << 24) | (b << 16) | (g << 8) | r);
                         }
                         result.addVertexColorBufferI32(buffer.flip());
+                        result.setColorLayerCount(result.getColorLayerCount().orElse(0) + 1);
                     }
                     default -> log.debug("Skipping unsupported vertex {}", semantic);
                 }
