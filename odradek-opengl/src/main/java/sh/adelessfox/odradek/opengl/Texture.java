@@ -2,11 +2,12 @@ package sh.adelessfox.odradek.opengl;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
+import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
-import static org.lwjgl.opengl.ARBBindlessTexture.*;
+import static org.lwjgl.opengl.ARBBindlessTexture.glGetTextureHandleARB;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL45.*;
 
@@ -20,10 +21,6 @@ public class Texture implements GLObject {
         }
 
         name = glCreateTextures(GL_TEXTURE_2D);
-        glTextureParameteri(name, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(name, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(name, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTextureParameteri(name, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTextureStorage2D(name, 1, GL_RGBA8, width, height);
         glTextureSubImage2D(name, 0, 0, 0, width, height, format, type, buffer);
         handle = glGetTextureHandleARB(name);
@@ -44,15 +41,18 @@ public class Texture implements GLObject {
         return new Texture(width, height, buffer, GL_RGB, GL_UNSIGNED_BYTE);
     }
 
+    public Sampler createSampler(SamplerDescriptor descriptor) {
+        return new Sampler(this, descriptor);
+    }
+
     @Override
     public Texture bind() {
-        glMakeTextureHandleResidentARB(handle);
-        return this;
+        throw new IllegalStateException("Not supposed to bind textures directly; use samplers");
     }
 
     @Override
     public void unbind() {
-        glMakeTextureHandleNonResidentARB(handle);
+        throw new IllegalStateException("Not supposed to bind textures directly; use samplers");
     }
 
     @Override
@@ -60,7 +60,7 @@ public class Texture implements GLObject {
         glDeleteTextures(name);
     }
 
-    public long handle() {
-        return handle;
+    int name() {
+        return name;
     }
 }

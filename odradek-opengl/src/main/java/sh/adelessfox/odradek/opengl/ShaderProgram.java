@@ -32,9 +32,9 @@ public final class ShaderProgram implements GLObject {
         glDeleteShader(fragmentShaderId);
     }
 
-    public void set(String name, Texture texture) {
+    public void set(String name, Sampler sampler) {
         ensureBound();
-        glUniformHandleui64ARB(uniformLocation(name), texture.handle());
+        glUniformHandleui64ARB(uniformLocation(name), sampler.handle());
     }
 
     public void set(String name, int value) {

@@ -7,6 +7,9 @@ import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.*;
+import sh.adelessfox.odradek.opengl.rhi.AddressMode;
+import sh.adelessfox.odradek.opengl.rhi.FilterMode;
+import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
@@ -32,7 +35,8 @@ public final class RenderMeshesPass implements RenderPass {
     private final Map<Node, GpuNode> cache = new IdentityHashMap<>();
 
     private ShaderProgram program;
-    private Texture texture;
+    private Texture diffuseTexture;
+    private Sampler diffuseSampler;
     private Scene scene;
 
     private DebugRenderPass debug;
@@ -53,11 +57,23 @@ public final class RenderMeshesPass implements RenderPass {
         debug.init();
 
         try {
-            texture = Texture.load(loadImage());
+            diffuseTexture = Texture.load(loadImage());
+            diffuseSampler = diffuseTexture.createSampler(new SamplerDescriptor(
+                AddressMode.REPEAT,
+                AddressMode.REPEAT,
+                FilterMode.NEAREST,
+                FilterMode.NEAREST
+            ));
         } catch (IOException e) {
             log.error("Unable to load the UV texture", e);
-            texture.dispose();
-            texture = null;
+            if (diffuseTexture != null) {
+                diffuseTexture.dispose();
+                diffuseTexture = null;
+            }
+            if (diffuseSampler != null) {
+                diffuseSampler.dispose();
+                diffuseSampler = null;
+            }
         }
     }
 
@@ -66,7 +82,8 @@ public final class RenderMeshesPass implements RenderPass {
         cache.clear();
         program.dispose();
         debug.dispose();
-        texture.dispose();
+        diffuseTexture.dispose();
+        diffuseSampler.dispose();
     }
 
     @Override
@@ -89,7 +106,7 @@ public final class RenderMeshesPass implements RenderPass {
 
     private void renderScene(Camera camera, Scene scene, boolean wireframe) {
         try (var program = this.program.bind();
-             var _ = this.texture.bind()
+             var _ = this.diffuseSampler.bind()
         ) {
             program.set("u_view", camera.view());
             program.set("u_projection", camera.projection());
@@ -113,7 +130,7 @@ public final class RenderMeshesPass implements RenderPass {
 
                 program.set("u_model", transform);
                 program.set("u_color", primitive.color);
-                program.set("u_texture", texture);
+                program.set("u_texture", diffuseSampler);
                 program.set("u_flags", flags);
 
                 try (VertexArray ignored = primitive.vao.bind()) {

@@ -11,6 +11,9 @@ import sh.adelessfox.odradek.math.Vector2f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.math.Vector4f;
 import sh.adelessfox.odradek.opengl.*;
+import sh.adelessfox.odradek.opengl.rhi.AddressMode;
+import sh.adelessfox.odradek.opengl.rhi.FilterMode;
+import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
@@ -50,6 +53,7 @@ class DebugRenderPass implements RenderPass {
     private ShaderProgram debugProgram;
     private ShaderProgram msdfProgram;
     private Texture msdfTexture;
+    private Sampler msdfSampler;
     private VertexArray vao;
     private VertexBuffer vbo;
 
@@ -71,6 +75,12 @@ class DebugRenderPass implements RenderPass {
         try {
             var metadata = loadFontMetadata();
             msdfTexture = Texture.load(loadFontImage());
+            msdfSampler = msdfTexture.createSampler(new SamplerDescriptor(
+                AddressMode.CLAMP_TO_EDGE,
+                AddressMode.CLAMP_TO_EDGE,
+                FilterMode.LINEAR,
+                FilterMode.LINEAR
+            ));
             msdfAtlas = metadata.atlas();
             for (Glyph glyph : metadata.glyphs()) {
                 glyphs.put(glyph.unicode(), glyph);
@@ -99,6 +109,7 @@ class DebugRenderPass implements RenderPass {
         debugProgram.dispose();
         msdfProgram.dispose();
         msdfTexture.dispose();
+        msdfSampler.dispose();
         vao.dispose();
     }
 
@@ -121,12 +132,12 @@ class DebugRenderPass implements RenderPass {
             }
         }
         if (!texts.isEmpty()) {
-            try (var _ = msdfProgram.bind(); var _ = msdfTexture.bind()) {
+            try (var _ = msdfProgram.bind(); var _ = msdfSampler.bind()) {
                 int width = viewport.getFramebufferWidth();
                 int height = viewport.getFramebufferHeight();
 
                 msdfProgram.set("u_transform", Matrix4f.ortho2D(0, width, height, 0));
-                msdfProgram.set("u_msdf", msdfTexture);
+                msdfProgram.set("u_msdf", msdfSampler);
                 msdfProgram.set("u_distance_range", (float) msdfAtlas.distanceRange / msdfAtlas.width);
 
                 drawTexts(width, height);
