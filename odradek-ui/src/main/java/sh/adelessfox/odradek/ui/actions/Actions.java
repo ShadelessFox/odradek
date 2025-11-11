@@ -8,10 +8,7 @@ import sh.adelessfox.odradek.ui.util.Icons;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -292,7 +289,13 @@ public final class Actions {
 
         private void update() {
             var name = descriptor.text(context);
-            putValue(NAME, name.text());
+            var text = name.text();
+            if (descriptor.accelerator() != null && groups.containsKey(descriptor.id())) {
+                // Menus with sub-menus can't have an accelerator in Swing, so we have to fake it
+                text += "\u3000\u3000\u3000";
+                text += getTextForAccelerator(descriptor.accelerator());
+            }
+            putValue(NAME, text);
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
             putValue(SHORT_DESCRIPTION, descriptor.description(context));
@@ -307,6 +310,29 @@ public final class Actions {
             }
 
             setEnabled(descriptor.action().isEnabled(context));
+        }
+
+        /**
+         * Copied from {@code com.formdev.flatlaf.ui.FlatMenuItemRenderer#getTextForAccelerator(KeyStroke)}
+         */
+        private static String getTextForAccelerator(KeyStroke accelerator) {
+            StringBuilder buf = new StringBuilder();
+
+            // modifiers
+            int modifiers = accelerator.getModifiers();
+            if (modifiers != 0) {
+                buf.append(InputEvent.getModifiersExText(modifiers)).append('+');
+            }
+
+            // key
+            int keyCode = accelerator.getKeyCode();
+            if (keyCode != 0) {
+                buf.append(KeyEvent.getKeyText(keyCode));
+            } else {
+                buf.append(accelerator.getKeyChar());
+            }
+
+            return buf.toString();
         }
     }
 
