@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 
 public class OverlayRenderPass implements RenderPass {
@@ -17,14 +18,17 @@ public class OverlayRenderPass implements RenderPass {
         Meshes   {2,number,integer}
         """);
 
-    private DebugRenderPass debug;
+    private DebugRenderer debug;
     private Scene scene;
     private SceneStatistics statistics;
 
     @Override
     public void init() {
-        debug = new DebugRenderPass();
-        debug.init();
+        try {
+            debug = new DebugRenderer();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to initialize debug renderer", e);
+        }
     }
 
     @Override

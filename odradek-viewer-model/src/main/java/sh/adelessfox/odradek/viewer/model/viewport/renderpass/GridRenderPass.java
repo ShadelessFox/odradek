@@ -22,8 +22,8 @@ public class GridRenderPass implements RenderPass {
     public void init() {
         try {
             program = new ShaderProgram(
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/grid.vert")),
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/grid.frag"))
+                ShaderSource.fromResource(getClass().getResource("/assets/shaders/grid.vert")),
+                ShaderSource.fromResource(getClass().getResource("/assets/shaders/grid.frag"))
             );
         } catch (IOException e) {
             log.error("Failed to load shaders", e);

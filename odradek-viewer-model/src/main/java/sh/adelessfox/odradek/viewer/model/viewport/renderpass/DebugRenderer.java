@@ -21,7 +21,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,8 +31,8 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL32.GL_PROGRAM_POINT_SIZE;
 
-class DebugRenderPass implements RenderPass {
-    private static final Logger log = LoggerFactory.getLogger(DebugRenderPass.class);
+final class DebugRenderer {
+    private static final Logger log = LoggerFactory.getLogger(DebugRenderer.class);
 
     private static final int MAX_LINES = 1000;
     private static final int MAX_POINTS = 1000;
@@ -48,44 +47,35 @@ class DebugRenderPass implements RenderPass {
     private final List<Text> texts = new ArrayList<>(MAX_TEXTS);
     private final Map<Integer, Glyph> glyphs = new HashMap<>();
 
-    private Font msdfFont;
-    private Texture msdfTexture;
-    private Sampler msdfSampler;
+    private final Font msdfFont;
+    private final Texture msdfTexture;
+    private final Sampler msdfSampler;
 
-    private ShaderProgram debugProgram;
-    private ShaderProgram msdfProgram;
-    private VertexArray vao;
-    private VertexBuffer vbo;
+    private final ShaderProgram debugProgram;
+    private final ShaderProgram msdfProgram;
+    private final VertexArray vao;
+    private final VertexBuffer vbo;
 
-    @Override
-    public void init() {
-        try {
-            debugProgram = new ShaderProgram(
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/debug.vert")),
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/debug.frag"))
-            );
-            msdfProgram = new ShaderProgram(
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/msdf.vert")),
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/msdf.frag"))
-            );
-        } catch (IOException e) {
-            log.error("Failed to load shaders", e);
-        }
+    public DebugRenderer() throws IOException {
+        debugProgram = new ShaderProgram(
+            ShaderSource.fromResource(getClass().getResource("/assets/shaders/debug.vert")),
+            ShaderSource.fromResource(getClass().getResource("/assets/shaders/debug.frag"))
+        );
+        msdfProgram = new ShaderProgram(
+            ShaderSource.fromResource(getClass().getResource("/assets/shaders/msdf.vert")),
+            ShaderSource.fromResource(getClass().getResource("/assets/shaders/msdf.frag"))
+        );
 
-        try {
-            msdfFont = loadFontMetadata();
-            msdfTexture = Texture.load(loadFontImage());
-            msdfSampler = msdfTexture.createSampler(new SamplerDescriptor(
-                AddressMode.CLAMP_TO_EDGE,
-                AddressMode.CLAMP_TO_EDGE,
-                FilterMode.LINEAR,
-                FilterMode.LINEAR
-            ));
-            for (Glyph glyph : msdfFont.glyphs()) {
-                glyphs.put(glyph.unicode(), glyph);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed to load font", e);
+        msdfFont = loadFontMetadata();
+        msdfTexture = Texture.load(loadFontImage());
+        msdfSampler = msdfTexture.createSampler(new SamplerDescriptor(
+            AddressMode.CLAMP_TO_EDGE,
+            AddressMode.CLAMP_TO_EDGE,
+            FilterMode.LINEAR,
+            FilterMode.LINEAR
+        ));
+        for (Glyph glyph : msdfFont.glyphs()) {
+            glyphs.put(glyph.unicode(), glyph);
         }
 
         try (var _ = vao = new VertexArray().bind()) {
@@ -103,7 +93,6 @@ class DebugRenderPass implements RenderPass {
         glEnable(GL_PROGRAM_POINT_SIZE);
     }
 
-    @Override
     public void dispose() {
         debugProgram.dispose();
         msdfProgram.dispose();
@@ -112,7 +101,6 @@ class DebugRenderPass implements RenderPass {
         vao.dispose();
     }
 
-    @Override
     public void draw(Viewport viewport, double dt) {
         var camera = viewport.getCamera();
         if (camera == null) {
@@ -432,7 +420,8 @@ class DebugRenderPass implements RenderPass {
     private record Point(float x, float y, float z, float r, float g, float b, float size, boolean depthTest) {
     }
 
-    private record Text(String text, float x, float y, float r, float g, float b, float scale, boolean normalized, boolean depthTest) {
+    private record Text(String text, float x, float y, float r, float g, float b, float scale, boolean normalized,
+                        boolean depthTest) {
     }
 
     private record Font(Atlas atlas, Metrics metrics, Glyph[] glyphs) {

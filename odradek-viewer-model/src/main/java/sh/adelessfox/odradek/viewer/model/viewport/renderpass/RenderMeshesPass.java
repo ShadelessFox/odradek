@@ -43,8 +43,8 @@ public final class RenderMeshesPass implements RenderPass {
     public void init() {
         try {
             program = new ShaderProgram(
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/mesh.vert")),
-                ShaderSource.fromResource(DebugRenderPass.class.getResource("/assets/shaders/mesh.frag"))
+                ShaderSource.fromResource(getClass().getResource("/assets/shaders/mesh.vert")),
+                ShaderSource.fromResource(getClass().getResource("/assets/shaders/mesh.frag"))
             );
         } catch (IOException e) {
             log.error("Failed to load shaders", e);
