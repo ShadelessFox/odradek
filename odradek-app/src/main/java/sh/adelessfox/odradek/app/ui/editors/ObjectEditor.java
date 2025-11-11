@@ -23,6 +23,7 @@ import sh.adelessfox.odradek.ui.util.Icons;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 import java.util.Optional;
 
 final class ObjectEditor implements Editor, ObjectProvider, DataContext {
@@ -81,6 +82,9 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         if (DataKeys.GAME.is(key)) {
             return Optional.of(input.game());
         }
+        if (DataKeys.SELECTION_LIST.is(key)) {
+            return Optional.of(List.of(this));
+        }
         return Optional.empty();
     }
 
@@ -88,6 +92,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         FlatTabbedPane pane = new FlatTabbedPane();
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        pane.setLeadingComponent(Actions.createToolBar(ObjectEditorActionIds.TOOLBAR_ID, this));
 
         Converter.converters(object.getType()).forEach(converter -> {
             @SuppressWarnings("unchecked")

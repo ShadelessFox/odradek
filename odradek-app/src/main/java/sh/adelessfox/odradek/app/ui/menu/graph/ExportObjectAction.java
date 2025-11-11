@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.menu.graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.ObjectProvider;
+import sh.adelessfox.odradek.app.ui.editors.ObjectEditorActionIds;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
@@ -24,8 +25,9 @@ import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = GraphMenu.ID)
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
 @ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
+@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
+@ActionContribution(parent = ObjectEditorActionIds.TOOLBAR_ID, group = ObjectEditorActionIds.TOOLBAR_GROUP_GENERAL)
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
 
