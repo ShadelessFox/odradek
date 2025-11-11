@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.ui.menu.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphStructure.GroupObject;
+import sh.adelessfox.odradek.app.ui.ObjectProvider;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
@@ -23,6 +24,7 @@ import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026\u3000\u3000\u3000Ctrl+E", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = GraphMenu.ID)
+@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
 @ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
@@ -50,7 +52,7 @@ public class ExportObjectAction extends Action {
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
         var selection = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(GroupObject.class))
+            .gather(Gatherers.instanceOf(ObjectProvider.class))
             .toList();
 
         if (selection.isEmpty()) {
@@ -58,7 +60,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(GroupObject::type)
+            .map(ObjectProvider::objectType)
             .distinct()
             .toList();
 
@@ -96,17 +98,11 @@ public class ExportObjectAction extends Action {
         var directory = chooser.getSelectedFile().toPath();
         int exported = 0;
 
-        for (GroupObject selection : batch.objects()) {
+        for (ObjectProvider selection : batch.objects()) {
             try {
-                var object = game.readObject(selection.group().groupID(), selection.index());
+                var object = selection.readObject(game);
                 var type = object.getType();
-                var name = "%s_%s_%s.%s".formatted(
-                    type.name(),
-                    selection.group().groupID(),
-                    selection.index(),
-                    batch.exporter().extension()
-                );
-
+                var name = "%s.%s".formatted(selection.objectName(), batch.exporter().extension());
                 var path = directory.resolve(name);
 
                 var converted = batch.converter().convert(object, game);
@@ -151,6 +147,6 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private record Batch<T>(List<GroupObject> objects, Converter<Game, T> converter, Exporter<T> exporter) {
+    private record Batch<T>(List<ObjectProvider> objects, Converter<Game, T> converter, Exporter<T> exporter) {
     }
 }

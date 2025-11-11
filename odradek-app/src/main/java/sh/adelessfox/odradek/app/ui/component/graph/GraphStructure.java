@@ -1,11 +1,15 @@
 package sh.adelessfox.odradek.app.ui.component.graph;
 
+import sh.adelessfox.odradek.app.ui.ObjectProvider;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -287,9 +291,20 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record GroupObject(StreamingGraphResource graph, StreamingGroupData group, int index) implements GraphStructure {
-        public ClassTypeInfo type() {
+    record GroupObject(StreamingGraphResource graph, StreamingGroupData group, int index) implements GraphStructure, ObjectProvider {
+        @Override
+        public TypedObject readObject(Game game) throws IOException {
+            return game.readObject(group.groupID(), index);
+        }
+
+        @Override
+        public ClassTypeInfo objectType() {
             return graph.types().get(group.typeStart() + index);
+        }
+
+        @Override
+        public String objectName() {
+            return "%s_%s_%s".formatted(objectType().name(), group.groupID(), index);
         }
 
         @Override
@@ -306,7 +321,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public String toString() {
-            ClassTypeInfo type = type();
+            ClassTypeInfo type = objectType();
             return "[%d] %s".formatted(index, type.name());
         }
     }

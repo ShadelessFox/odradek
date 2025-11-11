@@ -13,6 +13,7 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
+import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
@@ -24,7 +25,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
 
-final class ObjectEditor implements Editor {
+final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     private final ObjectEditorInput input;
     private final EditorSite site;
     private FlatTabbedPane pane;
@@ -55,6 +56,32 @@ final class ObjectEditor implements Editor {
     @Override
     public void setFocus() {
         pane.getSelectedComponent().requestFocusInWindow();
+    }
+
+    @Override
+    public TypedObject readObject(Game game) {
+        if (input.game() != game) {
+            throw new IllegalStateException("Unexpected game type");
+        }
+        return input.object();
+    }
+
+    @Override
+    public ClassTypeInfo objectType() {
+        return input.object().getType();
+    }
+
+    @Override
+    public String objectName() {
+        return "%s_%s_%s".formatted(objectType().name(), input.groupId(), input.objectIndex());
+    }
+
+    @Override
+    public Optional<?> get(String key) {
+        if (DataKeys.GAME.is(key)) {
+            return Optional.of(input.game());
+        }
+        return Optional.empty();
     }
 
     private FlatTabbedPane createRoot(Game game, TypedObject object) {

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.*;
 import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
@@ -137,12 +138,21 @@ public class EditorStackManager implements EditorManager {
                 return Optional.of(stack);
             }
             if (DataKeys.EDITOR.is(key)) {
-                EditorComponent component = (EditorComponent) stack.getSelectedComponent();
-                return Optional.of(component.editor);
+                return getSelectedEditor(stack).map(e -> e.editor);
+            }
+            if (DataKeys.SELECTION_LIST.is(key)) {
+                return getSelectedEditor(stack).map(e -> List.of(e.editor));
+            }
+            if (getSelectedEditor(stack).map(e -> e.editor).orElse(null) instanceof DataContext context) {
+                return context.get(key);
             }
             return Optional.empty();
         });
         return stack;
+    }
+
+    private static Optional<EditorComponent> getSelectedEditor(EditorStack stack) {
+        return Optional.ofNullable(stack.getSelectedComponent()).map(EditorComponent.class::cast);
     }
 
     private EditorStack findEditorStack(EditorStackContainer container) {
