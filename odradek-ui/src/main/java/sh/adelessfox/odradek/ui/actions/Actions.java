@@ -36,6 +36,12 @@ public final class Actions {
         DataContext.putDataContext(component, context);
     }
 
+    public static JToolBar createToolBar(String id, DataContext context) {
+        var toolBar = new JToolBar();
+        contributeGroups(toolBar, new ToolBarActionContributor(), id, new ActionContext(context, null, null));
+        return toolBar;
+    }
+
     private static <T extends JComponent, R> void installContextMenu(T component, JPopupMenu popupMenu, SelectionProvider<? super T, R> selectionProvider) {
         component.addMouseListener(new MouseAdapter() {
             @Override
@@ -116,7 +122,7 @@ public final class Actions {
 
         AbstractMenuAction menuAction;
         if (groups.containsKey(descriptor.id())) {
-            menuAction = new PopupMenuAction(component, descriptor, context);
+            menuAction = new PopupMenuAction(component, descriptor, context, true);
         } else {
             menuAction = new MenuItemAction(descriptor, context);
         }
@@ -142,21 +148,6 @@ public final class Actions {
         return menu;
     }
 
-    private static JMenuItem createMenuItem(MenuItemAction action) {
-        if (groups.containsKey(action.descriptor.id())) {
-            var menu = new JMenu(action);
-            var popupMenu = menu.getPopupMenu();
-            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context, false));
-            return menu;
-        } else if (action.descriptor.action() instanceof Action.Check) {
-            return new JCheckBoxMenuItem(action);
-        } else if (action.descriptor.action() instanceof Action.Radio) {
-            return new JRadioButtonMenuItem(action);
-        } else {
-            return new JMenuItem(action);
-        }
-    }
-
     private static void populateMenu(JPopupMenu menu, String id, ActionContext context, boolean includeSourceAction) {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
@@ -169,32 +160,10 @@ public final class Actions {
             menu.add(new DisabledAction(name.text()));
             menu.addSeparator();
         }
-        boolean contributed = false;
-        for (GroupDescriptor group : groups) {
-            contributed |= populateMenuGroup(menu, group, context, contributed);
-        }
+        boolean contributed = contributeGroups(menu, new PopupMenuActionContributor(), id, context);
         if (!contributed) {
             menu.add(new DisabledAction("No actions"));
         }
-    }
-
-    private static boolean populateMenuGroup(JPopupMenu menu, ActionDescriptorProvider provider, ActionContext context, boolean contributed) {
-        var actions = provider.create(context);
-        if (actions.isEmpty()) {
-            return false;
-        }
-        if (contributed) {
-            menu.addSeparator();
-        }
-        for (ActionDescriptor action : actions) {
-            if (action.action() instanceof ActionProvider p) {
-                contributed |= populateMenuGroup(menu, ActionDescriptorProvider.wrap(p), context, contributed);
-            } else {
-                menu.add(createMenuItem(new MenuItemAction(action, context)));
-                contributed = true;
-            }
-        }
-        return contributed;
     }
 
     private static <T extends JComponent, R> void showPopupMenu(
@@ -230,6 +199,62 @@ public final class Actions {
                 }
             ));
     }
+
+    private static <C extends JComponent> boolean contributeGroups(
+        C component,
+        ActionContributor<C, ?> contributor,
+        String id,
+        ActionContext context
+    ) {
+        var groups = Actions.groups.get(id);
+        if (groups == null || groups.isEmpty()) {
+            log.debug("No action groups found for ID: {}", id);
+            return false;
+        }
+        boolean contributed = false;
+        for (GroupDescriptor group : groups) {
+            contributed |= contributeGroup(component, contributor, group, context, contributed);
+        }
+        return contributed;
+    }
+
+    private static <C, T> boolean contributeGroup(
+        C component,
+        ActionContributor<C, T> contributor,
+        ActionDescriptorProvider provider,
+        ActionContext context,
+        boolean contributed
+    ) {
+        var actions = provider.create(context);
+        if (actions.isEmpty()) {
+            return false;
+        }
+        if (contributed) {
+            contributor.addSeparator(component);
+        }
+        for (ActionDescriptor action : actions) {
+            if (action.action() instanceof ActionProvider p) {
+                contributed |= contributeGroup(component, contributor, ActionDescriptorProvider.wrap(p), context, contributed);
+            } else {
+                contributor.addItem(component, createGroupItem(component, contributor, new MenuItemAction(action, context)));
+                contributed = true;
+            }
+        }
+        return contributed;
+    }
+
+    private static <C, T> T createGroupItem(C component, ActionContributor<C, T> contributor, MenuItemAction action) {
+        if (groups.containsKey(action.descriptor.id())) {
+            return contributor.createPopupItem(component, action);
+        } else if (action.descriptor.action() instanceof Action.Check) {
+            return contributor.createCheckItem(component, action);
+        } else if (action.descriptor.action() instanceof Action.Radio) {
+            return contributor.createRadioItem(component, action);
+        } else {
+            return contributor.createItem(component, action);
+        }
+    }
+
 
     private static Map<String, List<GroupDescriptor>> loadGroups(Collection<ActionDescriptor> actions) {
         record ActionInfo(ActionDescriptor action, ActionContribution contribution) {
@@ -349,16 +374,23 @@ public final class Actions {
 
     private static class PopupMenuAction extends AbstractMenuAction {
         private final JComponent component;
+        private final boolean includeSourceAction;
 
-        public PopupMenuAction(JComponent component, ActionDescriptor descriptor, ActionContext context) {
-            super(descriptor, context);
+        public PopupMenuAction(
+            JComponent component,
+            ActionDescriptor descriptor,
+            ActionContext context,
+            boolean includeSourceAction
+        ) {
+            this.includeSourceAction = includeSourceAction;
             this.component = component;
+            super(descriptor, context);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public void actionPerformed(ActionEvent e) {
-            var popupMenu = createPopupMenu(component, descriptor.id(), context, true);
+            var popupMenu = createPopupMenu(component, descriptor.id(), context, includeSourceAction);
             var selectionProvider = getSelectionProvider(component);
             showPopupMenu(component, popupMenu, e, (SelectionProvider<JComponent, ?>) selectionProvider);
         }
@@ -474,5 +506,86 @@ public final class Actions {
         }
 
         List<ActionDescriptor> create(ActionContext context);
+    }
+
+    private static class PopupMenuActionContributor implements ActionContributor<JPopupMenu, JMenuItem> {
+        @Override
+        public void addSeparator(JPopupMenu component) {
+            component.addSeparator();
+        }
+
+        @Override
+        public void addItem(JPopupMenu component, JMenuItem item) {
+            component.add(item);
+        }
+
+        @Override
+        public JMenuItem createPopupItem(JPopupMenu component, AbstractMenuAction action) {
+            var menu = new JMenu(action);
+            var popupMenu = menu.getPopupMenu();
+            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context, false));
+            return menu;
+        }
+
+        @Override
+        public JMenuItem createCheckItem(JPopupMenu component, AbstractMenuAction action) {
+            return new JCheckBoxMenuItem(action);
+        }
+
+        @Override
+        public JMenuItem createRadioItem(JPopupMenu component, AbstractMenuAction action) {
+            return new JRadioButtonMenuItem(action);
+        }
+
+        @Override
+        public JMenuItem createItem(JPopupMenu component, AbstractMenuAction action) {
+            return new JMenuItem(action);
+        }
+    }
+
+    private static class ToolBarActionContributor implements ActionContributor<JToolBar, AbstractAction> {
+        @Override
+        public void addSeparator(JToolBar component) {
+            component.addSeparator();
+        }
+
+        @Override
+        public void addItem(JToolBar component, AbstractAction item) {
+            component.add(item);
+        }
+
+        @Override
+        public AbstractAction createPopupItem(JToolBar component, AbstractMenuAction action) {
+            return new PopupMenuAction(component, action.descriptor, action.context, false);
+        }
+
+        @Override
+        public AbstractAction createCheckItem(JToolBar component, AbstractMenuAction action) {
+            throw new IllegalStateException("Check actions are not supported in toolbars");
+        }
+
+        @Override
+        public AbstractAction createRadioItem(JToolBar component, AbstractMenuAction action) {
+            throw new IllegalStateException("Radio actions are not supported in toolbars");
+        }
+
+        @Override
+        public AbstractAction createItem(JToolBar component, AbstractMenuAction action) {
+            return action;
+        }
+    }
+
+    private interface ActionContributor<C, T> {
+        void addSeparator(C component);
+
+        void addItem(C component, T item);
+
+        T createPopupItem(C component, AbstractMenuAction action);
+
+        T createCheckItem(C component, AbstractMenuAction action);
+
+        T createRadioItem(C component, AbstractMenuAction action);
+
+        T createItem(C component, AbstractMenuAction action);
     }
 }
