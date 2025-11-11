@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.geometry;
 
+import sh.adelessfox.odradek.math.BoundingBox;
+
 import java.util.Map;
 
 public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int hash) {
@@ -21,5 +23,20 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int 
 
     public Accessor positions() {
         return vertices.get(Semantic.POSITION);
+    }
+
+    public BoundingBox computeBoundingBox() {
+        var positions = positions();
+        var view = positions.asFloatView();
+        var bbox = BoundingBox.empty();
+
+        for (int i = 0; i < positions.count(); i++) {
+            float x = view.get(i, 0);
+            float y = view.get(i, 1);
+            float z = view.get(i, 2);
+            bbox = bbox.union(x, y, z);
+        }
+
+        return bbox;
     }
 }

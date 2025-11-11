@@ -6,10 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
-import sh.adelessfox.odradek.math.Matrix4f;
-import sh.adelessfox.odradek.math.Vector2f;
-import sh.adelessfox.odradek.math.Vector3f;
-import sh.adelessfox.odradek.math.Vector4f;
+import sh.adelessfox.odradek.math.*;
 import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.opengl.rhi.AddressMode;
 import sh.adelessfox.odradek.opengl.rhi.FilterMode;
@@ -178,6 +175,10 @@ final class DebugRenderer {
             line(points[i + 4], points[(i + 1) % 4 + 4], color, depthTest);
             line(points[i], points[i + 4], color, depthTest);
         }
+    }
+
+    public void aabb(BoundingBox bbox, Vector3f color) {
+        aabb(bbox.min(), bbox.max(), color, true);
     }
 
     public void aabb(Vector3f min, Vector3f max, Vector3f color) {

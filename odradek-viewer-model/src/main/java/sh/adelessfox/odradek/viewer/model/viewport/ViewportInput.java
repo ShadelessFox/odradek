@@ -13,14 +13,15 @@ import java.util.Set;
 /**
  * Handles input events for a viewport, including mouse and keyboard events.
  */
-final class ViewportInput extends MouseAdapter implements KeyListener, FocusListener {
+public final class ViewportInput extends MouseAdapter implements KeyListener, FocusListener {
     private static final Logger log = LoggerFactory.getLogger(ViewportInput.class);
 
     private final Component viewport;
     private final Robot robot;
 
     private final Set<Integer> mouseState = new HashSet<>();
-    private final Set<Integer> keyState = new HashSet<>();
+    private final Set<Integer> keysDown = new HashSet<>();
+    private final Set<Integer> keysPressed = new HashSet<>();
 
     private final Point mouseRecent = new Point();
     private final Point mouseDelta = new Point();
@@ -32,7 +33,11 @@ final class ViewportInput extends MouseAdapter implements KeyListener, FocusList
     }
 
     public boolean isKeyDown(int keyCode) {
-        return keyState.contains(keyCode);
+        return keysDown.contains(keyCode);
+    }
+
+    public boolean isKeyPressed(int keyCode) {
+        return keysPressed.contains(keyCode);
     }
 
     public boolean isMouseDown(int button) {
@@ -51,6 +56,7 @@ final class ViewportInput extends MouseAdapter implements KeyListener, FocusList
         mouseDelta.x = 0;
         mouseDelta.y = 0;
         mouseWheelDelta = 0;
+        keysPressed.clear();
     }
 
     @Override
@@ -105,12 +111,13 @@ final class ViewportInput extends MouseAdapter implements KeyListener, FocusList
 
     @Override
     public void keyPressed(KeyEvent e) {
-        keyState.add(e.getKeyCode());
+        keysDown.add(e.getKeyCode());
+        keysPressed.add(e.getKeyCode());
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-        keyState.remove(e.getKeyCode());
+        keysDown.remove(e.getKeyCode());
     }
 
     @Override
@@ -120,7 +127,7 @@ final class ViewportInput extends MouseAdapter implements KeyListener, FocusList
 
     @Override
     public void focusLost(FocusEvent e) {
-        keyState.clear();
+        keysDown.clear();
         mouseState.clear();
     }
 

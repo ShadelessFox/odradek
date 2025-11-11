@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
 
 public interface RenderPass {
     /**
@@ -16,6 +17,17 @@ public interface RenderPass {
      * It's responsible for disposing of the OpenGL resources created in {@link #init()}.
      */
     void dispose();
+
+    /**
+     * Processes the input. Called before drawing.
+     *
+     * @param viewport the viewport to process input for
+     * @param dt       the delta time since the last frame
+     * @param input    the input state
+     */
+    default void process(Viewport viewport, double dt, ViewportInput input) {
+        // do nothing by default
+    }
 
     /**
      * Draws the render pass.

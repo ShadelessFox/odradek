@@ -7,20 +7,34 @@ import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
 
+import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.text.MessageFormat;
 
 public class OverlayRenderPass implements RenderPass {
-    private static final MessageFormat STATISTICS_FORMAT = new MessageFormat("""
-        Vertices {0,number,integer}
-        Faces    {1,number,integer}
-        Meshes   {2,number,integer}
-        """);
+    private static final String STATISTICS_FORMAT = """
+        Statistics:
+          Vertices %,d
+          Faces    %,d
+          Meshes   %,d
+        
+        Position:
+          X % f
+          Y % f
+          Z % f
+        
+        Keybinds:
+          [1] - Show skins [%c]
+          [2] - Show bounding boxes [%c]
+        """;
 
     private DebugRenderer debug;
     private Scene scene;
     private SceneStatistics statistics;
+
+    private boolean showSkins;
+    private boolean showBoundingBoxes;
 
     @Override
     public void init() {
@@ -37,6 +51,16 @@ public class OverlayRenderPass implements RenderPass {
     }
 
     @Override
+    public void process(Viewport viewport, double dt, ViewportInput input) {
+        if (input.isKeyPressed(KeyEvent.VK_1)) {
+            showSkins ^= true;
+        }
+        if (input.isKeyPressed(KeyEvent.VK_2)) {
+            showBoundingBoxes ^= true;
+        }
+    }
+
+    @Override
     public void draw(Viewport viewport, double dt) {
         var scene = viewport.getScene();
         var camera = viewport.getCamera();
@@ -50,7 +74,7 @@ public class OverlayRenderPass implements RenderPass {
                 renderNode(node, Matrix4f.identity(), camera);
             }
 
-            renderStatistics(statistics);
+            renderInformation(statistics, camera);
         }
 
         if (viewport.isCameraOriginShown()) {
@@ -60,23 +84,28 @@ public class OverlayRenderPass implements RenderPass {
         debug.draw(viewport, dt);
     }
 
-    private void renderStatistics(SceneStatistics statistics) {
-        var text = STATISTICS_FORMAT.format(new Object[]{
+    private void renderInformation(SceneStatistics statistics, Camera camera) {
+        var position = camera.position();
+        var text = STATISTICS_FORMAT.formatted(
             statistics.vertices,
             statistics.faces,
-            statistics.meshes
-        });
-
-        debug.billboardText(text, 10, 10, 1.0f, 1.0f, 1.0f, 14.0f);
+            statistics.meshes,
+            position.x(), position.y(), position.z(),
+            showSkins ? 'X' : ' ',
+            showBoundingBoxes ? 'X' : ' '
+        );
+        debug.billboardText(text, 10, 10, 1.0f, 1.0f, 1.0f, 12.0f);
     }
 
     private void renderNode(Node node, Matrix4f transform, Camera camera) {
         for (Node child : node.children()) {
             renderNode(child, transform.mul(child.matrix()), camera);
         }
-
-        if (node.skin().isPresent()) {
-            renderSkin(node.skin().get(), null, camera);
+        if (showSkins) {
+            node.skin().ifPresent(skin -> renderSkin(skin, null, camera));
+        }
+        if (showBoundingBoxes) {
+            node.mesh().ifPresent(mesh -> debug.aabb(mesh.computeBoundingBox().transform(transform), Vector3f.one()));
         }
     }
 

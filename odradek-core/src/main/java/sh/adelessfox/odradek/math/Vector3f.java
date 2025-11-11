@@ -10,6 +10,12 @@ package sh.adelessfox.odradek.math;
 public record Vector3f(float x, float y, float z) {
     public static final int BYTES = Float.BYTES * 3;
 
+    private static final Vector3f one = new Vector3f(1.0f, 1.0f, 1.0f);
+
+    public static Vector3f one() {
+        return one;
+    }
+
     public Vector3f add(Vector3f other) {
         return add(other.x, other.y, other.z);
     }

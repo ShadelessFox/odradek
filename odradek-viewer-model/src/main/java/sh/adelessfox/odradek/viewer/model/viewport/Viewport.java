@@ -203,6 +203,9 @@ public final class Viewport extends JPanel {
 
     private void processInput(float dt) {
         updateCamera(dt);
+        for (RenderPass pass : passes) {
+            pass.process(this, dt, input);
+        }
         input.clear();
     }
 

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.scene;
 
 import sh.adelessfox.odradek.geometry.Mesh;
+import sh.adelessfox.odradek.math.BoundingBox;
 import sh.adelessfox.odradek.math.Matrix4f;
 
 import java.util.ArrayList;
@@ -33,6 +34,18 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
 
     public Node transform(Matrix4f transform) {
         return new Node(name, mesh, skin, children, matrix.mul(transform));
+    }
+
+    public BoundingBox computeBoundingBox() {
+        var bbox = BoundingBox.empty();
+        var mesh = this.mesh.orElse(null);
+        if (mesh != null) {
+            bbox = bbox.union(mesh.computeBoundingBox());
+        }
+        for (Node child : children) {
+            bbox = bbox.union(child.computeBoundingBox());
+        }
+        return bbox.transform(matrix);
     }
 
     public static final class Builder {

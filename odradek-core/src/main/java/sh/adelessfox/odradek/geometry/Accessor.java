@@ -74,16 +74,16 @@ public record Accessor(
         };
     }
 
-    private int getPositionFor(ByteBuffer buffer, int elementIndex, int componentIndex) {
+    private int getPositionFor(int elementIndex, int componentIndex) {
         Objects.checkIndex(elementIndex, count);
         Objects.checkIndex(componentIndex, elementType.size());
 
-        return buffer.position() + offset + (elementIndex * stride) + (componentIndex * componentType.size());
+        return offset + (elementIndex * stride) + (componentIndex * componentType.size());
     }
 
     public interface ByteView {
         static ByteView ofByte(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.get(accessor.getPositionFor(buffer, e, c));
+            return (e, c) -> buffer.get(accessor.getPositionFor(e, c));
         }
 
         byte get(int elementIndex, int componentIndex);
@@ -91,7 +91,7 @@ public record Accessor(
 
     public interface ShortView {
         static ShortView ofShort(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getShort(accessor.getPositionFor(buffer, e, c));
+            return (e, c) -> buffer.getShort(accessor.getPositionFor(e, c));
         }
 
         short get(int elementIndex, int componentIndex);
@@ -99,7 +99,7 @@ public record Accessor(
 
     public interface IntView {
         static IntView ofInt(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getInt(accessor.getPositionFor(buffer, e, c));
+            return (e, c) -> buffer.getInt(accessor.getPositionFor(e, c));
         }
 
         int get(int elementIndex, int componentIndex);
@@ -107,20 +107,20 @@ public record Accessor(
 
     public interface FloatView {
         static FloatView ofFloat(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getFloat(accessor.getPositionFor(buffer, e, c));
+            return (e, c) -> buffer.getFloat(accessor.getPositionFor(e, c));
         }
 
         static FloatView ofHalfFloat(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> Float.float16ToFloat(buffer.getShort(accessor.getPositionFor(buffer, e, c)));
+            return (e, c) -> Float.float16ToFloat(buffer.getShort(accessor.getPositionFor(e, c)));
         }
 
         static FloatView ofShort(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getShort(accessor.getPositionFor(buffer, e, c)) / 32767f;
+            return (e, c) -> buffer.getShort(accessor.getPositionFor(e, c)) / 32767f;
         }
 
         static FloatView ofX10Y10Z10W2(Accessor accessor, ByteBuffer buffer) {
             return (e, c) -> {
-                var value = buffer.getInt(accessor.getPositionFor(buffer, e, 0));
+                var value = buffer.getInt(accessor.getPositionFor(e, 0));
 
                 // Division by 510 gives a smaller error than by 511. How come?
                 var x = (value << 22 >> 22) / 510f;
