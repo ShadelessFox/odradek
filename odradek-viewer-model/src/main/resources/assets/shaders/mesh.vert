@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 #define FLAG_HAS_NORMAL (1<<0)
 #define FLAG_HAS_UV     (1<<1)
 

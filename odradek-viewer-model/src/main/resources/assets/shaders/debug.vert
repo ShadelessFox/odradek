@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 
 in vec4 in_position_size;
 in vec3 in_color;

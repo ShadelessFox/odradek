@@ -2,7 +2,7 @@
 // https://asliceofrendering.com/scene%20helper/2020/01/05/InfiniteGrid/
 // https://github.com/ValveResourceFormat/ValveResourceFormat/blob/master/GUI/Types/Renderer/Shaders/grid.frag
 
-#version 330 core
+#version 450 core
 
 uniform mat4 u_view;
 uniform mat4 u_projection;

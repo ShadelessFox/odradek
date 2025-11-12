@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 #extension GL_ARB_bindless_texture : require
 
 #define FLAG_HAS_NORMAL (1<<0)
@@ -10,6 +10,7 @@ in vec2 io_uv;
 
 out vec4 out_color;
 
+layout(bindless_sampler) uniform;
 uniform vec3 u_view_position;
 uniform vec3 u_color;
 uniform int  u_flags;

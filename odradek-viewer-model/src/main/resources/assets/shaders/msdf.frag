@@ -1,4 +1,4 @@
-#version 330 core
+#version 450 core
 #extension GL_ARB_bindless_texture : require
 
 in vec2 io_uv;
@@ -6,6 +6,7 @@ in vec3 io_color;
 
 out vec4 out_color;
 
+layout(bindless_sampler) uniform;
 uniform sampler2D u_msdf;
 uniform float u_distance_range;
 
