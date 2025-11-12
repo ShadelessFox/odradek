@@ -95,7 +95,9 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
             assert !override.isRemoved();
             assert !override.isTransformOverridden();
         }
-        return convertNode(instance.general().prefab().get(), game);
+        var node = convertNode(instance.general().prefab().get(), game);
+        var transform = instance.general().orientation();
+        return node.map(n -> n.transform(toMat4(transform)));
     }
 
     private Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
