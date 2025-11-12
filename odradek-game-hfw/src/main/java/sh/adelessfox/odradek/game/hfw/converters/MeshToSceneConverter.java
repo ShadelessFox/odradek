@@ -44,6 +44,7 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
             case ControlledEntityResource r -> convertControlledEntityResource(r, game);
             case PrefabResource r -> convertPrefabResource(r, game);
             case PrefabInstance r -> convertPrefabInstance(r, game);
+            case MockupGeometry r -> convertMockupGeometry(r, game);
             default -> {
                 log.error("Unsupported resource type: {}", object);
                 yield Optional.empty();
@@ -66,6 +67,12 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
             PrefabResource.class,
             PrefabInstance.class
         );
+    }
+
+    private Optional<Node> convertMockupGeometry(MockupGeometry geometry, ForbiddenWestGame game) {
+        var node = convertNode(geometry.staticMeshInstance().get(), game);
+        var transform = geometry.general().orientation();
+        return node.map(n -> n.transform(toMat4(transform)));
     }
 
     private Optional<Node> convertPrefabResource(PrefabResource resource, ForbiddenWestGame game) {
@@ -225,7 +232,7 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
 
     private Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
         var child = convertNode(resource, game);
-        var matrix = transform != null ? convertMat34(transform) : Matrix4f.identity();
+        var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
 
         return child.map(c -> c.transform(matrix));
     }
@@ -239,12 +246,23 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
         return Optional.of(Node.of(children));
     }
 
-    private static Matrix4f convertMat34(Mat34 matrix) {
+    private static Matrix4f toMat4(Mat34 matrix) {
         return new Matrix4f(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
             matrix.row0().y(), matrix.row1().y(), matrix.row2().y(), 0.f,
             matrix.row0().z(), matrix.row1().z(), matrix.row2().z(), 0.f,
             matrix.row0().w(), matrix.row1().w(), matrix.row2().w(), 1.f
+        );
+    }
+
+    private static Matrix4f toMat4(WorldTransform transform) {
+        var rot = transform.orientation();
+        var pos = transform.position();
+        return new Matrix4f(
+            rot.col0().x(), rot.col0().y(), rot.col0().z(), 0.f,
+            rot.col1().x(), rot.col1().y(), rot.col1().z(), 0.f,
+            rot.col2().x(), rot.col2().y(), rot.col2().z(), 0.f,
+            (float) pos.x(), (float) pos.y(), (float) pos.z(), 1.f
         );
     }
 
