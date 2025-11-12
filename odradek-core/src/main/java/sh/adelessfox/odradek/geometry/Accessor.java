@@ -68,6 +68,7 @@ public record Accessor(
         return switch (componentType) {
             case FLOAT -> FloatView.ofFloat(this, buffer);
             case HALF_FLOAT -> FloatView.ofHalfFloat(this, buffer);
+            case UNSIGNED_SHORT -> FloatView.ofUnsignedShort(this, buffer);
             case SHORT -> FloatView.ofShort(this, buffer);
             case INT_10_10_10_2 -> FloatView.ofX10Y10Z10W2(this, buffer);
             default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
@@ -116,6 +117,10 @@ public record Accessor(
 
         static FloatView ofShort(Accessor accessor, ByteBuffer buffer) {
             return (e, c) -> buffer.getShort(accessor.getPositionFor(e, c)) / 32767f;
+        }
+
+        static FloatView ofUnsignedShort(Accessor accessor, ByteBuffer buffer) {
+            return (e, c) -> Short.toUnsignedInt(buffer.getShort(accessor.getPositionFor(e, c))) / 65535f;
         }
 
         static FloatView ofX10Y10Z10W2(Accessor accessor, ByteBuffer buffer) {
