@@ -31,8 +31,8 @@ import static org.lwjgl.opengl.GL32.GL_PROGRAM_POINT_SIZE;
 final class DebugRenderer {
     private static final Logger log = LoggerFactory.getLogger(DebugRenderer.class);
 
-    private static final int MAX_LINES = 1000;
-    private static final int MAX_POINTS = 1000;
+    private static final int MAX_LINES = 10000;
+    private static final int MAX_POINTS = 10000;
     private static final int MAX_TEXTS = 1000;
 
     private static final int VERTEX_BUFFER_SIZE = 16384;

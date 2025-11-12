@@ -127,7 +127,7 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
-    private SceneStatistics summarizeScene(Scene scene) {
+    private static SceneStatistics summarizeScene(Scene scene) {
         var statistics = new SceneStatistics();
         for (Node node : scene.nodes()) {
             accumulateNodeStatistics(node, statistics);
@@ -135,7 +135,7 @@ public class OverlayRenderPass implements RenderPass {
         return statistics;
     }
 
-    private void accumulateNodeStatistics(Node node, SceneStatistics statistics) {
+    private static void accumulateNodeStatistics(Node node, SceneStatistics statistics) {
         var mesh = node.mesh().orElse(null);
         if (mesh != null) {
             for (Primitive primitive : mesh.primitives()) {
