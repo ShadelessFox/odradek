@@ -40,7 +40,7 @@ final class TextureConverter {
         var format = switch (srcFormat) {
             case BC1_UNORM, BC2_UNORM, BC3_UNORM, BC7_UNORM -> TextureFormat.R8G8B8A8_UNORM;
             case BC4_UNORM, BC4_SNORM -> TextureFormat.R8_UNORM;
-            case BC5_UNORM, BC5_SNORM -> TextureFormat.R8G8B8_UNORM;
+            case BC5_UNORM, BC5_SNORM -> TextureFormat.R8G8_UNORM;
             case BC6_UNORM, BC6_SNORM -> TextureFormat.R16G16B16_SFLOAT;
             default -> throw new UnsupportedOperationException(srcFormat.name());
         };
