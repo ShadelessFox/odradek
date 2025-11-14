@@ -3,20 +3,20 @@ package sh.adelessfox.odradek.opengl.awt;
 import java.awt.*;
 
 /**
- * Interface for platform-specific implementations of {@link AWTGLCanvas}.
+ * Interface for platform-specific implementations of {@link GLCanvas}.
  *
  * @author Kai Burjack
  */
 sealed interface PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWin32GLCanvas {
-    long create(Canvas canvas, GLData data, GLData effective) throws AWTException;
+    long create(Canvas canvas, GLData data, GLData effective);
 
     boolean makeCurrent(long context);
 
-    boolean swapBuffers();
+    void swapBuffers();
 
-    void lock() throws AWTException;
+    void lock();
 
-    void unlock() throws AWTException;
+    void unlock();
 
     void dispose();
 }

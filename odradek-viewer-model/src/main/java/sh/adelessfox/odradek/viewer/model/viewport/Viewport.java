@@ -1,12 +1,11 @@
 package sh.adelessfox.odradek.viewer.model.viewport;
 
-import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GLDebugMessageCallback;
 import sh.adelessfox.odradek.math.Vector2f;
 import sh.adelessfox.odradek.math.Vector3f;
-import sh.adelessfox.odradek.opengl.awt.AWTGLCanvas;
+import sh.adelessfox.odradek.opengl.awt.GLCanvas;
 import sh.adelessfox.odradek.opengl.awt.GLData;
+import sh.adelessfox.odradek.opengl.awt.GLEventListener;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderPass;
 
@@ -22,10 +21,9 @@ import static org.lwjgl.opengl.GL43.*;
 
 public final class Viewport extends JPanel {
     private static final GLDebugMessageCallback DEBUG_MESSAGE_CALLBACK = new ViewportDebugCallback();
-    private static final ThreadLocal<GLCapabilities> capabilities = new ThreadLocal<>();
 
     private final List<RenderPass> passes = new ArrayList<>();
-    private final AWTGLCanvas canvas;
+    private final GLCanvas canvas;
     private final ViewportInput input;
     private final ViewportAnimator animator;
 
@@ -46,23 +44,18 @@ public final class Viewport extends JPanel {
         data.swapInterval = 1;
         data.profile = GLData.Profile.CORE;
 
-        canvas = new AWTGLCanvas(data) {
+        canvas = new GLCanvas(data);
+        canvas.addGLEventListener(new GLEventListener() {
             @Override
-            public void initGL() {
-                ensureEDT();
-
-                if (capabilities.get() == null) {
-                    capabilities.set(GL.createCapabilities());
-                }
-
+            public void onCreate() {
                 // Enable depth testing
                 glEnable(GL_DEPTH_TEST);
                 glDepthFunc(GL_LESS);
                 glDepthMask(true);
 
                 // Enable back face culling
-                // glEnable(GL_CULL_FACE);
-                // glCullFace(GL_BACK);
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
 
                 // Enable debug output
                 glEnable(GL_DEBUG_OUTPUT);
@@ -80,9 +73,7 @@ public final class Viewport extends JPanel {
             }
 
             @Override
-            public void paintGL() {
-                ensureEDT();
-
+            public void onRender() {
                 var currentUpdateTime = System.currentTimeMillis();
                 var currentUpdateDelta = (currentUpdateTime - lastUpdateTime) / 1000.0f;
 
@@ -90,19 +81,15 @@ public final class Viewport extends JPanel {
                 renderScene(currentUpdateDelta);
 
                 lastUpdateTime = currentUpdateTime;
-                swapBuffers();
             }
 
             @Override
-            public void removeNotify() {
-                if (initCalled) {
-                    for (RenderPass pass : passes) {
-                        pass.dispose();
-                    }
+            public void onDestroy() {
+                for (RenderPass pass : passes) {
+                    pass.dispose();
                 }
-                super.removeNotify();
             }
-        };
+        });
 
         input = new ViewportInput(canvas);
         canvas.addMouseListener(input);
@@ -129,7 +116,7 @@ public final class Viewport extends JPanel {
     }
 
     public void render() {
-        canvas.render();
+        canvas.repaint();
     }
 
     public void addRenderPass(RenderPass pass) {
@@ -184,12 +171,6 @@ public final class Viewport extends JPanel {
 
     public boolean isKeyDown(int keyCode) {
         return input.isKeyDown(keyCode);
-    }
-
-    private void ensureEDT() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            throw new IllegalStateException("This method must be called on the EDT");
-        }
     }
 
     private void renderScene(float dt) {

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.opengl.awt;
 
-class GLUtil {
+final class GLUtil {
     
     static boolean atLeast32(int major, int minor) {
         return major == 3 && minor >= 2 || major > 3;
@@ -67,24 +67,6 @@ class GLUtil {
         }
         if (!attribs.doubleBuffer && attribs.swapInterval != null) {
             throw new IllegalArgumentException("Swap interval set but not using double buffering");
-        }
-        if (attribs.colorSamplesNV < 0) {
-            throw new IllegalArgumentException("Invalid color samples count");
-        }
-        if (attribs.colorSamplesNV > attribs.samples) {
-            throw new IllegalArgumentException("Color samples greater than number of (coverage) samples");
-        }
-        if (attribs.swapGroupNV < 0) {
-            throw new IllegalArgumentException("Invalid swap group");
-        }
-        if (attribs.swapBarrierNV < 0) {
-            throw new IllegalArgumentException("Invalid swap barrier");
-        }
-        if ((attribs.swapGroupNV > 0 || attribs.swapBarrierNV > 0) && !attribs.doubleBuffer) {
-            throw new IllegalArgumentException("Swap group or barrier requested but not using double buffering");
-        }
-        if (attribs.swapBarrierNV > 0 && attribs.swapGroupNV == 0) {
-            throw new IllegalArgumentException("Swap barrier requested but no valid swap group set");
         }
         if (attribs.loseContextOnReset && !attribs.robustness) {
             throw new IllegalArgumentException("Lose context notification requested but not using robustness");

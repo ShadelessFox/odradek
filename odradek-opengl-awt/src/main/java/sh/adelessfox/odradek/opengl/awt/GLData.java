@@ -1,11 +1,11 @@
 package sh.adelessfox.odradek.opengl.awt;
 
 /**
- * Contains all information to create an OpenGL context on an {@link AWTGLCanvas}.
+ * Contains all information to create an OpenGL context on an {@link GLCanvas}.
  * 
  * @author Kai Burjack
  */
-public class GLData {
+public final class GLData {
 
     /*
      * The following fields are taken from SWT's original GLData
@@ -68,9 +68,9 @@ public class GLData {
      */
     public int samples;
     /**
-     * The {@link AWTGLCanvas} whose context objects should be shared with the context created using <code>this</code> GLData.
+     * The {@link GLCanvas} whose context objects should be shared with the context created using <code>this</code> GLData.
      */
-    public AWTGLCanvas shareContext;
+    public GLCanvas shareContext;
 
     /*
      * New fields not in SWT's GLData
@@ -132,18 +132,6 @@ public class GLData {
      * Specify the behavior on context switch. Defaults to <code>null</code> for "not specified".
      */
     public ReleaseBehavior contextReleaseBehavior;
-    /**
-     * The number of color samples per pixel. This is only valid when {@link #samples} is at least 1.
-     */
-    public int colorSamplesNV;
-    /**
-     * The swap group index. Use this to synchronize buffer swaps across multiple windows on the same system.
-     */
-    public int swapGroupNV;
-    /**
-     * The swap barrier index. Use this to synchronize buffer swaps across multiple systems. This requires a Nvidia G-Sync card.
-     */
-    public int swapBarrierNV;
     /**
      * Whether robust buffer access should be used.
      */
