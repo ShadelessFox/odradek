@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.math.Vector2f;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,6 +16,12 @@ import java.util.Set;
  */
 public final class ViewportInput extends MouseAdapter implements KeyListener, FocusListener {
     private static final Logger log = LoggerFactory.getLogger(ViewportInput.class);
+
+    private static final Cursor EMPTY_CURSOR = Toolkit.getDefaultToolkit().createCustomCursor(
+        new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB),
+        new Point(0, 0),
+        "empty cursor"
+    );
 
     private final Component viewport;
     private final Robot robot;
@@ -67,11 +74,26 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
         mouseDelta.x = 0;
         mouseDelta.y = 0;
         SwingUtilities.convertPointToScreen(mouseRecent, viewport);
+
+        if (robot != null) {
+            viewport.setCursor(EMPTY_CURSOR);
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
         mouseState.remove(e.getButton());
+
+        if (robot != null) {
+            viewport.setCursor(null);
+        }
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+        if (robot != null && mouseState.isEmpty()) {
+            viewport.setCursor(null);
+        }
     }
 
     @Override
