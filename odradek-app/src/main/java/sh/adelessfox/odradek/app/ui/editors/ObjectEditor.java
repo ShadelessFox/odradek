@@ -1,10 +1,10 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
-import sh.adelessfox.odradek.app.ui.ObjectProvider;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.ObjectProvider;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Value;

@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.component.graph;
 
-import sh.adelessfox.odradek.app.ui.ObjectProvider;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.ObjectProvider;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;

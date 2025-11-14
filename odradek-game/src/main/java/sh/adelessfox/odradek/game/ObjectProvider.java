@@ -1,6 +1,5 @@
-package sh.adelessfox.odradek.app.ui;
+package sh.adelessfox.odradek.game;
 
-import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
