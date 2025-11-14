@@ -4,6 +4,8 @@ import org.lwjgl.opengl.GLDebugMessageCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 import static org.lwjgl.opengl.GL43.*;
 
 final class ViewportDebugCallback extends GLDebugMessageCallback {
@@ -34,18 +36,24 @@ final class ViewportDebugCallback extends GLDebugMessageCallback {
             default -> throw new IllegalStateException("Unexpected type value: " + type);
         };
 
-        var severityString = switch (severity) {
-            case GL_DEBUG_SEVERITY_LOW -> "Low"; // info
-            case GL_DEBUG_SEVERITY_MEDIUM -> "Medium"; // warning
-            case GL_DEBUG_SEVERITY_HIGH -> "High"; // error
-            case GL_DEBUG_SEVERITY_NOTIFICATION -> "Notification"; // trace
+        var builder = switch (severity) {
+            case GL_DEBUG_SEVERITY_LOW -> log.atInfo(); // info
+            case GL_DEBUG_SEVERITY_MEDIUM -> log.atWarn(); // warning
+            case GL_DEBUG_SEVERITY_HIGH -> log.atError(); // error
+            case GL_DEBUG_SEVERITY_NOTIFICATION -> log.atTrace(); // trace
             default -> throw new IllegalStateException("Unexpected severity value: " + severity);
         };
 
-        if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) {
-            log.debug("[source: {}, type: {}, severity: {}] {}", sourceString, typeString, severityString, getMessage(length, message));
-        } else {
-            log.info("[source: {}, type: {}, severity: {}] {}", sourceString, typeString, severityString, getMessage(length, message));
+        if (severity == GL_DEBUG_SEVERITY_HIGH) {
+            var exception = new Exception();
+            var trace = exception.getStackTrace();
+
+            // Strip the callback frame
+            exception.setStackTrace(Arrays.copyOfRange(trace, 2, trace.length));
+
+            builder = builder.setCause(exception);
         }
+
+        builder.log("[source: {}, type: {}] {}", sourceString, typeString, getMessage(length, message));
     }
 }

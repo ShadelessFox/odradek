@@ -89,6 +89,7 @@ public final class VertexArray implements GLObject {
     @Override
     public void dispose() {
         buffers.forEach(VertexBuffer::dispose);
+        buffers.clear();
         glDeleteVertexArrays(array);
     }
 

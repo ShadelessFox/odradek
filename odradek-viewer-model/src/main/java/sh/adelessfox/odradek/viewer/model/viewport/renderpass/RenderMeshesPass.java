@@ -74,10 +74,11 @@ public final class RenderMeshesPass implements RenderPass {
 
     @Override
     public void dispose() {
-        cache.clear();
+        clearCache();
         program.dispose();
-        diffuseTexture.dispose();
         diffuseSampler.dispose();
+        diffuseTexture.dispose();
+        scene = null;
     }
 
     @Override
@@ -88,8 +89,8 @@ public final class RenderMeshesPass implements RenderPass {
         }
         Scene activeScene = viewport.getScene();
         if (activeScene != scene) {
-            cache.values().forEach(GpuNode::dispose);
             scene = activeScene;
+            clearCache();
         }
         if (scene == null) {
             return;
@@ -106,12 +107,12 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_view_position", camera.position());
 
             for (Node node : scene.nodes()) {
-                renderNode(node, node.matrix(), camera, wireframe);
+                renderNode(node, node.matrix(), wireframe);
             }
         }
     }
 
-    private void renderNode(Node node, Matrix4f transform, Camera camera, boolean wireframe) {
+    private void renderNode(Node node, Matrix4f transform, boolean wireframe) {
         glEnable(GL_DEPTH_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 
@@ -126,14 +127,14 @@ public final class RenderMeshesPass implements RenderPass {
                 program.set("u_texture", diffuseSampler);
                 program.set("u_flags", flags);
 
-                try (VertexArray ignored = primitive.vao.bind()) {
+                try (var _ = primitive.vao.bind()) {
                     glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
                 }
             }
         }
 
         for (Node child : node.children()) {
-            renderNode(child, transform.mul(child.matrix()), camera, wireframe);
+            renderNode(child, transform.mul(child.matrix()), wireframe);
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -183,12 +184,14 @@ public final class RenderMeshesPass implements RenderPass {
 
         try (var vao = new VertexArray().bind()) {
             buffers.forEach((buffer, attributes) -> {
-                var vbo = vao.createBuffer(attributes);
-                vbo.put(buffer, GL_STATIC_DRAW);
+                try (var vbo = vao.createBuffer(attributes)) {
+                    vbo.put(buffer, GL_STATIC_DRAW);
+                }
             });
 
-            var ibo = vao.createIndexBuffer();
-            ibo.put(indices.buffer(), GL_STATIC_DRAW);
+            try (var ibo = vao.createIndexBuffer()) {
+                ibo.put(indices.buffer(), GL_STATIC_DRAW);
+            }
 
             var count = indices.count();
             var type = switch (indices.componentType()) {
@@ -207,6 +210,11 @@ public final class RenderMeshesPass implements RenderPass {
 
             return Optional.of(new GpuPrimitive(count, type, vao, color, semantics));
         }
+    }
+
+    private void clearCache() {
+        cache.values().forEach(GpuNode::dispose);
+        cache.clear();
     }
 
     private BufferedImage loadImage() throws IOException {

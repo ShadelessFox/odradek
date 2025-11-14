@@ -70,7 +70,8 @@ public final class VertexBuffer implements GLObject {
         if (buffer.isDirect()) {
             return buffer;
         } else {
-            return BufferUtils.createByteBuffer(buffer.remaining()).put(buffer).flip();
+            return BufferUtils.createByteBuffer(buffer.remaining())
+                .put(0, buffer, buffer.position(), buffer.remaining());
         }
     }
 
@@ -78,7 +79,8 @@ public final class VertexBuffer implements GLObject {
         if (buffer.isDirect()) {
             return buffer;
         } else {
-            return BufferUtils.createIntBuffer(buffer.remaining()).put(buffer).flip();
+            return BufferUtils.createIntBuffer(buffer.remaining())
+                .put(0, buffer, buffer.position(), buffer.remaining());
         }
     }
 
@@ -86,7 +88,8 @@ public final class VertexBuffer implements GLObject {
         if (buffer.isDirect()) {
             return buffer;
         } else {
-            return BufferUtils.createFloatBuffer(buffer.remaining()).put(buffer).flip();
+            return BufferUtils.createFloatBuffer(buffer.remaining())
+                .put(0, buffer, buffer.position(), buffer.remaining());
         }
     }
 

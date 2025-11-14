@@ -66,9 +66,6 @@ public final class GLCanvas extends Canvas {
         }
 
         submit(() -> {
-            if (capabilities.get() == null) {
-                capabilities.set(GL.createCapabilities());
-            }
             if (needsInitialization) {
                 notifyListeners(GLEventListener::onCreate);
             }
@@ -104,7 +101,7 @@ public final class GLCanvas extends Canvas {
      *
      * @param runnable the runnable to execute
      */
-    private void submit(Runnable runnable) {
+    public void submit(Runnable runnable) {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("AWTGLCanvas methods must be called from the Event Dispatch Thread");
         }
@@ -113,8 +110,16 @@ public final class GLCanvas extends Canvas {
         canvas.makeCurrent(context);
 
         try {
+            if (capabilities.get() == null) {
+                capabilities.set(GL.createCapabilities());
+            } else {
+                GL.setCapabilities(capabilities.get());
+            }
+
             runnable.run();
         } finally {
+            GL.setCapabilities(null);
+
             canvas.makeCurrent(0);
             canvas.unlock();
         }
