@@ -115,7 +115,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
 
         pane.insertTab(
             "Object",
-            Fugue.getIcon("block"),
+            Fugue.getIcon("blue-document"),
             new JScrollPane(createObjectTree(game, object)),
             null,
             pane.getTabCount()
