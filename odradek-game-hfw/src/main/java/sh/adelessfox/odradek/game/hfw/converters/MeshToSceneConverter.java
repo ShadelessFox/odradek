@@ -149,10 +149,16 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
     }
 
     private Optional<Node> convertStaticMeshInstance(StaticMeshInstance instance, ForbiddenWestGame game) {
-        return convertNode(instance.general().resource().get(), game);
+        var node = convertNode(instance.general().resource().get(), game);
+        var transform = instance.general().orientation();
+        return node.map(n -> n.transform(toMat4(transform)));
     }
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
+        if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
+            // Skip shadow caster meshes
+            return Optional.empty();
+        }
         var mesh = convertMesh(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
@@ -163,6 +169,10 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
     }
 
     private Optional<Node> convertRegularSkinnedMeshResource(RegularSkinnedMeshResource resource, ForbiddenWestGame game) {
+        if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
+            // Skip shadow caster meshes
+            return Optional.empty();
+        }
         var node = Node.builder()
             .mesh(convertMesh(resource.shadingGroups(), resource.primitives(), resource.streamingDataSource(), game))
             .build();

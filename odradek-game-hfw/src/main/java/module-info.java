@@ -1,9 +1,6 @@
 import sh.adelessfox.odradek.game.hfw.converters.MeshToSceneConverter;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
-import sh.adelessfox.odradek.game.hfw.rtti.data.EIndexFormatExtension;
-import sh.adelessfox.odradek.game.hfw.rtti.data.GGUUIDExtension;
-import sh.adelessfox.odradek.game.hfw.rtti.data.MurmurHashValueExtension;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingDataSourceExtension;
+import sh.adelessfox.odradek.game.hfw.rtti.data.*;
 import sh.adelessfox.odradek.rtti.GenerateBindings;
 import sh.adelessfox.odradek.rtti.GenerateBindings.Builtin;
 import sh.adelessfox.odradek.rtti.GenerateBindings.Callback;
@@ -64,6 +61,7 @@ import java.math.BigInteger;
         @Callback(type = "WorldMapSuperTile", handler = WorldMapSuperTileCallback.class),
     },
     extensions = {
+        @Extension(type = "DrawFlags", extension = DrawFlagsExtension.class),
         @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
         @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
