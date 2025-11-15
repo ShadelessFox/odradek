@@ -26,6 +26,9 @@ public class Main implements Callable<Void> {
     @Option(names = {"-s", "--source"}, description = "Path to the game's root directory where its executable resides")
     private Path source;
 
+    @Option(names = {"--dark"}, description = "Use dark theme for the UI")
+    private boolean darkTheme = false;
+
     static void main(String[] args) {
         new CommandLine(Main.class).execute(args);
     }
@@ -37,7 +40,7 @@ public class Main implements Callable<Void> {
             source = chooseGameDirectory();
         }
         if (source != null) {
-            new Application().launch(source);
+            new Application().launch(source, darkTheme);
         } else {
             log.info("No source directory was provided, exiting");
         }

@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
@@ -19,7 +20,7 @@ import java.util.Optional;
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    public void launch(Path source) throws IOException {
+    public void launch(Path source, boolean darkTheme) throws IOException {
         log.info("Loading game assets");
         ForbiddenWestGame game = new ForbiddenWestGame(source, EPlatform.WinGame);
 
@@ -39,7 +40,12 @@ public final class Application {
         SwingUtilities.invokeLater(() -> {
             FlatInspector.install("ctrl shift alt X");
             FlatUIDefaultsInspector.install("ctrl shift alt Y");
-            FlatLightLaf.setup();
+
+            if (darkTheme) {
+                FlatDarkLaf.setup();
+            } else {
+                FlatLightLaf.setup();
+            }
 
             var frame = new JFrame();
             Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, context);
