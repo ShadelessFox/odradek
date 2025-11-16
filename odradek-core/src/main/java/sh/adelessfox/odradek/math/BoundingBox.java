@@ -4,10 +4,7 @@ public record BoundingBox(
     Vector3f min,
     Vector3f max
 ) {
-    private static final BoundingBox empty = new BoundingBox(
-        new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
-        new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY)
-    );
+    private static final BoundingBox empty = new BoundingBox(Vector3f.zero(), Vector3f.zero());
 
     public static BoundingBox empty() {
         return empty;

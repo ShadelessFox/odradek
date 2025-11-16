@@ -71,7 +71,7 @@ public class OverlayRenderPass implements RenderPass {
             }
 
             for (Node node : scene.nodes()) {
-                renderNode(node, Matrix4f.identity(), camera);
+                renderNode(node, node.matrix(), camera);
             }
 
             renderInformation(statistics, camera);
