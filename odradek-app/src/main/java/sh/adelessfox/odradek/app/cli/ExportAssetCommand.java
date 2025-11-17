@@ -6,7 +6,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import sh.adelessfox.odradek.app.cli.data.ObjectId;
-import sh.adelessfox.odradek.app.cli.data.ObjectIdConverter;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
@@ -23,7 +22,7 @@ import static java.nio.file.StandardOpenOption.*;
 @Command(name = "export", description = "Export one or more objects in the specified format", showDefaultValues = true)
 public class ExportAssetCommand extends AbstractCommand {
     private static final Logger log = LoggerFactory.getLogger(ExportAssetCommand.class);
-    @Parameters(arity = "1..", description = "The objects to process in a form of <groupId:objectIndex>, e.g. 2981:65", converter = ObjectIdConverter.class)
+    @Parameters(arity = "1..", description = "The objects to process in a form of <groupId:objectIndex>, e.g. 2981:65")
     private List<ObjectId> objects;
 
     @Option(names = {"-f", "--format"}, description = "The output format for the objects. All objects must be convertible to the specified format. Omit this option to see the complete list of supported formats.")

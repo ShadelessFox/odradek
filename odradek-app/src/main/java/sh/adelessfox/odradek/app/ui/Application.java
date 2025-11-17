@@ -6,6 +6,7 @@ import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.cli.data.ObjectId;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
@@ -15,12 +16,13 @@ import sh.adelessfox.odradek.ui.data.DataContext;
 import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    public void launch(Path source, boolean darkTheme) throws IOException {
+    public void launch(Path source, boolean darkTheme, List<ObjectId> objects) throws IOException {
         log.info("Loading game assets");
         ForbiddenWestGame game = new ForbiddenWestGame(source, EPlatform.WinGame);
 
@@ -57,6 +59,10 @@ public final class Application {
             frame.setVisible(true);
 
             JOptionPane.setRootFrame(frame);
+
+            for (ObjectId object : objects) {
+                component.presenter().showObject(object.groupId(), object.objectIndex());
+            }
         });
     }
 }
