@@ -60,6 +60,10 @@ public final class GLCanvas extends Canvas {
 
     @Override
     public void update(Graphics g) {
+        update();
+    }
+
+    public void update() {
         boolean needsInitialization = context == 0;
         if (needsInitialization) {
             context = canvas.create(this, data, effective);

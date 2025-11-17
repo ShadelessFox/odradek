@@ -116,7 +116,7 @@ public final class Viewport extends JPanel {
     }
 
     public void render() {
-        canvas.repaint();
+        canvas.update();
     }
 
     public void addRenderPass(RenderPass pass) {
