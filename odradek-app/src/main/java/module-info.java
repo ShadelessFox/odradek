@@ -42,7 +42,8 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,
         sh.adelessfox.odradek.app.ui.menu.graph.GroupObjectsByTypeAction,
         sh.adelessfox.odradek.app.ui.menu.graph.SortObjectsByCountAction,
-        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction;
+        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction,
+        sh.adelessfox.odradek.app.ui.menu.object.CopyIdToClipboardAction;
 
     provides sh.adelessfox.odradek.ui.editors.EditorProvider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditorProvider;
