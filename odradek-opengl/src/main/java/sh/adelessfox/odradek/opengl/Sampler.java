@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.opengl;
 
-import sh.adelessfox.odradek.opengl.rhi.AddressMode;
-import sh.adelessfox.odradek.opengl.rhi.FilterMode;
-import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
+import sh.adelessfox.odradek.rhi.AddressMode;
+import sh.adelessfox.odradek.rhi.FilterMode;
+import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 
 import static org.lwjgl.opengl.ARBBindlessTexture.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -22,22 +22,14 @@ public final class Sampler implements GLObject {
         glSamplerParameteri(name, GL_TEXTURE_WRAP_T, glAddressMode(descriptor.addressModeV()));
         glSamplerParameteri(name, GL_TEXTURE_MIN_FILTER, glFilterMode(descriptor.minFilter()));
         glSamplerParameteri(name, GL_TEXTURE_MAG_FILTER, glFilterMode(descriptor.magFilter()));
+
         handle = glGetTextureSamplerHandleARB(texture.name(), name);
-    }
-
-    @Override
-    public Sampler bind() {
         glMakeTextureHandleResidentARB(handle);
-        return this;
-    }
-
-    @Override
-    public void unbind() {
-        glMakeTextureHandleNonResidentARB(handle);
     }
 
     @Override
     public void dispose() {
+        glMakeTextureHandleNonResidentARB(handle);
         glDeleteSamplers(name);
     }
 

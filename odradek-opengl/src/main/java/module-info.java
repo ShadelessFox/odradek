@@ -7,5 +7,5 @@ module odradek.opengl {
     requires transitive org.lwjgl.opengl;
 
     exports sh.adelessfox.odradek.opengl;
-    exports sh.adelessfox.odradek.opengl.rhi;
+    exports sh.adelessfox.odradek.rhi;
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 import static org.lwjgl.opengl.ARBBindlessTexture.glUniformHandleui64ARB;
 import static org.lwjgl.opengl.GL20.*;
 
-public final class ShaderProgram implements GLObject {
+public final class ShaderProgram implements GLObject.Bindable<ShaderProgram> {
     private final int program = glCreateProgram();
     private final Map<String, Integer> locations = new HashMap<>();
 

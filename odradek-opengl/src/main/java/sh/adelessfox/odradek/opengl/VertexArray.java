@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL30.*;
+import static org.lwjgl.opengl.GL45.*;
 
-public final class VertexArray implements GLObject {
-    private final int array = glGenVertexArrays();
-    private final List<VertexBuffer> buffers = new ArrayList<>(1);
+public final class VertexArray implements GLObject.Bindable<VertexArray> {
+    private final int name = glCreateVertexArrays();
+    private final List<Buffer> buffers = new ArrayList<>(2);
 
     /**
      * Creates a 2D plane at 0,0 origin with the specified width and height.
@@ -34,76 +35,105 @@ public final class VertexArray implements GLObject {
                 new VertexAttribute(0, ElementType.VEC2, ComponentType.FLOAT, 0, 8, false)
             );
 
-            try (var vbo = vao.createBuffer(attributes)) {
-                float[] vertices = {
-                    -width / 2, -height / 2,
-                    +width / 2, -height / 2,
-                    +width / 2, +height / 2,
-                    -width / 2, +height / 2
-                };
-                vbo.put(FloatBuffer.wrap(vertices), GL_STATIC_DRAW);
-            }
+            var vertices = new float[]{
+                -width / 2, -height / 2,
+                +width / 2, -height / 2,
+                +width / 2, +height / 2,
+                -width / 2, +height / 2
+            };
+            var vbo = vao.createVertexBuffer(attributes, 0);
+            vbo.put(FloatBuffer.wrap(vertices), 0);
 
-            try (var ibo = vao.createIndexBuffer()) {
-                int[] indices = {0, 1, 2, 0, 2, 3};
-                ibo.put(IntBuffer.wrap(indices), GL_STATIC_DRAW);
-            }
+            var elements = new int[]{0, 1, 2, 0, 2, 3};
+            var ebo = vao.createElementBuffer();
+            ebo.put(IntBuffer.wrap(elements), 0);
 
             return vao;
         }
     }
 
     /**
-     * Creates a new array buffer. The returned buffer is <b>bound</b>.
+     * Creates a new vertex buffer.
+     *
+     * @param attributes a list of vertex attributes; must not be empty
+     * @param slot       an index of the buffer within this vertex array. In OpenGL,
+     *                   the maximum number of buffers per a vertex array is {@code 16}.
      */
-    public VertexBuffer createBuffer(List<VertexAttribute> attributes) {
-        var buffer = createBuffer(GL_ARRAY_BUFFER);
-        for (VertexAttribute attr : attributes) {
-            int index = attr.location();
-            glEnableVertexAttribArray(index);
-            glVertexAttribPointer(index, attr.glSize(), attr.glType(), attr.normalized(), attr.stride(), attr.offset());
+    public Buffer createVertexBuffer(List<VertexAttribute> attributes, int slot) {
+        if (attributes.isEmpty()) {
+            throw new IllegalStateException("vertex buffer attributes cannot be empty");
         }
+
+        for (VertexAttribute attr : attributes) {
+            glEnableVertexArrayAttrib(name, attr.location());
+            glVertexArrayAttribFormat(name, attr.location(), glSize(attr), glType(attr), attr.normalized(), attr.offset());
+            glVertexArrayAttribBinding(name, attr.location(), slot);
+        }
+
+        var buffer = createBuffer();
+        glVertexArrayVertexBuffer(name, slot, buffer.name(), 0, attributes.getFirst().stride());
         return buffer;
     }
 
     /**
      * Creates a new element array buffer. The returned buffer is <b>bound</b>.
      */
-    public VertexBuffer createIndexBuffer() {
-        return createBuffer(GL_ELEMENT_ARRAY_BUFFER);
+    public Buffer createElementBuffer() {
+        var buffer = createBuffer();
+        glVertexArrayElementBuffer(name, buffer.name());
+        return buffer;
     }
 
     @Override
     public VertexArray bind() {
-        glBindVertexArray(array);
-        buffers.forEach(VertexBuffer::bind);
+        glBindVertexArray(name);
         return this;
     }
 
     @Override
     public void unbind() {
-        buffers.forEach(VertexBuffer::unbind);
         glBindVertexArray(0);
     }
 
     @Override
     public void dispose() {
-        buffers.forEach(VertexBuffer::dispose);
+        buffers.forEach(Buffer::dispose);
         buffers.clear();
-        glDeleteVertexArrays(array);
+        glDeleteVertexArrays(name);
     }
 
-    private VertexBuffer createBuffer(int target) {
+    private Buffer createBuffer() {
         ensureBound();
-        var buffer = new VertexBuffer(target);
+        var buffer = new Buffer();
         buffers.add(buffer);
-        buffer.bind();
         return buffer;
     }
 
     private void ensureBound() {
-        if (glGetInteger(GL_VERTEX_ARRAY_BINDING) != array) {
+        if (glGetInteger(GL_VERTEX_ARRAY_BINDING) != name) {
             throw new IllegalArgumentException("Vertex array is not bound");
         }
+    }
+
+    private static int glType(VertexAttribute attribute) {
+        return switch (attribute.componentType()) {
+            case ComponentType.BYTE -> GL_BYTE;
+            case ComponentType.UNSIGNED_BYTE -> GL_UNSIGNED_BYTE;
+            case ComponentType.SHORT -> GL_SHORT;
+            case ComponentType.UNSIGNED_SHORT -> GL_UNSIGNED_SHORT;
+            case ComponentType.INT -> GL_INT;
+            case ComponentType.UNSIGNED_INT -> GL_UNSIGNED_INT;
+            case ComponentType.HALF_FLOAT -> GL_HALF_FLOAT;
+            case ComponentType.FLOAT -> GL_FLOAT;
+            case ComponentType.INT_10_10_10_2 -> GL_INT_2_10_10_10_REV;
+            case ComponentType.UNSIGNED_INT_10_10_10_2 -> GL_UNSIGNED_INT_2_10_10_10_REV;
+        };
+    }
+
+    private static int glSize(VertexAttribute attribute) {
+        return switch (attribute.componentType()) {
+            case ComponentType.INT_10_10_10_2, ComponentType.UNSIGNED_INT_10_10_10_2 -> 4;
+            default -> attribute.elementType().size();
+        };
     }
 }

@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.opengl;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
-import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
+import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
@@ -40,16 +40,6 @@ public class Texture implements GLObject {
 
     public Sampler createSampler(SamplerDescriptor descriptor) {
         return new Sampler(this, descriptor);
-    }
-
-    @Override
-    public Texture bind() {
-        throw new IllegalStateException("Not supposed to bind textures directly; use samplers");
-    }
-
-    @Override
-    public void unbind() {
-        throw new IllegalStateException("Not supposed to bind textures directly; use samplers");
     }
 
     @Override

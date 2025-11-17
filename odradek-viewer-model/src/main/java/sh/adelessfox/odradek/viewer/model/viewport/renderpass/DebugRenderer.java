@@ -8,9 +8,9 @@ import sh.adelessfox.odradek.geometry.ComponentType;
 import sh.adelessfox.odradek.geometry.ElementType;
 import sh.adelessfox.odradek.math.*;
 import sh.adelessfox.odradek.opengl.*;
-import sh.adelessfox.odradek.opengl.rhi.AddressMode;
-import sh.adelessfox.odradek.opengl.rhi.FilterMode;
-import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
+import sh.adelessfox.odradek.rhi.AddressMode;
+import sh.adelessfox.odradek.rhi.FilterMode;
+import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.GL_STREAM_DRAW;
 import static org.lwjgl.opengl.GL32.GL_PROGRAM_POINT_SIZE;
+import static org.lwjgl.opengl.GL44.GL_DYNAMIC_STORAGE_BIT;
 
 final class DebugRenderer {
     private static final Logger log = LoggerFactory.getLogger(DebugRenderer.class);
@@ -51,7 +51,7 @@ final class DebugRenderer {
     private final ShaderProgram debugProgram;
     private final ShaderProgram msdfProgram;
     private final VertexArray vao;
-    private final VertexBuffer vbo;
+    private final Buffer vbo;
 
     public DebugRenderer() throws IOException {
         debugProgram = new ShaderProgram(
@@ -81,9 +81,8 @@ final class DebugRenderer {
                 new VertexAttribute(1, ElementType.VEC3, ComponentType.FLOAT, 16, 28, false)
             );
 
-            try (var _ = vbo = vao.createBuffer(attributes)) {
-                vbo.allocate(buffer.capacity() * Float.BYTES, GL_STREAM_DRAW);
-            }
+            vbo = vao.createVertexBuffer(attributes, 0);
+            vbo.allocate(buffer.capacity() * Float.BYTES, GL_DYNAMIC_STORAGE_BIT);
         }
 
         // Required since the debug shader uses gl_PointSize
@@ -116,7 +115,7 @@ final class DebugRenderer {
             }
         }
         if (!texts.isEmpty()) {
-            try (var _ = msdfProgram.bind(); var _ = msdfSampler.bind()) {
+            try (var _ = msdfProgram.bind()) {
                 int width = viewport.getFramebufferWidth();
                 int height = viewport.getFramebufferHeight();
 
@@ -301,8 +300,12 @@ final class DebugRenderer {
     private void flush(int mode, boolean depthTest) {
         GLCapability.DEPTH_TEST.set(depthTest);
 
-        final int count = buffer.position() / VERTEX_SIZE;
+        int remaining = buffer.position() % VERTEX_SIZE;
+        if (remaining != 0) {
+            throw new IllegalStateException("buffer is expected to only contain entries of VERTEX_SIZE size");
+        }
 
+        int count = buffer.position() / VERTEX_SIZE;
         if (count == 0) {
             return;
         }

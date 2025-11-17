@@ -7,9 +7,9 @@ import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.*;
-import sh.adelessfox.odradek.opengl.rhi.AddressMode;
-import sh.adelessfox.odradek.opengl.rhi.FilterMode;
-import sh.adelessfox.odradek.opengl.rhi.SamplerDescriptor;
+import sh.adelessfox.odradek.rhi.AddressMode;
+import sh.adelessfox.odradek.rhi.FilterMode;
+import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
@@ -24,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL15.GL_STATIC_DRAW;
 
 public final class RenderMeshesPass implements RenderPass {
     private static final Logger log = LoggerFactory.getLogger(RenderMeshesPass.class);
@@ -99,9 +98,7 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void renderScene(Camera camera, Scene scene, boolean wireframe) {
-        try (var program = this.program.bind();
-             var _ = this.diffuseSampler.bind()
-        ) {
+        try (var program = this.program.bind()) {
             program.set("u_view", camera.view());
             program.set("u_projection", camera.projection());
             program.set("u_view_position", camera.position());
@@ -183,15 +180,15 @@ public final class RenderMeshesPass implements RenderPass {
         }
 
         try (var vao = new VertexArray().bind()) {
-            buffers.forEach((buffer, attributes) -> {
-                try (var vbo = vao.createBuffer(attributes)) {
-                    vbo.put(buffer, GL_STATIC_DRAW);
-                }
-            });
-
-            try (var ibo = vao.createIndexBuffer()) {
-                ibo.put(indices.buffer(), GL_STATIC_DRAW);
+            int slot = 0;
+            for (var entry : buffers.entrySet()) {
+                var vbo = vao.createVertexBuffer(entry.getValue(), slot);
+                vbo.put(entry.getKey(), 0);
+                slot++;
             }
+
+            var ibo = vao.createElementBuffer();
+            ibo.put(indices.buffer(), 0);
 
             var count = indices.count();
             var type = switch (indices.componentType()) {

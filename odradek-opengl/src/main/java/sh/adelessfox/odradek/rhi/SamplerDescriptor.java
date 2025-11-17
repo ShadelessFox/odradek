@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.opengl.rhi;
+package sh.adelessfox.odradek.rhi;
 
 public record SamplerDescriptor(
     AddressMode addressModeU,

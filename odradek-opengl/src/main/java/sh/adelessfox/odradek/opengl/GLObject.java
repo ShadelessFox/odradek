@@ -1,14 +1,16 @@
 package sh.adelessfox.odradek.opengl;
 
-public interface GLObject extends AutoCloseable {
-    GLObject bind();
-
-    void unbind();
-
+public interface GLObject {
     void dispose();
 
-    @Override
-    default void close() {
-        unbind();
+    interface Bindable<T extends Bindable<T>> extends GLObject, AutoCloseable {
+        T bind();
+
+        void unbind();
+
+        @Override
+        default void close() {
+            unbind();
+        }
     }
 }
