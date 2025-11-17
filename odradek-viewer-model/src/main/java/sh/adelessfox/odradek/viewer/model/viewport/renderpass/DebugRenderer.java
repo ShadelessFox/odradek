@@ -92,8 +92,8 @@ final class DebugRenderer {
     public void dispose() {
         debugProgram.dispose();
         msdfProgram.dispose();
-        msdfTexture.dispose();
         msdfSampler.dispose();
+        msdfTexture.dispose();
         vao.dispose();
     }
 
