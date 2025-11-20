@@ -17,7 +17,7 @@ public record Mesh(Optional<String> name, List<Primitive> primitives) {
     public BoundingBox computeBoundingBox() {
         var bbox = BoundingBox.empty();
         for (var primitive : primitives) {
-            bbox = bbox.union(primitive.computeBoundingBox());
+            bbox = bbox.encapsulate(primitive.computeBoundingBox());
         }
         return bbox;
     }

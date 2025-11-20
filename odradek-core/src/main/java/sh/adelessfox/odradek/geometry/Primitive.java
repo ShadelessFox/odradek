@@ -34,7 +34,7 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int 
             float x = view.get(i, 0);
             float y = view.get(i, 1);
             float z = view.get(i, 2);
-            bbox = bbox.union(x, y, z);
+            bbox = bbox.encapsulate(x, y, z);
         }
 
         return bbox;

@@ -40,6 +40,15 @@ public record Matrix4f(
         );
     }
 
+    public static Matrix4f translation(float x, float y, float z) {
+        return new Matrix4f(
+            1.f, 0.f, 0.f, 0.f,
+            0.f, 1.f, 0.f, 0.f,
+            0.f, 0.f, 1.f, 0.f,
+            x, y, z, 1.f
+        );
+    }
+
     public static Matrix4f ortho2D(float left, float right, float bottom, float top) {
         float m00 = 2.0f / (right - left);
         float m11 = 2.0f / (top - bottom);
@@ -199,15 +208,6 @@ public record Matrix4f(
             m20, m21, m22, m23,
             m30, m31, m32, m33
         );
-    }
-
-    public Vector3f transform(Vector3f v) {
-        float x = Math.fma(m00(), v.x(), Math.fma(m10(), v.y(), Math.fma(m20(), v.z(), m30())));
-        float y = Math.fma(m01(), v.x(), Math.fma(m11(), v.y(), Math.fma(m21(), v.z(), m31())));
-        float z = Math.fma(m02(), v.x(), Math.fma(m12(), v.y(), Math.fma(m22(), v.z(), m32())));
-        float w = Math.fma(m03(), v.x(), Math.fma(m13(), v.y(), Math.fma(m23(), v.z(), m33())));
-
-        return new Vector3f(x / w, y / w, z / w);
     }
 
     public Vector3f toTranslation() {

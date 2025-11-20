@@ -21,6 +21,15 @@ public record Vector3f(float x, float y, float z) {
         return one;
     }
 
+    public Vector3f transform(Matrix4f matrix) {
+        float x = Math.fma(matrix.m00(), x(), Math.fma(matrix.m10(), y(), Math.fma(matrix.m20(), z(), matrix.m30())));
+        float y = Math.fma(matrix.m01(), x(), Math.fma(matrix.m11(), y(), Math.fma(matrix.m21(), z(), matrix.m31())));
+        float z = Math.fma(matrix.m02(), x(), Math.fma(matrix.m12(), y(), Math.fma(matrix.m22(), z(), matrix.m32())));
+        float w = Math.fma(matrix.m03(), x(), Math.fma(matrix.m13(), y(), Math.fma(matrix.m23(), z(), matrix.m33())));
+
+        return new Vector3f(x / w, y / w, z / w);
+    }
+
     public Vector3f add(Vector3f other) {
         return add(other.x, other.y, other.z);
     }
@@ -81,6 +90,30 @@ public record Vector3f(float x, float y, float z) {
             Math.fma(y, other.z, -z * other.y),
             Math.fma(z, other.x, -x * other.z),
             Math.fma(x, other.y, -y * other.x)
+        );
+    }
+
+    public Vector3f min(Vector3f other) {
+        return min(other.x, other.y, other.z);
+    }
+
+    public Vector3f min(float x, float y, float z) {
+        return new Vector3f(
+            Math.min(this.x, x),
+            Math.min(this.y, y),
+            Math.min(this.z, z)
+        );
+    }
+
+    public Vector3f max(Vector3f other) {
+        return max(other.x, other.y, other.z);
+    }
+
+    public Vector3f max(float x, float y, float z) {
+        return new Vector3f(
+            Math.max(this.x, x),
+            Math.max(this.y, y),
+            Math.max(this.z, z)
         );
     }
 

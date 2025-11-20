@@ -9,7 +9,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> skin, List<Node> children, Matrix4f matrix) {
+public record Node(
+    Optional<String> name,
+    Optional<Mesh> mesh,
+    Optional<Node> skin,
+    List<Node> children,
+    Matrix4f matrix
+) {
     public Node {
         children = List.copyOf(children);
     }
@@ -37,15 +43,21 @@ public record Node(Optional<String> name, Optional<Mesh> mesh, Optional<Node> sk
     }
 
     public BoundingBox computeBoundingBox() {
-        var bbox = BoundingBox.empty();
-        var mesh = this.mesh.orElse(null);
-        if (mesh != null) {
-            bbox = bbox.union(mesh.computeBoundingBox());
-        }
+        var bbox = mesh
+            .map(Mesh::computeBoundingBox)
+            .orElse(null);
         for (Node child : children) {
-            bbox = bbox.union(child.computeBoundingBox());
+            var other = child.computeBoundingBox();
+            if (bbox == null) {
+                bbox = other;
+            } else {
+                bbox = bbox.encapsulate(other);
+            }
         }
-        return bbox.transform(matrix);
+        if (bbox != null) {
+            return bbox.transform(matrix);
+        }
+        return BoundingBox.empty();
     }
 
     public static final class Builder {

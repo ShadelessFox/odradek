@@ -14,10 +14,9 @@ public record Scene(List<Node> nodes) {
     }
 
     public BoundingBox computeBoundingBox() {
-        BoundingBox bbox = BoundingBox.empty();
-        for (Node node : nodes) {
-            bbox = bbox.union(node.computeBoundingBox());
-        }
-        return bbox;
+        return nodes.stream()
+            .map(Node::computeBoundingBox)
+            .reduce(BoundingBox::encapsulate)
+            .orElseGet(BoundingBox::empty);
     }
 }
