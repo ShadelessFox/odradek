@@ -198,16 +198,7 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
         var unlinked = joints.stream().map(joint -> Node.builder().name(joint.name())).toList();
 
         for (int i = 0; i < joints.size(); i++) {
-            var joint = joints.get(i);
-            var node = unlinked.get(i);
-            var transform = transforms.get(i).toMatrix();
-
-            if (joint.parentIndex() != -1) {
-                var parent = unlinked.get(joint.parentIndex());
-                node.matrix(parent.matrix().mul(transform));
-            } else {
-                node.matrix(transform);
-            }
+            unlinked.get(i).matrix(transforms.get(i).toMatrix());
         }
 
         var linked = new Node[joints.size()];

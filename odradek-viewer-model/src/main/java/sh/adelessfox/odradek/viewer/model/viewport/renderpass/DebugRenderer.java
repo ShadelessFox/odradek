@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.rhi.AddressMode;
 import sh.adelessfox.odradek.rhi.FilterMode;
 import sh.adelessfox.odradek.rhi.SamplerDescriptor;
+import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
@@ -214,12 +215,12 @@ final class DebugRenderer {
         line(cx, cy, cz - hl, cx, cy, cz + hl, 0, 0, 1, depthTest);
     }
 
-    public void projectedText(String text, Vector3f position, Matrix4f transform, Vector3f color, float scale) {
-        projectedText(text, position.x(), position.y(), position.z(), transform, color.x(), color.y(), color.z(), scale);
+    public void projectedText(String text, Vector3f position, Camera camera, Vector3f color, float scale) {
+        projectedText(text, position.x(), position.y(), position.z(), camera.projectionView(), color.x(), color.y(), color.z(), scale);
     }
 
     public void projectedText(String text, float x, float y, float z, Matrix4f projection, float r, float g, float b, float scale) {
-        Vector4f clip = new Vector4f(x, y, z, 1.0f).mul(projection);
+        Vector4f clip = new Vector4f(x, y, z, 1.0f).transform(projection);
 
         // Skip if the point is behind the camera or outside the screen
         if (Math.abs(clip.w()) < 1e-6 || clip.z() < -clip.w() || clip.z() > clip.w()) {

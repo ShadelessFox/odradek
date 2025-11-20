@@ -102,29 +102,30 @@ public class OverlayRenderPass implements RenderPass {
             renderNode(child, transform.mul(child.matrix()), camera);
         }
         if (showSkins) {
-            node.skin().ifPresent(skin -> renderSkin(skin, null, camera));
+            node.skin().ifPresent(skin -> renderSkin(skin, transform.mul(skin.matrix()), camera));
         }
         if (showBoundingBoxes) {
             node.mesh().ifPresent(mesh -> debug.aabb(mesh.computeBoundingBox().transform(transform), Vector3f.one()));
         }
     }
 
-    private void renderSkin(Node node, Node parent, Camera camera) {
-        if (parent != null) {
-            var translation = node.matrix().toTranslation();
-            debug.point(translation, new Vector3f(1, 0, 1), 10f, false);
-            debug.line(parent.matrix().toTranslation(), translation, new Vector3f(0, 1, 0), false);
+    private Vector3f renderSkin(Node node, Matrix4f transform, Camera camera) {
+        var source = transform.toTranslation();
 
-            if (node.name().isPresent()) {
-                var distance = translation.distance(camera.position());
-                var size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
-                debug.projectedText(node.name().get(), translation, camera.projectionView(), new Vector3f(1, 1, 1), size);
-            }
-        }
+        node.name().ifPresent(name -> {
+            var distance = source.distance(camera.position());
+            var size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
+            debug.projectedText(name, source, camera, new Vector3f(1, 1, 1), size);
+        });
 
         for (Node child : node.children()) {
-            renderSkin(child, node, camera);
+            var target = renderSkin(child, transform.mul(child.matrix()), camera);
+            debug.line(target, source, new Vector3f(0, 1, 0), false);
         }
+
+        debug.point(source, new Vector3f(1, 0, 1), 10f, false);
+
+        return source;
     }
 
     private static SceneStatistics summarizeScene(Scene scene) {

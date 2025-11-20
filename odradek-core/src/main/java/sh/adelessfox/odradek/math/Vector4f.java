@@ -11,7 +11,7 @@ package sh.adelessfox.odradek.math;
 public record Vector4f(float x, float y, float z, float w) {
     public static final int BYTES = Float.BYTES * 4;
 
-    public Vector4f mul(Matrix4f other) {
+    public Vector4f transform(Matrix4f other) {
         var x = Math.fma(other.m00(), x(), Math.fma(other.m10(), y(), Math.fma(other.m20(), z(), other.m30() * w())));
         var y = Math.fma(other.m01(), x(), Math.fma(other.m11(), y(), Math.fma(other.m21(), z(), other.m31() * w())));
         var z = Math.fma(other.m02(), x(), Math.fma(other.m12(), y(), Math.fma(other.m22(), z(), other.m32() * w())));
