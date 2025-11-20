@@ -156,7 +156,7 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
 
     private Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-            // Skip shadow caster meshes
+            log.warn("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
         var mesh = convertMesh(
@@ -170,19 +170,26 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
 
     private Optional<Node> convertRegularSkinnedMeshResource(RegularSkinnedMeshResource resource, ForbiddenWestGame game) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-            // Skip shadow caster meshes
+            log.warn("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
+        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var mesh = convertMesh(
+            resource.shadingGroups(),
+            resource.primitives(),
+            resource.streamingDataSource(),
+            game
+        );
         var node = Node.builder()
-            .mesh(convertMesh(resource.shadingGroups(), resource.primitives(), resource.streamingDataSource(), game))
+            .mesh(mesh)
+            .skin(skin)
             .build();
-
         return Optional.of(node);
     }
 
     private static Optional<Node> convertSkeleton(Skeleton skeleton) {
         if (!skeleton.general().hasBindPose()) {
-            log.warn("Skeleton does not have a bind pose");
+            log.warn("Skipping skeleton {} without a bind pose", skeleton.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
 
@@ -191,7 +198,8 @@ public final class MeshToSceneConverter implements Converter<ForbiddenWestGame, 
         try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
             transforms = EdgeAnimSkeleton.read(reader).readBasePose(reader);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            log.error("Error reading edgeanim skeleton", e);
+            return Optional.empty();
         }
 
         var joints = skeleton.general().joints();
