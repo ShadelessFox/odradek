@@ -3,11 +3,8 @@ package sh.adelessfox.odradek.opengl.awt;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.*;
-import org.lwjgl.system.APIUtil;
+import org.lwjgl.system.*;
 import org.lwjgl.system.APIUtil.APIVersion;
-import org.lwjgl.system.Checks;
-import org.lwjgl.system.JNI;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.jawt.JAWTDrawingSurfaceInfo;
 import org.lwjgl.system.jawt.JAWTX11DrawingSurfaceInfo;
 import org.lwjgl.system.linux.X11;
@@ -199,8 +196,9 @@ final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
     }
 
     private static void populateEffectiveGLAttribs(GLData effective) {
-        long glGetIntegerv = GL.getFunctionProvider().getFunctionAddress("glGetIntegerv");
-        long glGetString = GL.getFunctionProvider().getFunctionAddress("glGetString");
+        FunctionProvider provider = Objects.requireNonNull(GL.getFunctionProvider(), "No GL function provider");
+        long glGetIntegerv = provider.getFunctionAddress("glGetIntegerv");
+        long glGetString = provider.getFunctionAddress("glGetString");
         APIVersion version = APIUtil.apiParseVersion(getString(GL11.GL_VERSION, glGetString));
 
         effective.majorVersion = version.major;

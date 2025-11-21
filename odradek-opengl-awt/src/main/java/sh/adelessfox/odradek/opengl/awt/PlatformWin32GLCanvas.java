@@ -3,8 +3,8 @@ package sh.adelessfox.odradek.opengl.awt;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.Checks;
+import org.lwjgl.system.FunctionProvider;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.jawt.JAWTDrawingSurface;
 import org.lwjgl.system.jawt.JAWTDrawingSurfaceInfo;
 import org.lwjgl.system.jawt.JAWTWin32DrawingSurfaceInfo;
 import org.lwjgl.system.windows.PIXELFORMATDESCRIPTOR;
@@ -14,6 +14,7 @@ import org.lwjgl.system.windows.WNDCLASSEX;
 import java.nio.IntBuffer;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.lwjgl.opengl.ARBMultisample.GL_SAMPLES_ARB;
@@ -52,7 +53,6 @@ import static sh.adelessfox.odradek.opengl.awt.GLUtil.*;
  * @author Kai Burjack
  */
 final class PlatformWin32GLCanvas extends PlatformGLCanvas {
-    private JAWTDrawingSurface ds;
     private long hwnd;
 
     @Override
@@ -205,7 +205,7 @@ final class PlatformWin32GLCanvas extends PlatformGLCanvas {
         }
 
         // Query supported WGL extensions
-        String wglExtensions = null;
+        String wglExtensions;
         long wglGetExtensionsStringARBAddr = wglGetProcAddress(null, "wglGetExtensionsStringARB");
         if (wglGetExtensionsStringARBAddr != 0L) {
             long str = callPP(hDCdummy, wglGetExtensionsStringARBAddr);
@@ -596,8 +596,9 @@ final class PlatformWin32GLCanvas extends PlatformGLCanvas {
             }
         }
         ReleaseDC(windowHandle, hDC);
-        long getInteger = GL.getFunctionProvider().getFunctionAddress("glGetIntegerv");
-        long getString = GL.getFunctionProvider().getFunctionAddress("glGetString");
+        FunctionProvider provider = Objects.requireNonNull(GL.getFunctionProvider(), "No GL function provider");
+        long getInteger = provider.getFunctionAddress("glGetIntegerv");
+        long getString = provider.getFunctionAddress("glGetString");
         effective.api = attribs.api;
         if (atLeast30(attribs.majorVersion, attribs.minorVersion)) {
             callPV(GL_MAJOR_VERSION, bufferAddr, getInteger);

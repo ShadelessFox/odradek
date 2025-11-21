@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.opengl.awt;
 
 final class GLUtil {
-    
+
     static boolean atLeast32(int major, int minor) {
         return major == 3 && minor >= 2 || major > 3;
     }
@@ -24,7 +24,7 @@ final class GLUtil {
 
     /**
      * Validate the given {@link GLData} and throw an exception on validation error.
-     * 
+     *
      * @param attribs
      *            the {@link GLData} to validate
      */
@@ -75,5 +75,4 @@ final class GLUtil {
             throw new IllegalArgumentException("Context reset isolation requested but not using robustness");
         }
     }
-
 }

@@ -43,7 +43,6 @@ sealed abstract class PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWi
         } finally {
             unlock();
         }
-
     }
 
     public void lock() {
