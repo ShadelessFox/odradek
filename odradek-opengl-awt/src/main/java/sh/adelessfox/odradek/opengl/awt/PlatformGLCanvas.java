@@ -1,22 +1,40 @@
 package sh.adelessfox.odradek.opengl.awt;
 
+import org.lwjgl.system.jawt.JAWT;
+
 import java.awt.*;
+
+import static org.lwjgl.system.jawt.JAWTFunctions.JAWT_GetAWT;
+import static org.lwjgl.system.jawt.JAWTFunctions.JAWT_VERSION_1_4;
 
 /**
  * Interface for platform-specific implementations of {@link GLCanvas}.
  *
  * @author Kai Burjack
  */
-sealed interface PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWin32GLCanvas {
-    long create(Canvas canvas, GLData data, GLData effective);
+sealed abstract class PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWin32GLCanvas {
+    protected JAWT awt;
 
-    boolean makeCurrent(long context);
+    public PlatformGLCanvas() {
+        awt = JAWT.calloc();
+        awt.version(JAWT_VERSION_1_4);
 
-    void swapBuffers();
+        if (!JAWT_GetAWT(awt)) {
+            throw new AssertionError("GetAWT failed");
+        }
+    }
 
-    void lock();
+    public abstract long create(Canvas canvas, GLData data, GLData effective);
 
-    void unlock();
+    public abstract boolean makeCurrent(long context);
 
-    void dispose();
+    public abstract void swapBuffers();
+
+    public abstract void lock();
+
+    public abstract void unlock();
+
+    public void dispose() {
+        awt.free();
+    }
 }

@@ -37,6 +37,12 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
     public ViewportInput(Component viewport) {
         this.viewport = viewport;
         this.robot = tryCreateRobot();
+
+        viewport.addMouseListener(this);
+        viewport.addMouseMotionListener(this);
+        viewport.addMouseWheelListener(this);
+        viewport.addKeyListener(this);
+        viewport.addFocusListener(this);
     }
 
     public boolean isKeyDown(int keyCode) {

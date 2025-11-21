@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.viewer.model.viewport;
 
-import org.lwjgl.opengl.GLDebugMessageCallback;
 import sh.adelessfox.odradek.math.Vector2f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.awt.GLCanvas;
@@ -20,8 +19,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL43.*;
 
 public final class Viewport extends JPanel {
-    private static final GLDebugMessageCallback DEBUG_MESSAGE_CALLBACK = new ViewportDebugCallback();
-
     private final List<RenderPass> passes = new ArrayList<>();
     private final GLCanvas canvas;
     private final ViewportInput input;
@@ -38,13 +35,21 @@ public final class Viewport extends JPanel {
     public Viewport() {
         super(new BorderLayout());
 
+        canvas = createCanvas();
+        input = new ViewportInput(canvas);
+        animator = new ViewportAnimator(this);
+
+        add(canvas, BorderLayout.CENTER);
+    }
+
+    private GLCanvas createCanvas() {
         GLData data = new GLData();
         data.majorVersion = 4;
         data.minorVersion = 5;
         data.swapInterval = 1;
         data.profile = GLData.Profile.CORE;
 
-        canvas = new GLCanvas(data);
+        GLCanvas canvas = new GLCanvas(data);
         canvas.addGLEventListener(new GLEventListener() {
             @Override
             public void onCreate() {
@@ -63,7 +68,7 @@ public final class Viewport extends JPanel {
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, true);
                 glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DONT_CARE, 0, false);
                 glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DONT_CARE, 0, false);
-                glDebugMessageCallback(DEBUG_MESSAGE_CALLBACK, 0);
+                glDebugMessageCallback(new ViewportDebugCallback(), 0);
 
                 lastUpdateTime = System.currentTimeMillis();
 
@@ -91,16 +96,7 @@ public final class Viewport extends JPanel {
             }
         });
 
-        input = new ViewportInput(canvas);
-        canvas.addMouseListener(input);
-        canvas.addMouseMotionListener(input);
-        canvas.addMouseWheelListener(input);
-        canvas.addKeyListener(input);
-        canvas.addFocusListener(input);
-
-        animator = new ViewportAnimator(this);
-
-        add(canvas, BorderLayout.CENTER);
+        return canvas;
     }
 
     @Override
@@ -116,7 +112,7 @@ public final class Viewport extends JPanel {
     }
 
     public void render() {
-        canvas.update();
+        canvas.render();
     }
 
     public void addRenderPass(RenderPass pass) {

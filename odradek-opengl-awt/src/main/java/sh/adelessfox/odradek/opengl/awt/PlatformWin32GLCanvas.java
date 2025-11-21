@@ -4,8 +4,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.Checks;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.jawt.JAWT;
 import org.lwjgl.system.jawt.JAWTDrawingSurface;
 import org.lwjgl.system.jawt.JAWTDrawingSurfaceInfo;
 import org.lwjgl.system.jawt.JAWTWin32DrawingSurfaceInfo;
@@ -55,17 +53,7 @@ import static sh.adelessfox.odradek.opengl.awt.GLUtil.*;
  *
  * @author Kai Burjack
  */
-final class PlatformWin32GLCanvas implements PlatformGLCanvas {
-    public static final JAWT awt;
-
-    static {
-        awt = JAWT.create(MemoryUtil.getAllocator().calloc(1, JAWT.SIZEOF)); // untracked allocation
-        awt.version(JAWT_VERSION_1_4);
-        if (!JAWT_GetAWT(awt)) {
-            throw new AssertionError("GetAWT failed");
-        }
-    }
-
+final class PlatformWin32GLCanvas extends PlatformGLCanvas {
     private JAWTDrawingSurface ds;
     private long hwnd;
 
@@ -713,8 +701,11 @@ final class PlatformWin32GLCanvas implements PlatformGLCanvas {
 
     @Override
     public void dispose() {
-        JAWT_FreeDrawingSurface(ds, awt.FreeDrawingSurface());
-        ds = null;
+        super.dispose();
+        if (ds != null) {
+            JAWT_FreeDrawingSurface(ds, awt.FreeDrawingSurface());
+            ds = null;
+        }
     }
 
 }

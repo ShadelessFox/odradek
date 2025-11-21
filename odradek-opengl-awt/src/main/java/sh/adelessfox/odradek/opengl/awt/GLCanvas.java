@@ -3,6 +3,8 @@ package sh.adelessfox.odradek.opengl.awt;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.Platform;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,12 +21,9 @@ import java.util.function.Consumer;
  */
 public final class GLCanvas extends Canvas {
     private static final ThreadLocal<GLCapabilities> capabilities = new ThreadLocal<>();
+    private static final Logger log = LoggerFactory.getLogger(GLCanvas.class);
 
-    private final PlatformGLCanvas canvas = switch (Platform.get()) {
-        case WINDOWS -> new PlatformWin32GLCanvas();
-        case LINUX -> new PlatformLinuxGLCanvas();
-        default -> throw new UnsupportedOperationException("Platform " + Platform.get() + " not yet supported");
-    };
+    private final PlatformGLCanvas canvas;
 
     private final List<GLEventListener> listeners = new ArrayList<>();
     private final GLData data;
@@ -35,7 +34,16 @@ public final class GLCanvas extends Canvas {
     private int framebufferHeight;
 
     public GLCanvas(GLData data) {
+        PlatformGLCanvas canvas;
+        try {
+            canvas = createPlatformCanvas();
+        } catch (Throwable e) {
+            log.error("Unable to create platform canvas", e);
+            canvas = null;
+        }
+
         this.data = data;
+        this.canvas = canvas;
 
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -45,6 +53,14 @@ public final class GLCanvas extends Canvas {
                 framebufferHeight = (int) (getHeight() * transform.getScaleY());
             }
         });
+    }
+
+    private static PlatformGLCanvas createPlatformCanvas() {
+        return switch (Platform.get()) {
+            case WINDOWS -> new PlatformWin32GLCanvas();
+            case LINUX -> new PlatformLinuxGLCanvas();
+            default -> throw new UnsupportedOperationException("Platform " + Platform.get() + " not yet supported");
+        };
     }
 
     @Override
@@ -59,11 +75,49 @@ public final class GLCanvas extends Canvas {
     }
 
     @Override
-    public void update(Graphics g) {
-        update();
+    public void paint(Graphics g) {
+        if (canvas == null) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.clearRect(0, 0, getWidth(), getHeight());
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            drawCenteredString(g2, "Unable to create graphics context; refer to logs for more details", getWidth(), getHeight());
+            g2.dispose();
+        } else {
+            render();
+        }
     }
 
-    public void update() {
+    private static void drawCenteredString(Graphics g, String text, int width, int height) {
+        FontMetrics fm = g.getFontMetrics();
+
+        int x = 0;
+        int y = (height - fm.getHeight() + 1) / 2 + fm.getAscent();
+
+        if (text.indexOf('\n') >= 0) {
+            for (String line : text.split("\n")) {
+                drawCenteredString(g, line, x, y, width);
+                y += fm.getHeight();
+            }
+        } else {
+            drawCenteredString(g, text, x, y, width);
+        }
+    }
+
+    private static void drawCenteredString(Graphics g, String text, int x, int y, int width) {
+        g.drawString(text, x + (width - g.getFontMetrics().stringWidth(text)) / 2, y);
+    }
+
+    @Override
+    public void update(Graphics g) {
+        // This override makes so that the canvas doesn't flicker by removing super's clearRect
+        paint(g);
+    }
+
+    public void render() {
+        if (canvas == null) {
+            return;
+        }
+
         boolean needsInitialization = context == 0;
         if (needsInitialization) {
             context = canvas.create(this, data, effective);
@@ -108,6 +162,9 @@ public final class GLCanvas extends Canvas {
     public void submit(Runnable runnable) {
         if (!SwingUtilities.isEventDispatchThread()) {
             throw new IllegalStateException("AWTGLCanvas methods must be called from the Event Dispatch Thread");
+        }
+        if (canvas == null) {
+            return;
         }
 
         canvas.lock();

@@ -8,7 +8,6 @@ import org.lwjgl.system.APIUtil.APIVersion;
 import org.lwjgl.system.Checks;
 import org.lwjgl.system.JNI;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.jawt.JAWT;
 import org.lwjgl.system.jawt.JAWTDrawingSurface;
 import org.lwjgl.system.jawt.JAWTDrawingSurfaceInfo;
 import org.lwjgl.system.jawt.JAWTX11DrawingSurfaceInfo;
@@ -30,16 +29,7 @@ import static org.lwjgl.opengl.GLXEXTCreateContextESProfile.GLX_CONTEXT_ES_PROFI
 import static org.lwjgl.system.MemoryUtil.*;
 import static org.lwjgl.system.jawt.JAWTFunctions.*;
 
-final class PlatformLinuxGLCanvas implements PlatformGLCanvas {
-    public static final JAWT awt;
-
-    static {
-        awt = JAWT.calloc();
-        awt.version(JAWT_VERSION_1_4);
-        if (!JAWT_GetAWT(awt))
-            throw new AssertionError("GetAWT failed");
-    }
-
+final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
     public long display;
     public long drawable;
     public JAWTDrawingSurface ds;
@@ -141,6 +131,7 @@ final class PlatformLinuxGLCanvas implements PlatformGLCanvas {
 
     @Override
     public void dispose() {
+        super.dispose();
         if (this.ds != null) {
             JAWT_FreeDrawingSurface(this.ds, awt.FreeDrawingSurface());
             this.ds = null;
