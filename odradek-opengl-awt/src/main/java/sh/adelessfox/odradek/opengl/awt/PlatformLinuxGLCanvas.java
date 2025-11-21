@@ -8,12 +8,10 @@ import org.lwjgl.system.APIUtil.APIVersion;
 import org.lwjgl.system.Checks;
 import org.lwjgl.system.JNI;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.jawt.JAWTDrawingSurface;
 import org.lwjgl.system.jawt.JAWTDrawingSurfaceInfo;
 import org.lwjgl.system.jawt.JAWTX11DrawingSurfaceInfo;
 import org.lwjgl.system.linux.X11;
 
-import java.awt.*;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.List;
@@ -27,14 +25,20 @@ import static org.lwjgl.opengl.GLXARBCreateContextRobustness.*;
 import static org.lwjgl.opengl.GLXARBRobustnessApplicationIsolation.GLX_CONTEXT_RESET_ISOLATION_BIT_ARB;
 import static org.lwjgl.opengl.GLXEXTCreateContextESProfile.GLX_CONTEXT_ES_PROFILE_BIT_EXT;
 import static org.lwjgl.system.MemoryUtil.*;
-import static org.lwjgl.system.jawt.JAWTFunctions.*;
 
 final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
     public long display;
     public long drawable;
-    public JAWTDrawingSurface ds;
 
-    private long create(int depth, GLData attribs, GLData effective)  {
+    @Override
+    protected long create(JAWTDrawingSurfaceInfo dsi, GLData data, GLData effective) {
+        var dsiX11 = JAWTX11DrawingSurfaceInfo.create(dsi.platformInfo());
+        this.display = dsiX11.display();
+        this.drawable = dsiX11.drawable();
+        return create(data, effective);
+    }
+
+    private long create(GLData attribs, GLData effective) {
         int screen = X11.XDefaultScreen(display);
         IntBuffer attrib_list = BufferUtils.createIntBuffer(16 * 2);
         attrib_list.put(GLX_DRAWABLE_TYPE).put(GLX_WINDOW_BIT);
@@ -81,46 +85,10 @@ final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
     }
 
     @Override
-    public void lock()  {
-        int lock = JAWT_DrawingSurface_Lock(ds, ds.Lock());
-        if ((lock & JAWT_LOCK_ERROR) != 0)
-            throw new IllegalStateException("JAWT_DrawingSurface_Lock() failed");
-    }
-
-    @Override
-    public void unlock()  {
-        JAWT_DrawingSurface_Unlock(ds, ds.Unlock());
-    }
-
-    @Override
-    public long create(Canvas canvas, GLData attribs, GLData effective)  {
-        this.ds = JAWT_GetDrawingSurface(canvas, awt.GetDrawingSurface());
-        JAWTDrawingSurface ds = JAWT_GetDrawingSurface(canvas, awt.GetDrawingSurface());
-        try {
-            lock();
-            try {
-                JAWTDrawingSurfaceInfo dsi = JAWT_DrawingSurface_GetDrawingSurfaceInfo(ds, ds.GetDrawingSurfaceInfo());
-                try {
-                    JAWTX11DrawingSurfaceInfo dsiWin = JAWTX11DrawingSurfaceInfo.create(dsi.platformInfo());
-                    int depth = dsiWin.depth();
-                    this.display = dsiWin.display();
-                    this.drawable = dsiWin.drawable();
-                    return create(depth, attribs, effective);
-                } finally {
-                    JAWT_DrawingSurface_FreeDrawingSurfaceInfo(dsi, ds.FreeDrawingSurfaceInfo());
-                }
-            } finally {
-                unlock();
-            }
-        } finally {
-            JAWT_FreeDrawingSurface(ds, awt.FreeDrawingSurface());
-        }
-    }
-
-    @Override
     public boolean makeCurrent(long context) {
-        if (context == 0L)
+        if (context == 0L) {
             return glXMakeCurrent(display, 0L, 0L);
+        }
         return glXMakeCurrent(display, drawable, context);
     }
 
@@ -129,16 +97,7 @@ final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
         glXSwapBuffers(display, drawable);
     }
 
-    @Override
-    public void dispose() {
-        super.dispose();
-        if (this.ds != null) {
-            JAWT_FreeDrawingSurface(this.ds, awt.FreeDrawingSurface());
-            this.ds = null;
-        }
-    }
-
-    private static void verifyGLXCapabilities(long display, int screen, GLData data)  {
+    private static void verifyGLXCapabilities(long display, int screen, GLData data) {
         List<String> extensions = Arrays.asList(glXQueryExtensionsString(display, screen).split(" "));
         if (!extensions.contains("GLX_ARB_create_context")) {
             throw new IllegalStateException("GLX_ARB_create_context is unavailable");
@@ -157,7 +116,7 @@ final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
         }
     }
 
-    private static IntBuffer bufferGLAttribs(GLData data)  {
+    private static IntBuffer bufferGLAttribs(GLData data) {
         IntBuffer gl_attrib_list = BufferUtils.createIntBuffer(16 * 2);
 
         // Set the render type and version
@@ -220,8 +179,7 @@ final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
         return gl_attrib_list;
     }
 
-    private static void populateEffectiveGLXAttribs(long display, long fbId, GLData effective)
-         {
+    private static void populateEffectiveGLXAttribs(long display, long fbId, GLData effective) {
         IntBuffer buffer = BufferUtils.createIntBuffer(1);
 
         glXGetFBConfigAttrib(display, fbId, GLX_RED_SIZE, buffer);
@@ -240,7 +198,7 @@ final class PlatformLinuxGLCanvas extends PlatformGLCanvas {
         effective.doubleBuffer = buffer.get(0) == 1;
     }
 
-    private static void populateEffectiveGLAttribs(GLData effective)  {
+    private static void populateEffectiveGLAttribs(GLData effective) {
         long glGetIntegerv = GL.getFunctionProvider().getFunctionAddress("glGetIntegerv");
         long glGetString = GL.getFunctionProvider().getFunctionAddress("glGetString");
         APIVersion version = APIUtil.apiParseVersion(getString(GL11.GL_VERSION, glGetString));

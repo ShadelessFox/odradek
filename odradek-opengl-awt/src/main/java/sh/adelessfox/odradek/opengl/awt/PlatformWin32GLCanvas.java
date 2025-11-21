@@ -11,7 +11,6 @@ import org.lwjgl.system.windows.PIXELFORMATDESCRIPTOR;
 import org.lwjgl.system.windows.User32;
 import org.lwjgl.system.windows.WNDCLASSEX;
 
-import java.awt.*;
 import java.nio.IntBuffer;
 import java.util.Collections;
 import java.util.HashSet;
@@ -42,7 +41,6 @@ import static org.lwjgl.system.APIUtil.apiParseVersion;
 import static org.lwjgl.system.JNI.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.*;
-import static org.lwjgl.system.jawt.JAWTFunctions.*;
 import static org.lwjgl.system.windows.GDI32.*;
 import static org.lwjgl.system.windows.User32.*;
 import static org.lwjgl.system.windows.WindowsLibrary.HINSTANCE;
@@ -56,6 +54,20 @@ import static sh.adelessfox.odradek.opengl.awt.GLUtil.*;
 final class PlatformWin32GLCanvas extends PlatformGLCanvas {
     private JAWTDrawingSurface ds;
     private long hwnd;
+
+    @Override
+    protected long create(JAWTDrawingSurfaceInfo dsi, GLData data, GLData effective) {
+        var dsiWin = JAWTWin32DrawingSurfaceInfo.create(dsi.platformInfo());
+        this.hwnd = dsiWin.hwnd();
+        try (MemoryStack stack = stackPush()) {
+            long hwndDummy = createDummyWindow(stack);
+            try {
+                return create(stack, hwnd, hwndDummy, data, effective);
+            } finally {
+                DestroyWindow(null, hwndDummy);
+            }
+        }
+    }
 
     /**
      * Encode the pixel format attributes stored in the given {@link GLData} into the given {@link IntBuffer} for wglChoosePixelFormatARB to consume.
@@ -128,39 +140,6 @@ final class PlatformWin32GLCanvas extends PlatformGLCanvas {
         RegisterClassEx(null, in);
         return CreateWindowEx(null, WS_EX_APPWINDOW, className, "", 0, CW_USEDEFAULT, CW_USEDEFAULT,
             800, 600, NULL, NULL, HINSTANCE, NULL);
-    }
-
-    @Override
-    public long create(Canvas canvas, GLData attribs, GLData effective) {
-        this.ds = JAWT_GetDrawingSurface(canvas, awt.GetDrawingSurface());
-        JAWTDrawingSurface ds = JAWT_GetDrawingSurface(canvas, awt.GetDrawingSurface());
-        try {
-            int lock = JAWT_DrawingSurface_Lock(ds, ds.Lock());
-            if ((lock & JAWT_LOCK_ERROR) != 0) {
-                throw new IllegalStateException("JAWT_DrawingSurface_Lock() failed");
-            }
-            try {
-                JAWTDrawingSurfaceInfo dsi = JAWT_DrawingSurface_GetDrawingSurfaceInfo(ds, ds.GetDrawingSurfaceInfo());
-                try {
-                    JAWTWin32DrawingSurfaceInfo dsiWin = JAWTWin32DrawingSurfaceInfo.create(dsi.platformInfo());
-                    this.hwnd = dsiWin.hwnd();
-                    try (MemoryStack stack = stackPush()) {
-                        long hwndDummy = createDummyWindow(stack);
-                        try {
-                            return create(stack, hwnd, hwndDummy, attribs, effective);
-                        } finally {
-                            DestroyWindow(null, hwndDummy);
-                        }
-                    }
-                } finally {
-                    JAWT_DrawingSurface_FreeDrawingSurfaceInfo(dsi, ds.FreeDrawingSurfaceInfo());
-                }
-            } finally {
-                JAWT_DrawingSurface_Unlock(ds, ds.Unlock());
-            }
-        } finally {
-            JAWT_FreeDrawingSurface(ds, awt.FreeDrawingSurface());
-        }
     }
 
     private static long create(MemoryStack stack, long windowHandle, long dummyWindowHandle, GLData attribs, GLData effective) {
@@ -685,27 +664,4 @@ final class PlatformWin32GLCanvas extends PlatformGLCanvas {
             ReleaseDC(hwnd, hdc);
         }
     }
-
-    @Override
-    public void lock() {
-        int lock = JAWT_DrawingSurface_Lock(ds, ds.Lock());
-        if ((lock & JAWT_LOCK_ERROR) != 0) {
-            throw new IllegalStateException("JAWT_DrawingSurface_Lock() failed");
-        }
-    }
-
-    @Override
-    public void unlock() {
-        JAWT_DrawingSurface_Unlock(ds, ds.Unlock());
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
-        if (ds != null) {
-            JAWT_FreeDrawingSurface(ds, awt.FreeDrawingSurface());
-            ds = null;
-        }
-    }
-
 }
