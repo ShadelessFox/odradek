@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.components.tree;
 
 import com.formdev.flatlaf.util.UIScale;
+import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Listeners;
@@ -137,7 +138,9 @@ public class StructuredTree<T> extends JTree implements DataContext {
         if (this.labelProvider != labelProvider) {
             this.labelProvider = labelProvider;
 
-            if (labelProvider != null) {
+            if (labelProvider instanceof StyledTreeLabelProvider<?> p) {
+                setCellRenderer(new StyledLabelProviderTreeCellRenderer<>(p));
+            } else if (labelProvider != null) {
                 setCellRenderer(new LabelProviderTreeCellRenderer<>(labelProvider));
             } else {
                 setCellRenderer(null);
@@ -185,6 +188,33 @@ public class StructuredTree<T> extends JTree implements DataContext {
             value = item.getValue();
         }
         return value;
+    }
+
+    private static class StyledLabelProviderTreeCellRenderer<T> extends StyledTreeCellRenderer<T> {
+        private final StyledTreeLabelProvider<T> labelProvider;
+
+        public StyledLabelProviderTreeCellRenderer(StyledTreeLabelProvider<T> labelProvider) {
+            this.labelProvider = labelProvider;
+        }
+
+        @Override
+        protected void customizeCellRenderer(JTree tree, T value, boolean selected, boolean expanded, boolean focused, boolean leaf, int row) {
+            @SuppressWarnings("unchecked")
+            var element = (T) getElement(value);
+            var text = labelProvider.getStyledText(element).orElse(null);
+            if (text != null) {
+                for (StyledFragment segment : text.fragments()) {
+                    append(segment);
+                }
+            }
+        }
+
+        @Override
+        public Icon getIcon(JTree tree, T value, boolean selected, boolean expanded, boolean focused, boolean leaf, int row) {
+            @SuppressWarnings("unchecked")
+            var element = (T) getElement(value);
+            return labelProvider.getIcon(element).orElse(null);
+        }
     }
 
     private static class LabelProviderTreeCellRenderer<T> extends DefaultTreeCellRenderer {
