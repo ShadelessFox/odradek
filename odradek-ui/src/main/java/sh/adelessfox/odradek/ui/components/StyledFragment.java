@@ -1,7 +1,9 @@
 package sh.adelessfox.odradek.ui.components;
 
+import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public record StyledFragment(
     String text,
@@ -10,6 +12,11 @@ public record StyledFragment(
     boolean bold,
     boolean italic
 ) {
+    public static final Consumer<Builder> NAME = b -> b.foreground(UIManager.getColor("StyledFragment.nameForeground"));
+    public static final Consumer<Builder> NUMBER = b -> b.foreground(UIManager.getColor("StyledFragment.numberForeground"));
+    public static final Consumer<Builder> STRING = b -> b.foreground(UIManager.getColor("StyledFragment.stringForeground"));
+    public static final Consumer<Builder> GRAYED = b -> b.foreground(UIManager.getColor("Label.disabledForeground"));
+
     public static Builder builder() {
         return new Builder();
     }

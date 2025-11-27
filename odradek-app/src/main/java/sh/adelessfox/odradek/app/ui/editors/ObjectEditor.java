@@ -11,9 +11,10 @@ import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
-import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
@@ -128,10 +129,10 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
         tree.setTransferHandler(new ObjectEditorTransferHandler());
-        tree.setLabelProvider(new TreeLabelProvider<>() {
+        tree.setLabelProvider(new StyledTreeLabelProvider<>() {
             @Override
-            public Optional<String> getText(ObjectStructure element) {
-                return Optional.of(element.toString());
+            public Optional<StyledText> getStyledText(ObjectStructure element) {
+                return Optional.of(element.toStyledText());
             }
 
             @Override

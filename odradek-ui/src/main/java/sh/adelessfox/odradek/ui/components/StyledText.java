@@ -51,6 +51,11 @@ public record StyledText(List<StyledFragment> fragments) {
             return this;
         }
 
+        public Builder add(StyledText text) {
+            segments.addAll(text.fragments());
+            return this;
+        }
+
         public StyledText build() {
             return new StyledText(segments);
         }

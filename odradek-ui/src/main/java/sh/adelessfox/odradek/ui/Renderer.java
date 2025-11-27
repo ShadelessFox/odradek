@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui;
 
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.util.Reflections;
 
 import java.util.List;
@@ -53,7 +54,21 @@ public interface Renderer<T, G extends Game> {
      * @param game   the associated game
      * @return a text, that can be empty, or {@link Optional#empty()} if {@link Object#toString()} should be used instead
      */
-    Optional<String> text(TypeInfo info, T object, G game);
+    default Optional<String> text(TypeInfo info, T object, G game) {
+        return Optional.empty();
+    }
+
+    /**
+     * Similar to {@link #text(TypeInfo, Object, Game)}, but provides styling capabilities.
+     *
+     * @param info   the type of the {@code object}
+     * @param object the object to display the text for
+     * @param game   the associated game
+     * @return a styled text, that can be empty, or {@link Optional#empty()} if {@link Object#toString()} should be used instead
+     */
+    default Optional<StyledText> styledText(TypeInfo info, T object, G game) {
+        return Optional.empty();
+    }
 
     default boolean supports(TypeInfo info) {
         return supportedType().isAssignableFrom(info.type());
