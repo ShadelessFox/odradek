@@ -36,16 +36,16 @@ final class ToolWindowButton extends JComponent {
             FlatUIUtils.setRenderingHints(g2);
 
             int arc = UIScale.scale(10);
-            Color defaultColor = UIManager.getColor("Button.default.hoverBackground");
-            Color rolloverColor = UIManager.getColor("Button.default.pressedBackground");
-            Color selectionColor = UIManager.getColor("Button.selectedBackground");
-            Color focusSelectionColor = UIManager.getColor("Button.default.borderColor");
+            Color defaultColor = UIManager.getColor("ToolWindowButton.background");
+            Color selectionColor = UIManager.getColor("ToolWindowButton.selectedBackground");
+            Color focusedSelectedColor = UIManager.getColor("ToolWindowButton.focusedSelectedColor");
+            Color rolloverColor = UIManager.getColor("ToolWindowButton.rolloverBackground");
 
             boolean isRollover = rollover;
             boolean isSelected = group.isSelected(pane);
             boolean isFocused = isButtonOrChildFocused();
 
-            g2.setColor(isSelected ? (isFocused ? focusSelectionColor : selectionColor) : isRollover ? rolloverColor : defaultColor);
+            g2.setColor(isSelected ? isFocused ? focusedSelectedColor : selectionColor : isRollover ? rolloverColor : defaultColor);
             g2.fillRoundRect(4, 4, 24, 24, arc, arc);
 
             if (icon != null) {
