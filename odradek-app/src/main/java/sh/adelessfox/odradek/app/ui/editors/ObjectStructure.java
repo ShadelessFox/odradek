@@ -1,91 +1,17 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.ui.Renderer;
-import sh.adelessfox.odradek.ui.components.StyledFragment;
-import sh.adelessfox.odradek.ui.components.StyledText;
+import sh.adelessfox.odradek.rtti.ClassAttrInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.ContainerTypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
-    Game game();
-
-    TypeInfo type();
-
-    Object value();
-
-    default Optional<Consumer<StyledText.Builder>> keyTextBuilder() {
-        Consumer<StyledText.Builder> consumer = switch (this) {
-            case Attr x -> tb -> tb
-                .add(x.attr().name(), StyledFragment.NAME)
-                .add(" = ");
-            case Index x -> tb -> tb
-                .add("[" + x.index() + "]", StyledFragment.NAME)
-                .add(" = ");
-            default -> null;
-        };
-        return Optional.ofNullable(consumer);
-    }
-
-    default Optional<Consumer<StyledText.Builder>> valueTextBuilder(boolean allowStyledText) {
-        if (this instanceof Compound) {
-            return Optional.empty();
-        }
-
-        var value = value();
-        if (value == null) {
-            return Optional.of(tb -> tb.add("null", StyledFragment.GRAYED));
-        }
-
-        var type = type();
-        var renderer = Renderer.renderer(type).orElse(null);
-
-        if (renderer != null) {
-            if (allowStyledText) {
-                var styledText = renderer.styledText(type, value, game()).orElse(null);
-                if (styledText != null) {
-                    return Optional.of(tb -> tb.add(styledText));
-                }
-            }
-            var text = renderer.text(type, value, game()).orElse(null);
-            if (text != null) {
-                return Optional.of(tb -> tb.add(text));
-            }
-            return Optional.empty();
-        } else if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
-            // Special case for primitive values; could become a dedicated renderer later
-            return Optional.of(tb -> tb.add(String.valueOf(value)));
-        } else {
-            // Other types don't deserve a toString representation unless provided explicitly
-            return Optional.empty();
-        }
-    }
-
-    default StyledText toStyledText() {
-        var tb = StyledText.builder();
-        var keyTextBuilder = keyTextBuilder().orElse(null);
-        var valueTextBuilder = valueTextBuilder(true).orElse(null);
-
-        if (keyTextBuilder != null) {
-            keyTextBuilder.accept(tb);
-        }
-
-        if (valueTextBuilder != null) {
-            tb.add("{" + type() + "} ", StyledFragment.GRAYED);
-            valueTextBuilder.accept(tb);
-        } else {
-            tb.add("{" + type() + "}");
-        }
-
-        return tb.build();
-    }
-
     record Compound(Game game, ClassTypeInfo type, Object object) implements ObjectStructure {
         @Override
         public Object value() {
@@ -154,6 +80,12 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
             return Objects.hash(info, System.identityHashCode(object), index);
         }
     }
+
+    Game game();
+
+    TypeInfo type();
+
+    Object value();
 
     @Override
     default ObjectStructure getRoot() {

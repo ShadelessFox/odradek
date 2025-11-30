@@ -9,8 +9,10 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
@@ -27,6 +29,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     private final ObjectEditorInput input;
@@ -132,7 +135,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         tree.setLabelProvider(new StyledTreeLabelProvider<>() {
             @Override
             public Optional<StyledText> getStyledText(ObjectStructure element) {
-                return Optional.of(element.toStyledText());
+                return Optional.of(getElementText(element));
             }
 
             @Override
@@ -164,9 +167,65 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         return tree;
     }
 
+    // region Text
+    private static StyledText getElementText(ObjectStructure s) {
+        var builder = StyledText.builder();
+        keyTextBuilder(s).ifPresent(b -> b.accept(builder));
+        builder.add("{" + s.type() + "} ", StyledFragment.GRAYED);
+        valueTextBuilder(s).ifPresent(b -> b.accept(builder));
+        return builder.build();
+    }
+
+    private static Optional<Consumer<StyledText.Builder>> keyTextBuilder(ObjectStructure s) {
+        Consumer<StyledText.Builder> consumer = switch (s) {
+            case ObjectStructure.Attr x -> b -> b
+                .add(x.attr().name(), StyledFragment.NAME)
+                .add(" = ");
+            case ObjectStructure.Index x -> b -> b
+                .add("[" + x.index() + "]", StyledFragment.NAME)
+                .add(" = ");
+            default -> null;
+        };
+        return Optional.ofNullable(consumer);
+    }
+
+    private static Optional<Consumer<StyledText.Builder>> valueTextBuilder(ObjectStructure s) {
+        var value = s.value();
+        if (value == null) {
+            return Optional.of(b -> b.add("null"));
+        }
+
+        var type = s.type();
+        var renderer = Renderer.renderer(type).orElse(null);
+
+        if (renderer != null) {
+            var styledText = renderer.styledText(type, value, s.game()).orElse(null);
+            if (styledText != null) {
+                return Optional.of(tb -> tb.add(styledText));
+            }
+
+            var text = renderer.text(type, value, s.game()).orElse(null);
+            if (text != null) {
+                return Optional.of(tb -> tb.add(text));
+            }
+
+            return Optional.empty();
+        }
+
+        if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
+            // Special case for primitive values; could become a dedicated renderer later
+            return Optional.of(tb -> tb.add(String.valueOf(value)));
+        }
+
+        // Other types don't deserve a toString representation unless provided explicitly
+        return Optional.empty();
+    }
+    // endregion
+
+    // region Tooltip
     private static String getElementToolTip(ObjectStructure element) {
-        TypeInfo type = element.type();
-        StringBuilder buf = new StringBuilder();
+        var type = element.type();
+        var buf = new StringBuilder();
 
         buf.append("<html><table>");
         switch (type) {
@@ -263,4 +322,5 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         }
         return String.format("<span color=\"#%06x\">%s</span>", color.getRGB() & 0xffffff, text);
     }
+    // endregion
 }
