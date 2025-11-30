@@ -192,6 +192,7 @@ public final class Viewport extends JPanel {
         }
 
         camera.resize(getFramebufferWidth(), getFramebufferHeight());
+        cameraOriginShown = false;
 
         var sensitivity = 1.0f;
         var mouseDelta = input.mousePositionDelta().mul(sensitivity);
@@ -208,8 +209,6 @@ public final class Viewport extends JPanel {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updateOrbitCamera(mouseDelta);
             cameraOriginShown = true;
-        } else {
-            cameraOriginShown = false;
         }
     }
 

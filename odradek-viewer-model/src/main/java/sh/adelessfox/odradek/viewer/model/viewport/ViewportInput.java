@@ -75,6 +75,12 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
     @Override
     public void mousePressed(MouseEvent e) {
         mouseState.add(e.getButton());
+
+        if (mouseState.size() > 1) {
+            // Another button was already pressed; don't override the state
+            return;
+        }
+
         mouseRecent.x = e.getX();
         mouseRecent.y = e.getY();
         mouseDelta.x = 0;
@@ -89,6 +95,11 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
     @Override
     public void mouseReleased(MouseEvent e) {
         mouseState.remove(e.getButton());
+
+        if (!mouseState.isEmpty()) {
+            // If any other button is still pressed, don't reset the state
+            return;
+        }
 
         if (robot != null) {
             viewport.setCursor(null);
