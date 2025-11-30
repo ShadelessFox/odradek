@@ -178,11 +178,12 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
 
     private static Optional<Consumer<StyledText.Builder>> keyTextBuilder(ObjectStructure s) {
         Consumer<StyledText.Builder> consumer = switch (s) {
-            case ObjectStructure.Attr x -> b -> b
-                .add(x.attr().name(), StyledFragment.NAME)
-                .add(" = ");
-            case ObjectStructure.Index x -> b -> b
-                .add("[" + x.index() + "]", StyledFragment.NAME)
+            case ObjectStructure.Attr(_, _, ClassAttrInfo attr, _) -> b -> {
+                attr.group().ifPresent(g -> b.add(g + '.', StyledFragment.NAME_DISABLED));
+                b.add(attr.name(), StyledFragment.NAME).add(" = ");
+            };
+            case ObjectStructure.Index(_, _, _, int index) -> b -> b
+                .add("[" + index + "]", StyledFragment.NAME)
                 .add(" = ");
             default -> null;
         };

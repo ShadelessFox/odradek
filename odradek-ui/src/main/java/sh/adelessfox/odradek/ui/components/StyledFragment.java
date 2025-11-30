@@ -13,6 +13,7 @@ public record StyledFragment(
     boolean italic
 ) {
     public static final Consumer<Builder> NAME = b -> b.foreground(UIManager.getColor("StyledFragment.nameForeground"));
+    public static final Consumer<Builder> NAME_DISABLED = b -> b.foreground(UIManager.getColor("StyledFragment.nameDisabledForeground"));
     public static final Consumer<Builder> NUMBER = b -> b.foreground(UIManager.getColor("StyledFragment.numberForeground"));
     public static final Consumer<Builder> STRING = b -> b.foreground(UIManager.getColor("StyledFragment.stringForeground"));
     public static final Consumer<Builder> GRAYED = b -> b.foreground(UIManager.getColor("Label.disabledForeground"));
