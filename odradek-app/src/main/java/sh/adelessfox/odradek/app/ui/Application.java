@@ -15,16 +15,14 @@ import sh.adelessfox.odradek.ui.data.DataContext;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
 
-    public void launch(Path source, boolean darkTheme, List<ObjectId> objects) throws IOException {
+    public void launch(ApplicationParameters params) throws IOException {
         log.info("Loading game assets");
-        ForbiddenWestGame game = new ForbiddenWestGame(source, EPlatform.WinGame);
+        ForbiddenWestGame game = new ForbiddenWestGame(params.sourcePath(), EPlatform.WinGame);
 
         log.info("Starting the application");
 
@@ -40,10 +38,13 @@ public final class Application {
         });
 
         SwingUtilities.invokeLater(() -> {
-            FlatInspector.install("ctrl shift alt X");
-            FlatUIDefaultsInspector.install("ctrl shift alt Y");
+            if (params.enableDebugMode()) {
+                UIManager.put(ApplicationKeys.DEBUG_MODE, Boolean.TRUE);
+                FlatInspector.install("ctrl shift alt X");
+                FlatUIDefaultsInspector.install("ctrl shift alt Y");
+            }
 
-            if (darkTheme) {
+            if (params.enableDarkTheme()) {
                 FlatDarkLaf.setup();
             } else {
                 FlatLightLaf.setup();
@@ -52,7 +53,7 @@ public final class Application {
             var frame = new JFrame();
             Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, context);
             frame.add(component.presenter().getRoot());
-            frame.setTitle("Odradek - " + source);
+            frame.setTitle("Odradek - " + params.sourcePath());
             frame.setSize(1280, 720);
             frame.setLocationRelativeTo(null);
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -60,7 +61,7 @@ public final class Application {
 
             JOptionPane.setRootFrame(frame);
 
-            for (ObjectId object : objects) {
+            for (ObjectId object : params.objectsToOpen()) {
                 component.presenter().showObject(object.groupId(), object.objectIndex());
             }
         });
