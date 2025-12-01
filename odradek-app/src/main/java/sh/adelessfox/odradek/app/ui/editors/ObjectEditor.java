@@ -27,9 +27,11 @@ import sh.adelessfox.odradek.ui.util.Icons;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     private final ObjectEditorInput input;
@@ -132,22 +134,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
         tree.setTransferHandler(new ObjectEditorTransferHandler());
-        tree.setLabelProvider(new StyledTreeLabelProvider<>() {
-            @Override
-            public Optional<StyledText> getStyledText(ObjectStructure element) {
-                return Optional.of(getElementText(element));
-            }
-
-            @Override
-            public Optional<Icon> getIcon(ObjectStructure element) {
-                return Optional.of(Fugue.getIcon("blue-document"));
-            }
-
-            @Override
-            public Optional<String> getToolTip(ObjectStructure element) {
-                return Optional.of(getElementToolTip(element));
-            }
-        });
+        tree.setLabelProvider(new ObjectEditorLabelProvider());
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof TreeItem<?> wrapper) {
@@ -168,29 +155,43 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     }
 
     // region Text
+    private static Optional<Transferable> getElementTransferable(ObjectStructure s) {
+        return valueTextBuilder(s)
+            .map(b -> b.apply(StyledText.builder()))
+            .map(b -> b.build().toString())
+            .map(StringSelection::new);
+    }
+
     private static StyledText getElementText(ObjectStructure s) {
         var builder = StyledText.builder();
-        keyTextBuilder(s).ifPresent(b -> b.accept(builder));
+        keyTextBuilder(s).ifPresent(b -> b.apply(builder));
         builder.add("{" + s.type() + "} ", StyledFragment.GRAYED);
-        valueTextBuilder(s).ifPresent(b -> b.accept(builder));
+        valueTextBuilder(s).ifPresent(b -> b.apply(builder));
         return builder.build();
     }
 
-    private static Optional<Consumer<StyledText.Builder>> keyTextBuilder(ObjectStructure s) {
-        Consumer<StyledText.Builder> consumer = switch (s) {
-            case ObjectStructure.Attr(_, _, ClassAttrInfo attr, _) -> b -> {
-                attr.group().ifPresent(g -> b.add(g + '.', StyledFragment.NAME_DISABLED));
-                b.add(attr.name(), StyledFragment.NAME).add(" = ");
-            };
+    private static Optional<Function<StyledText.Builder, StyledText.Builder>> keyTextBuilder(ObjectStructure s) {
+        Function<StyledText.Builder, StyledText.Builder> function = switch (s) {
+            // [Group].[Attr] =
+            case ObjectStructure.Attr(_, _, var attr, _) when attr.group().isPresent() -> b -> b
+                .add(attr.group().orElseThrow() + '.', StyledFragment.NAME_DISABLED)
+                .add(attr.name(), StyledFragment.NAME).add(" = ");
+
+            // [Attr] =
+            case ObjectStructure.Attr(_, _, var attr, _) -> b -> b
+                .add(attr.name(), StyledFragment.NAME).add(" = ");
+
+            // [Index] =
             case ObjectStructure.Index(_, _, _, int index) -> b -> b
                 .add("[" + index + "]", StyledFragment.NAME)
                 .add(" = ");
+
             default -> null;
         };
-        return Optional.ofNullable(consumer);
+        return Optional.ofNullable(function);
     }
 
-    private static Optional<Consumer<StyledText.Builder>> valueTextBuilder(ObjectStructure s) {
+    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(ObjectStructure s) {
         var value = s.value();
         if (value == null) {
             return Optional.of(b -> b.add("null"));
@@ -224,8 +225,8 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     // endregion
 
     // region Tooltip
-    private static String getElementToolTip(ObjectStructure element) {
-        var type = element.type();
+    private static String getElementToolTip(ObjectStructure s) {
+        var type = s.type();
         var buf = new StringBuilder();
 
         buf.append("<html><table>");
@@ -236,7 +237,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
                 appendRow(buf, "Base", getTypeHierarchy(i.base(), false));
             }
             case EnumTypeInfo i -> {
-                var value = (Value<?>) element.value();
+                var value = (Value<?>) s.value();
                 appendSection(buf, "Enum");
                 appendRow(buf, "Type", getTypeHierarchy(type, false));
                 appendRow(buf, "Size", i.size() == 1 ? "1 byte" : i.size() + " bytes");
@@ -261,7 +262,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
                 appendRow(buf, "Item", getTypeHierarchy(i.itemType(), false));
             }
         }
-        if (element instanceof ObjectStructure.Attr(_, _, var attr, _)) {
+        if (s instanceof ObjectStructure.Attr(_, _, var attr, _)) {
             appendSection(buf, "Attribute");
             appendRow(buf, "Flags", toText(attr.flags()));
             appendRow(buf, "Min value", attr.min().orElse("NOT SET"));
@@ -324,4 +325,37 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         return String.format("<span color=\"#%06x\">%s</span>", color.getRGB() & 0xffffff, text);
     }
     // endregion
+
+    private static class ObjectEditorTransferHandler extends TransferHandler {
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+            var tree = (StructuredTree<?>) c;
+            if (tree.getSelectionPathComponent() instanceof ObjectStructure structure) {
+                return getElementTransferable(structure).orElse(null);
+            }
+            return super.createTransferable(c);
+        }
+
+        @Override
+        public int getSourceActions(JComponent c) {
+            return COPY;
+        }
+    }
+
+    private static class ObjectEditorLabelProvider implements StyledTreeLabelProvider<ObjectStructure> {
+        @Override
+        public Optional<StyledText> getStyledText(ObjectStructure element) {
+            return Optional.of(getElementText(element));
+        }
+
+        @Override
+        public Optional<Icon> getIcon(ObjectStructure element) {
+            return Optional.of(Fugue.getIcon("blue-document"));
+        }
+
+        @Override
+        public Optional<String> getToolTip(ObjectStructure element) {
+            return Optional.of(getElementToolTip(element));
+        }
+    }
 }
