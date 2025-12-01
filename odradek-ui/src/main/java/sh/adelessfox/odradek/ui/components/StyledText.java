@@ -5,6 +5,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * A text that consists of multiple fragment each having its own styling,
+ * like foreground and background color, font style, etc.
+ *
+ * @param fragments a list of fragments this styled text consists of
+ */
+
 public record StyledText(List<StyledFragment> fragments) {
     public static Builder builder() {
         return new Builder();
@@ -16,10 +23,6 @@ public record StyledText(List<StyledFragment> fragments) {
 
     public StyledText {
         fragments = List.copyOf(fragments);
-    }
-
-    public Builder toBuilder() {
-        return new Builder(fragments);
     }
 
     @Override

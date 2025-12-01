@@ -183,7 +183,7 @@ public class StyledComponent extends JComponent {
 
                 int fragmentBaseline = area.y + area.height - metrics.getDescent();
                 float fragmentWidth = computeFragmentWidth(fragment, font);
-                Color color = fragment.withForeground().orElseGet(this::getForeground);
+                Color color = fragment.foreground().orElseGet(this::getForeground);
 
                 if (DEBUG_OVERLAY) {
                     g.setColor(Color.LIGHT_GRAY);

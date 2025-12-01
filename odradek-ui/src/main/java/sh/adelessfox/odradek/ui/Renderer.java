@@ -64,7 +64,8 @@ public interface Renderer<T, G extends Game> {
      * @param info   the type of the {@code object}
      * @param object the object to display the text for
      * @param game   the associated game
-     * @return a styled text, that can be empty, or {@link Optional#empty()} if {@link Object#toString()} should be used instead
+     * @return a styled text, that can be empty, or {@link Optional#empty()} in which case
+     * {@link #text(TypeInfo, Object, Game)} will be called instead
      */
     default Optional<StyledText> styledText(TypeInfo info, T object, G game) {
         return Optional.empty();

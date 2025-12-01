@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 public record StyledFragment(
     String text,
     Optional<Color> background,
-    Optional<Color> withForeground,
+    Optional<Color> foreground,
     boolean bold,
     boolean italic
 ) {
