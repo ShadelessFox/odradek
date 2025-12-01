@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
 import sh.adelessfox.odradek.app.cli.data.ObjectId;
 import sh.adelessfox.odradek.app.cli.data.ObjectIdConverter;
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationParameters;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -36,6 +37,9 @@ public class Main implements Callable<Void> {
     @Option(names = {"--dark"}, description = "Use dark theme for the UI")
     private boolean darkTheme = false;
 
+    @Option(names = {"--debug"}, description = "Enable debug mode for the UI that features various inspectors")
+    private boolean debugMode = false;
+
     static void main(String[] args) {
         new CommandLine(Main.class)
             .registerConverter(ObjectId.class, new ObjectIdConverter())
@@ -49,7 +53,12 @@ public class Main implements Callable<Void> {
             source = chooseGameDirectory();
         }
         if (source != null) {
-            new Application().launch(source, darkTheme, objects);
+            new Application().launch(new ApplicationParameters(
+                source,
+                objects,
+                darkTheme,
+                debugMode
+            ));
         } else {
             log.info("No source directory was provided, exiting");
         }
