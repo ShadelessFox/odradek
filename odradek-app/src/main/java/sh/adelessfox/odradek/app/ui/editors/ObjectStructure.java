@@ -1,22 +1,17 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.ui.Renderer;
+import sh.adelessfox.odradek.rtti.ClassAttrInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.ContainerTypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.IntStream;
 
 public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
-    Game game();
-
-    TypeInfo type();
-
-    Object value();
-
     record Compound(Game game, ClassTypeInfo type, Object object) implements ObjectStructure {
         @Override
         public Object value() {
@@ -33,11 +28,6 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         @Override
         public int hashCode() {
             return Objects.hash(type, System.identityHashCode(object));
-        }
-
-        @Override
-        public String toString() {
-            return ObjectStructure.getDisplayString(this);
         }
     }
 
@@ -64,11 +54,6 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         public int hashCode() {
             return Objects.hash(attr, System.identityHashCode(object));
         }
-
-        @Override
-        public String toString() {
-            return "%s = %s".formatted(attr.name(), ObjectStructure.getDisplayString(this));
-        }
     }
 
     record Index(Game game, ContainerTypeInfo info, Object object, int index) implements ObjectStructure {
@@ -94,12 +79,13 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
         public int hashCode() {
             return Objects.hash(info, System.identityHashCode(object), index);
         }
-
-        @Override
-        public String toString() {
-            return "[%d] = %s".formatted(index, ObjectStructure.getDisplayString(this));
-        }
     }
+
+    Game game();
+
+    TypeInfo type();
+
+    Object value();
 
     @Override
     default ObjectStructure getRoot() {
@@ -132,31 +118,5 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
             case ClassTypeInfo _, ContainerTypeInfo _ -> true;
             default -> false;
         };
-    }
-
-    static String getDisplayString(ObjectStructure structure) {
-        return ObjectStructure.getValueString(structure)
-            .map(v -> "{%s} %s".formatted(structure.type(), v))
-            .orElseGet(() -> "{%s}".formatted(structure.type()));
-    }
-
-    static Optional<String> getValueString(ObjectStructure structure) {
-        var value = structure.value();
-        if (value == null) {
-            return Optional.of("null");
-        }
-
-        var type = structure.type();
-        var renderer = Renderer.renderer(type);
-
-        if (renderer.isPresent()) {
-            return renderer.flatMap(r -> r.text(type, value, structure.game()));
-        } else if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
-            // Special case for primitive values; could become a dedicated renderer later
-            return Optional.of(String.valueOf(value));
-        } else {
-            // Other types don't deserve a toString representation unless provided explicitly
-            return Optional.empty();
-        }
     }
 }
