@@ -156,7 +156,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
 
     // region Text
     private static Optional<Transferable> getElementTransferable(ObjectStructure s) {
-        return valueTextBuilder(s)
+        return valueTextBuilder(s, false)
             .map(b -> b.apply(StyledText.builder()))
             .map(b -> b.build().toString())
             .map(StringSelection::new);
@@ -166,7 +166,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         var builder = StyledText.builder();
         keyTextBuilder(s).ifPresent(b -> b.apply(builder));
         builder.add("{" + s.type() + "} ", StyledFragment.GRAYED);
-        valueTextBuilder(s).ifPresent(b -> b.apply(builder));
+        valueTextBuilder(s, true).ifPresent(b -> b.apply(builder));
         return builder.build();
     }
 
@@ -191,7 +191,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         return Optional.ofNullable(function);
     }
 
-    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(ObjectStructure s) {
+    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(ObjectStructure s, boolean allowStyledText) {
         var value = s.value();
         if (value == null) {
             return Optional.of(b -> b.add("null"));
@@ -201,9 +201,11 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         var renderer = Renderer.renderer(type).orElse(null);
 
         if (renderer != null) {
-            var styledText = renderer.styledText(type, value, s.game()).orElse(null);
-            if (styledText != null) {
-                return Optional.of(tb -> tb.add(styledText));
+            if (allowStyledText) {
+                var styledText = renderer.styledText(type, value, s.game()).orElse(null);
+                if (styledText != null) {
+                    return Optional.of(tb -> tb.add(styledText));
+                }
             }
 
             var text = renderer.text(type, value, s.game()).orElse(null);
