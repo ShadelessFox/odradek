@@ -114,6 +114,8 @@ public final class GLCanvas extends Canvas {
     }
 
     public void render() {
+        ensureEDT();
+
         if (canvas == null) {
             return;
         }
@@ -133,6 +135,7 @@ public final class GLCanvas extends Canvas {
     }
 
     public void addGLEventListener(GLEventListener listener) {
+        ensureEDT();
         listeners.add(listener);
         if (context != 0) {
             submit(listener::onCreate);
@@ -140,6 +143,7 @@ public final class GLCanvas extends Canvas {
     }
 
     public void removeGLEventListener(GLEventListener listener) {
+        ensureEDT();
         listeners.remove(listener);
         if (context != 0) {
             submit(listener::onDestroy);
@@ -159,14 +163,7 @@ public final class GLCanvas extends Canvas {
      *
      * @param runnable the runnable to execute
      */
-    public void submit(Runnable runnable) {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            throw new IllegalStateException("AWTGLCanvas methods must be called from the Event Dispatch Thread");
-        }
-        if (canvas == null) {
-            return;
-        }
-
+    private void submit(Runnable runnable) {
         canvas.lock();
         canvas.makeCurrent(context);
 
@@ -183,6 +180,12 @@ public final class GLCanvas extends Canvas {
 
             canvas.makeCurrent(0);
             canvas.unlock();
+        }
+    }
+
+    private static void ensureEDT() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            throw new IllegalStateException("AWTGLCanvas methods must be called from the Event Dispatch Thread");
         }
     }
 
