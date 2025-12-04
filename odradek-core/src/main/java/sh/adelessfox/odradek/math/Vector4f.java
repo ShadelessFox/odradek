@@ -19,4 +19,20 @@ public record Vector4f(float x, float y, float z, float w) {
 
         return new Vector4f(x, y, z, w);
     }
+
+    public Vector4f add(Vector4f other) {
+        return add(other.x(), other.y(), other.z(), other.w());
+    }
+
+    public Vector4f add (float x, float y, float z, float w) {
+        return new Vector4f(x() + x,  y() + y, z() + z, w() + w);
+    }
+
+    public Vector4f sub(Vector4f other) {
+        return sub(other.x(), other.y(), other.z(), other.w());
+    }
+
+    public Vector4f sub(float x, float y, float z, float w) {
+        return new Vector4f(x() - x,  y() - y, z() - z, w() - w);
+    }
 }
