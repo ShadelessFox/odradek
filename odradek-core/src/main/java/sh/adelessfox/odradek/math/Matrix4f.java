@@ -229,6 +229,16 @@ public record Matrix4f(
         );
     }
 
+    public Vector4f get(int column) {
+        return switch (column) {
+            case 0 -> new Vector4f(m00, m10, m20, m30);
+            case 1 -> new Vector4f(m01, m11, m21, m31);
+            case 2 -> new Vector4f(m02, m12, m22, m32);
+            case 3 -> new Vector4f(m03, m13, m23, m33);
+            default -> throw new IllegalArgumentException("Column must be in range 0, 3");
+        };
+    }
+
     public FloatBuffer get(FloatBuffer dst) {
         dst.put(m00).put(m01).put(m02).put(m03);
         dst.put(m10).put(m11).put(m12).put(m13);

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
+import sh.adelessfox.odradek.math.BoundingBox;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.*;
@@ -13,6 +14,7 @@ import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
+import sh.adelessfox.odradek.viewer.model.viewport.Frustum;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
@@ -32,6 +34,7 @@ public final class RenderMeshesPass implements RenderPass {
     private static final int FLAG_HAS_UV = 1 << 1;
 
     private final Map<Node, GpuNode> cache = new IdentityHashMap<>();
+    private final Frustum frustum = new Frustum();
 
     private ShaderProgram program;
     private Texture diffuseTexture;
@@ -98,43 +101,47 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void renderScene(Camera camera, Scene scene, boolean wireframe) {
+        glEnable(GL_DEPTH_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
+
         try (var program = this.program.bind()) {
             program.set("u_view", camera.view());
             program.set("u_projection", camera.projection());
             program.set("u_view_position", camera.position());
 
+            frustum.update(camera.projectionView());
+
             for (Node node : scene.nodes()) {
-                renderNode(node, node.matrix(), wireframe);
+                renderNode(node, node.matrix());
             }
         }
+
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    private void renderNode(Node node, Matrix4f transform, boolean wireframe) {
-        glEnable(GL_DEPTH_TEST);
-        glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
-
+    private void renderNode(Node node, Matrix4f transform) {
         if (node.mesh().isPresent()) {
-            GpuNode data = cache.computeIfAbsent(node, this::uploadNode);
+            var data = cache.computeIfAbsent(node, this::uploadNode);
 
-            for (GpuPrimitive primitive : data.primitives()) {
-                int flags = primitive.buildFlags();
+            if (frustum.test(data.bbox().transform(transform))) {
+                for (GpuPrimitive primitive : data.primitives()) {
+                    int flags = primitive.buildFlags();
 
-                program.set("u_model", transform);
-                program.set("u_color", primitive.color);
-                program.set("u_texture", diffuseSampler);
-                program.set("u_flags", flags);
+                    program.set("u_model", transform);
+                    program.set("u_color", primitive.color);
+                    program.set("u_texture", diffuseSampler);
+                    program.set("u_flags", flags);
 
-                try (var _ = primitive.vao.bind()) {
-                    glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
+                    try (var _ = primitive.vao.bind()) {
+                        glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
+                    }
                 }
             }
         }
 
         for (Node child : node.children()) {
-            renderNode(child, transform.mul(child.matrix()), wireframe);
+            renderNode(child, transform.mul(child.matrix()));
         }
-
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
     private GpuNode uploadNode(Node node) {
@@ -144,7 +151,7 @@ public final class RenderMeshesPass implements RenderPass {
             .flatMap(Optional::stream)
             .toList();
 
-        return new GpuNode(primitives);
+        return new GpuNode(primitives, node.computeBoundingBox());
     }
 
     private Optional<GpuPrimitive> uploadPrimitive(Primitive primitive) {
@@ -223,7 +230,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuNode(List<GpuPrimitive> primitives) {
+    private record GpuNode(List<GpuPrimitive> primitives, BoundingBox bbox) {
         void dispose() {
             for (GpuPrimitive primitive : primitives) {
                 primitive.dispose();
