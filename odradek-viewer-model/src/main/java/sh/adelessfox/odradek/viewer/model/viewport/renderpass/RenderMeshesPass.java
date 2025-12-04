@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.BoundingBox;
+import sh.adelessfox.odradek.math.Frustum;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.*;
@@ -14,7 +15,6 @@ import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
-import sh.adelessfox.odradek.viewer.model.viewport.Frustum;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 
 import javax.imageio.ImageIO;
@@ -34,7 +34,6 @@ public final class RenderMeshesPass implements RenderPass {
     private static final int FLAG_HAS_UV = 1 << 1;
 
     private final List<GpuNode> nodes = new ArrayList<>();
-    private final Frustum frustum = new Frustum();
 
     private ShaderProgram program;
     private Texture diffuseTexture;
@@ -109,17 +108,16 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_projection", camera.projection());
             program.set("u_view_position", camera.position());
 
-            frustum.update(camera.projectionView());
-
+            var frustum = Frustum.of(camera.projectionView());
             for (GpuNode node : nodes) {
-                renderNode(node);
+                renderNode(node, frustum);
             }
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    private void renderNode(GpuNode node) {
+    private void renderNode(GpuNode node, Frustum frustum) {
         if (!frustum.test(node.bbox())) {
             return;
         }
