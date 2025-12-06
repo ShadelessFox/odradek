@@ -59,6 +59,10 @@ public record StyledText(List<StyledFragment> fragments) {
             return this;
         }
 
+        public boolean isEmpty() {
+            return segments.isEmpty();
+        }
+
         public StyledText build() {
             return new StyledText(segments);
         }
