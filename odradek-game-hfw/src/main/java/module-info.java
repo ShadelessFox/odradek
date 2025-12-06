@@ -1,6 +1,6 @@
 import sh.adelessfox.odradek.game.hfw.converters.MeshToSceneConverter;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
-import sh.adelessfox.odradek.game.hfw.rtti.data.*;
+import sh.adelessfox.odradek.game.hfw.rtti.extensions.*;
 import sh.adelessfox.odradek.rtti.GenerateBindings;
 import sh.adelessfox.odradek.rtti.GenerateBindings.Builtin;
 import sh.adelessfox.odradek.rtti.GenerateBindings.Callback;
@@ -82,6 +82,7 @@ module odradek.game.hfw {
     exports sh.adelessfox.odradek.game.hfw.game;
     exports sh.adelessfox.odradek.game.hfw.rtti.callbacks;
     exports sh.adelessfox.odradek.game.hfw.rtti.data;
+    exports sh.adelessfox.odradek.game.hfw.rtti.extensions;
     exports sh.adelessfox.odradek.game.hfw.rtti;
     exports sh.adelessfox.odradek.game.hfw.storage;
     exports sh.adelessfox.odradek.game.hfw;

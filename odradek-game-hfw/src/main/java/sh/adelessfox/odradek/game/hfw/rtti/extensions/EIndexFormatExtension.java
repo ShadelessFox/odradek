@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.game.hfw.rtti.data;
+package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EIndexFormat;
 

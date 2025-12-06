@@ -5,8 +5,8 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetType;
 
 import java.util.Optional;
 
-public record PackingInfoChannel(Optional<ETextureSetChannel> channel, ETextureSetType type) {
-    public static Optional<PackingInfoChannel> of(int packingInfo) {
+public record TextureSetPackingChannel(Optional<ETextureSetChannel> channel, ETextureSetType type) {
+    public static Optional<TextureSetPackingChannel> of(int packingInfo) {
         var type = ETextureSetType.valueOf(packingInfo & 0xf);
         if (type == ETextureSetType.Invalid) {
             return Optional.empty();
@@ -19,7 +19,7 @@ public record PackingInfoChannel(Optional<ETextureSetChannel> channel, ETextureS
             channel = Optional.empty();
         }
 
-        return Optional.of(new PackingInfoChannel(channel, type));
+        return Optional.of(new TextureSetPackingChannel(channel, type));
     }
 
     @Override
