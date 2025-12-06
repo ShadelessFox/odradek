@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import sh.adelessfox.odradek.app.cli.data.ObjectId;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;

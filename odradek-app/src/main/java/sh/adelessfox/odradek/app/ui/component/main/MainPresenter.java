@@ -8,13 +8,16 @@ import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphViewEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
+import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.EditorManager.Activation;
 import sh.adelessfox.odradek.util.Futures;
+import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
 import java.util.Optional;
@@ -43,6 +46,23 @@ public class MainPresenter implements Presenter<MainView> {
         this.editorManager = editorManager;
 
         eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> showObject(event.groupId(), event.objectIndex()));
+        eventBus.subscribe(SettingsEvent.class, event -> {
+            switch (event) {
+                case SettingsEvent.AfterLoad(var settings) -> settings.objects().ifPresent(objects -> {
+                    for (ObjectId object : objects) {
+                        showObject(object.groupId(), object.objectIndex());
+                    }
+                });
+                case SettingsEvent.BeforeSave(var settings) -> {
+                    var objects = editorManager.getEditors().stream()
+                        .map(Editor::getInput)
+                        .gather(Gatherers.instanceOf(ObjectEditorInput.class))
+                        .map(i -> new ObjectId(i.groupId(), i.objectIndex()))
+                        .toList();
+                    settings.objects().set(objects);
+                }
+            }
+        });
     }
 
     public void showObject(int groupId, int objectIndex) {

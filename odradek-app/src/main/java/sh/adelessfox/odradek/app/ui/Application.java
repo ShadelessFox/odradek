@@ -6,7 +6,6 @@ import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.cli.data.ObjectId;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
@@ -61,9 +60,8 @@ public final class Application {
 
             JOptionPane.setRootFrame(frame);
 
-            for (ObjectId object : params.objectsToOpen()) {
-                component.presenter().showObject(object.groupId(), object.objectIndex());
-            }
+            // Ensure settings are loaded after everything else. Seems hacky
+            component.settings();
         });
     }
 }

@@ -28,9 +28,9 @@ module odradek.app {
     requires odradek.viewer.texture;
 
     opens sh.adelessfox.odradek.app to info.picocli;
-    opens sh.adelessfox.odradek.app.ui to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;
-    opens sh.adelessfox.odradek.app.cli.data to info.picocli;
+    opens sh.adelessfox.odradek.app.ui to info.picocli;
+    opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,

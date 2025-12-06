@@ -6,15 +6,12 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
-import sh.adelessfox.odradek.app.cli.data.ObjectId;
-import sh.adelessfox.odradek.app.cli.data.ObjectIdConverter;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
+import sh.adelessfox.odradek.game.ObjectId;
 
 import javax.swing.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 @Command(
@@ -31,9 +28,6 @@ public class Main implements Callable<Void> {
     @Option(names = {"-s", "--source"}, description = "Path to the game's root directory where its executable resides")
     private Path source;
 
-    @Option(names = {"-o", "--open"}, description = "An object to open an editor for in a form of <groupId:objectIndex>, e.g. 2981:65")
-    private final List<ObjectId> objects = new ArrayList<>();
-
     @Option(names = {"--dark"}, description = "Use dark theme for the UI")
     private boolean darkTheme = false;
 
@@ -42,7 +36,7 @@ public class Main implements Callable<Void> {
 
     static void main(String[] args) {
         new CommandLine(Main.class)
-            .registerConverter(ObjectId.class, new ObjectIdConverter())
+            .registerConverter(ObjectId.class, ObjectId::valueOf)
             .execute(args);
     }
 
@@ -55,7 +49,6 @@ public class Main implements Callable<Void> {
         if (source != null) {
             new Application().launch(new ApplicationParameters(
                 source,
-                objects,
                 darkTheme,
                 debugMode
             ));

@@ -1,10 +1,7 @@
-package sh.adelessfox.odradek.app.cli.data;
+package sh.adelessfox.odradek.game;
 
-import picocli.CommandLine.ITypeConverter;
-
-public final class ObjectIdConverter implements ITypeConverter<ObjectId> {
-    @Override
-    public ObjectId convert(String value) {
+public record ObjectId(int groupId, int objectIndex) {
+    public static ObjectId valueOf(String value) {
         var parts = value.split(":");
         if (parts.length != 2) {
             throw new IllegalArgumentException("Expected object id to be in form of groupId:objectIndex");
@@ -13,5 +10,10 @@ public final class ObjectIdConverter implements ITypeConverter<ObjectId> {
             Integer.parseInt(parts[0]),
             Integer.parseInt(parts[1])
         );
+    }
+
+    @Override
+    public String toString() {
+        return groupId + ":" + objectIndex;
     }
 }
