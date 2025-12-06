@@ -103828,7 +103828,7 @@
 			{"value": 3, "name": "TAA"},
 			{"value": 4, "name": "NX UPSCALER"},
 			{"value": 5, "name": "NX UPSCALER DLAA"},
-			{"value": 4294967295, "name": "Default"}
+			{"value": -1, "name": "Default"}
 		]
 	},
 	"EAIAtmosphereType": {
@@ -104005,7 +104005,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "None"},
+			{"value": -1, "name": "None"},
 			{"value": 0, "name": "Default"},
 			{"value": 1, "name": "ThirdPerson"},
 			{"value": 2, "name": "FirstPerson"}
@@ -104163,7 +104163,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "Invalid Tether State"},
+			{"value": -1, "name": "Invalid Tether State"},
 			{"value": 0, "name": "Untethered, Idle"},
 			{"value": 1, "name": "Untethered, Searching"},
 			{"value": 2, "name": "Tethered, Loading"},
@@ -104407,7 +104407,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": ""},
+			{"value": -1, "name": ""},
 			{"value": 0, "name": "top-left"},
 			{"value": 1, "name": "top-middle"},
 			{"value": 2, "name": "top-right"},
@@ -104576,7 +104576,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Right"},
 			{"value": 1, "name": "Left"},
 			{"value": 2, "name": "Up"},
@@ -104909,7 +104909,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "INVALID"},
+			{"value": -1, "name": "INVALID"},
 			{"value": 0, "name": "IDLE"},
 			{"value": 1, "name": "TACTICAL"},
 			{"value": 2, "name": "COMBAT"}
@@ -105116,7 +105116,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Outfit"},
 			{"value": 1, "name": "Weapon"}
 		]
@@ -105518,7 +105518,7 @@
 			{"value": 268435456, "name": "User22"},
 			{"value": 536870912, "name": "User23"},
 			{"value": 1073741824, "name": "User24"},
-			{"value": 2147483648, "name": "User25"}
+			{"value": -2147483648, "name": "User25"}
 		]
 	},
 	"EDamageFlagsGameExported": {
@@ -106911,17 +106911,17 @@
 			{"value": 126, "name": "High"},
 			{"value": 30, "name": "AboveNormal"},
 			{"value": 0, "name": "Normal"},
-			{"value": 4294967266, "name": "BelowNormal"},
-			{"value": 4294967170, "name": "Low"},
-			{"value": 4294967169, "name": "Lowest"}
+			{"value": -30, "name": "BelowNormal"},
+			{"value": -126, "name": "Low"},
+			{"value": -127, "name": "Lowest"}
 		]
 	},
 	"EIconType": {
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
-			{"value": 4294967294, "name": "Follow_Menu_Input"},
+			{"value": -1, "name": "Invalid"},
+			{"value": -2, "name": "Follow_Menu_Input"},
 			{"value": 0, "name": "Right"},
 			{"value": 1, "name": "Left"},
 			{"value": 2, "name": "Up"},
@@ -107330,7 +107330,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "Unspecified"},
+			{"value": -1, "name": "Unspecified"},
 			{"value": 0, "name": "Weapons"},
 			{"value": 1, "name": "Tools"},
 			{"value": 2, "name": "Foods"},
@@ -107505,7 +107505,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Write"},
 			{"value": 1, "name": "Mul"},
 			{"value": 2, "name": "Mul2x"},
@@ -107963,7 +107963,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Light"},
 			{"value": 1, "name": "Heavy"},
 			{"value": 2, "name": "Charged"},
@@ -108092,7 +108092,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Unset"},
+			{"value": -1, "name": "Unset"},
 			{"value": 13, "name": "OnPressAccept"},
 			{"value": 14, "name": "OnPressCancel"},
 			{"value": 15, "name": "OnPressStart"},
@@ -108185,7 +108185,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "FUNCTION_UNSET"},
+			{"value": -1, "name": "FUNCTION_UNSET"},
 			{"value": 0, "name": "FUNCTION_DPAD_NAV_UP"},
 			{"value": 1, "name": "FUNCTION_DPAD_NAV_DOWN"},
 			{"value": 2, "name": "FUNCTION_DPAD_NAV_LEFT"},
@@ -108819,7 +108819,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Unset"},
+			{"value": -1, "name": "Unset"},
 			{"value": 0, "name": "Horizontal"},
 			{"value": 1, "name": "Vertical"}
 		]
@@ -109040,7 +109040,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "UNKNOWN"},
+			{"value": -1, "name": "UNKNOWN"},
 			{"value": 0, "name": "CONTROLLER"},
 			{"value": 1, "name": "NAVIGATION"},
 			{"value": 2, "name": "REMOTEPLAY"},
@@ -109424,7 +109424,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "Auto"},
+			{"value": -1, "name": "Auto"},
 			{"value": 0, "name": "TopRight"},
 			{"value": 1, "name": "MiddleRight"},
 			{"value": 2, "name": "BottomRight"},
@@ -109446,7 +109446,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "None"},
+			{"value": -1, "name": "None"},
 			{"value": 0, "name": "0"},
 			{"value": 1, "name": "1"},
 			{"value": 2, "name": "2"},
@@ -109485,7 +109485,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "invalid"},
+			{"value": -1, "name": "invalid"},
 			{"value": 0, "name": "observed_exact"},
 			{"value": 1, "name": "deduced_exact"},
 			{"value": 2, "name": "deduced_rough"},
@@ -109582,7 +109582,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Crashed"},
+			{"value": -1, "name": "Crashed"},
 			{"value": 0, "name": "Success"},
 			{"value": 1, "name": "Failure"},
 			{"value": 2, "name": "Mission failed"},
@@ -109841,7 +109841,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Europe"},
 			{"value": 1, "name": "US"},
 			{"value": 2, "name": "Japan"},
@@ -110028,7 +110028,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "Invalid rendering techniques"},
+			{"value": -1, "name": "Invalid rendering techniques"},
 			{"value": 0, "name": "Normal rendering techniques"},
 			{"value": 1, "name": "Instanced techniques"}
 		]
@@ -110037,7 +110037,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Direct"},
 			{"value": 1, "name": "Unlit"},
 			{"value": 2, "name": "DepthOnly"},
@@ -110450,8 +110450,8 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967294, "name": "Memory"},
-			{"value": 4294967295, "name": "Auto"},
+			{"value": -2, "name": "Memory"},
+			{"value": -1, "name": "Auto"},
 			{"value": 0, "name": "Slot0"},
 			{"value": 1, "name": "Slot1"},
 			{"value": 2, "name": "Slot2"},
@@ -110935,7 +110935,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Automatic"},
+			{"value": -1, "name": "Automatic"},
 			{"value": 0, "name": "High"}
 		]
 	},
@@ -110994,7 +110994,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "None"}
+			{"value": -1, "name": "None"}
 		]
 	},
 	"ESimpleGroupAgentStimulusType": {
@@ -111550,7 +111550,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "INVALID"},
+			{"value": -1, "name": "INVALID"},
 			{"value": 0, "name": "STANDING"},
 			{"value": 1, "name": "CROUCHING"}
 		]
@@ -111573,7 +111573,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Left"},
 			{"value": 1, "name": "Right"}
 		]
@@ -111582,7 +111582,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Move"},
 			{"value": 1, "name": "Look"},
 			{"value": 2, "name": "InventorySelection"},
@@ -111658,7 +111658,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "Off"},
+			{"value": -1, "name": "Off"},
 			{"value": 0, "name": "SuperLow"},
 			{"value": 1, "name": "Low"},
 			{"value": 2, "name": "Medium"},
@@ -112215,7 +112215,7 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967295, "name": "NotSet", "alias": ["Default"]},
+			{"value": -1, "name": "NotSet", "alias": ["Default"]},
 			{"value": 0, "name": "False"},
 			{"value": 1, "name": "True"}
 		]
@@ -112378,7 +112378,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Invalid"},
+			{"value": -1, "name": "Invalid"},
 			{"value": 0, "name": "Vertical"},
 			{"value": 1, "name": "Horizontal"},
 			{"value": 2, "name": "Parkour"}
@@ -112388,7 +112388,7 @@
 		"kind": "enum",
 		"size": 4,
 		"values": [
-			{"value": 4294967295, "name": "Not Set"},
+			{"value": -1, "name": "Not Set"},
 			{"value": 0, "name": "Step Over"},
 			{"value": 1, "name": "Step Up"},
 			{"value": 2, "name": "Step Off"}
@@ -112609,7 +112609,7 @@
 			{"value": 4, "name": "DownsampleQuarter"},
 			{"value": 8, "name": "DownsampleEighth"},
 			{"value": 16, "name": "DownsampleSixteenth"},
-			{"value": 4294967295, "name": "DownsampleToSmallestPossible"}
+			{"value": -1, "name": "DownsampleToSmallestPossible"}
 		]
 	},
 	"EWeaponBlockerCollisionType": {
@@ -112911,9 +112911,9 @@
 		"kind": "enum",
 		"size": 1,
 		"values": [
-			{"value": 4294967293, "name": "Blight"},
-			{"value": 4294967294, "name": "Void"},
-			{"value": 4294967295, "name": "Water"},
+			{"value": -3, "name": "Blight"},
+			{"value": -2, "name": "Void"},
+			{"value": -1, "name": "Water"},
 			{"value": 0, "name": "Plains"},
 			{"value": 1, "name": "Forest"},
 			{"value": 2, "name": "Hills"},
@@ -113066,7 +113066,7 @@
 			{"value": 268435456, "name": "Group 29"},
 			{"value": 536870912, "name": "Group 30"},
 			{"value": 1073741824, "name": "Group 31"},
-			{"value": 2147483648, "name": "Group 32"}
+			{"value": -2147483648, "name": "Group 32"}
 		]
 	},
 	"VirtualRTTIAttributeFlags": {

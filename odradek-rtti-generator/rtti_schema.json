@@ -48,26 +48,30 @@
     "RTTIContainer": {
       "type": "object",
       "properties": {
-        "kind": { "enum": ["container"] }
+        "kind": { "enum": ["container"] },
+				"type": { "type": "string" },
+				"item_type": { "type": "string" }
       },
-      "required": ["kind"],
+      "required": ["kind", "type", "item_type"],
       "additionalProperties": false
     },
     "RTTIPointer": {
       "type": "object",
       "properties": {
-        "kind": { "enum": ["pointer"] }
-      },
-      "required": ["kind"],
+        "kind": { "enum": ["pointer"] },
+				"type": { "type": "string" },
+				"item_type": { "type": "string" }
+			},
+			"required": ["kind", "type", "item_type"],
       "additionalProperties": false
     },
     "RTTIBase": {
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
+        "type": { "type": "string" },
         "offset": { "type": "integer", "minimum": 0 }
       },
-      "required": ["name", "offset"],
+      "required": ["type", "offset"],
       "additionalProperties": false
     },
     "RTTIAttr": {
@@ -93,7 +97,7 @@
       "properties": {
         "value": { "type": "integer" },
         "name": { "type": "string" },
-        "alias": { "type": "array", "items": { "type": "string" }, "minItems": 1, "maxItems": 3 }
+        "alias": { "type": "array", "items": { "type": "string" }, "minItems": 1, "maxItems": 4 }
       },
       "required": ["value", "name"],
       "additionalProperties": false
