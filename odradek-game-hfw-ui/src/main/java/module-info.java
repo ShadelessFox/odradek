@@ -9,8 +9,8 @@ module odradek.game.hfw.ui {
         sh.adelessfox.odradek.game.hfw.ui.renderers.GGUUIDRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.LocalizedTextResourceRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.MurmurHashValueRenderer,
-        sh.adelessfox.odradek.game.hfw.ui.renderers.NumberRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.RenderTechniqueSet$AvailableTechniquesMaskRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.RenderTechniqueSet$InitiallyEnabledTechniquesMaskRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.StreamingDataSourceRenderer,
-        sh.adelessfox.odradek.game.hfw.ui.renderers.StringRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.TextureSetTextureDescRenderer;
 }

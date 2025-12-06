@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.game.hfw.ui.renderers;
+package sh.adelessfox.odradek.ui.renderers;
 
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.AtomTypeInfo;

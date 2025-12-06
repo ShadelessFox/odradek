@@ -199,8 +199,13 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         }
 
         var type = s.type();
-        var renderer = Renderer.renderer(type).orElse(null);
-
+        var renderer = (Renderer<Object, Game>) null;
+        if (s instanceof ObjectStructure.Attr(_, var clazz, var attr, _)) {
+            renderer = Renderer.renderer(clazz, attr).orElse(null);
+        }
+        if (renderer == null) {
+            renderer = Renderer.renderer(type).orElse(null);
+        }
         if (renderer != null) {
             if (allowStyledText) {
                 var styledText = renderer.styledText(type, value, s.game()).orElse(null);

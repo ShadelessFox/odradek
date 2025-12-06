@@ -1,6 +1,8 @@
 package sh.adelessfox.odradek.ui;
 
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.rtti.ClassAttrInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.util.Reflections;
@@ -30,17 +32,19 @@ public interface Renderer<T, G extends Game> {
     }
 
     @SuppressWarnings("unchecked")
-    static <T, G extends Game> Stream<Renderer<T, G>> renderers(TypeInfo info) {
+    static <T, G extends Game> Optional<Renderer<T, G>> renderer(TypeInfo info) {
         return renderers()
             .filter(r -> r.supports(info))
-            .map(r -> (Renderer<T, G>) r);
+            .map(r -> (Renderer<T, G>) r)
+            .findFirst();
     }
 
     @SuppressWarnings("unchecked")
-    static <T, G extends Game> Optional<Renderer<T, G>> renderer(TypeInfo info) {
-        return renderers(info)
-            .findFirst()
-            .map(r -> (Renderer<T, G>) r);
+    static <T, G extends Game> Optional<Renderer<T, G>> renderer(ClassTypeInfo parent, ClassAttrInfo attr) {
+        return renderers()
+            .filter(r -> r.supports(parent, attr))
+            .map(r -> (Renderer<T, G>) r)
+            .findFirst();
     }
 
     /**
@@ -73,6 +77,10 @@ public interface Renderer<T, G extends Game> {
 
     default boolean supports(TypeInfo info) {
         return supportedType().isAssignableFrom(info.type());
+    }
+
+    default boolean supports(ClassTypeInfo parent, ClassAttrInfo attr) {
+        return false;
     }
 
     @SuppressWarnings("unchecked")

@@ -33,7 +33,9 @@ module odradek.ui {
 
     provides sh.adelessfox.odradek.ui.Renderer with
         sh.adelessfox.odradek.ui.renderers.ContainerRenderer,
-        sh.adelessfox.odradek.ui.renderers.PointerRenderer;
+        sh.adelessfox.odradek.ui.renderers.NumberRenderer,
+        sh.adelessfox.odradek.ui.renderers.PointerRenderer,
+        sh.adelessfox.odradek.ui.renderers.StringRenderer;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
         sh.adelessfox.odradek.ui.editors.actions.CloseActiveTabAction,
