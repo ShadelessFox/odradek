@@ -34,12 +34,12 @@ public class EditorStackManager implements EditorManager {
     }
 
     @Override
-    public Editor openEditor(EditorInput input) {
-        return openEditor(input, Activation.REVEAL_AND_FOCUS);
+    public void openEditor(EditorInput input) {
+        openEditor(input, Activation.REVEAL_AND_FOCUS);
     }
 
     @Override
-    public Editor openEditor(EditorInput input, Activation activation) {
+    public void openEditor(EditorInput input, Activation activation) {
         EditorComponent component = findEditorComponent(e -> input.representsSameInput(e.getInput())).orElse(null);
         EditorStack stack;
 
@@ -65,8 +65,41 @@ public class EditorStackManager implements EditorManager {
         if (activation == Activation.REVEAL_AND_FOCUS) {
             component.editor.setFocus();
         }
+    }
 
-        return component.editor;
+    @Override
+    public void openEditor(Editor oldEditor, EditorInput newInput) {
+        EditorComponent oldComponent = findEditorComponent(e -> e.equals(oldEditor)).orElse(null);
+
+        if (oldComponent != null) {
+            EditorStack stack = (EditorStack) oldComponent.getParent();
+
+            if (stack != null) {
+                int index = stack.indexOfComponent(oldComponent);
+                boolean selected = stack.getSelectedIndex() == index;
+
+                if (index >= 0) {
+                    if (oldComponent.hasComponent()) {
+                        oldEditor.dispose();
+                    }
+
+                    var result = createEditorForInput(newInput);
+                    var editor = result.editor;
+                    var provider = result.provider();
+
+                    EditorComponent newComponent = new EditorComponent(selected ? editor.createComponent() : null, editor, provider);
+
+                    stack.setComponentAt(index, newComponent);
+                    stack.setTitleAt(index, newInput.getName());
+                    stack.setToolTipTextAt(index, newInput.getDescription());
+
+                    if (selected && oldEditor.isFocused()) {
+                        newComponent.validate();
+                        editor.setFocus();
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -130,6 +163,12 @@ public class EditorStackManager implements EditorManager {
 
     EditorStack createStack() {
         EditorStack stack = new EditorStack(this);
+        stack.addChangeListener(_ -> {
+            EditorComponent component = (EditorComponent) stack.getSelectedComponent();
+            if (component != null && !component.hasComponent()) {
+                component.setComponent(component.editor.createComponent());
+            }
+        });
         Actions.installContextMenu(stack, EditorActionIds.MENU_ID, key -> {
             if (DataKeys.EDITOR_MANAGER.is(key)) {
                 return Optional.of(this);

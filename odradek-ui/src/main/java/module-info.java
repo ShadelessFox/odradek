@@ -18,6 +18,7 @@ module odradek.ui {
     exports sh.adelessfox.odradek.ui.components;
     exports sh.adelessfox.odradek.ui.data;
     exports sh.adelessfox.odradek.ui.editors.actions;
+    exports sh.adelessfox.odradek.ui.editors.lazy;
     exports sh.adelessfox.odradek.ui.editors.stack;
     exports sh.adelessfox.odradek.ui.editors;
     exports sh.adelessfox.odradek.ui.util;
@@ -30,6 +31,9 @@ module odradek.ui {
 
     provides com.formdev.flatlaf.FlatDefaultsAddon with
         sh.adelessfox.odradek.ui.components.laf.OdradekDefaultsAddon;
+
+    provides sh.adelessfox.odradek.ui.editors.EditorProvider with
+        sh.adelessfox.odradek.ui.editors.lazy.LazyEditorProvider;
 
     provides sh.adelessfox.odradek.ui.Renderer with
         sh.adelessfox.odradek.ui.renderers.ContainerRenderer,

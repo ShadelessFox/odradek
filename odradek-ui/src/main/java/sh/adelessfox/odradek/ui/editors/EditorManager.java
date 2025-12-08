@@ -14,9 +14,11 @@ public interface EditorManager {
         REVEAL_AND_FOCUS
     }
 
-    Editor openEditor(EditorInput input);
+    void openEditor(EditorInput input);
 
-    Editor openEditor(EditorInput input, Activation activation);
+    void openEditor(EditorInput input, Activation activation);
+
+    void openEditor(Editor editor, EditorInput input);
 
     Optional<Editor> findEditor(Predicate<EditorInput> predicate);
 
