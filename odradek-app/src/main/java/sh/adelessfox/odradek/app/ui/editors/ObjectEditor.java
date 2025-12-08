@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
-import sh.adelessfox.odradek.app.ui.ApplicationKeys;
+import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
@@ -363,7 +363,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
 
         @Override
         public Optional<String> getToolTip(ObjectStructure element) {
-            if (UIManager.get(ApplicationKeys.DEBUG_MODE) == Boolean.TRUE) {
+            if (Application.getInstance().isDebugMode()) {
                 return Optional.of(getElementToolTip(element));
             }
             return Optional.empty();

@@ -11,34 +11,44 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.Optional;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
+    private static Application application;
 
-    public void launch(ApplicationParameters params) throws IOException {
+    private final ForbiddenWestGame game;
+    private final EditorManager editorManager;
+    private final boolean debugMode;
+
+    private Application(ForbiddenWestGame game, EditorManager editorManager, boolean debugMode) {
+        this.game = game;
+        this.editorManager = editorManager;
+        this.debugMode = debugMode;
+    }
+
+    public static Application getInstance() {
+        if (application == null) {
+            throw new IllegalStateException("Application is not running");
+        }
+        return application;
+    }
+
+    @SuppressWarnings("resource")
+    public static void launch(ApplicationParameters params) throws IOException {
+        if (application != null) {
+            throw new IllegalStateException("Application is already running");
+        }
+
         log.info("Loading game assets");
         ForbiddenWestGame game = new ForbiddenWestGame(params.sourcePath(), EPlatform.WinGame);
 
         log.info("Starting the application");
-
-        ApplicationComponent component = DaggerApplicationComponent.builder()
-            .game(game)
-            .build();
-
-        DataContext context = DataContext.focusedComponent().or(key -> {
-            if (ApplicationKeys.MAIN_PRESENTER.is(key)) {
-                return Optional.of(component.presenter());
-            }
-            return Optional.empty();
-        });
-
         SwingUtilities.invokeLater(() -> {
             if (params.enableDebugMode()) {
-                UIManager.put(ApplicationKeys.DEBUG_MODE, Boolean.TRUE);
                 FlatInspector.install("ctrl shift alt X");
                 FlatUIDefaultsInspector.install("ctrl shift alt Y");
             }
@@ -49,8 +59,21 @@ public final class Application {
                 FlatLightLaf.setup();
             }
 
+            // Instantiate components here. Some objects, notably EditorManager,
+            // requires the UI to be completely set up so the LaF is not fucked.
+            // The loading order drives me crazy. Maybe I should get rid of Dagger completely?
+            ApplicationComponent component = DaggerApplicationComponent.builder()
+                .game(game)
+                .build();
+
+            application = new Application(
+                game,
+                component.editorManager(),
+                params.enableDebugMode()
+            );
+
             var frame = new JFrame();
-            Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, context);
+            Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContext.focusedComponent());
             frame.add(component.presenter().getRoot());
             frame.setTitle("Odradek - " + params.sourcePath());
             frame.setSize(1280, 720);
@@ -63,5 +86,17 @@ public final class Application {
             // Ensure settings are loaded after everything else. Seems hacky
             component.settings();
         });
+    }
+
+    public ForbiddenWestGame getGame() {
+        return game;
+    }
+
+    public EditorManager getEditorManager() {
+        return editorManager;
+    }
+
+    public boolean isDebugMode() {
+        return debugMode;
     }
 }

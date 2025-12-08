@@ -17,6 +17,12 @@ public record ObjectEditorInput(Game game, TypedObject object, int groupId, int 
 
     @Override
     public boolean representsSameInput(EditorInput other) {
-        return equals(other);
+        if (other instanceof ObjectEditorInput o) {
+            return this.groupId == o.groupId && this.objectIndex == o.objectIndex;
+        }
+        if (other instanceof ObjectEditorInputLazy o) {
+            return this.groupId == o.groupId() && this.objectIndex == o.objectIndex();
+        }
+        return false;
     }
 }
