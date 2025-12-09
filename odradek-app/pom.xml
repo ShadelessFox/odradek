@@ -6,13 +6,15 @@
     <parent>
         <groupId>sh.adelessfox</groupId>
         <artifactId>odradek</artifactId>
-        <version>${revision}</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>odradek-app</artifactId>
 
     <properties>
         <target.module.path>target/modules</target.module.path>
+        <image.name>odradek</image.name>
+        <image.version>1.0</image.version>
     </properties>
 
     <dependencies>
@@ -99,7 +101,7 @@
                     <modules>
                         <module>
                             <artifact>
-                                <groupId>org.lz4</groupId>
+                                <groupId>at.yawk.lz4</groupId>
                                 <artifactId>lz4-java</artifactId>
                             </artifact>
                             <moduleInfo>
@@ -161,8 +163,8 @@
                 <version>1.6.5</version>
                 <configuration>
                     <type>APP_IMAGE</type>
-                    <appVersion>${project.version}</appVersion>
-                    <name>odradek</name>
+                    <appVersion>${image.version}</appVersion>
+                    <name>${image.name}</name>
                     <destination>target/dist</destination>
                     <vendor>ShadelessFox</vendor>
                     <winConsole>true</winConsole>
