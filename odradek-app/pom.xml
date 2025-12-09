@@ -184,7 +184,10 @@
                         <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
                         <javaOption>--enable-native-access=org.lz4.java</javaOption>
+                        <!-- Allows usage of java.lang.StableValue -->
                         <javaOption>--enable-preview</javaOption>
+                        <!-- Fixes canvas flickering on resize -->
+                        <javaOption>-Dsun.awt.noerasebackground=true</javaOption>
                     </javaOptions>
                     <module>odradek.app/sh.adelessfox.odradek.app.Main</module>
                 </configuration>
