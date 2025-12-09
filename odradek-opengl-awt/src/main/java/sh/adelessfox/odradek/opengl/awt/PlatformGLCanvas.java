@@ -17,22 +17,26 @@ sealed abstract class PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWi
     protected JAWT awt;
     protected JAWTDrawingSurface ds;
 
-    public PlatformGLCanvas() {
+    public final long create(Canvas canvas, GLData data, GLData effective) {
+        if (awt != null) {
+            throw new IllegalStateException("Drawing surface already created");
+        }
+
         awt = JAWT.calloc();
         awt.version(JAWT_VERSION_1_4);
 
         if (!JAWT_GetAWT(awt)) {
-            throw new AssertionError("GetAWT failed");
+            dispose();
+            throw new IllegalStateException("Unable to get JAWT instance");
         }
-    }
 
-    public final long create(Canvas canvas, GLData data, GLData effective) {
-        this.ds = JAWT_GetDrawingSurface(canvas, awt.GetDrawingSurface());
+        ds = JAWT_GetDrawingSurface(canvas, awt.GetDrawingSurface());
 
         lock();
         try {
             var info = JAWT_DrawingSurface_GetDrawingSurfaceInfo(ds, ds.GetDrawingSurfaceInfo());
             if (info == null) {
+                dispose();
                 throw new IllegalStateException("Unable to acquire drawing surface info");
             }
             try {
@@ -65,7 +69,10 @@ sealed abstract class PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWi
             JAWT_FreeDrawingSurface(ds, awt.FreeDrawingSurface());
             ds = null;
         }
-        awt.free();
+        if (awt != null) {
+            awt.free();
+            awt = null;
+        }
     }
 
     protected abstract long create(JAWTDrawingSurfaceInfo dsi, GLData data, GLData effective);
