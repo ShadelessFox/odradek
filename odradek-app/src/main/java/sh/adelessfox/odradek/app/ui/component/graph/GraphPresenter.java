@@ -50,10 +50,6 @@ public class GraphPresenter implements Presenter<GraphView> {
         return view;
     }
 
-    public void setBusy(boolean busy) {
-        view.getTree().setEnabled(!busy);
-    }
-
     private static Result<Optional<Predicate<GraphStructure>>, String> createFilter(String input, boolean matchCase, boolean matchWholeWord) {
         if (input.isBlank()) {
             return Result.ok(Optional.empty());
