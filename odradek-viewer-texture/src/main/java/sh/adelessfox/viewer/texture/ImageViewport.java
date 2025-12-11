@@ -2,6 +2,8 @@ package sh.adelessfox.viewer.texture;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class ImageViewport extends JViewport {
     private static final int TILE_SIZE = 8;
@@ -14,6 +16,15 @@ public class ImageViewport extends JViewport {
 
         setView(inner);
         setBackground(null);
+
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (view.isZoomToFit()) {
+                    view.fit();
+                }
+            }
+        });
     }
 
     @Override

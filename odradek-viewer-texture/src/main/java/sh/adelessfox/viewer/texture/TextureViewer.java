@@ -26,6 +26,7 @@ public class TextureViewer implements Viewer<Texture> {
     public JComponent createComponent(Texture texture) {
         var imageView = new ImageView();
         imageView.setImage(createImage(texture));
+        imageView.setZoomToFit(true);
 
         var imagePane = createImagePane(imageView);
         var imageToolbar = createToolBar(imageView);
@@ -37,8 +38,6 @@ public class TextureViewer implements Viewer<Texture> {
         panel.setLayout(new BorderLayout());
         panel.add(imagePane, BorderLayout.CENTER);
         panel.add(imageToolbar, BorderLayout.NORTH);
-
-        SwingUtilities.invokeLater(imageView::fit);
 
         return panel;
     }
@@ -60,6 +59,9 @@ public class TextureViewer implements Viewer<Texture> {
             var rect = viewport.getViewRect();
             rect.x = (int) Math.round(point.getX() * newZoom / oldZoom - point.getX() + rect.getX());
             rect.y = (int) Math.round(point.getY() * newZoom / oldZoom - point.getY() + rect.getY());
+
+            // Zoom is now controlled by the user
+            view.setZoomToFit(false);
 
             if (newZoom > oldZoom) {
                 view.setZoom(newZoom);

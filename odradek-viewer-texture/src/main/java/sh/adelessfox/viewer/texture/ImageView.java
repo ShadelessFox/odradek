@@ -21,6 +21,7 @@ public class ImageView extends JComponent implements Scrollable {
     private BufferedImage filteredImage;
     private Set<Channel> channels;
     private float zoom;
+    private boolean zoomToFit;
 
     public ImageView() {
         Robot robot = null;
@@ -37,14 +38,6 @@ public class ImageView extends JComponent implements Scrollable {
 
         reset();
     }
-
-    public void fit() {
-        if (image == null) {
-            return;
-        }
-        setZoom(computeFitZoom());
-    }
-
 
     public BufferedImage getImage() {
         return image;
@@ -67,6 +60,18 @@ public class ImageView extends JComponent implements Scrollable {
             this.zoom = Math.max(0.0f, zoom);
             update();
         }
+    }
+
+    public boolean isZoomToFit() {
+        return zoomToFit;
+    }
+
+    public void setZoomToFit(boolean zoomToFit) {
+        this.zoomToFit = zoomToFit;
+    }
+
+    public void fit() {
+        setZoom(computeFitZoom());
     }
 
     public Set<Channel> getChannels() {
