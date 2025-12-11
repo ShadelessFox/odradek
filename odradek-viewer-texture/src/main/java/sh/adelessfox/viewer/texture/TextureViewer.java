@@ -25,6 +25,8 @@ public class TextureViewer implements Viewer<Texture> {
     @Override
     public JComponent createComponent(Texture texture) {
         var imageView = new ImageView();
+        imageView.setImage(createImage(texture));
+
         var imagePane = createImagePane(imageView);
         var imageToolbar = createToolBar(imageView);
 
@@ -36,10 +38,7 @@ public class TextureViewer implements Viewer<Texture> {
         panel.add(imagePane, BorderLayout.CENTER);
         panel.add(imageToolbar, BorderLayout.NORTH);
 
-        SwingUtilities.invokeLater(() -> {
-            imageView.setImage(createImage(texture));
-            imageView.fit();
-        });
+        SwingUtilities.invokeLater(imageView::fit);
 
         return panel;
     }
