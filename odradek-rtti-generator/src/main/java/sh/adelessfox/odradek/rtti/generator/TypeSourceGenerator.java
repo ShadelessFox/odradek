@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.rtti.generator;
 
-import com.palantir.javapoet.*;
+import com.squareup.javapoet.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.io.BinaryReader;

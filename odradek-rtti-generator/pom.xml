@@ -30,7 +30,7 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.palantir.javapoet</groupId>
+            <groupId>com.squareup</groupId>
             <artifactId>javapoet</artifactId>
         </dependency>
 

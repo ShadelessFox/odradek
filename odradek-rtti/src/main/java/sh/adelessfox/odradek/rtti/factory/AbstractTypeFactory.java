@@ -40,12 +40,12 @@ public abstract class AbstractTypeFactory implements TypeFactory {
         }
 
         log.debug("Computing type ids");
-        context.getAll().forEach(info -> {
+        for (TypeInfo info : context.getAll()) {
             TypeId id = computeTypeId(info);
             if (types.putIfAbsent(id, info) != null) {
                 throw new IllegalStateException("Duplicate type id " + id + " for " + types.get(id) + " and " + info);
             }
-        });
+        }
     }
 
     @Override

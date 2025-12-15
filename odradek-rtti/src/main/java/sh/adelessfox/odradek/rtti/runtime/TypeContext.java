@@ -17,7 +17,6 @@ import java.lang.reflect.Array;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class TypeContext {
@@ -75,8 +74,8 @@ public class TypeContext {
         return Optional.ofNullable(types.get(name));
     }
 
-    public Stream<TypeInfo> getAll() {
-        return types.values().stream();
+    public Collection<TypeInfo> getAll() {
+        return types.values();
     }
 
     private TypeInfo process(String name, JsonObject object) {

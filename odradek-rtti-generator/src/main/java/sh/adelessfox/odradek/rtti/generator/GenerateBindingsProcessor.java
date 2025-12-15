@@ -51,8 +51,7 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
                 var type = asTypeMirror(extension::extension);
                 generator.addExtension(extension.type(), type);
             }
-
-            generator.addAll(context.getAll().toList());
+            generator.addAll(context.getAll());
 
             try {
                 generator.build().writeTo(filer);
