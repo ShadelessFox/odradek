@@ -170,8 +170,14 @@ public final class Viewport extends JPanel {
     }
 
     private void renderScene(float dt) {
+        int width = getFramebufferWidth();
+        int height = getFramebufferHeight();
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, getFramebufferWidth(), getFramebufferHeight());
+        glViewport(0, 0, width, height);
 
         for (RenderPass pass : passes) {
             pass.draw(this, dt);

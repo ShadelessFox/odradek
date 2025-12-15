@@ -49,8 +49,8 @@ public final class GLCanvas extends Canvas {
             @Override
             public void componentResized(ComponentEvent e) {
                 var transform = getGraphicsConfiguration().getDefaultTransform();
-                framebufferWidth = (int) (getWidth() * transform.getScaleX());
-                framebufferHeight = (int) (getHeight() * transform.getScaleY());
+                framebufferWidth = (int) (Math.max(0, getWidth()) * transform.getScaleX());
+                framebufferHeight = (int) (Math.max(0, getHeight()) * transform.getScaleY());
             }
         });
     }
