@@ -40,6 +40,25 @@ public record Matrix4f(
         );
     }
 
+    public static Matrix4f rotation(Quaternionf q) {
+        float rm00 = q.w() * q.w() + q.x() * q.x() - q.z() * q.z() - q.y() * q.y();
+        float rm01 = q.x() * q.y() + q.x() * q.y() + q.z() * q.w() + q.z() * q.w();
+        float rm02 = q.x() * q.z() + q.x() * q.z() - q.y() * q.w() - q.y() * q.w();
+        float rm10 = q.x() * q.y() - q.z() * q.w() - q.z() * q.w() + q.x() * q.y();
+        float rm11 = q.y() * q.y() - q.z() * q.z() + q.w() * q.w() - q.x() * q.x();
+        float rm12 = q.y() * q.z() + q.y() * q.z() + q.x() * q.w() + q.x() * q.w();
+        float rm20 = q.y() * q.w() + q.y() * q.w() + q.x() * q.z() + q.x() * q.z();
+        float rm21 = q.y() * q.z() + q.y() * q.z() - q.x() * q.w() - q.x() * q.w();
+        float rm22 = q.z() * q.z() - q.y() * q.y() - q.x() * q.x() + q.w() * q.w();
+
+        return new Matrix4f(
+            rm00, rm01, rm02, 0.0f,
+            rm10, rm11, rm12, 0.0f,
+            rm20, rm21, rm22, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        );
+    }
+
     public static Matrix4f translation(float x, float y, float z) {
         return new Matrix4f(
             1.f, 0.f, 0.f, 0.f,
@@ -79,40 +98,8 @@ public record Matrix4f(
         return result.translate(-eye.x(), -eye.y(), -eye.z());
     }
 
-    public Matrix4f rotate(Quaternionf quat) {
-        float w2 = quat.w() * quat.w(), x2 = quat.x() * quat.x();
-        float y2 = quat.y() * quat.y(), z2 = quat.z() * quat.z();
-        float zw = quat.z() * quat.w(), dzw = zw + zw, xy = quat.x() * quat.y(), dxy = xy + xy;
-        float xz = quat.x() * quat.z(), dxz = xz + xz, yw = quat.y() * quat.w(), dyw = yw + yw;
-        float yz = quat.y() * quat.z(), dyz = yz + yz, xw = quat.x() * quat.w(), dxw = xw + xw;
-        float rm00 = w2 + x2 - z2 - y2;
-        float rm01 = dxy + dzw;
-        float rm02 = dxz - dyw;
-        float rm10 = -dzw + dxy;
-        float rm11 = y2 - z2 + w2 - x2;
-        float rm12 = dyz + dxw;
-        float rm20 = dyw + dxz;
-        float rm21 = dyz - dxw;
-        float rm22 = z2 - y2 - x2 + w2;
-        float nm00 = Math.fma(m00(), rm00, Math.fma(m10(), rm01, m20() * rm02));
-        float nm01 = Math.fma(m01(), rm00, Math.fma(m11(), rm01, m21() * rm02));
-        float nm02 = Math.fma(m02(), rm00, Math.fma(m12(), rm01, m22() * rm02));
-        float nm03 = Math.fma(m03(), rm00, Math.fma(m13(), rm01, m23() * rm02));
-        float nm10 = Math.fma(m00(), rm10, Math.fma(m10(), rm11, m20() * rm12));
-        float nm11 = Math.fma(m01(), rm10, Math.fma(m11(), rm11, m21() * rm12));
-        float nm12 = Math.fma(m02(), rm10, Math.fma(m12(), rm11, m22() * rm12));
-        float nm13 = Math.fma(m03(), rm10, Math.fma(m13(), rm11, m23() * rm12));
-        float nm20 = Math.fma(m00(), rm20, Math.fma(m10(), rm21, m20() * rm22));
-        float nm21 = Math.fma(m01(), rm20, Math.fma(m11(), rm21, m21() * rm22));
-        float nm22 = Math.fma(m02(), rm20, Math.fma(m12(), rm21, m22() * rm22));
-        float nm23 = Math.fma(m03(), rm20, Math.fma(m13(), rm21, m23() * rm22));
-
-        return new Matrix4f(
-            nm00, nm01, nm02, nm03,
-            nm10, nm11, nm12, nm13,
-            nm20, nm21, nm22, nm23,
-            m30(), m31(), m32(), m33()
-        );
+    public Matrix4f rotate(Quaternionf q) {
+        return mul(rotation(q));
     }
 
     public Matrix4f translate(float x, float y, float z) {
