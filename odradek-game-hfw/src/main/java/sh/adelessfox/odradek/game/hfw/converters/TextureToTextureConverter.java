@@ -26,6 +26,7 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
         return switch (object) {
             case HorizonForbiddenWest.Texture t -> convertTexture(t, game);
             case HorizonForbiddenWest.UITexture t -> convertUiTexture(t, game);
+            case HorizonForbiddenWest.TextureBindingWithHandle t -> convertTextureBindingWithHandle(t, game);
             default -> Optional.empty();
         };
     }
@@ -34,11 +35,12 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
     public Set<Class<?>> supportedTypes() {
         return Set.of(
             HorizonForbiddenWest.Texture.class,
-            HorizonForbiddenWest.UITexture.class
+            HorizonForbiddenWest.UITexture.class,
+            HorizonForbiddenWest.TextureBindingWithHandle.class
         );
     }
 
-    private static Optional<Texture> convertTexture(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) {
+    private Optional<Texture> convertTexture(HorizonForbiddenWest.Texture texture, ForbiddenWestGame game) {
         var format = mapFormat(texture.header().pixelFormat().unwrap());
         var type = mapType(texture.header().type().unwrap());
 
@@ -97,7 +99,7 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
         ));
     }
 
-    private static Optional<Texture> convertUiTexture(HorizonForbiddenWest.UITexture texture, ForbiddenWestGame game) {
+    private Optional<Texture> convertUiTexture(HorizonForbiddenWest.UITexture texture, ForbiddenWestGame game) {
         if (texture.animated()) {
             log.debug("UITexture {} is animated, skipping conversion", texture);
             return Optional.empty();
@@ -124,6 +126,14 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
             mapColorSpace(data.header().colorSpace().unwrap()),
             surface
         ));
+    }
+
+    private Optional<Texture> convertTextureBindingWithHandle(HorizonForbiddenWest.TextureBindingWithHandle binding, ForbiddenWestGame game) {
+        var resource = binding.textureResource().get();
+        if (resource != null && supports(resource.getType())) {
+            return convert(resource, game);
+        }
+        return Optional.empty();
     }
 
     private static TextureFormat mapFormat(EPixelFormat format) {

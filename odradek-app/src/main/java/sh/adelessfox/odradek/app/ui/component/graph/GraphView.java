@@ -2,10 +2,16 @@ package sh.adelessfox.odradek.app.ui.component.graph;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.ObjectProvider;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
@@ -19,10 +25,12 @@ import sh.adelessfox.odradek.ui.util.Fugue;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.Optional;
 
 @Singleton
 public class GraphView implements View<JComponent>, ToolWindowPane {
+    private static final Logger log = LoggerFactory.getLogger(GraphView.class);
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
 
@@ -178,6 +186,28 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
                 ));
             }
         });
+
+        PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
+            @Override
+            public Optional<TypedObject> getObject(JTree tree, Object value) {
+                var provider = (ObjectProvider) value;
+                try {
+                    return Optional.of(provider.readObject(game));
+                } catch (IOException e) {
+                    log.error("Failed to read object for preview", e);
+                }
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<TypeInfo> getType(JTree tree, Object value) {
+                if (value instanceof ObjectProvider provider) {
+                    return Optional.of(provider.objectType());
+                }
+                return Optional.empty();
+            }
+        });
+
         return tree;
     }
 }

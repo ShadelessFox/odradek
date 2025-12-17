@@ -2,12 +2,14 @@ package sh.adelessfox.odradek.app.ui.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectProvider;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -152,6 +154,7 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
             }
             return Optional.empty();
         }));
+        PreviewManager.install(tree, game, new ObjectPreviewObjectProvider());
         return tree;
     }
 
@@ -365,6 +368,32 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
         public Optional<String> getToolTip(ObjectStructure element) {
             if (Application.getInstance().isDebugMode()) {
                 return Optional.of(getElementToolTip(element));
+            }
+            return Optional.empty();
+        }
+    }
+
+    private static class ObjectPreviewObjectProvider implements PreviewManager.PreviewObjectProvider {
+        @Override
+        public Optional<TypedObject> getObject(JTree tree, Object value) {
+            return get(value);
+        }
+
+        @Override
+        public Optional<TypeInfo> getType(JTree tree, Object value) {
+            return get(value).map(TypedObject::getType);
+        }
+
+        private static Optional<TypedObject> get(Object value) {
+            if (value instanceof ObjectStructure structure) {
+                Object object = structure.value();
+                if (object instanceof Ref<?> ref) {
+                    // Should this be done here?
+                    object = ref.get();
+                }
+                if (object instanceof TypedObject typed) {
+                    return Optional.of(typed);
+                }
             }
             return Optional.empty();
         }

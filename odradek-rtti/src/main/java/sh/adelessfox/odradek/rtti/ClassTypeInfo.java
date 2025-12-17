@@ -41,7 +41,7 @@ public non-sealed interface ClassTypeInfo extends TypeInfo {
             attrs.addAll(base.type().serializedAttrs());
         }
         for (ClassAttrInfo attr : attrs()) {
-            // NOTE: We can display non-serializable attributes in case they have property getters
+            // NOTE: We *could* display non-serializable attributes in case they have property getters
             if (attr.isSerialized()) {
                 attrs.add(attr);
             }
