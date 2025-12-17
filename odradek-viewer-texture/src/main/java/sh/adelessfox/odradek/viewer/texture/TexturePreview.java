@@ -1,4 +1,4 @@
-package sh.adelessfox.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture;
 
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.game.Converter;

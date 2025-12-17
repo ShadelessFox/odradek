@@ -1,4 +1,4 @@
-package sh.adelessfox.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture;
 
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;

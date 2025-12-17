@@ -1,4 +1,4 @@
-package sh.adelessfox.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture;
 
 import java.awt.image.RGBImageFilter;
 import java.util.EnumSet;
