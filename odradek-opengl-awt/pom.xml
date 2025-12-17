@@ -32,14 +32,6 @@
             <artifactId>lwjgl</artifactId>
         </dependency>
 
-        <!-- LWJGL uses nullability annotations; required for correct inspections -->
-        <dependency>
-            <groupId>org.jspecify</groupId>
-            <artifactId>jspecify</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

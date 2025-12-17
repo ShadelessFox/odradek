@@ -176,6 +176,7 @@ public final class GLCanvas extends Canvas {
 
             runnable.run();
         } finally {
+            //noinspection DataFlowIssue - false positive
             GL.setCapabilities(null);
 
             canvas.makeCurrent(0);
