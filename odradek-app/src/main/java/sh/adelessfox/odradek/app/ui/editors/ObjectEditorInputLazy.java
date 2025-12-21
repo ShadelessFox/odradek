@@ -22,7 +22,7 @@ public record ObjectEditorInputLazy(
 
     @Override
     public LazyEditorInput canLoadImmediately(boolean value) {
-        return new ObjectEditorInputLazy(groupId, objectIndex, canLoadImmediately);
+        return new ObjectEditorInputLazy(groupId, objectIndex, value);
     }
 
     @Override
