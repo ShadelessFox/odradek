@@ -17,6 +17,7 @@ public class ImageView extends JComponent implements Scrollable {
     private static final boolean SHOW_OUTLINE = true;
 
     private static final Logger log = LoggerFactory.getLogger(ImageView.class);
+
     private BufferedImage image;
     private BufferedImage filteredImage;
     private Set<Channel> channels;
@@ -36,7 +37,8 @@ public class ImageView extends JComponent implements Scrollable {
         addMouseListener(handler);
         addMouseMotionListener(handler);
 
-        reset();
+        channels = EnumSet.allOf(Channel.class);
+        zoom = 1.0f;
     }
 
     public BufferedImage getImage() {
@@ -45,8 +47,8 @@ public class ImageView extends JComponent implements Scrollable {
 
     public void setImage(BufferedImage image) {
         if (this.image != image) {
-            reset();
             this.image = image;
+            this.filteredImage = null;
             update();
         }
     }
@@ -83,13 +85,6 @@ public class ImageView extends JComponent implements Scrollable {
             this.channels = EnumSet.copyOf(channels);
             update();
         }
-    }
-
-    private void reset() {
-        this.image = null;
-        this.filteredImage = null;
-        this.channels = EnumSet.allOf(Channel.class);
-        this.zoom = 1.0f;
     }
 
     private void update() {

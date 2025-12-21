@@ -30,7 +30,7 @@ public final class TexturePreview implements Preview<TypedObject> {
             view.setImage(image);
             view.setZoom((float) MAX_PREVIEW_SIZE / Math.max(image.getWidth(), image.getHeight()));
 
-            panel.add(new JLabel("%dx%d, %s, %s".formatted(texture.width(), texture.height(), texture.type(), texture.format())));
+            panel.add(new JLabel(formatDescription(texture)));
             panel.add(new ImageViewport(view));
         } else {
             panel.add(new JLabel("Unable to preview texture"));
@@ -58,5 +58,15 @@ public final class TexturePreview implements Preview<TypedObject> {
         }
 
         return image;
+    }
+
+    private static String formatDescription(Texture texture) {
+        var type = switch (texture.type()) {
+            case SURFACE -> "2D";
+            case VOLUME -> "3D";
+            case ARRAY -> texture.duration().isPresent() ? "2D (Animated)" : "2D (Array)";
+            case CUBEMAP -> "Cube Map";
+        };
+        return "%dx%d, %s, %s".formatted(texture.width(), texture.height(), texture.format(), type);
     }
 }

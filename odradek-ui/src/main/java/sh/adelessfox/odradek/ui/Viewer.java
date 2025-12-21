@@ -14,6 +14,9 @@ import java.util.stream.Stream;
  * <p>
  * It should not operate over raw game assets but rather
  * use intermediate representations obtained via {@link sh.adelessfox.odradek.game.Converter}.
+ * <p>
+ * Viewers must not store any state related to the object they are viewing,
+ * as viewers are instantiated once and reused each time.
  *
  * @param <T>
  */

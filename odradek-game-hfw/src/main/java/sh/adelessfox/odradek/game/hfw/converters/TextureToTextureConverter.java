@@ -2,17 +2,20 @@ package sh.adelessfox.odradek.game.hfw.converters;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.compression.Decompressor;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETexColorSpace;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureType;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EUpdateFrequency;
 import sh.adelessfox.odradek.texture.*;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -95,14 +98,14 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
             surfaces,
             numMipmaps,
             type == TextureType.VOLUME ? OptionalInt.of(1 << numSurfaces) : OptionalInt.empty(),
-            type == TextureType.ARRAY ? OptionalInt.of(numSurfaces) : OptionalInt.empty()
+            type == TextureType.ARRAY ? OptionalInt.of(numSurfaces) : OptionalInt.empty(),
+            Optional.empty()
         ));
     }
 
     private Optional<Texture> convertUiTexture(HorizonForbiddenWest.UITexture texture, ForbiddenWestGame game) {
         if (texture.animated()) {
-            log.debug("UITexture {} is animated, skipping conversion", texture);
-            return Optional.empty();
+            return Optional.of(convertTextureFrames(texture.largeTextureFrames()));
         }
 
         var data = texture.largeTexture();
@@ -126,6 +129,29 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
             mapColorSpace(data.header().colorSpace().unwrap()),
             surface
         ));
+    }
+
+    private static Texture convertTextureFrames(HorizonForbiddenWest.UITextureFramesInfo frames) {
+        var spans = frames.spans();
+        var data = frames.data();
+
+        var surfaces = new ArrayList<Surface>(spans.length);
+        for (long span : spans) {
+            int offset = (int) (span);
+            int length = (int) (span >>> 32);
+            var buffer = new byte[frames.size()];
+
+            Decompressor.lz4().decompress(data, offset, length, buffer, 0, frames.size());
+            surfaces.add(new Surface(frames.width(), frames.height(), buffer));
+        }
+
+        return Texture.ofAnimated2D(
+            mapFormat(frames.pixelFormat().unwrap()),
+            TextureColorSpace.SRGB, // hardcoded in UITextureFrames::UITextureFrames
+            surfaces,
+            spans.length,
+            mapFrequency(frames.frequency().unwrap())
+        );
     }
 
     private Optional<Texture> convertTextureBindingWithHandle(HorizonForbiddenWest.TextureBindingWithHandle binding, ForbiddenWestGame game) {
@@ -174,6 +200,17 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
                 yield null;
             }
         };
+    }
+
+    private static Duration mapFrequency(EUpdateFrequency frequency) {
+        double hz = switch (frequency) {
+            case _0 -> 7.49;
+            case _1 -> 14.99;
+            case _2 -> 29.97;
+            case _3 -> 59.94;
+            case _4 -> 119.88;
+        };
+        return Duration.ofNanos((long) (1_000_000_000 / hz));
     }
 
     private static byte[] readDataSource(ForbiddenWestGame game, HorizonForbiddenWest.StreamingDataSource dataSource) {

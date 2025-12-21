@@ -246,7 +246,8 @@ final class TextureConverter {
             surfaces,
             source.mips(),
             source.depth(),
-            source.arraySize()
+            source.arraySize(),
+            source.duration()
         );
     }
 

@@ -1,6 +1,8 @@
 package sh.adelessfox.odradek.texture;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
@@ -29,6 +31,9 @@ import java.util.OptionalInt;
  *                   or {@link OptionalInt#empty()} if the texture is not a volume texture
  * @param arraySize  The number of elements in the texture if {@link #type()} is {@link TextureType#ARRAY},
  *                   or {@link OptionalInt#empty()} if the texture is not an array texture
+ * @param duration   The duration of the texture animation, if the texture is animated; only {@link TextureType#ARRAY}
+ *                   could be animated. Frame count is determined by {@link #arraySize()}. If the texture is not animated,
+ *                   this is {@link Optional#empty()}.
  */
 public record Texture(
     TextureFormat format,
@@ -37,7 +42,8 @@ public record Texture(
     List<Surface> surfaces,
     int mips,
     OptionalInt depth,
-    OptionalInt arraySize
+    OptionalInt arraySize,
+    Optional<Duration> duration
 ) {
     public Texture {
         if (surfaces.isEmpty()) {
@@ -51,6 +57,9 @@ public record Texture(
         }
         if (type == TextureType.ARRAY != arraySize.isPresent()) {
             throw new IllegalArgumentException("Array size must be present for array textures");
+        }
+        if (type != TextureType.ARRAY && duration.isPresent()) {
+            throw new IllegalArgumentException("Only array textures can be animated");
         }
         for (Surface surface : surfaces) {
             int size = format.block().surfaceSize(surface.width(), surface.height());
@@ -67,7 +76,11 @@ public record Texture(
     }
 
     public static Texture of2D(TextureFormat format, TextureColorSpace colorSpace, List<Surface> surfaces, int mips) {
-        return new Texture(format, TextureType.SURFACE, colorSpace, surfaces, mips, OptionalInt.empty(), OptionalInt.empty());
+        return new Texture(format, TextureType.SURFACE, colorSpace, surfaces, mips, OptionalInt.empty(), OptionalInt.empty(), Optional.empty());
+    }
+
+    public static Texture ofAnimated2D(TextureFormat format, TextureColorSpace colorSpace, List<Surface> surfaces, int frames, Duration duration) {
+        return new Texture(format, TextureType.ARRAY, colorSpace, surfaces, 1, OptionalInt.empty(), OptionalInt.of(frames), Optional.of(duration));
     }
 
     public Texture convert(TextureFormat targetFormat) {

@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.viewer.texture;
 
+import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -7,9 +8,7 @@ import sh.adelessfox.odradek.util.Arrays;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteOrder;
@@ -24,20 +23,72 @@ public class TextureViewer implements Viewer<Texture> {
 
     @Override
     public JComponent createComponent(Texture texture) {
+        var converted = texture.convert(TextureFormat.B8G8R8A8_UNORM);
+        var surfaces = converted.surfaces().stream()
+            .map(TextureViewer::createImage)
+            .limit(texture.duration().isPresent() ? Long.MAX_VALUE : 1) // NOTE: dirty!
+            .toList();
+
         var imageView = new ImageView();
-        imageView.setImage(createImage(texture));
+        imageView.setImage(surfaces.getFirst());
         imageView.setZoomToFit(true);
 
         var imagePane = createImagePane(imageView);
         var imageToolbar = createToolBar(imageView);
 
-        // To separate it from the toolbar
+        // To visually separate it from the toolbar
         imagePane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")));
 
         var panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.add(imagePane, BorderLayout.CENTER);
         panel.add(imageToolbar, BorderLayout.NORTH);
+
+        texture.duration().ifPresent(duration -> {
+            var slider = new JSlider(0, surfaces.size() - 1);
+            var animate = new JCheckBox("Animate", true);
+
+            imageToolbar.addSeparator();
+            imageToolbar.add(animate);
+            imageToolbar.add(slider);
+            imageToolbar.add(Box.createHorizontalBox());
+
+            var delay = Math.toIntExact(duration.toMillis());
+            var listener = new ActionListener() {
+                private int index = 0;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    imageView.setImage(surfaces.get(index));
+                    slider.setValue(index);
+                    index = (index + 1) % surfaces.size();
+                }
+            };
+            var timer = new Timer(delay, listener);
+
+            imageView.addHierarchyListener(e -> {
+                if (e.getID() == HierarchyEvent.HIERARCHY_CHANGED && SwingUtilities.isDescendingFrom(imageView, e.getChanged())) {
+                    if (!imageView.isShowing()) {
+                        timer.stop();
+                    } else if (animate.isSelected() && !timer.isRunning()) {
+                        timer.start();
+                    }
+                }
+            });
+
+            slider.addChangeListener(_ -> {
+                int index = slider.getValue();
+                listener.index = index;
+                imageView.setImage(surfaces.get(index));
+            });
+            animate.addActionListener(_ -> {
+                if (animate.isSelected()) {
+                    timer.start();
+                } else {
+                    timer.stop();
+                }
+            });
+        });
 
         return panel;
     }
@@ -114,10 +165,7 @@ public class TextureViewer implements Viewer<Texture> {
         return toolBar;
     }
 
-    private static BufferedImage createImage(Texture texture) {
-        var converted = texture.convert(TextureFormat.B8G8R8A8_UNORM);
-        var surface = converted.surfaces().getFirst();
-
+    private static BufferedImage createImage(Surface surface) {
         var image = new BufferedImage(surface.width(), surface.height(), BufferedImage.TYPE_INT_ARGB);
         var imageData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
