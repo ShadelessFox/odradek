@@ -147,7 +147,7 @@ public class ImageView extends JComponent implements Scrollable {
 
             if (SHOW_OUTLINE) {
                 g2.setColor(Color.RED);
-                g2.drawRect(0, 0, (int) (filteredImage.getWidth() * zoom - 1), (int) (filteredImage.getHeight() * zoom - 1));
+                g2.drawRect(0, 0, Math.round(filteredImage.getWidth() * zoom - 1), Math.round(filteredImage.getHeight() * zoom - 1));
             }
 
             g2.scale(zoom, zoom);
