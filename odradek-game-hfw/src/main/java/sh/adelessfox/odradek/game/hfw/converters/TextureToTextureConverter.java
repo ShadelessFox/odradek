@@ -164,6 +164,7 @@ public class TextureToTextureConverter implements Converter<ForbiddenWestGame, T
 
     private static TextureFormat mapFormat(EPixelFormat format) {
         return switch (format) {
+            case R_UNORM_8 -> TextureFormat.R8_UNORM;
             case RGBA_8888 -> TextureFormat.R8G8B8A8_UNORM;
             case BC1 -> TextureFormat.BC1_UNORM;
             case BC2 -> TextureFormat.BC2_UNORM;

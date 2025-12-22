@@ -41,36 +41,18 @@ public final class RenderMeshesPass implements RenderPass {
     private Scene scene;
 
     @Override
-    public void init() {
-        try {
-            program = new ShaderProgram(
-                ShaderSource.fromResource(getClass().getResource("/assets/shaders/mesh.vert")),
-                ShaderSource.fromResource(getClass().getResource("/assets/shaders/mesh.frag"))
-            );
-        } catch (IOException e) {
-            log.error("Failed to load shaders", e);
-            return;
-        }
-
-        try {
-            diffuseTexture = Texture.load(loadImage());
-            diffuseSampler = diffuseTexture.createSampler(new SamplerDescriptor(
-                AddressMode.REPEAT,
-                AddressMode.REPEAT,
-                FilterMode.NEAREST,
-                FilterMode.NEAREST
-            ));
-        } catch (IOException e) {
-            log.error("Unable to load the UV texture", e);
-            if (diffuseTexture != null) {
-                diffuseTexture.dispose();
-                diffuseTexture = null;
-            }
-            if (diffuseSampler != null) {
-                diffuseSampler.dispose();
-                diffuseSampler = null;
-            }
-        }
+    public void init() throws IOException {
+        program = ShaderProgram.ofVertexFragment(
+            ShaderSource.read(getClass().getResource("/assets/shaders/mesh.vert")),
+            ShaderSource.read(getClass().getResource("/assets/shaders/mesh.frag"))
+        );
+        diffuseTexture = Texture.load(loadImage());
+        diffuseSampler = diffuseTexture.createSampler(new SamplerDescriptor(
+            AddressMode.REPEAT,
+            AddressMode.REPEAT,
+            FilterMode.NEAREST,
+            FilterMode.NEAREST
+        ));
     }
 
     @Override

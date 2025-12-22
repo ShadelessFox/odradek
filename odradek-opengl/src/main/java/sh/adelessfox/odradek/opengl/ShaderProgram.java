@@ -16,7 +16,7 @@ public final class ShaderProgram implements GLObject.Bindable<ShaderProgram> {
     private final int program = glCreateProgram();
     private final Map<String, Integer> locations = new HashMap<>();
 
-    public ShaderProgram(ShaderSource vertexShader, ShaderSource fragmentShader) {
+    private ShaderProgram(ShaderSource vertexShader, ShaderSource fragmentShader) {
         var vertexShaderId = compile(vertexShader, ShaderType.VERTEX);
         var fragmentShaderId = compile(fragmentShader, ShaderType.FRAGMENT);
 
@@ -30,6 +30,10 @@ public final class ShaderProgram implements GLObject.Bindable<ShaderProgram> {
 
         glDeleteShader(vertexShaderId);
         glDeleteShader(fragmentShaderId);
+    }
+
+    public static ShaderProgram ofVertexFragment(ShaderSource vertexShader, ShaderSource fragmentShader) {
+        return new ShaderProgram(vertexShader, fragmentShader);
     }
 
     public void set(String name, Sampler sampler) {

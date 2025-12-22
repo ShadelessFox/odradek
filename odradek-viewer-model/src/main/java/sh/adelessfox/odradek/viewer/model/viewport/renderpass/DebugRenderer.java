@@ -55,13 +55,13 @@ final class DebugRenderer {
     private final Buffer vbo;
 
     public DebugRenderer() throws IOException {
-        debugProgram = new ShaderProgram(
-            ShaderSource.fromResource(getClass().getResource("/assets/shaders/debug.vert")),
-            ShaderSource.fromResource(getClass().getResource("/assets/shaders/debug.frag"))
+        debugProgram = ShaderProgram.ofVertexFragment(
+            ShaderSource.read(getClass().getResource("/assets/shaders/debug.vert")),
+            ShaderSource.read(getClass().getResource("/assets/shaders/debug.frag"))
         );
-        msdfProgram = new ShaderProgram(
-            ShaderSource.fromResource(getClass().getResource("/assets/shaders/msdf.vert")),
-            ShaderSource.fromResource(getClass().getResource("/assets/shaders/msdf.frag"))
+        msdfProgram = ShaderProgram.ofVertexFragment(
+            ShaderSource.read(getClass().getResource("/assets/shaders/msdf.vert")),
+            ShaderSource.read(getClass().getResource("/assets/shaders/msdf.frag"))
         );
 
         msdfFont = loadFontMetadata();

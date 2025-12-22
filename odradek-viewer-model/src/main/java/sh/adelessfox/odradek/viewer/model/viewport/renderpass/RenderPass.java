@@ -8,11 +8,16 @@ public interface RenderPass {
      * This method is called when the OpenGL context is created.
      * <p>
      * It's responsible for creating the OpenGL resources needed for the pass.
+     * <p>
+     * This method may throw, but really shouldn't, exceptions on failure.
+     * If this happens, {@link #dispose()} will be called, and this render pass
+     * will be excluded from the render queue.
      */
-    void init();
+    void init() throws Exception;
 
     /**
-     * This method is called when the OpenGL context is destroyed.
+     * This method is called when the OpenGL context is destroyed. It should correctly
+     * handle partially initialized render pass in case {@link #init()} throws an exception.
      * <p>
      * It's responsible for disposing of the OpenGL resources created in {@link #init()}.
      */

@@ -19,16 +19,11 @@ public class GridRenderPass implements RenderPass {
     private VertexArray vao;
 
     @Override
-    public void init() {
-        try {
-            program = new ShaderProgram(
-                ShaderSource.fromResource(getClass().getResource("/assets/shaders/grid.vert")),
-                ShaderSource.fromResource(getClass().getResource("/assets/shaders/grid.frag"))
-            );
-        } catch (IOException e) {
-            log.error("Failed to load shaders", e);
-        }
-
+    public void init() throws IOException {
+        program = ShaderProgram.ofVertexFragment(
+            ShaderSource.read(getClass().getResource("/assets/shaders/grid.vert")),
+            ShaderSource.read(getClass().getResource("/assets/shaders/grid.frag"))
+        );
         vao = VertexArray.createPlane(2.0f, 2.0f);
     }
 

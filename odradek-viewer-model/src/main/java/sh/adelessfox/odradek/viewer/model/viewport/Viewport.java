@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.viewer.model.viewport;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.math.Vector2f;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.awt.GLCanvas;
@@ -12,14 +14,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL43.*;
 
-public final class Viewport extends JPanel {
+public final class Viewport extends JPanel implements GLEventListener {
+    private static final Logger log = LoggerFactory.getLogger(Viewport.class);
+
     private final List<RenderPass> passes = new ArrayList<>();
+    private final List<RenderPass> effectivePasses = new ArrayList<>();
+
     private final GLCanvas canvas;
     private final ViewportInput input;
     private final ViewportAnimator animator;
@@ -27,7 +35,8 @@ public final class Viewport extends JPanel {
     private float cameraSpeed = 5.f;
     private float cameraDistance = 1.f;
     private boolean cameraOriginShown;
-    private long lastUpdateTime;
+    private boolean initialized;
+    private Instant lastUpdateTime;
 
     private Camera camera;
     private Scene scene;
@@ -50,51 +59,7 @@ public final class Viewport extends JPanel {
         data.profile = GLData.Profile.CORE;
 
         GLCanvas canvas = new GLCanvas(data);
-        canvas.addGLEventListener(new GLEventListener() {
-            @Override
-            public void onCreate() {
-                // Enable depth testing
-                glEnable(GL_DEPTH_TEST);
-                glDepthFunc(GL_LESS);
-                glDepthMask(true);
-
-                // Enable back face culling
-                // glEnable(GL_CULL_FACE);
-                // glCullFace(GL_BACK);
-
-                // Enable debug output
-                glEnable(GL_DEBUG_OUTPUT);
-                glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-                glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, true);
-                glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DONT_CARE, 0, false);
-                glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DONT_CARE, 0, false);
-                glDebugMessageCallback(new ViewportDebugCallback(), 0);
-
-                lastUpdateTime = System.currentTimeMillis();
-
-                for (RenderPass pass : passes) {
-                    pass.init();
-                }
-            }
-
-            @Override
-            public void onRender() {
-                var currentUpdateTime = System.currentTimeMillis();
-                var currentUpdateDelta = (currentUpdateTime - lastUpdateTime) / 1000.0f;
-
-                processInput(currentUpdateDelta);
-                renderScene(currentUpdateDelta);
-
-                lastUpdateTime = currentUpdateTime;
-            }
-
-            @Override
-            public void onDestroy() {
-                for (RenderPass pass : passes) {
-                    pass.dispose();
-                }
-            }
-        });
+        canvas.addGLEventListener(this);
 
         return canvas;
     }
@@ -111,26 +76,77 @@ public final class Viewport extends JPanel {
         super.removeNotify();
     }
 
+    @Override
+    public void onCreate() {
+        // Enable depth testing
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDepthMask(true);
+
+        // Enable debug output
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, true);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_PUSH_GROUP, GL_DONT_CARE, 0, false);
+        glDebugMessageControl(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_POP_GROUP, GL_DONT_CARE, 0, false);
+        glDebugMessageCallback(new ViewportDebugCallback(), 0);
+
+        for (RenderPass pass : passes) {
+            try {
+                pass.init();
+            } catch (Exception e) {
+                log.error("Failed to initialize render pass {}. It will not be rendered", pass, e);
+                pass.dispose();
+                continue;
+            }
+            effectivePasses.add(pass);
+        }
+
+        lastUpdateTime = Instant.now();
+        initialized = true;
+    }
+
+    @Override
+    public void onRender() {
+        var currentUpdateTime = Instant.now();
+        var currentUpdateDelta = Duration.between(lastUpdateTime, currentUpdateTime).toMillis() / 1000.0f;
+
+        processInput(currentUpdateDelta);
+        renderScene(currentUpdateDelta);
+
+        lastUpdateTime = currentUpdateTime;
+    }
+
+    @Override
+    public void onDestroy() {
+        for (RenderPass pass : effectivePasses) {
+            pass.dispose();
+        }
+        effectivePasses.clear();
+        initialized = false;
+    }
+
     public void render() {
         canvas.render();
     }
 
     public void addRenderPass(RenderPass pass) {
+        if (initialized) {
+            throw new IllegalStateException("Render passes must be added before the viewport is initialized");
+        }
         if (passes.contains(pass)) {
-            throw new IllegalArgumentException("Render pass already added");
+            throw new IllegalArgumentException("Render pass is already added");
         }
         passes.add(pass);
-        // TODO: Init should only be called if we have an active GL context
-        // pass.init();
     }
 
     public void removeRenderPass(RenderPass pass) {
-        if (!passes.contains(pass)) {
-            throw new IllegalArgumentException("Render pass not added");
+        if (!passes.remove(pass)) {
+            throw new IllegalArgumentException("Render pass is not added");
         }
-        // TODO: Dispose should only be called if we have an active GL context
-        // pass.dispose();
-        passes.remove(pass);
+        if (initialized) {
+            pass.dispose();
+        }
     }
 
     public Camera getCamera() {
@@ -179,19 +195,20 @@ public final class Viewport extends JPanel {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glViewport(0, 0, width, height);
 
-        for (RenderPass pass : passes) {
+        for (RenderPass pass : effectivePasses) {
             pass.draw(this, dt);
         }
     }
 
     private void processInput(float dt) {
         updateCamera(dt);
-        for (RenderPass pass : passes) {
+        for (RenderPass pass : effectivePasses) {
             pass.process(this, dt, input);
         }
         input.clear();
     }
 
+    // region Camera
     private void updateCamera(float dt) {
         if (camera == null) {
             return;
@@ -277,4 +294,5 @@ public final class Viewport extends JPanel {
         var distance = target.sub(camera.forward()).mul(cameraDistance);
         camera.move(distance);
     }
+    // endregion
 }

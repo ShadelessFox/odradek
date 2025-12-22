@@ -37,12 +37,8 @@ public class OverlayRenderPass implements RenderPass {
     private boolean showBoundingBoxes;
 
     @Override
-    public void init() {
-        try {
-            debug = new DebugRenderer();
-        } catch (IOException e) {
-            throw new IllegalStateException("Unable to initialize debug renderer", e);
-        }
+    public void init() throws IOException {
+        debug = new DebugRenderer();
     }
 
     @Override
