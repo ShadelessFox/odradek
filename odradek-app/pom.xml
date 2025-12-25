@@ -190,6 +190,8 @@
                         <javaOption>--enable-preview</javaOption>
                         <!-- Fixes canvas flickering on resize -->
                         <javaOption>-Dsun.awt.noerasebackground=true</javaOption>
+                        <!-- Fixes repaint issues; only seen on Windows -->
+                        <javaOption>-Dsun.java2d.opengl=true</javaOption>
                     </javaOptions>
                     <module>odradek.app/sh.adelessfox.odradek.app.Main</module>
                 </configuration>
