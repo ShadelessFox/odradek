@@ -43,8 +43,7 @@ public final class Application {
             throw new IllegalStateException("Application is already running");
         }
 
-        log.info("Loading game assets");
-        ForbiddenWestGame game = new ForbiddenWestGame(params.sourcePath(), EPlatform.WinGame);
+        var game = new ForbiddenWestGame(params.sourcePath(), EPlatform.WinGame);
 
         log.info("Starting the application");
         SwingUtilities.invokeLater(() -> {

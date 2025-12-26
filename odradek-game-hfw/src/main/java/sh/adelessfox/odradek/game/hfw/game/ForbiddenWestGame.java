@@ -24,13 +24,6 @@ import java.util.Optional;
 public final class ForbiddenWestGame implements Game {
     private static final Logger log = LoggerFactory.getLogger(ForbiddenWestGame.class);
 
-    private static final TypeFactory typeFactory;
-
-    static {
-        log.debug("Loading type factory");
-        typeFactory = new HFWTypeFactory();
-    }
-
     private final StreamingGraphResource streamingGraph;
     private final StorageReadDevice storageDevice;
     private final ObjectStreamingSystem streamingSystem;
@@ -49,8 +42,11 @@ public final class ForbiddenWestGame implements Game {
 
         var fileSystem = new ForbiddenWestFileSystem(source, platform);
 
+        log.debug("Loading type factory");
+        var typeFactory = new HFWTypeFactory();
+
         log.debug("Loading streaming graph");
-        streamingGraph = readStreamingGraph(fileSystem);
+        streamingGraph = readStreamingGraph(fileSystem, typeFactory);
 
         log.debug("Loading storage files");
         storageDevice = new StorageReadDevice(fileSystem);
@@ -87,12 +83,11 @@ public final class ForbiddenWestGame implements Game {
         storageDevice.close();
     }
 
-    private static StreamingGraphResource readStreamingGraph(ForbiddenWestFileSystem fileSystem) throws IOException {
+    private static StreamingGraphResource readStreamingGraph(ForbiddenWestFileSystem fileSystem, TypeFactory typeFactory) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new HFWTypeReader().readObject(reader, typeFactory);
             var graph = (HorizonForbiddenWest.StreamingGraphResource) result.object();
             return new StreamingGraphResource(graph, typeFactory);
         }
     }
-
 }
