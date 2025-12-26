@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.game.hfw.game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.hfw.game.win32.ProductVersion;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
@@ -16,7 +17,9 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public final class ForbiddenWestGame implements Game {
     private static final Logger log = LoggerFactory.getLogger(ForbiddenWestGame.class);
@@ -34,6 +37,16 @@ public final class ForbiddenWestGame implements Game {
     private final StreamingObjectReader streamingReader;
 
     public ForbiddenWestGame(Path source, EPlatform platform) throws IOException {
+        var version = Optional.of(source.resolve("HorizonForbiddenWest.exe"))
+            .filter(Files::exists)
+            .flatMap(ProductVersion::probe)
+            .map(ProductVersion::toString)
+            .orElse("Unknown");
+
+        log.debug("[GAME] Source:   {}", source);
+        log.debug("[GAME] Platform: {}", platform);
+        log.debug("[GAME] Version:  {}", version);
+
         var fileSystem = new ForbiddenWestFileSystem(source, platform);
 
         log.debug("Loading streaming graph");
