@@ -7,6 +7,9 @@ import java.util.Optional;
 
 public record Mesh(Optional<String> name, List<Primitive> primitives) {
     public Mesh {
+        if (primitives.isEmpty()) {
+            throw new IllegalArgumentException("mesh must consist of at least one primitive");
+        }
         primitives = List.copyOf(primitives);
     }
 
@@ -15,10 +18,9 @@ public record Mesh(Optional<String> name, List<Primitive> primitives) {
     }
 
     public BoundingBox computeBoundingBox() {
-        var bbox = BoundingBox.empty();
-        for (var primitive : primitives) {
-            bbox = bbox.encapsulate(primitive.computeBoundingBox());
-        }
-        return bbox;
+        return primitives.stream()
+            .map(Primitive::computeBoundingBox)
+            .reduce(BoundingBox::encapsulate)
+            .orElseThrow();
     }
 }

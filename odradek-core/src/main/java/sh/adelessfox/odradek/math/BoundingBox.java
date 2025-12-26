@@ -1,10 +1,15 @@
 package sh.adelessfox.odradek.math;
 
+import java.util.stream.Stream;
+
 public record BoundingBox(
     Vector3f min,
     Vector3f max
 ) {
-    private static final BoundingBox empty = new BoundingBox(Vector3f.zero(), Vector3f.zero());
+    private static final BoundingBox empty = new BoundingBox(
+        new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
+        new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY)
+    );
 
     public static BoundingBox empty() {
         return empty;
@@ -26,22 +31,19 @@ public record BoundingBox(
             new Vector3f(max.x(), max.y(), max.z())
         };
 
-        var min = new Vector3f(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
-        var max = new Vector3f(Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
-
-        for (var corner : corners) {
-            var transformedCorner = corner.transform(matrix);
-            min = min.min(transformedCorner);
-            max = max.max(transformedCorner);
-        }
-
-        return new BoundingBox(min, max);
+        return Stream.of(corners)
+            .map(corner -> corner.transform(matrix))
+            .reduce(empty(), BoundingBox::encapsulate, BoundingBox::encapsulate);
     }
 
     public BoundingBox encapsulate(BoundingBox other) {
         var min = min().min(other.min());
         var max = max().max(other.max());
         return new BoundingBox(min, max);
+    }
+
+    public BoundingBox encapsulate(Vector3f other) {
+        return encapsulate(other.x(), other.y(), other.z());
     }
 
     public BoundingBox encapsulate(float x, float y, float z) {

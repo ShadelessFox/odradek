@@ -59,6 +59,7 @@ public record Accessor(
 
     public IntView asIntView() {
         return switch (componentType) {
+            case SHORT, UNSIGNED_SHORT -> IntView.ofShort(this, buffer);
             case INT, UNSIGNED_INT -> IntView.ofInt(this, buffer);
             default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
         };
@@ -99,6 +100,10 @@ public record Accessor(
     }
 
     public interface IntView {
+        static IntView ofShort(Accessor accessor, ByteBuffer buffer) {
+            return (e, c) -> Short.toUnsignedInt(buffer.getShort(accessor.getPositionFor(e, c)));
+        }
+
         static IntView ofInt(Accessor accessor, ByteBuffer buffer) {
             return (e, c) -> buffer.getInt(accessor.getPositionFor(e, c));
         }

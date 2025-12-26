@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.scene;
 import sh.adelessfox.odradek.math.BoundingBox;
 
 import java.util.List;
+import java.util.Optional;
 
 public record Scene(List<Node> nodes) {
     public Scene {
@@ -13,10 +14,10 @@ public record Scene(List<Node> nodes) {
         return new Scene(List.of(node));
     }
 
-    public BoundingBox computeBoundingBox() {
+    public Optional<BoundingBox> computeBoundingBox() {
         return nodes.stream()
             .map(Node::computeBoundingBox)
-            .reduce(BoundingBox::encapsulate)
-            .orElseGet(BoundingBox::empty);
+            .flatMap(Optional::stream)
+            .reduce(BoundingBox::encapsulate);
     }
 }

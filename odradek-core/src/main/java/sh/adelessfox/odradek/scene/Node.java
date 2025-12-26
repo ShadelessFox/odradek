@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public record Node(
     Optional<String> name,
@@ -42,22 +43,17 @@ public record Node(
         return new Node(name, mesh, skin, children, matrix.mul(transform));
     }
 
-    public BoundingBox computeBoundingBox() {
-        var bbox = mesh
-            .map(Mesh::computeBoundingBox)
-            .orElse(null);
-        for (Node child : children) {
-            var other = child.computeBoundingBox();
-            if (bbox == null) {
-                bbox = other;
-            } else {
-                bbox = bbox.encapsulate(other);
-            }
-        }
-        if (bbox != null) {
-            return bbox.transform(matrix);
-        }
-        return BoundingBox.empty();
+    public Optional<BoundingBox> computeBoundingBox() {
+        var bbox1 = mesh.stream()
+            .map(Mesh::computeBoundingBox);
+
+        var bbox2 = children.stream()
+            .map(Node::computeBoundingBox)
+            .flatMap(Optional::stream);
+
+        return Stream.concat(bbox1, bbox2)
+            .reduce(BoundingBox::encapsulate)
+            .map(bbox -> bbox.transform(matrix));
     }
 
     public static final class Builder {

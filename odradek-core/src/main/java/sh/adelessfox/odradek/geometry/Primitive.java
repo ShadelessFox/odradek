@@ -26,14 +26,16 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int 
     }
 
     public BoundingBox computeBoundingBox() {
-        var positions = positions();
-        var view = positions.asFloatView();
+        var indices = indices().asIntView();
+        var positions = positions().asFloatView();
         var bbox = BoundingBox.empty();
 
-        for (int i = 0; i < positions.count(); i++) {
-            float x = view.get(i, 0);
-            float y = view.get(i, 1);
-            float z = view.get(i, 2);
+        for (int i = 0; i < indices().count(); i++) {
+            int index = indices.get(i, 0);
+            float x = positions.get(index, 0);
+            float y = positions.get(index, 1);
+            float z = positions.get(index, 2);
+
             bbox = bbox.encapsulate(x, y, z);
         }
 

@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.viewer.model;
 
+import sh.adelessfox.odradek.math.BoundingBox;
+import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
@@ -16,7 +18,9 @@ public class SceneViewer implements Viewer<Scene> {
     @Override
     public JComponent createComponent(Scene scene) {
         Camera camera = new Camera(30.f, 0.01f, 1000.f);
-        camera.position(scene.computeBoundingBox().center());
+        camera.position(scene.computeBoundingBox()
+            .map(BoundingBox::center)
+            .orElse(Vector3f.zero()));
 
         Viewport viewport = new Viewport();
         viewport.setMinimumSize(new Dimension(100, 100));

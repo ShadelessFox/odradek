@@ -122,7 +122,11 @@ public final class RenderMeshesPass implements RenderPass {
             .flatMap(Optional::stream)
             .toList();
 
-        return new GpuNode(primitives, transform, node.computeBoundingBox().transform(transform));
+        var bbox = node.computeBoundingBox()
+            .map(b -> b.transform(transform))
+            .orElse(BoundingBox.empty());
+
+        return new GpuNode(primitives, transform, bbox);
     }
 
     private Optional<GpuPrimitive> uploadPrimitive(Primitive primitive) {
