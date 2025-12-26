@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
@@ -101,7 +102,7 @@ public final class GraphWalker {
                     for (int i = nextObjectIndex; i < objects.size(); i++) {
                         var object = objects.get(i).object();
                         if (ofType.isInstance(object)) {
-                            action.accept(new SearchResult<>(result.group().groupID(), i, ofType.cast(object)));
+                            action.accept(new SearchResult<>(new ObjectId(result.group().groupID(), i), ofType.cast(object)));
                             nextObjectIndex = i + 1;
                             return true;
                         }
@@ -112,6 +113,6 @@ public final class GraphWalker {
         };
     }
 
-    public record SearchResult<T>(int groupId, int objectIndex, T object) {
+    public record SearchResult<T>(ObjectId objectId, T object) {
     }
 }

@@ -25,6 +25,7 @@ module odradek.app {
 
     // Viewers
     requires odradek.viewer.model;
+    requires odradek.viewer.shader;
     requires odradek.viewer.texture;
 
     opens sh.adelessfox.odradek.app to info.picocli;

@@ -5,6 +5,7 @@ module odradek.core {
     exports sh.adelessfox.odradek.compression;
     exports sh.adelessfox.odradek.event;
     exports sh.adelessfox.odradek.geometry;
+    exports sh.adelessfox.odradek.graphics;
     exports sh.adelessfox.odradek.hashing;
     exports sh.adelessfox.odradek.io;
     exports sh.adelessfox.odradek.math;

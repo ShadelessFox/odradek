@@ -1,4 +1,3 @@
-import sh.adelessfox.odradek.game.hfw.converters.MeshToSceneConverter;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.hfw.rtti.extensions.*;
 import sh.adelessfox.odradek.rtti.GenerateBindings;
@@ -88,8 +87,9 @@ module odradek.game.hfw {
     exports sh.adelessfox.odradek.game.hfw;
 
     provides sh.adelessfox.odradek.game.Converter with
-            MeshToSceneConverter,
+        sh.adelessfox.odradek.game.hfw.converters.MeshToSceneConverter,
         sh.adelessfox.odradek.game.hfw.converters.ObjectToTypedObjectConverter,
+        sh.adelessfox.odradek.game.hfw.converters.ShaderConverter,
         sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter,
         sh.adelessfox.odradek.game.hfw.converters.TextureToTextureConverter;
 }

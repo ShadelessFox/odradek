@@ -41,6 +41,10 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-viewer-shader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-viewer-texture</artifactId>
         </dependency>
         <dependency>
@@ -182,6 +186,7 @@
                     </jLinkOptions>
                     <javaOptions>
                         <javaOption>--enable-native-access=com.formdev.flatlaf</javaOption>
+                        <javaOption>--enable-native-access=odradek.viewer.shader</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
