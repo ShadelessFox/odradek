@@ -1,33 +1,33 @@
-package sh.adelessfox.odradek.ui.components.toolwindow;
+package sh.adelessfox.odradek.ui.components.tool;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-final class ToolWindowGroup {
-    private final Map<ToolWindowPane, ToolWindowInfo> panes = new HashMap<>();
+final class ToolPanelGroup {
+    private final Map<ToolPanel, ToolWindowInfo> panes = new HashMap<>();
     private final JPanel container;
     private final CardLayout layout;
-    private ToolWindowPane selection;
+    private ToolPanel selection;
 
-    ToolWindowGroup() {
+    ToolPanelGroup() {
         layout = new CardLayout();
         container = new JPanel(layout);
     }
 
-    void addPane(ToolWindowPane pane) {
+    void addPane(ToolPanel pane) {
         if (panes.containsKey(pane)) {
             throw new IllegalArgumentException("Pane is already added to this group");
         }
         panes.put(pane, new ToolWindowInfo(String.valueOf(panes.size())));
     }
 
-    boolean hasPane(ToolWindowPane pane) {
+    boolean hasPane(ToolPanel pane) {
         return panes.containsKey(pane);
     }
 
-    boolean selectPane(ToolWindowPane pane) {
+    boolean selectPane(ToolPanel pane) {
         if (selection == pane) {
             return false;
         }
@@ -46,7 +46,7 @@ final class ToolWindowGroup {
         return true;
     }
 
-    boolean isSelected(ToolWindowPane pane) {
+    boolean isSelected(ToolPanel pane) {
         return selection == pane;
     }
 

@@ -15,7 +15,7 @@ import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
-import sh.adelessfox.odradek.ui.components.toolwindow.ToolWindowPane;
+import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent>, ToolWindowPane {
+public class GraphView implements View<JComponent>, ToolPanel {
     private static final Logger log = LoggerFactory.getLogger(GraphView.class);
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
