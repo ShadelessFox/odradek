@@ -28,6 +28,10 @@ public class TreeActionEvent extends EventObject {
     }
 
     public Object getLastPathComponent() {
-        return path.getLastPathComponent();
+        Object component = path.getLastPathComponent();
+        if (component instanceof TreeItem<?> item) {
+            return item.getValue();
+        }
+        return component;
     }
 }
