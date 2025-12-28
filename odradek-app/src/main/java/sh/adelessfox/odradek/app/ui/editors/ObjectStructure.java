@@ -88,16 +88,12 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
     Object value();
 
     @Override
-    default ObjectStructure getRoot() {
-        return this;
-    }
-
-    default List<? extends ObjectStructure> getChildren(ObjectStructure element) {
-        var value = element.value();
+    default List<? extends ObjectStructure> getChildren() {
+        var value = value();
         if (value == null) {
             return List.of();
         }
-        return switch (element.type()) {
+        return switch (type()) {
             case ClassTypeInfo c -> c.serializedAttrs().stream()
                 .map(attr -> new Attr(game(), c, attr, value))
                 .toList();
@@ -109,12 +105,12 @@ public sealed interface ObjectStructure extends TreeStructure<ObjectStructure> {
     }
 
     @Override
-    default boolean hasChildren(ObjectStructure node) {
-        var value = node.value();
+    default boolean hasChildren() {
+        var value = value();
         if (value == null) {
             return false;
         }
-        return switch (node.type()) {
+        return switch (type()) {
             case ClassTypeInfo _, ContainerTypeInfo _ -> true;
             default -> false;
         };

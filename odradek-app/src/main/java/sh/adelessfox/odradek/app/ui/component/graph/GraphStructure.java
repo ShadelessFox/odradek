@@ -32,7 +32,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             this.graph = graph;
         }
 
-        List<? extends GraphStructure> getChildren() {
+        List<? extends GraphStructure> getGroupedChildren() {
             if (options.contains(Option.GROUP_BY_TYPE)) {
                 var comparator = options.contains(Option.SORT_BY_COUNT)
                     ? Comparator.comparingInt((Map.Entry<ClassTypeInfo, List<Integer>> e) -> e.getValue().size()).reversed()
@@ -74,7 +74,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }
 
     record GroupedByType(GroupableByType parent, ClassTypeInfo info, int[] keys) implements GraphStructure {
-        List<? extends GraphStructure> getChildren() {
+        List<? extends GraphStructure> getGroupedChildren() {
             return IntStream.of(keys)
                 .mapToObj(parent::toGroupObject)
                 .toList();
@@ -364,13 +364,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }
 
     @Override
-    default GraphStructure getRoot() {
-        return this;
-    }
-
-    @Override
-    default List<? extends GraphStructure> getChildren(GraphStructure parent) {
-        return switch (parent) {
+    default List<? extends GraphStructure> getChildren() {
+        return switch (this) {
             case Graph(var graph) -> List.of(
                 new GraphGroups(graph),
                 new GraphObjects(graph),
@@ -412,16 +407,16 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 .map(inGroup -> new Group(graph, inGroup, false))
                 .toList();
 
-            case GroupableByType groupableByType -> groupableByType.getChildren();
-            case GroupedByType groupedByType -> groupedByType.getChildren();
+            case GroupableByType groupableByType -> groupableByType.getGroupedChildren();
+            case GroupedByType groupedByType -> groupedByType.getGroupedChildren();
 
             case GroupObject _ -> List.of();
         };
     }
 
     @Override
-    default boolean hasChildren(GraphStructure node) {
-        return switch (node) {
+    default boolean hasChildren() {
+        return switch (this) {
             case GroupDependencies(var _, var group) -> group.subGroupCount() > 0;
             case GroupDependents(var graph, var group) -> !graph.incomingGroups(group).isEmpty();
             case GroupRoots roots -> roots.group.rootCount() > 0;

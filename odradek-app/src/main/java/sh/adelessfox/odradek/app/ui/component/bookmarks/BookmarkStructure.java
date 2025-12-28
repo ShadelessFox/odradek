@@ -7,12 +7,24 @@ import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.List;
 
-sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
+public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
     final class Root implements BookmarkStructure {
         final Bookmarks repository;
 
         Root(Bookmarks repository) {
             this.repository = repository;
+        }
+
+        @Override
+        public List<? extends BookmarkStructure> getChildren() {
+            return repository.getAll().stream()
+                .map(b -> new Bookmark(repository, b.objectId(), b.name()))
+                .toList();
+        }
+
+        @Override
+        public boolean hasChildren() {
+            return true;
         }
     }
 
@@ -28,31 +40,18 @@ sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
         }
 
         @Override
+        public List<? extends BookmarkStructure> getChildren() {
+            return List.of();
+        }
+
+        @Override
+        public boolean hasChildren() {
+            return false;
+        }
+
+        @Override
         public ObjectId objectId() {
             return id;
         }
-    }
-
-    @Override
-    default BookmarkStructure getRoot() {
-        return this;
-    }
-
-    @Override
-    default List<? extends BookmarkStructure> getChildren(BookmarkStructure parent) {
-        return switch (parent) {
-            case Root root -> root.repository.getAll().stream()
-                .map(b -> new Bookmark(root.repository, b.objectId(), b.name()))
-                .toList();
-            case Bookmark _ -> List.of();
-        };
-    }
-
-    @Override
-    default boolean hasChildren(BookmarkStructure parent) {
-        return switch (parent) {
-            case Root _ -> true;
-            case Bookmark _ -> false;
-        };
     }
 }

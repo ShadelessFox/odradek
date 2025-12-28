@@ -2,10 +2,8 @@ package sh.adelessfox.odradek.ui.components.tree;
 
 import java.util.List;
 
-public interface TreeStructure<T> {
-    T getRoot();
+public interface TreeStructure<T extends TreeStructure<T>> {
+    List<? extends T> getChildren();
 
-    List<? extends T> getChildren(T parent);
-
-    boolean hasChildren(T parent);
+    boolean hasChildren();
 }
