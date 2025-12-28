@@ -1,5 +1,3 @@
-import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.ToggleBookmarkAction;
-
 module odradek.app {
     requires ch.qos.logback.classic;
     requires ch.qos.logback.core;
@@ -37,7 +35,7 @@ module odradek.app {
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
-        ToggleBookmarkAction,
+        sh.adelessfox.odradek.app.ui.component.bookmarks.menu.ToggleBookmarkAction,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,

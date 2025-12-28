@@ -6,7 +6,7 @@ import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkRepository;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
@@ -90,8 +90,8 @@ public final class Application {
         return component.editorManager();
     }
 
-    public BookmarkRepository bookmarks() {
-        return component.bookmarkRepository();
+    public Bookmarks bookmarks() {
+        return component.bookmarks();
     }
 
     public boolean isDebugMode() {

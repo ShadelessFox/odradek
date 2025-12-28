@@ -4,7 +4,7 @@ import jakarta.inject.Inject;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkRepository;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
@@ -17,13 +17,13 @@ import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import javax.swing.*;
 
 public class BookmarkToolPanel implements ToolPanel {
-    private final BookmarkRepository repository;
+    private final Bookmarks repository;
     private final EventBus eventBus;
 
     private StructuredTree<BookmarkStructure> tree;
 
     @Inject
-    public BookmarkToolPanel(BookmarkRepository repository, EventBus eventBus) {
+    public BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
         this.repository = repository;
         this.eventBus = eventBus;
 
@@ -67,7 +67,7 @@ public class BookmarkToolPanel implements ToolPanel {
     private void loadSettings(Settings settings) {
         settings.bookmarks().ifPresent(bookmarks -> {
             for (Bookmark bookmark : bookmarks) {
-                repository.create(bookmark.objectId(), bookmark.name());
+                this.repository.create(bookmark.objectId(), bookmark.name());
             }
         });
     }

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkRepository;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
@@ -9,19 +9,19 @@ import java.util.List;
 
 sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
     final class Root implements BookmarkStructure {
-        final BookmarkRepository repository;
+        final Bookmarks repository;
 
-        Root(BookmarkRepository repository) {
+        Root(Bookmarks repository) {
             this.repository = repository;
         }
     }
 
     final class Bookmark implements BookmarkStructure, ObjectIdHolder {
-        final BookmarkRepository repository;
+        final Bookmarks repository;
         final ObjectId id;
         final String name;
 
-        public Bookmark(BookmarkRepository repository, ObjectId id, String name) {
+        public Bookmark(Bookmarks repository, ObjectId id, String name) {
             this.repository = repository;
             this.id = id;
             this.name = name;

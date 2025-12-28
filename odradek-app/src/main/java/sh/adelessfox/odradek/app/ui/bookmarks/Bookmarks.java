@@ -10,13 +10,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * A repository of bookmarks.
+ */
 @Singleton
-public final class BookmarkRepository {
+public final class Bookmarks {
     private final EventBus eventBus;
     private final Map<ObjectId, Bookmark> bookmarks = new LinkedHashMap<>();
 
     @Inject
-    public BookmarkRepository(EventBus eventBus) {
+    public Bookmarks(EventBus eventBus) {
         this.eventBus = eventBus;
     }
 
