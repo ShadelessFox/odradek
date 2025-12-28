@@ -41,7 +41,8 @@ public class BookmarkToolPanel implements ToolPanel {
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new BookmarkLabelProvider());
         tree.addActionListener(event -> {
-            if (event.getLastPathComponent() instanceof BookmarkStructure.Bookmark bookmark) {
+            var component = event.getLastPathComponent();
+            if (component instanceof BookmarkStructure.Bookmark bookmark) {
                 var manager = Application.getInstance().editors();
                 var input = new ObjectEditorInputLazy(bookmark.id.groupId(), bookmark.id.objectIndex());
                 manager.openEditor(input);

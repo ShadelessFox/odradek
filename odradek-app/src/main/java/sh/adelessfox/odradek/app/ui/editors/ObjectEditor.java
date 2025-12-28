@@ -17,7 +17,6 @@ import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
-import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
@@ -143,9 +142,6 @@ final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataCo
         tree.setLabelProvider(new ObjectEditorLabelProvider());
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
-            if (component instanceof TreeItem<?> wrapper) {
-                component = wrapper.getValue();
-            }
             if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
                 var input = new ObjectEditorInput(game, link.get(), link.groupId(), link.objectIndex());
                 site.getManager().openEditor(input);

@@ -17,7 +17,6 @@ import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -177,9 +176,6 @@ public class GraphView implements View<JComponent>, ToolPanel {
         });
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
-            if (component instanceof TreeItem<?> item) {
-                component = item.getValue();
-            }
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 eventBus.publish(new GraphViewEvent.ShowObject(
                     groupObject.group().groupID(),
