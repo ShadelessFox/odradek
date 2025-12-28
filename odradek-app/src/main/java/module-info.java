@@ -31,9 +31,12 @@ module odradek.app {
     opens sh.adelessfox.odradek.app to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;
     opens sh.adelessfox.odradek.app.ui to info.picocli;
+    opens sh.adelessfox.odradek.app.ui.bookmarks to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
+        sh.adelessfox.odradek.app.ui.component.bookmarks.menu.ToggleBookmarkAction,
+        sh.adelessfox.odradek.app.ui.component.bookmarks.menu.RenameBookmarkAction,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,

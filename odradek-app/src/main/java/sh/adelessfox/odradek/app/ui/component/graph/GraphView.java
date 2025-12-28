@@ -8,16 +8,15 @@ import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.ObjectProvider;
+import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
-import sh.adelessfox.odradek.ui.components.toolwindow.ToolWindowPane;
+import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -29,8 +28,9 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent>, ToolWindowPane {
+public class GraphView implements View<JComponent>, ToolPanel {
     private static final Logger log = LoggerFactory.getLogger(GraphView.class);
+
     private final EventBus eventBus;
     private final ForbiddenWestGame game;
 
@@ -176,9 +176,6 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
         });
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
-            if (component instanceof TreeItem<?> item) {
-                component = item.getValue();
-            }
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 eventBus.publish(new GraphViewEvent.ShowObject(
                     groupObject.group().groupID(),
@@ -190,9 +187,9 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override
             public Optional<TypedObject> getObject(JTree tree, Object value) {
-                var provider = (ObjectProvider) value;
+                var holder = (ObjectHolder) value;
                 try {
-                    return Optional.of(provider.readObject(game));
+                    return Optional.of(holder.readObject(game));
                 } catch (IOException e) {
                     log.error("Failed to read object for preview", e);
                 }
@@ -201,7 +198,7 @@ public class GraphView implements View<JComponent>, ToolWindowPane {
 
             @Override
             public Optional<TypeInfo> getType(JTree tree, Object value) {
-                if (value instanceof ObjectProvider provider) {
+                if (value instanceof ObjectHolder provider) {
                     return Optional.of(provider.objectType());
                 }
                 return Optional.empty();

@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectProvider;
+import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", icon = "fugue:blue-document-export", keystroke = "ctrl E")
-@ActionContribution(parent = GraphMenu.ID)
+@ActionContribution(parent = GraphMenu.ID, group = "2000,Export")
 @ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
 @ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
 @ActionContribution(parent = ObjectEditorActionIds.TOOLBAR_ID, group = ObjectEditorActionIds.TOOLBAR_GROUP_GENERAL)
@@ -54,7 +54,7 @@ public class ExportObjectAction extends Action {
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
         var selection = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(ObjectProvider.class))
+            .gather(Gatherers.instanceOf(ObjectHolder.class))
             .toList();
 
         if (selection.isEmpty()) {
@@ -62,7 +62,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(ObjectProvider::objectType)
+            .map(ObjectHolder::objectType)
             .distinct()
             .toList();
 
@@ -100,7 +100,7 @@ public class ExportObjectAction extends Action {
         var directory = chooser.getSelectedFile().toPath();
         int exported = 0;
 
-        for (ObjectProvider selection : batch.objects()) {
+        for (ObjectHolder selection : batch.objects()) {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
@@ -149,6 +149,6 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private record Batch<T>(List<ObjectProvider> objects, Converter<Game, T> converter, Exporter<T> exporter) {
+    private record Batch<T>(List<ObjectHolder> objects, Converter<Game, T> converter, Exporter<T> exporter) {
     }
 }

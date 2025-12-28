@@ -5,7 +5,7 @@ import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;
 
-public interface ObjectProvider {
+public interface ObjectHolder {
     TypedObject readObject(Game game) throws IOException;
 
     ClassTypeInfo objectType();

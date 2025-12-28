@@ -30,6 +30,6 @@ public class OpenObjectAction extends Action {
         int groupId = Integer.parseUnsignedInt(result.substring(0, colon).strip());
         int objectIndex = Integer.parseUnsignedInt(result.substring(colon + 1).strip());
 
-        Application.getInstance().getEditorManager().openEditor(new ObjectEditorInputLazy(groupId, objectIndex));
+        Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(groupId, objectIndex));
     }
 }

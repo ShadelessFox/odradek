@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.components.toolwindow;
+package sh.adelessfox.odradek.ui.components.tool;
 
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.Focusable;
@@ -14,15 +14,15 @@ import java.util.List;
  * A panel with buttons on either sides that reveal contents when clicked.
  * Clicking on an already selected button will unselect it and hide the contents.
  */
-public final class ToolWindowPanel extends JPanel {
+public final class ToolPanelContainer extends JPanel {
     private final Splitter groupSplitter = new Splitter(true); // splitter between primary and secondary groups
     private final Splitter outerSplitter = new Splitter(false); // splitter between the panel and contents
     private final JPanel buttonsPanel;
 
-    private final List<ToolWindowButton> primaryButtons = new ArrayList<>();
-    private final List<ToolWindowButton> secondaryButtons = new ArrayList<>();
-    private final ToolWindowGroup primaryGroup = new ToolWindowGroup();
-    private final ToolWindowGroup secondaryGroup = new ToolWindowGroup();
+    private final List<ToolPanelButton> primaryButtons = new ArrayList<>();
+    private final List<ToolPanelButton> secondaryButtons = new ArrayList<>();
+    private final ToolPanelGroup primaryGroup = new ToolPanelGroup();
+    private final ToolPanelGroup secondaryGroup = new ToolPanelGroup();
     private final Placement placement;
 
     public enum Placement {
@@ -30,7 +30,7 @@ public final class ToolWindowPanel extends JPanel {
         RIGHT
     }
 
-    public ToolWindowPanel(Placement placement) {
+    public ToolPanelContainer(Placement placement) {
         this.placement = placement;
         this.buttonsPanel = createButtonPane(placement);
 
@@ -58,20 +58,20 @@ public final class ToolWindowPanel extends JPanel {
         }
     }
 
-    public void addPrimaryPane(String text, Icon icon, ToolWindowPane pane) {
-        addView(text, icon, pane, true);
+    public void addPrimaryPanel(String text, Icon icon, ToolPanel panel) {
+        addPanel(text, icon, panel, true);
     }
 
-    public void addSecondaryPane(String text, Icon icon, ToolWindowPane pane) {
-        addView(text, icon, pane, false);
+    public void addSecondaryPanel(String text, Icon icon, ToolPanel panel) {
+        addPanel(text, icon, panel, false);
     }
 
-    private void addView(String text, Icon icon, ToolWindowPane pane, boolean primary) {
-        var paneGroup = primary ? primaryGroup : secondaryGroup;
-        paneGroup.addPane(pane);
+    private void addPanel(String text, Icon icon, ToolPanel panel, boolean primary) {
+        var panelGroup = primary ? primaryGroup : secondaryGroup;
+        panelGroup.addPanel(panel);
 
-        var callback = (Runnable) () -> selectPane(paneGroup, pane, !paneGroup.isSelected(pane));
-        var button = new ToolWindowButton(paneGroup, pane, icon, callback);
+        var callback = (Runnable) () -> selectPanel(panelGroup, panel, !panelGroup.isSelected(panel));
+        var button = new ToolPanelButton(panelGroup, panel, icon, callback);
         button.setToolTipText(text);
 
         var buttonGroup = primary ? primaryButtons : secondaryButtons;
@@ -87,24 +87,24 @@ public final class ToolWindowPanel extends JPanel {
         }
     }
 
-    public void showPane(ToolWindowPane pane) {
-        selectPane(pane, true);
+    public void showPanel(ToolPanel panel) {
+        selectPanel(panel, true);
     }
 
-    public void hidePane(ToolWindowPane pane) {
-        selectPane(pane, false);
+    public void hidePanel(ToolPanel panel) {
+        selectPanel(panel, false);
     }
 
-    private void selectPane(ToolWindowPane pane, boolean select) {
-        if (primaryGroup.hasPane(pane)) {
-            selectPane(primaryGroup, pane, select);
+    private void selectPanel(ToolPanel panel, boolean select) {
+        if (primaryGroup.hasPanel(panel)) {
+            selectPanel(primaryGroup, panel, select);
         } else {
-            selectPane(secondaryGroup, pane, select);
+            selectPanel(secondaryGroup, panel, select);
         }
     }
 
-    private void selectPane(ToolWindowGroup group, ToolWindowPane pane, boolean select) {
-        if (!group.selectPane(select ? pane : null)) {
+    private void selectPanel(ToolPanelGroup group, ToolPanel panel, boolean select) {
+        if (!group.selectPanel(select ? panel : null)) {
             return;
         }
 
@@ -121,7 +121,7 @@ public final class ToolWindowPanel extends JPanel {
         }
 
         if (select) {
-            pane.setFocus();
+            panel.setFocus();
         } else if (getContent() instanceof Focusable focusable) {
             focusable.setFocus();
         }
@@ -177,7 +177,7 @@ public final class ToolWindowPanel extends JPanel {
 
         private void expand(Component component, boolean left) {
             var opposite = left ? secondComponent : firstComponent;
-            var dividerLocation = pane.getDividerLocation();
+            var dividerLocation = computeDividerLocation();
 
             removeAll();
 
@@ -195,6 +195,24 @@ public final class ToolWindowPanel extends JPanel {
             }
 
             revalidate();
+        }
+
+        private int computeDividerLocation() {
+            var location = pane.getDividerLocation();
+            if (location != -1) {
+                return location;
+            }
+
+            Dimension size = getSize();
+            if (size.width == 0 && size.height == 0) {
+                return -1;
+            }
+
+            if (pane.getOrientation() == JSplitPane.VERTICAL_SPLIT) {
+                return size.height / 2;
+            } else {
+                return size.width / 2;
+            }
         }
     }
 
@@ -239,15 +257,15 @@ public final class ToolWindowPanel extends JPanel {
         }
 
         private static void repaintSelectedPaneButtons(Component c) {
-            if (c instanceof ToolWindowPanel panel) {
+            if (c instanceof ToolPanelContainer panel) {
                 repaintSelectedPaneButton(panel);
             }
-            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolWindowPanel.class, c2)) != null; ) {
-                repaintSelectedPaneButton((ToolWindowPanel) c2);
+            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolPanelContainer.class, c2)) != null; ) {
+                repaintSelectedPaneButton((ToolPanelContainer) c2);
             }
         }
 
-        private static void repaintSelectedPaneButton(ToolWindowPanel panel) {
+        private static void repaintSelectedPaneButton(ToolPanelContainer panel) {
             panel.buttonsPanel.repaint();
         }
     }

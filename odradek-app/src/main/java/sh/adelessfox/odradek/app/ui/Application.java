@@ -6,6 +6,7 @@ import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
@@ -20,14 +21,12 @@ public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
     private static Application application;
 
-    private final ForbiddenWestGame game;
-    private final EditorManager editorManager;
-    private final boolean debugMode;
+    private final ApplicationComponent component;
+    private final ApplicationParameters parameters;
 
-    private Application(ForbiddenWestGame game, EditorManager editorManager, boolean debugMode) {
-        this.game = game;
-        this.editorManager = editorManager;
-        this.debugMode = debugMode;
+    private Application(ApplicationComponent component, ApplicationParameters parameters) {
+        this.component = component;
+        this.parameters = parameters;
     }
 
     public static Application getInstance() {
@@ -65,11 +64,7 @@ public final class Application {
                 .game(game)
                 .build();
 
-            application = new Application(
-                game,
-                component.editorManager(),
-                params.enableDebugMode()
-            );
+            application = new Application(component, params);
 
             var frame = new JFrame();
             Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContext.focusedComponent());
@@ -87,15 +82,19 @@ public final class Application {
         });
     }
 
-    public ForbiddenWestGame getGame() {
-        return game;
+    public ForbiddenWestGame game() {
+        return component.game();
     }
 
-    public EditorManager getEditorManager() {
-        return editorManager;
+    public EditorManager editors() {
+        return component.editorManager();
+    }
+
+    public Bookmarks bookmarks() {
+        return component.bookmarks();
     }
 
     public boolean isDebugMode() {
-        return debugMode;
+        return parameters.enableDebugMode();
     }
 }

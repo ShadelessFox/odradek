@@ -22,16 +22,16 @@ import java.util.function.Predicate;
  * @param <T> the type of the elements in the tree
  * @see TreeStructure
  */
-public final class StructuredTreeModel<T> implements TreeModel {
+public final class StructuredTreeModel<T extends TreeStructure<T>> implements TreeModel {
     private static final Logger log = LoggerFactory.getLogger(StructuredTreeModel.class);
 
     private final Listeners<TreeModelListener> listeners = new Listeners<>(TreeModelListener.class);
-    private final TreeStructure<T> structure;
+    private final TreeStructure<T> root;
     private Predicate<T> filter;
-    private Node<T> root;
+    private Node<T> rootNode;
 
-    public StructuredTreeModel(TreeStructure<T> structure) {
-        this.structure = structure;
+    public StructuredTreeModel(TreeStructure<T> root) {
+        this.root = root;
     }
 
     @Override
@@ -55,7 +55,7 @@ public final class StructuredTreeModel<T> implements TreeModel {
     public boolean isLeaf(Object parent) {
         Node<T> node = cast(parent);
         if (node.children == null) {
-            return !structure.hasChildren(node.element);
+            return !node.structure.hasChildren();
         }
         return node.children.isEmpty();
     }
@@ -83,8 +83,8 @@ public final class StructuredTreeModel<T> implements TreeModel {
     }
 
     public void update() {
-        if (root != null) {
-            update(root);
+        if (rootNode != null) {
+            update(rootNode);
         }
     }
 
@@ -107,11 +107,11 @@ public final class StructuredTreeModel<T> implements TreeModel {
         }
 
         var newChildren = computeChildren(node);
-        var oldChildren = node.children.stream().map(n -> n.element).toList();
+        var oldChildren = node.children.stream().map(n -> n.structure).toList();
 
         var added = new ArrayList<Integer>();
         var removed = new ArrayList<Integer>();
-        var unchanged = new HashMap<T, Integer>();
+        var unchanged = new HashMap<TreeStructure<T>, Integer>();
 
         difference(oldChildren, newChildren, added, removed, unchanged);
 
@@ -217,10 +217,10 @@ public final class StructuredTreeModel<T> implements TreeModel {
     }
 
     private Object getRootNode() {
-        if (root == null) {
-            root = computeRootNode();
+        if (rootNode == null) {
+            rootNode = computeRootNode();
         }
-        return root;
+        return rootNode;
     }
 
     private List<Node<T>> getChildNodes(Node<T> parent) {
@@ -235,8 +235,8 @@ public final class StructuredTreeModel<T> implements TreeModel {
     }
 
     private Node<T> computeRootNode() {
-        log.debug("Computing root for {}", structure);
-        return new Node<>(structure.getRoot(), null);
+        log.debug("Computing root for {}", root);
+        return new Node<>(root, null);
     }
 
     private List<Node<T>> computeChildNodes(Node<T> parent) {
@@ -246,8 +246,8 @@ public final class StructuredTreeModel<T> implements TreeModel {
     }
 
     private List<? extends T> computeChildren(Node<T> parent) {
-        log.debug("Computing children of {} for {}", parent.element, structure);
-        var children = structure.getChildren(parent.element);
+        log.debug("Computing children of {} for {}", parent.structure, root);
+        var children = parent.structure.getChildren();
         if (filter != null) {
             return children.stream().filter(filter).toList();
         } else {
@@ -255,41 +255,41 @@ public final class StructuredTreeModel<T> implements TreeModel {
         }
     }
 
-    private static class Node<T> implements TreeItem<T> {
-        private final T element;
+    private static class Node<T extends TreeStructure<T>> implements TreeItem<TreeStructure<T>> {
+        private final TreeStructure<T> structure;
         private final Node<T> parent;
         private List<Node<T>> children;
 
-        Node(T element, Node<T> parent) {
-            this(element, parent, null);
+        Node(TreeStructure<T> structure, Node<T> parent) {
+            this(structure, parent, null);
         }
 
-        Node(T element, Node<T> parent, List<Node<T>> children) {
-            this.element = element;
+        Node(TreeStructure<T> structure, Node<T> parent, List<Node<T>> children) {
+            this.structure = structure;
             this.parent = parent;
             this.children = children;
         }
 
         @Override
-        public T getValue() {
-            return element;
+        public TreeStructure<T> getValue() {
+            return structure;
         }
 
         @Override
         public boolean equals(Object o) {
             return o instanceof Node<?> node
-                && Objects.equals(element, node.element)
+                && Objects.equals(structure, node.structure)
                 && Objects.equals(parent, node.parent);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(element, parent);
+            return Objects.hash(structure, parent);
         }
 
         @Override
         public String toString() {
-            return element.toString();
+            return structure.toString();
         }
     }
 }

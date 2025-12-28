@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
-public class StructuredTree<T> extends JTree implements DataContext {
+public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
     private TreeLabelProvider<T> labelProvider;
 
