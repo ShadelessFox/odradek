@@ -36,6 +36,7 @@ module odradek.app {
 
     provides sh.adelessfox.odradek.ui.actions.Action with
         sh.adelessfox.odradek.app.ui.component.bookmarks.menu.ToggleBookmarkAction,
+        sh.adelessfox.odradek.app.ui.component.bookmarks.menu.RenameBookmarkAction,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,
