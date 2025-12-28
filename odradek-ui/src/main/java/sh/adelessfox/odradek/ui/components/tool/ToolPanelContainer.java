@@ -58,20 +58,20 @@ public final class ToolPanelContainer extends JPanel {
         }
     }
 
-    public void addPrimaryPane(String text, Icon icon, ToolPanel pane) {
-        addView(text, icon, pane, true);
+    public void addPrimaryPanel(String text, Icon icon, ToolPanel panel) {
+        addPanel(text, icon, panel, true);
     }
 
-    public void addSecondaryPane(String text, Icon icon, ToolPanel pane) {
-        addView(text, icon, pane, false);
+    public void addSecondaryPanel(String text, Icon icon, ToolPanel panel) {
+        addPanel(text, icon, panel, false);
     }
 
-    private void addView(String text, Icon icon, ToolPanel pane, boolean primary) {
-        var paneGroup = primary ? primaryGroup : secondaryGroup;
-        paneGroup.addPane(pane);
+    private void addPanel(String text, Icon icon, ToolPanel panel, boolean primary) {
+        var panelGroup = primary ? primaryGroup : secondaryGroup;
+        panelGroup.addPanel(panel);
 
-        var callback = (Runnable) () -> selectPane(paneGroup, pane, !paneGroup.isSelected(pane));
-        var button = new ToolPanelButton(paneGroup, pane, icon, callback);
+        var callback = (Runnable) () -> selectPanel(panelGroup, panel, !panelGroup.isSelected(panel));
+        var button = new ToolPanelButton(panelGroup, panel, icon, callback);
         button.setToolTipText(text);
 
         var buttonGroup = primary ? primaryButtons : secondaryButtons;
@@ -87,24 +87,24 @@ public final class ToolPanelContainer extends JPanel {
         }
     }
 
-    public void showPane(ToolPanel pane) {
-        selectPane(pane, true);
+    public void showPanel(ToolPanel panel) {
+        selectPanel(panel, true);
     }
 
-    public void hidePane(ToolPanel pane) {
-        selectPane(pane, false);
+    public void hidePanel(ToolPanel panel) {
+        selectPanel(panel, false);
     }
 
-    private void selectPane(ToolPanel pane, boolean select) {
-        if (primaryGroup.hasPane(pane)) {
-            selectPane(primaryGroup, pane, select);
+    private void selectPanel(ToolPanel panel, boolean select) {
+        if (primaryGroup.hasPanel(panel)) {
+            selectPanel(primaryGroup, panel, select);
         } else {
-            selectPane(secondaryGroup, pane, select);
+            selectPanel(secondaryGroup, panel, select);
         }
     }
 
-    private void selectPane(ToolPanelGroup group, ToolPanel pane, boolean select) {
-        if (!group.selectPane(select ? pane : null)) {
+    private void selectPanel(ToolPanelGroup group, ToolPanel panel, boolean select) {
+        if (!group.selectPanel(select ? panel : null)) {
             return;
         }
 
@@ -121,7 +121,7 @@ public final class ToolPanelContainer extends JPanel {
         }
 
         if (select) {
-            pane.setFocus();
+            panel.setFocus();
         } else if (getContent() instanceof Focusable focusable) {
             focusable.setFocus();
         }

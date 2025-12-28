@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 final class ToolPanelGroup {
-    private final Map<ToolPanel, ToolWindowInfo> panes = new HashMap<>();
+    private final Map<ToolPanel, ToolWindowInfo> panels = new HashMap<>();
     private final JPanel container;
     private final CardLayout layout;
     private ToolPanel selection;
@@ -16,38 +16,38 @@ final class ToolPanelGroup {
         container = new JPanel(layout);
     }
 
-    void addPane(ToolPanel pane) {
-        if (panes.containsKey(pane)) {
-            throw new IllegalArgumentException("Pane is already added to this group");
+    void addPanel(ToolPanel panel) {
+        if (panels.containsKey(panel)) {
+            throw new IllegalArgumentException("Panel is already added to this group");
         }
-        panes.put(pane, new ToolWindowInfo(String.valueOf(panes.size())));
+        panels.put(panel, new ToolWindowInfo(String.valueOf(panels.size())));
     }
 
-    boolean hasPane(ToolPanel pane) {
-        return panes.containsKey(pane);
+    boolean hasPanel(ToolPanel pane) {
+        return panels.containsKey(pane);
     }
 
-    boolean selectPane(ToolPanel pane) {
-        if (selection == pane) {
+    boolean selectPanel(ToolPanel panel) {
+        if (selection == panel) {
             return false;
         }
-        if (pane != null) {
-            ToolWindowInfo info = panes.get(pane);
+        if (panel != null) {
+            ToolWindowInfo info = panels.get(panel);
             if (info == null) {
-                throw new IllegalArgumentException("Pane doesn't belong to this group");
+                throw new IllegalArgumentException("Panel doesn't belong to this group");
             }
             if (info.component == null) {
-                info.component = pane.createComponent();
+                info.component = panel.createComponent();
                 container.add(info.component, info.id);
             }
             layout.show(container, info.id);
         }
-        selection = pane;
+        selection = panel;
         return true;
     }
 
-    boolean isSelected(ToolPanel pane) {
-        return selection == pane;
+    boolean isSelected(ToolPanel panel) {
+        return selection == panel;
     }
 
     boolean hasSelection() {
