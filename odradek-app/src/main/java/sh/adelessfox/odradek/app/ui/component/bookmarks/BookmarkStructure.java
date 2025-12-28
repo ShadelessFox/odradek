@@ -8,13 +8,7 @@ import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import java.util.List;
 
 public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
-    final class Root implements BookmarkStructure {
-        final Bookmarks repository;
-
-        Root(Bookmarks repository) {
-            this.repository = repository;
-        }
-
+    record Root(Bookmarks repository) implements BookmarkStructure {
         @Override
         public List<? extends BookmarkStructure> getChildren() {
             return repository.getAll().stream()
@@ -28,17 +22,7 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
         }
     }
 
-    final class Bookmark implements BookmarkStructure, ObjectIdHolder {
-        final Bookmarks repository;
-        final ObjectId id;
-        final String name;
-
-        public Bookmark(Bookmarks repository, ObjectId id, String name) {
-            this.repository = repository;
-            this.id = id;
-            this.name = name;
-        }
-
+    record Bookmark(Bookmarks repository, ObjectId id, String name) implements BookmarkStructure, ObjectIdHolder {
         @Override
         public List<? extends BookmarkStructure> getChildren() {
             return List.of();

@@ -15,7 +15,7 @@ final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStr
                 .add("User bookmarks", StyledFragment.GRAYED)
                 .build());
             case BookmarkStructure.Bookmark b -> Optional.of(StyledText.builder()
-                .add(b.id.toString(), StyledFragment.GRAYED).add(" ").add(b.name)
+                .add(b.id().toString(), StyledFragment.GRAYED).add(" ").add(b.name())
                 .build());
         };
     }
