@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.app.ui.settings.gson.ObjectIdTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.PathTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.SettingAdapterFactory;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.util.OperatingSystem;
 
 import java.io.IOException;
@@ -20,7 +21,7 @@ public final class SettingsManager {
     private static final Logger log = LoggerFactory.getLogger(SettingsManager.class);
     private static final Gson gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe())
-        .registerTypeHierarchyAdapter(Path.class, new ObjectIdTypeAdapter().nullSafe())
+        .registerTypeHierarchyAdapter(ObjectId.class, new ObjectIdTypeAdapter().nullSafe())
         .registerTypeAdapterFactory(new SettingAdapterFactory())
         .setPrettyPrinting()
         .create();

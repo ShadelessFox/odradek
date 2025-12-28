@@ -1,7 +1,9 @@
 package sh.adelessfox.odradek.app.ui.component.graph;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectProvider;
+import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
@@ -291,7 +293,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record GroupObject(StreamingGraphResource graph, StreamingGroupData group, int index) implements GraphStructure, ObjectProvider {
+    record GroupObject(
+        StreamingGraphResource graph,
+        StreamingGroupData group,
+        int index
+    ) implements GraphStructure, ObjectHolder, ObjectIdHolder {
         @Override
         public TypedObject readObject(Game game) throws IOException {
             return game.readObject(group.groupID(), index);
@@ -305,6 +311,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         public String objectName() {
             return "%s_%s_%s".formatted(objectType().name(), group.groupID(), index);
+        }
+
+        @Override
+        public ObjectId objectId() {
+            return new ObjectId(group.groupID(), index);
         }
 
         @Override

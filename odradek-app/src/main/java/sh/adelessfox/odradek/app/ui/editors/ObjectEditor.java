@@ -4,9 +4,7 @@ import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
-import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectProvider;
+import sh.adelessfox.odradek.game.*;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Ref;
@@ -36,7 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-final class ObjectEditor implements Editor, ObjectProvider, DataContext {
+final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataContext {
     private final ObjectEditorInput input;
     private final EditorSite site;
     private FlatTabbedPane pane;
@@ -85,6 +83,11 @@ final class ObjectEditor implements Editor, ObjectProvider, DataContext {
     @Override
     public String objectName() {
         return "%s_%s_%s".formatted(objectType().name(), input.groupId(), input.objectIndex());
+    }
+
+    @Override
+    public ObjectId objectId() {
+        return new ObjectId(input.groupId(), input.objectIndex());
     }
 
     @Override

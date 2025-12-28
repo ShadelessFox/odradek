@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui;
 import dagger.BindsInstance;
 import dagger.Component;
 import jakarta.inject.Singleton;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkRepository;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsModule;
@@ -17,6 +18,10 @@ interface ApplicationComponent {
     EditorManager editorManager();
 
     Settings settings();
+
+    BookmarkRepository bookmarkRepository();
+
+    ForbiddenWestGame game();
 
     @Component.Builder
     interface Builder {
