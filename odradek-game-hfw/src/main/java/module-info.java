@@ -87,9 +87,10 @@ module odradek.game.hfw {
     exports sh.adelessfox.odradek.game.hfw;
 
     provides sh.adelessfox.odradek.game.Converter with
-        sh.adelessfox.odradek.game.hfw.converters.MeshToSceneConverter,
-        sh.adelessfox.odradek.game.hfw.converters.ObjectToTypedObjectConverter,
-        sh.adelessfox.odradek.game.hfw.converters.ShaderConverter,
-        sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter,
-        sh.adelessfox.odradek.game.hfw.converters.TextureToTextureConverter;
+        sh.adelessfox.odradek.game.hfw.converters.scene.MeshToSceneConverter,
+        sh.adelessfox.odradek.game.hfw.converters.texture.TextureBindingWithHandleToTextureConverter,
+        sh.adelessfox.odradek.game.hfw.converters.texture.TextureToTextureConverter,
+        sh.adelessfox.odradek.game.hfw.converters.texture.UITextureToTextureConverter,
+        sh.adelessfox.odradek.game.hfw.converters.ShaderResourceToShaderConverter,
+        sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter;
 }

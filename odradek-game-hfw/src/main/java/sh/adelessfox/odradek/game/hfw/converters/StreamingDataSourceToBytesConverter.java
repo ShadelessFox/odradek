@@ -7,22 +7,14 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingDataSou
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
-import java.util.Set;
 
-public class StreamingDataSourceToBytesConverter implements Converter<ForbiddenWestGame, byte[]> {
+public class StreamingDataSourceToBytesConverter implements Converter<StreamingDataSource, byte[], ForbiddenWestGame> {
     @Override
-    public Optional<byte[]> convert(Object object, ForbiddenWestGame game) {
+    public Optional<byte[]> convert(StreamingDataSource object, ForbiddenWestGame game) {
         try {
-            var dataSource = (StreamingDataSource) object;
-            var data = game.getStreamingSystem().getDataSourceData(dataSource);
-            return Optional.of(data);
+            return Optional.of(game.getStreamingSystem().getDataSourceData(object));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    @Override
-    public Set<Class<?>> supportedTypes() {
-        return Set.of(StreamingDataSource.class);
     }
 }

@@ -107,9 +107,7 @@ final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataCo
         pane.setLeadingComponent(Actions.createToolBar(ObjectEditorActionIds.TOOLBAR_ID, this));
 
         Converter.converters(object.getType()).forEach(converter -> {
-            @SuppressWarnings("unchecked")
-            var clazz = (Class<Object>) converter.resultType();
-            Viewer.viewers(clazz).forEach(viewer -> {
+            Viewer.viewers(converter.outputType()).forEach(viewer -> {
                 var result = converter.convert(object, game);
                 if (result.isEmpty()) {
                     return;

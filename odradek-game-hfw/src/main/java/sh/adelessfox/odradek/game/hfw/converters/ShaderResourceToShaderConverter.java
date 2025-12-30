@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.game.hfw.converters;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EProgramType;
@@ -15,32 +13,25 @@ import sh.adelessfox.odradek.graphics.Shader;
 import sh.adelessfox.odradek.io.BinaryReader;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
-import java.util.Set;
 
-public class ShaderConverter implements Converter<ForbiddenWestGame, Shader> {
-    private static final Logger log = LoggerFactory.getLogger(ShaderConverter.class);
-
+public class ShaderResourceToShaderConverter implements Converter<ShaderResource, Shader, ForbiddenWestGame> {
     @Override
-    public Optional<Shader> convert(Object object, ForbiddenWestGame game) {
+    public Optional<Shader> convert(ShaderResource object, ForbiddenWestGame game) {
         HwShader shader;
+
         try {
-            shader = HwShader.read(BinaryReader.wrap(((ShaderResource) object).data()));
+            shader = HwShader.read(BinaryReader.wrap(object.data()));
         } catch (IOException e) {
-            log.error("Error reading shader", e);
-            return Optional.empty();
+            throw new UncheckedIOException(e);
         }
 
         var programs = shader.programs().stream()
-            .map(ShaderConverter::mapProgram)
+            .map(ShaderResourceToShaderConverter::mapProgram)
             .toList();
 
         return Optional.of(new Shader(programs));
-    }
-
-    @Override
-    public Set<Class<?>> supportedTypes() {
-        return Set.of(ShaderResource.class);
     }
 
     private static Program mapProgram(HwShaderProgram program) {

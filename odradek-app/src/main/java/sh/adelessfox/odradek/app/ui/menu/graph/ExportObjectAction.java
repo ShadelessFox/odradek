@@ -40,7 +40,7 @@ public class ExportObjectAction extends Action {
         public List<Action> create(ActionContext context) {
             var game = context.get(DataKeys.GAME).orElseThrow();
             return exporters(context)
-                .map(batch -> action(game, batch))
+                .map(batch -> action(batch, game))
                 .toList();
         }
     }
@@ -73,21 +73,21 @@ public class ExportObjectAction extends Action {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return converters.keySet().stream()
-            .flatMap(converter -> Exporter.exporters(converter.resultType())
+            .flatMap(converter -> Exporter.exporters(converter.outputType())
                 .map(exporter -> new Batch(selection, converter, exporter)))
             .map(pipeline -> (Batch<?>) pipeline)
             .sorted(Comparator.comparing(pipeline -> pipeline.exporter().name()));
     }
 
-    private static Action action(Game game, Batch<?> batch) {
+    private static Action action(Batch<?> batch, Game game) {
         return Action.builder()
-            .perform(_ -> exportBatch(game, batch))
+            .perform(_ -> exportBatch(batch, game))
             .text(_ -> Optional.of(batch.exporter().name()))
             .icon(_ -> batch.exporter().icon())
             .build();
     }
 
-    private static <T> void exportBatch(Game game, Batch<T> batch) {
+    private static <T> void exportBatch(Batch<T> batch, Game game) {
         var chooser = new JFileChooser();
         chooser.setDialogTitle("Specify output directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -149,6 +149,6 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private record Batch<T>(List<ObjectHolder> objects, Converter<Game, T> converter, Exporter<T> exporter) {
+    private record Batch<R>(List<ObjectHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
     }
 }
