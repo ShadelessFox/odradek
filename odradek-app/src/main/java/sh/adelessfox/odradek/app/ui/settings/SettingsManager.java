@@ -12,10 +12,15 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.util.OperatingSystem;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public final class SettingsManager {
     private static final Logger log = LoggerFactory.getLogger(SettingsManager.class);
@@ -26,16 +31,24 @@ public final class SettingsManager {
         .setPrettyPrinting()
         .create();
 
-    private final String identifier;
+    private final Path path;
     private final EventBus eventBus;
     private final Settings settings;
 
     SettingsManager(String identifier, EventBus eventBus) {
-        this.identifier = identifier;
+        this.path = determinePath(identifier);
         this.eventBus = eventBus;
-        this.settings = load().orElseGet(Settings::new);
+        this.settings = load(path).orElseGet(Settings::new);
 
         eventBus.publish(new SettingsEvent.AfterLoad(settings));
+
+        // noinspection resource
+        Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread thread = new Thread(r);
+            thread.setName("Odradek Settings Saver");
+            return thread;
+        }).scheduleAtFixedRate(this::save, 5, 5, TimeUnit.MINUTES);
+
         Runtime.getRuntime().addShutdownHook(new Thread(this::save));
     }
 
@@ -43,14 +56,13 @@ public final class SettingsManager {
         return settings;
     }
 
-    private Optional<Settings> load() {
-        Path path = determinePath();
+    private static Optional<Settings> load(Path path) {
         if (!Files.exists(path)) {
             return Optional.empty();
         }
 
-        try {
-            return Optional.of(gson.fromJson(Files.readString(path), Settings.class));
+        try (BufferedReader reader = Files.newBufferedReader(path)) {
+            return Optional.of(gson.fromJson(reader, Settings.class));
         } catch (IOException | JsonParseException e) {
             log.error("Error while loading settings", e);
             return Optional.empty();
@@ -58,16 +70,22 @@ public final class SettingsManager {
     }
 
     private void save() {
+        eventBus.publish(new SettingsEvent.BeforeSave(settings));
+
         try {
-            eventBus.publish(new SettingsEvent.BeforeSave(settings));
-            Files.createDirectories(determinePath().getParent());
-            Files.writeString(determinePath(), gson.toJson(settings));
+            Files.createDirectories(path.getParent());
+            if (Files.exists(path)) {
+                Files.copy(path, path.resolveSibling(path.getFileName() + ".bak"), StandardCopyOption.REPLACE_EXISTING);
+            }
+            try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+                gson.toJson(settings, writer);
+            }
         } catch (IOException e) {
             log.error("Error while saving settings", e);
         }
     }
 
-    private Path determinePath() {
+    private static Path determinePath(String identifier) {
         String userHome = System.getProperty("user.home");
         if (userHome == null) {
             throw new IllegalStateException("Unable to determine user home directory");
