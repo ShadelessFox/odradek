@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app;
 
+import com.sun.tools.attach.VirtualMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -42,6 +43,7 @@ public class Main implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
+        ensureSingleRunningInstance(getClass());
         Path source = this.source;
         if (source == null) {
             source = chooseGameDirectory();
@@ -54,8 +56,21 @@ public class Main implements Callable<Void> {
             ));
         } else {
             log.info("No source directory was provided, exiting");
+            System.exit(1);
         }
         return null;
+    }
+
+    private static void ensureSingleRunningInstance(Class<?> cls) {
+        var name = cls.getModule().getName() + '/' + cls.getName();
+        var vms = VirtualMachine.list().stream()
+            .filter(vm -> vm.displayName().startsWith(name))
+            .toList();
+        if (vms.size() > 1) {
+            log.error("Another instance of app is already running, exiting");
+            JOptionPane.showMessageDialog(null, "Another instance of the application is already running, please close it first", "Odradek", JOptionPane.INFORMATION_MESSAGE);
+            System.exit(1);
+        }
     }
 
     private static Path chooseGameDirectory() {

@@ -18,6 +18,9 @@ module odradek.app {
     requires odradek.ui;
     requires org.slf4j;
 
+    // VirtualMachine.list()
+    requires jdk.attach;
+
     // Exporters
     requires odradek.export.cast;
     requires odradek.export.dds;
