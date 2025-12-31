@@ -17,6 +17,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -57,6 +58,21 @@ public final class ForbiddenWestGame implements Game {
 
         streamingSystem = new ObjectStreamingSystem(storageDevice, streamingGraph);
         streamingReader = new StreamingObjectReader(streamingSystem, typeFactory);
+    }
+
+    public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) throws IOException {
+        if (dataSource.length() == 0) {
+            return new byte[0];
+        }
+        return getStreamingSystem().getDataSourceData(dataSource);
+    }
+
+    public byte[] readDataSourceUnchecked(HorizonForbiddenWest.StreamingDataSource dataSource) {
+        try {
+            return readDataSource(dataSource);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
