@@ -27,6 +27,7 @@ module odradek.app {
     requires odradek.export.json;
 
     // Viewers
+    requires odradek.viewer.audio;
     requires odradek.viewer.model;
     requires odradek.viewer.shader;
     requires odradek.viewer.texture;
