@@ -1,7 +1,12 @@
 module odradek.core {
     requires be.twofold.tinybcdec;
     requires org.lz4.java;
+    requires org.slf4j;
 
+    exports sh.adelessfox.odradek.audio.libatrac9;
+    exports sh.adelessfox.odradek.audio.riff.atrac9;
+    exports sh.adelessfox.odradek.audio.riff.wave;
+    exports sh.adelessfox.odradek.audio.riff;
     exports sh.adelessfox.odradek.audio;
     exports sh.adelessfox.odradek.compression;
     exports sh.adelessfox.odradek.event;
