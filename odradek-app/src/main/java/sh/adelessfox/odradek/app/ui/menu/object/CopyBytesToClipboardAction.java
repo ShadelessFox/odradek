@@ -19,7 +19,7 @@ public class CopyBytesToClipboardAction extends Action {
     public void perform(ActionContext context) {
         var game = context.get(DataKeys.GAME).orElseThrow();
         var structure = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
-        var bytes = Converter.convert(structure.type(), structure.value(), game, byte[].class);
+        var bytes = Converter.convert(structure.type(), structure.value(), byte[].class, game);
 
         if (bytes.isPresent()) {
             var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

@@ -53,12 +53,12 @@ public interface Converter<T, R, G extends Game> {
         };
     }
 
-    static <T, R, G extends Game> Optional<R> convert(TypeInfo info, T object, G game, Class<R> result) {
+    static <T, R, G extends Game> Optional<R> convert(TypeInfo info, T object, Class<R> result, G game) {
         return Converter.converter(info, result)
             .flatMap(c -> c.convert(object, game));
     }
 
-    static <T extends TypedObject, R, G extends Game> Optional<R> convert(T object, G game, Class<R> result) {
+    static <T extends TypedObject, R, G extends Game> Optional<R> convert(T object, Class<R> result, G game) {
         return Converter.converter(object.getType(), result)
             .flatMap(c -> c.convert(object, game));
     }

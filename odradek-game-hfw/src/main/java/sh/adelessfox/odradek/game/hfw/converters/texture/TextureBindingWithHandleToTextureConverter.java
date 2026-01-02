@@ -15,7 +15,7 @@ public final class TextureBindingWithHandleToTextureConverter
     public Optional<Texture> convert(HorizonForbiddenWest.TextureBindingWithHandle object, ForbiddenWestGame game) {
         var resource = object.textureResource().get();
         if (resource != null) {
-            return Converter.convert(resource, game, Texture.class);
+            return Converter.convert(resource, Texture.class, game);
         }
         return Optional.empty();
     }

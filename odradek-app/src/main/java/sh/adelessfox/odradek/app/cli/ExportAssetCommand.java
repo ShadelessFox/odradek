@@ -58,7 +58,7 @@ public class ExportAssetCommand extends AbstractCommand {
 
             Object converted;
             try {
-                converted = Converter.convert(object, game, exporter.supportedType()).orElse(null);
+                converted = Converter.convert(object, exporter.supportedType(), game).orElse(null);
             } catch (Exception e) {
                 log.error("  Error during conversion; skipping", e);
                 continue;

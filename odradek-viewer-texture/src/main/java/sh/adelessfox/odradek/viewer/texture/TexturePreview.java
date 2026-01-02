@@ -23,7 +23,7 @@ public final class TexturePreview implements Preview<TypedObject> {
         var panel = new JPanel();
         panel.setLayout(new MigLayout("ins panel,wrap"));
 
-        var texture = Converter.convert(object, game, Texture.class).orElse(null);
+        var texture = Converter.convert(object, Texture.class, game).orElse(null);
         if (texture != null) {
             var image = createImage(texture);
             var view = new ImageView();
