@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.audio.riff;
+package sh.adelessfox.odradek.audio.container.riff;
 
 public interface RiffChunk {
     record Id<T extends RiffChunk>(String id, Class<T> type) {

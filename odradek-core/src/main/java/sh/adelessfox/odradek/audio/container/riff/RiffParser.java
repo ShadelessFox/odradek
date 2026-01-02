@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.audio.riff;
+package sh.adelessfox.odradek.audio.container.riff;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

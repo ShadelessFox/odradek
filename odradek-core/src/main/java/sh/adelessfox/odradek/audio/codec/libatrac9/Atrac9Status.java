@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.audio.libatrac9;
+package sh.adelessfox.odradek.audio.codec.libatrac9;
 
 enum Atrac9Status {
     ERR_SUCCESS(0),

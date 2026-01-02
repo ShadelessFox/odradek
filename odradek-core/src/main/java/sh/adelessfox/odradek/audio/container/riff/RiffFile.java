@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.audio.riff;
+package sh.adelessfox.odradek.audio.container.riff;
 
 import java.util.Map;
 import java.util.Optional;

@@ -1,4 +1,8 @@
 package sh.adelessfox.odradek.audio;
 
-public record AudioFormat(AudioEncoding encoding, int sampleRate, int bitsPerSample, int channels) {
+public record AudioFormat(
+    int sampleCount,
+    int sampleRate,
+    int channelCount
+) {
 }

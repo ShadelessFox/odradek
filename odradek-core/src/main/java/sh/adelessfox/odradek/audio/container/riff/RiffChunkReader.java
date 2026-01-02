@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.audio.riff;
+package sh.adelessfox.odradek.audio.container.riff;
 
 import sh.adelessfox.odradek.io.BinaryReader;
 

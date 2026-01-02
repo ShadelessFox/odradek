@@ -1,7 +1,7 @@
-package sh.adelessfox.odradek.audio.riff.wave;
+package sh.adelessfox.odradek.audio.container.wave;
 
-import sh.adelessfox.odradek.audio.riff.RiffChunk;
-import sh.adelessfox.odradek.audio.riff.RiffChunkReader;
+import sh.adelessfox.odradek.audio.container.riff.RiffChunk;
+import sh.adelessfox.odradek.audio.container.riff.RiffChunkReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 
 import java.io.IOException;
