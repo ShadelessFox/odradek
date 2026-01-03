@@ -55,4 +55,7 @@ module odradek.app {
 
     provides sh.adelessfox.odradek.ui.editors.EditorProvider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditorProvider;
+
+    provides sh.adelessfox.odradek.ui.Viewer.Provider with
+        sh.adelessfox.odradek.app.ui.editors.ObjectViewer.Provider;
 }

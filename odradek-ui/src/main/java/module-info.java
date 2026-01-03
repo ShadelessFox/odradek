@@ -24,9 +24,9 @@ module odradek.ui {
     exports sh.adelessfox.odradek.ui.util;
     exports sh.adelessfox.odradek.ui;
 
-    uses sh.adelessfox.odradek.ui.Preview;
+    uses sh.adelessfox.odradek.ui.Preview.Provider;
     uses sh.adelessfox.odradek.ui.Renderer;
-    uses sh.adelessfox.odradek.ui.Viewer;
+    uses sh.adelessfox.odradek.ui.Viewer.Provider;
     uses sh.adelessfox.odradek.ui.actions.Action;
     uses sh.adelessfox.odradek.ui.editors.EditorProvider;
 

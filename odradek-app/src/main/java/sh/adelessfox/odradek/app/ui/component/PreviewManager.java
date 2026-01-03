@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component;
 
+import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
@@ -143,16 +144,31 @@ public final class PreviewManager extends MouseAdapter {
 
         hidePopup();
 
-        if (element != null) {
-            var type = provider.getType(tree, element);
-            var preview = type.flatMap(Preview::preview).orElse(null);
-            if (preview != null) {
-                var object = provider.getObject(tree, element).orElse(null);
-                if (object != null) {
-                    component = preview.createComponent(object, game);
-                    showPopup(location, rowIndex, rowCount);
-                }
-            }
+        if (element == null) {
+            return;
+        }
+
+        var converter = provider.getType(tree, element).stream()
+            .flatMap(Converter::converters)
+            .filter(c -> Preview.preview(c.outputType()).isPresent())
+            .findFirst().orElse(null);
+
+        if (converter == null) {
+            return;
+        }
+
+        var preview = Preview.preview(converter.outputType()).orElse(null);
+        if (preview == null) {
+            return;
+        }
+
+        var object = provider.getObject(tree, element)
+            .flatMap(o -> converter.convert(o, game))
+            .orElse(null);
+
+        if (object != null) {
+            component = preview.create(object).createComponent();
+            showPopup(location, rowIndex, rowCount);
         }
     }
 

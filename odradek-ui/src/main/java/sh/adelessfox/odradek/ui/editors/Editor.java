@@ -12,6 +12,6 @@ public interface Editor extends Disposable, Focusable {
 
     @Override
     default void dispose() {
-        // Do nothing by default
+        // do nothing by default
     }
 }

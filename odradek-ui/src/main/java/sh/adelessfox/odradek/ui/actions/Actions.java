@@ -32,7 +32,7 @@ public final class Actions {
         var popupMenu = createPopupMenu(component, id, context, false);
         var selectionProvider = getSelectionProvider(component);
         installContextMenu(component, popupMenu, (SelectionProvider<JComponent, ?>) selectionProvider);
-        populateActionBindings(component, id, new ActionContext(context, component, null), JComponent.WHEN_FOCUSED);
+        populateActionBindings(component, id, new ActionContext(context, component, null), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         DataContext.putDataContext(component, context);
     }
 

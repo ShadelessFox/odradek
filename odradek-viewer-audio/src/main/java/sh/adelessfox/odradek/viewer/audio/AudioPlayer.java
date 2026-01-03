@@ -13,6 +13,8 @@ import java.awt.event.MouseEvent;
 import java.time.Duration;
 
 final class AudioPlayer extends JPanel implements Disposable {
+    private static final int REPAINT_INTERVAL = 1000 / 60; // TODO too arbitrary
+
     private final AudioWaveform waveform;
     private final JProgressBar progress;
     private final JLabel label;
@@ -32,16 +34,12 @@ final class AudioPlayer extends JPanel implements Disposable {
         waveform.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
 
         var playAction = new PlayAction();
-        var skipBackAction = new SkipAction(false);
-        var skipNextAction = new SkipAction(true);
 
         label = new JLabel("00:00", SwingConstants.LEADING);
 
         var toolBar = new JToolBar();
         toolBar.setBorder(BorderFactory.createEmptyBorder());
-        toolBar.add(skipBackAction);
         toolBar.add(playAction);
-        toolBar.add(skipNextAction);
         toolBar.add(Box.createHorizontalStrut(4));
         toolBar.add(label);
 
@@ -56,7 +54,7 @@ final class AudioPlayer extends JPanel implements Disposable {
             throw new RuntimeException(e);
         }
 
-        var timer = new Timer(1000 / 60, _ -> updateProgress());
+        var timer = new Timer(REPAINT_INTERVAL, _ -> updateProgress());
         timer.setInitialDelay(0);
 
         clip.addLineListener(event -> {
@@ -98,7 +96,7 @@ final class AudioPlayer extends JPanel implements Disposable {
     }
 
     private static String formatDuration(Duration duration) {
-        return "%d:%02d".formatted(duration.toMinutes(), duration.toSecondsPart());
+        return "%d:%02d.%03d".formatted(duration.toMinutes(), duration.toSecondsPart(), duration.toMillisPart());
     }
 
     private static Clip openClip(Audio audio) throws Exception {
@@ -113,20 +111,6 @@ final class AudioPlayer extends JPanel implements Disposable {
         var position = Duration.ofMillis(clip.getMicrosecondPosition() / 1000);
         var duration = Duration.ofMillis(clip.getMicrosecondLength() / 1000);
         setProgress(position, duration);
-    }
-
-    private class SkipAction extends AbstractAction {
-        private final boolean next;
-
-        public SkipAction(boolean next) {
-            this.next = next;
-            putValue(SMALL_ICON, Fugue.getIcon(next ? "control-skip" : "control-skip-180"));
-            putValue(SHORT_DESCRIPTION, next ? "Skip back" : "Skip next");
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-        }
     }
 
     private class PlayAction extends AbstractAction {

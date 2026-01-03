@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.viewer.model;
 
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.math.BoundingBox;
 import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.scene.Scene;
@@ -14,9 +15,26 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
 
-public class SceneViewer implements Viewer<Scene> {
+public record SceneViewer(Scene scene) implements Viewer {
+    public static final class Provider implements Viewer.Provider<Scene> {
+        @Override
+        public Viewer create(Scene object, Game game) {
+            return new SceneViewer(object);
+        }
+
+        @Override
+        public String name() {
+            return "Model";
+        }
+
+        @Override
+        public Optional<String> icon() {
+            return Optional.of("fugue:block");
+        }
+    }
+
     @Override
-    public JComponent createComponent(Scene scene) {
+    public JComponent createComponent() {
         Camera camera = new Camera(30.f, 0.01f, 1000.f);
         camera.position(scene.computeBoundingBox()
             .map(BoundingBox::center)
@@ -31,15 +49,5 @@ public class SceneViewer implements Viewer<Scene> {
         viewport.setScene(scene);
 
         return viewport;
-    }
-
-    @Override
-    public String name() {
-        return "Model";
-    }
-
-    @Override
-    public Optional<String> icon() {
-        return Optional.of("fugue:block");
     }
 }

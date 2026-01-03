@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.editors.EditorSite;
 public final class ObjectEditorProvider implements EditorProvider {
     @Override
     public Editor createEditor(EditorInput input, EditorSite site) {
-        return new ObjectEditor((ObjectEditorInput) input, site);
+        return new ObjectEditor((ObjectEditorInput) input);
     }
 
     @Override
