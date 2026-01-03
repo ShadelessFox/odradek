@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  * via {@link sh.adelessfox.odradek.game.Converter} rather than
  * game-specific, unless a viewer is game-specific as well.
  */
-public interface Viewer extends Disposable {
+public interface Viewer extends Activable, Disposable {
     interface Provider<T> {
         Viewer create(T object, Game game);
 
@@ -36,29 +36,31 @@ public interface Viewer extends Disposable {
         }
     }
 
-    static Stream<Viewer.Provider<?>> viewers() {
+    static Stream<Provider<?>> providers() {
         class Holder {
-            static final List<Viewer.Provider<?>> viewers = ServiceLoader.load(Viewer.Provider.class).stream()
-                .map(x -> (Viewer.Provider<?>) x.get())
+            static final List<Provider<?>> viewers = ServiceLoader.load(Provider.class).stream()
+                .map(x -> (Provider<?>) x.get())
                 .collect(Collectors.toUnmodifiableList());
         }
         return Holder.viewers.stream();
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Stream<Viewer.Provider<T>> viewers(Class<T> cls) {
-        return viewers()
+    static <T> Stream<Provider<T>> providers(Class<T> cls) {
+        return providers()
             .filter(v -> v.supportedType().isAssignableFrom(cls))
-            .map(v -> (Viewer.Provider<T>) v);
+            .map(v -> (Provider<T>) v);
     }
 
     JComponent createComponent();
 
-    default void show() {
+    @Override
+    default void activate() {
         // do nothing by default
     }
 
-    default void hide() {
+    @Override
+    default void deactivate() {
         // do nothing by default
     }
 

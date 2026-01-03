@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
+import sh.adelessfox.odradek.ui.editors.EditorSite;
 import sh.adelessfox.odradek.ui.util.Icons;
 
 import javax.swing.*;
@@ -17,14 +18,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataContext {
+public final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataContext {
+    public static final class Provider implements Editor.Provider {
+        @Override
+        public Editor createEditor(EditorInput input, EditorSite site) {
+            return new ObjectEditor((ObjectEditorInput) input);
+        }
+
+        @Override
+        public Match matches(EditorInput input) {
+            return input instanceof ObjectEditorInput ? Match.PRIMARY : Match.NONE;
+        }
+    }
+
     private final ObjectEditorInput input;
     private final List<Viewer> viewers = new ArrayList<>();
 
     private FlatTabbedPane pane;
-    private Viewer activeViewer;
+    private Viewer lastViewer;
 
-    public ObjectEditor(ObjectEditorInput input) {
+    private ObjectEditor(ObjectEditorInput input) {
         this.input = input;
     }
 
@@ -52,7 +65,24 @@ final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataCo
     }
 
     @Override
+    public void activate() {
+        if (lastViewer != null) {
+            lastViewer.activate();
+        }
+    }
+
+    @Override
+    public void deactivate() {
+        if (lastViewer != null) {
+            lastViewer.deactivate();
+        }
+    }
+
+    @Override
     public void dispose() {
+        if (lastViewer != null) {
+            lastViewer.deactivate();
+        }
         for (Viewer viewer : viewers) {
             viewer.dispose();
         }
@@ -98,15 +128,15 @@ final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataCo
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         pane.setLeadingComponent(Actions.createToolBar(ObjectEditorActionIds.TOOLBAR_ID, this));
         pane.addChangeListener(_ -> {
-            if (activeViewer != null) {
-                activeViewer.hide();
+            if (lastViewer != null) {
+                lastViewer.deactivate();
             }
-            activeViewer = viewers.get(pane.getSelectedIndex());
-            activeViewer.show();
+            lastViewer = viewers.get(pane.getSelectedIndex());
+            lastViewer.activate();
         });
 
         Converter.converters(object.getType()).forEach(converter -> {
-            Viewer.viewers(converter.outputType()).forEach(provider -> {
+            Viewer.providers(converter.outputType()).forEach(provider -> {
                 var result = converter.convert(object, game);
                 if (result.isEmpty()) {
                     return;

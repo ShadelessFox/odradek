@@ -23,6 +23,7 @@ public class EditorStack extends FlatTabbedPane {
     }
 
     private final EditorStackManager manager;
+    private EditorComponent lastEditor;
 
     EditorStack(EditorStackManager manager) {
         this.manager = manager;
@@ -37,8 +38,17 @@ public class EditorStack extends FlatTabbedPane {
         });
 
         getModel().addChangeListener(_ -> {
-            if (getTabCount() == 0) {
+            // Deactivate last editor
+            if (lastEditor != null && lastEditor.hasComponent()) {
+                lastEditor.editor.deactivate();
+            }
+
+            // Retrieve new editor. If it doesn't exist, then this stack is empty; otherwise, activate
+            lastEditor = (EditorComponent) getSelectedComponent();
+            if (lastEditor == null) {
                 getContainer().compact();
+            } else if (lastEditor.hasComponent()) {
+                lastEditor.editor.activate();
             }
         });
 

@@ -38,7 +38,7 @@ public final class AudioViewer implements Viewer {
     }
 
     @Override
-    public void hide() {
+    public void deactivate() {
         player.stop();
     }
 

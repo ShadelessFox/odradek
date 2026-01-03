@@ -29,20 +29,20 @@ public interface Preview {
         }
     }
 
-    static Stream<Preview.Provider<?>> previews() {
+    static Stream<Provider<?>> providers() {
         class Holder {
-            static final List<Preview.Provider<?>> previews = ServiceLoader.load(Preview.Provider.class).stream()
-                .map(x -> (Preview.Provider<?>) x.get())
+            static final List<Provider<?>> previews = ServiceLoader.load(Provider.class).stream()
+                .map(x -> (Provider<?>) x.get())
                 .collect(Collectors.toUnmodifiableList());
         }
         return Holder.previews.stream();
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Optional<Preview.Provider<T>> preview(Class<T> cls) {
-        return previews()
+    static <T> Optional<Provider<T>> provider(Class<T> cls) {
+        return providers()
             .filter(p -> p.supportedType().isAssignableFrom(cls))
-            .map(p -> (Preview.Provider<T>) p)
+            .map(p -> (Provider<T>) p)
             .findFirst();
     }
 

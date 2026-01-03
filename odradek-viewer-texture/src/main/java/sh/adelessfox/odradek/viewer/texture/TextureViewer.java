@@ -113,14 +113,14 @@ public final class TextureViewer implements Viewer {
     }
 
     @Override
-    public void show() {
+    public void activate() {
         if (animate) {
             play();
         }
     }
 
     @Override
-    public void hide() {
+    public void deactivate() {
         stop();
     }
 

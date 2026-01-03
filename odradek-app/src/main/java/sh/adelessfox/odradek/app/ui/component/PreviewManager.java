@@ -150,14 +150,14 @@ public final class PreviewManager extends MouseAdapter {
 
         var converter = provider.getType(tree, element).stream()
             .flatMap(Converter::converters)
-            .filter(c -> Preview.preview(c.outputType()).isPresent())
+            .filter(c -> Preview.provider(c.outputType()).isPresent())
             .findFirst().orElse(null);
 
         if (converter == null) {
             return;
         }
 
-        var preview = Preview.preview(converter.outputType()).orElse(null);
+        var preview = Preview.provider(converter.outputType()).orElse(null);
         if (preview == null) {
             return;
         }

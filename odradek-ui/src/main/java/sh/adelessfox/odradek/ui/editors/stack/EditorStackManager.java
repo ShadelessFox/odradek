@@ -3,11 +3,13 @@ package sh.adelessfox.odradek.ui.editors.stack;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.editors.*;
+import sh.adelessfox.odradek.ui.editors.Editor;
+import sh.adelessfox.odradek.ui.editors.EditorInput;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.editors.EditorSite;
 import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.util.ArrayList;
@@ -212,11 +214,11 @@ public class EditorStackManager implements EditorManager {
     }
 
     private EditorResult createEditorForInput(EditorInput input) {
-        var providers = EditorProvider.providers(input).toList();
+        var providers = Editor.providers(input).toList();
 
         Exception exception = null;
 
-        for (EditorProvider provider : providers) {
+        for (Editor.Provider provider : providers) {
             try {
                 return new EditorResult(provider.createEditor(input, sharedSite), provider);
             } catch (Exception e) {
@@ -255,52 +257,7 @@ public class EditorStackManager implements EditorManager {
         return forEachStack(container.getRightContainer(), terminator);
     }
 
-    private static class EditorComponent extends JComponent {
-        private final Editor editor;
-        private final EditorProvider provider;
-
-        public EditorComponent(JComponent component, Editor editor, EditorProvider provider) {
-            this.editor = editor;
-            this.provider = provider;
-            setLayout(new BorderLayout());
-            setComponent(component);
-        }
-
-        EditorStack getEditorStack() {
-            return (EditorStack) getParent();
-        }
-
-        boolean hasComponent() {
-            BorderLayout layout = (BorderLayout) getLayout();
-            return layout.getLayoutComponent(BorderLayout.CENTER) != null;
-        }
-
-        void setComponent(JComponent component) {
-            setComponent(component, BorderLayout.CENTER);
-        }
-
-        private void setComponent(JComponent component, Object constraint) {
-            var layout = (BorderLayout) getLayout();
-            var currentComponent = layout.getLayoutComponent(constraint);
-            boolean needsValidation = false;
-
-            if (currentComponent != null) {
-                remove(currentComponent);
-                needsValidation = true;
-            }
-
-            if (component != null) {
-                add(component, constraint);
-                needsValidation = true;
-            }
-
-            if (needsValidation) {
-                validate();
-            }
-        }
-    }
-
-    private record EditorResult(Editor editor, EditorProvider provider) {
+    private record EditorResult(Editor editor, Editor.Provider provider) {
     }
 
     private class MyEditorSite implements EditorSite {
