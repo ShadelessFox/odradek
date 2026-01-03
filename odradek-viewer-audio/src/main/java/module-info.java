@@ -1,4 +1,5 @@
 module odradek.viewer.audio {
+    requires com.miglayout.swing;
     requires odradek.core;
     requires odradek.ui;
     requires org.slf4j;
