@@ -16,7 +16,7 @@ import java.nio.file.Path;
 
 public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements AudioCodec {
     @Override
-    public Audio toPcm16(AudioFormat format, byte[] data) {
+    public Audio toPcm16(AudioFormat format, int samples, byte[] data) {
         var baos = new ByteArrayOutputStream();
 
         try (
@@ -32,13 +32,12 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
 
             int superframeCount = Math.toIntExact(data.length / info.superframeSize());
 
-            int samples = 0;
             for (int i = 0; i < superframeCount; i++) {
                 src.clear();
                 src.clear().put(0, data, i * info.superframeSize(), info.superframeSize());
 
                 dst.clear();
-                samples += decodeSuperFrame(atrac9, info, src, dst);
+                decodeSuperFrame(atrac9, info, src, dst);
 
                 dst.flip();
 
@@ -52,7 +51,7 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
             throw new UncheckedIOException(e);
         }
 
-        return new Audio(new AudioCodecPcm16(), format, baos.toByteArray());
+        return new Audio(new AudioCodecPcm16(), format, samples, baos.toByteArray());
     }
 
     private static int decodeSuperFrame(Atrac9Decoder atrac9, Atrac9CodecInfo codec, ByteBuffer src, ByteBuffer dst) {

@@ -31,7 +31,6 @@ public final class AudioReaderAtrac9 implements AudioReader {
         );
 
         var format = new AudioFormat(
-            fact.sampleCount(),
             fmt.sampleRate(),
             fmt.channelCount()
         );
@@ -39,6 +38,7 @@ public final class AudioReaderAtrac9 implements AudioReader {
         return new Audio(
             codec,
             format,
+            fact.sampleCount(),
             data.data()
         );
     }
