@@ -13,27 +13,44 @@ import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 final class AudioWaveform extends JComponent {
-    private static final Color PEAK_MAX = new Color(0xFF0000);
-    private static final Color PEAK_MIN = new Color(0x0000FF);
-    private static final Color PEAK_MID = new Color(0x800080);
-
-    private static final Color PEAK_MAX_DIM = new Color(0x800000);
-    private static final Color PEAK_MIN_DIM = new Color(0x000080);
-
-    private static final int PEAK_WIDTH = 2;
-    private static final int PEAK_GAP_H = 1;
-    private static final int PEAK_GAP_V = 2;
-
     private final Audio audio;
     private final ShortBuffer data;
     private final List<Peak> peaks = new ArrayList<>();
     private float progress = 0.0f;
+
+    // Styles
+    private Color background;
+    private Color peakMaxBackground;
+    private Color peakMinBackground;
+    private Color peakMidBackground;
+    private Color peakMaxDimBackground;
+    private Color peakMinDimBackground;
+    private int peakWidth;
+    private int peakHorizontalGap;
+    private int peakVerticalGap;
 
     public AudioWaveform(Audio audio) {
         this.audio = audio.toPcm16();
         this.data = ByteBuffer.wrap(this.audio.data())
             .order(ByteOrder.LITTLE_ENDIAN)
             .asShortBuffer();
+
+        updateUI();
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+
+        background = UIManager.getColor("AudioWaveform.background");
+        peakMaxBackground = UIManager.getColor("AudioWaveform.peak.max.background");
+        peakMinBackground = UIManager.getColor("AudioWaveform.peak.min.background");
+        peakMidBackground = UIManager.getColor("AudioWaveform.peak.mid.background");
+        peakMaxDimBackground = UIManager.getColor("AudioWaveform.peak.max.dim.background");
+        peakMinDimBackground = UIManager.getColor("AudioWaveform.peak.min.dim.background");
+        peakWidth = UIManager.getInt("AudioWaveform.peak.width");
+        peakHorizontalGap = UIManager.getInt("AudioWaveform.peak.horizontalGap");
+        peakVerticalGap = UIManager.getInt("AudioWaveform.peak.verticalGap");
     }
 
     @Override
@@ -44,22 +61,23 @@ final class AudioWaveform extends JComponent {
         int height = getHeight();
         int height2 = height / 2;
 
-        int peaksTotal = width / (PEAK_WIDTH + PEAK_GAP_H);
+        int peaksTotal = width / (peakWidth + peakHorizontalGap);
         int samplesPerPeak = audio.samples() / peaksTotal;
 
         if (peaksTotal != peaks.size()) {
             peaks.clear();
             for (int i = 0; i < peaksTotal; i++) {
+                // TODO: Show peaks of other channels as well
                 peaks.add(computePeak(audio.format(), data, 0, samplesPerPeak * i, samplesPerPeak));
             }
         }
 
         // Background
-        g2.setColor(Color.BLACK);
+        g2.setColor(background);
         g2.fillRect(0, 0, width, height);
 
-        var paint = new GradientPaint(0.0f, 0.0f, PEAK_MAX, 0.0f, height, PEAK_MIN);
-        var paintDim = new GradientPaint(0.0f, 0.0f, PEAK_MAX_DIM, 0.0f, height, PEAK_MIN_DIM);
+        var paint = new GradientPaint(0.0f, 0.0f, peakMaxBackground, 0.0f, height, peakMinBackground);
+        var paintDim = new GradientPaint(0.0f, 0.0f, peakMaxDimBackground, 0.0f, height, peakMinDimBackground);
 
         // Peaks
         for (int i = 0; i < peaksTotal; i++) {
@@ -72,15 +90,15 @@ final class AudioWaveform extends JComponent {
             var peak = peaks.get(i);
 
             int maxh = (int) (peak.max() * height2);
-            g2.fillRect(i * (PEAK_WIDTH + PEAK_GAP_H), height2 - maxh - PEAK_GAP_V, PEAK_WIDTH, maxh);
+            g2.fillRect(i * (peakWidth + peakHorizontalGap), height2 - maxh - peakVerticalGap, peakWidth, maxh);
 
             int minh = (int) (-peak.min() * height2);
-            g2.fillRect(i * (PEAK_WIDTH + PEAK_GAP_H), height2 + PEAK_GAP_V, PEAK_WIDTH, minh);
+            g2.fillRect(i * (peakWidth + peakHorizontalGap), height2 + peakVerticalGap, peakWidth, minh);
         }
 
         // Midline
-        g2.setColor(PEAK_MID);
-        g2.fillRect(0, height / 2 - PEAK_GAP_V / 2, width, PEAK_GAP_V);
+        g2.setColor(peakMidBackground);
+        g2.fillRect(0, height / 2 - peakVerticalGap / 2, width, peakVerticalGap);
 
         g2.dispose();
     }

@@ -1,4 +1,5 @@
 module odradek.viewer.audio {
+    requires com.formdev.flatlaf;
     requires com.miglayout.swing;
     requires odradek.core;
     requires odradek.ui;
@@ -8,4 +9,9 @@ module odradek.viewer.audio {
 
     provides sh.adelessfox.odradek.ui.Viewer.Provider with
         sh.adelessfox.odradek.viewer.audio.AudioViewer.Provider;
+
+    provides com.formdev.flatlaf.FlatDefaultsAddon with
+        sh.adelessfox.odradek.viewer.audio.laf.AudioPlayerDefaultsAddon;
+
+    opens sh.adelessfox.odradek.viewer.audio.laf;
 }
