@@ -24,6 +24,7 @@ final class AudioPlayer extends JPanel implements Disposable {
 
     public AudioPlayer(Audio audio) {
         progress = new JProgressBar();
+        progress.setMaximum(1000);
         progress.setStringPainted(true);
         progress.setString("");
 
@@ -62,11 +63,12 @@ final class AudioPlayer extends JPanel implements Disposable {
             if (event.getType() == LineEvent.Type.START) {
                 timer.start();
                 playAction.setPlaying(true);
+                updateProgress();
             } else if (event.getType() == LineEvent.Type.STOP) {
                 timer.stop();
                 playAction.setPlaying(false);
+                updateProgress();
             }
-            updateProgress();
         });
 
         setProgress(Duration.ZERO, Duration.ZERO);
@@ -91,9 +93,9 @@ final class AudioPlayer extends JPanel implements Disposable {
     }
 
     private void setProgress(Duration position, Duration duration) {
-        int value = duration.isZero() ? 0 : Math.toIntExact(position.multipliedBy(100).dividedBy(duration));
-        progress.setValue(value);
-        waveform.setProgress(value / 100.0f);
+        float value = duration.isZero() ? 0 : (float) position.toMillis() / duration.toMillis();
+        progress.setValue((int) (value * progress.getMaximum()));
+        waveform.setProgress(value);
         label.setText("%s / %s".formatted(formatDuration(position), formatDuration(duration)));
     }
 
