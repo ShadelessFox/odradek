@@ -7,9 +7,9 @@ module odradek.viewer.texture {
     requires odradek.ui;
     requires org.slf4j;
 
-    provides sh.adelessfox.odradek.ui.Viewer with
-        sh.adelessfox.odradek.viewer.texture.TextureViewer;
+    provides sh.adelessfox.odradek.ui.Viewer.Provider with
+        sh.adelessfox.odradek.viewer.texture.TextureViewer.Provider;
 
-    provides sh.adelessfox.odradek.ui.Preview with
-        sh.adelessfox.odradek.viewer.texture.TexturePreview;
+    provides sh.adelessfox.odradek.ui.Preview.Provider with
+        sh.adelessfox.odradek.viewer.texture.TexturePreview.Provider;
 }

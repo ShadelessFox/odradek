@@ -13,7 +13,19 @@ import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.util.concurrent.CancellationException;
 
-public class LazyEditor implements Editor {
+public final class LazyEditor implements Editor {
+    public static class Provider implements Editor.Provider {
+        @Override
+        public Editor createEditor(EditorInput input, EditorSite site) {
+            return new LazyEditor((LazyEditorInput) input, site);
+        }
+
+        @Override
+        public Match matches(EditorInput input) {
+            return input instanceof LazyEditorInput ? Match.PRIMARY : Match.NONE;
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(LazyEditor.class);
     private final LazyEditorInput input;
     private final EditorSite site;
@@ -26,7 +38,7 @@ public class LazyEditor implements Editor {
 
     private boolean focusRequested;
 
-    public LazyEditor(LazyEditorInput input, EditorSite site) {
+    private LazyEditor(LazyEditorInput input, EditorSite site) {
         this.input = input;
         this.site = site;
 

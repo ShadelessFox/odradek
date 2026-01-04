@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.viewer.texture;
 
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
@@ -8,7 +9,9 @@ import sh.adelessfox.odradek.util.Arrays;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteOrder;
@@ -16,13 +19,41 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Optional;
 
-public class TextureViewer implements Viewer<Texture> {
+public final class TextureViewer implements Viewer {
+    public static final class Provider implements Viewer.Provider<Texture> {
+        @Override
+        public Viewer create(Texture object, Game game) {
+            return new TextureViewer(object);
+        }
+
+        @Override
+        public String name() {
+            return "Texture";
+        }
+
+        @Override
+        public Optional<String> icon() {
+            return Optional.of("fugue:image");
+        }
+    }
+
     private static final float ZOOM_STEP = 0.2f;
     private static final float ZOOM_MIN_LEVEL = (float) Math.pow(2, -5);
     private static final float ZOOM_MAX_LEVEL = (float) Math.pow(2, 7);
 
+    private final Texture texture;
+
+    // Animated texture handling
+    private Timer timer;
+    private int frame;
+    private boolean animate = true;
+
+    private TextureViewer(Texture texture) {
+        this.texture = texture;
+    }
+
     @Override
-    public JComponent createComponent(Texture texture) {
+    public JComponent createComponent() {
         var converted = texture.convert(TextureFormat.B8G8R8A8_UNORM);
         var surfaces = converted.surfaces().stream()
             .map(TextureViewer::createImage)
@@ -34,7 +65,9 @@ public class TextureViewer implements Viewer<Texture> {
         imageView.setZoomToFit(true);
 
         var imagePane = createImagePane(imageView);
-        var imageToolbar = createToolBar(imageView);
+        var imageToolbar = new JToolBar();
+
+        populateChannelActions(imageToolbar, imageView);
 
         // To visually separate it from the toolbar
         imagePane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")));
@@ -46,51 +79,60 @@ public class TextureViewer implements Viewer<Texture> {
 
         texture.duration().ifPresent(duration -> {
             var slider = new JSlider(0, surfaces.size() - 1);
-            var animate = new JCheckBox("Animate", true);
+            var animate = new JCheckBox("Animate", this.animate);
 
             imageToolbar.addSeparator();
             imageToolbar.add(animate);
             imageToolbar.add(slider);
-            imageToolbar.add(Box.createHorizontalBox());
 
-            var delay = Math.toIntExact(duration.toMillis());
-            var listener = new ActionListener() {
-                private int index = 0;
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    imageView.setImage(surfaces.get(index));
-                    slider.setValue(index);
-                    index = (index + 1) % surfaces.size();
-                }
-            };
-            var timer = new Timer(delay, listener);
-
-            imageView.addHierarchyListener(e -> {
-                if (e.getID() == HierarchyEvent.HIERARCHY_CHANGED && SwingUtilities.isDescendingFrom(imageView, e.getChanged())) {
-                    if (!imageView.isShowing()) {
-                        timer.stop();
-                    } else if (animate.isSelected() && !timer.isRunning()) {
-                        timer.start();
-                    }
-                }
+            timer = new Timer(Math.toIntExact(duration.toMillis()), _ -> {
+                imageView.setImage(surfaces.get(frame));
+                slider.setValue(frame);
+                frame = (frame + 1) % surfaces.size();
             });
 
             slider.addChangeListener(_ -> {
-                int index = slider.getValue();
-                listener.index = index;
-                imageView.setImage(surfaces.get(index));
+                frame = slider.getValue();
+                imageView.setImage(surfaces.get(frame));
             });
             animate.addActionListener(_ -> {
                 if (animate.isSelected()) {
-                    timer.start();
+                    play();
+                    this.animate = true;
                 } else {
-                    timer.stop();
+                    stop();
+                    this.animate = false;
                 }
             });
+
+            timer.start();
         });
 
         return panel;
+    }
+
+    @Override
+    public void activate() {
+        if (animate) {
+            play();
+        }
+    }
+
+    @Override
+    public void deactivate() {
+        stop();
+    }
+
+    private void play() {
+        if (timer != null) {
+            timer.start();
+        }
+    }
+
+    private void stop() {
+        if (timer != null) {
+            timer.stop();
+        }
     }
 
     private static JComponent createImagePane(ImageView view) {
@@ -126,7 +168,7 @@ public class TextureViewer implements Viewer<Texture> {
         return scrollPane;
     }
 
-    private static JToolBar createToolBar(ImageView view) {
+    private static void populateChannelActions(JToolBar toolBar, ImageView view) {
         var buttons = new ArrayList<ToggleChannelButton>();
         var update = (Runnable) () -> {
             var channels = buttons.stream()
@@ -151,7 +193,6 @@ public class TextureViewer implements Viewer<Texture> {
             }
         };
 
-        var toolBar = new JToolBar();
         for (Channel channel : Channel.values()) {
             var button = new ToggleChannelButton(channel);
             button.setSelected(true);
@@ -161,8 +202,6 @@ public class TextureViewer implements Viewer<Texture> {
             toolBar.add(button);
             buttons.add(button);
         }
-
-        return toolBar;
     }
 
     private static BufferedImage createImage(Surface surface) {
@@ -174,16 +213,6 @@ public class TextureViewer implements Viewer<Texture> {
         }
 
         return image;
-    }
-
-    @Override
-    public String name() {
-        return "Texture";
-    }
-
-    @Override
-    public Optional<String> icon() {
-        return Optional.of("fugue:image");
     }
 
     private static class ToggleChannelButton extends JToggleButton {

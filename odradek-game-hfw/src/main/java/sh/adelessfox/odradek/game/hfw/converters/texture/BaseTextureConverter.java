@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETexColorSpace;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureType;
@@ -13,8 +12,6 @@ import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureType;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 
 abstract class BaseTextureConverter<T> implements Converter<T, Texture, ForbiddenWestGame> {
@@ -59,13 +56,5 @@ abstract class BaseTextureConverter<T> implements Converter<T, Texture, Forbidde
             case Linear -> TextureColorSpace.LINEAR;
             case sRGB -> TextureColorSpace.SRGB;
         };
-    }
-
-    protected static byte[] readDataSource(ForbiddenWestGame game, HorizonForbiddenWest.StreamingDataSource dataSource) {
-        try {
-            return game.getStreamingSystem().getDataSourceData(dataSource);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 }

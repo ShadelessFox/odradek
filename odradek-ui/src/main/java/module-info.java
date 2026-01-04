@@ -24,17 +24,17 @@ module odradek.ui {
     exports sh.adelessfox.odradek.ui.util;
     exports sh.adelessfox.odradek.ui;
 
-    uses sh.adelessfox.odradek.ui.Preview;
+    uses sh.adelessfox.odradek.ui.Preview.Provider;
     uses sh.adelessfox.odradek.ui.Renderer;
-    uses sh.adelessfox.odradek.ui.Viewer;
+    uses sh.adelessfox.odradek.ui.Viewer.Provider;
     uses sh.adelessfox.odradek.ui.actions.Action;
-    uses sh.adelessfox.odradek.ui.editors.EditorProvider;
+    uses sh.adelessfox.odradek.ui.editors.Editor.Provider;
 
     provides com.formdev.flatlaf.FlatDefaultsAddon with
         sh.adelessfox.odradek.ui.components.laf.OdradekDefaultsAddon;
 
-    provides sh.adelessfox.odradek.ui.editors.EditorProvider with
-        sh.adelessfox.odradek.ui.editors.lazy.LazyEditorProvider;
+    provides sh.adelessfox.odradek.ui.editors.Editor.Provider with
+        sh.adelessfox.odradek.ui.editors.lazy.LazyEditor.Provider;
 
     provides sh.adelessfox.odradek.ui.Renderer with
         sh.adelessfox.odradek.ui.renderers.ContainerRenderer,
