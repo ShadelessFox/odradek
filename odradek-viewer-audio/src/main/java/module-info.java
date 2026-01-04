@@ -1,4 +1,5 @@
 module odradek.viewer.audio {
+    requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
     requires com.miglayout.swing;
     requires odradek.core;

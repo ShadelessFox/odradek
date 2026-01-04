@@ -1,8 +1,11 @@
 package sh.adelessfox.odradek.viewer.audio;
 
+import com.formdev.flatlaf.extras.components.FlatProgressBar;
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.ui.Disposable;
+import sh.adelessfox.odradek.ui.components.StyledComponent;
+import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.util.Fugue;
 import sh.adelessfox.odradek.util.Futures;
 
@@ -17,16 +20,15 @@ final class AudioPlayer extends JPanel implements Disposable {
     private static final int REPAINT_INTERVAL = 1000 / 60; // TODO too arbitrary
 
     private final AudioWaveform waveform;
-    private final JProgressBar progress;
-    private final JLabel label;
+    private final FlatProgressBar progress;
+    private final StyledComponent label;
 
     private final Clip clip;
 
     public AudioPlayer(Audio audio) {
-        progress = new JProgressBar();
+        progress = new FlatProgressBar();
+        progress.setLargeHeight(true);
         progress.setMaximum(1000);
-        progress.setStringPainted(true);
-        progress.setString("");
 
         var handler = new ScrubberHandler();
         progress.addMouseListener(handler);
@@ -37,7 +39,8 @@ final class AudioPlayer extends JPanel implements Disposable {
 
         var playAction = new PlayAction();
 
-        label = new JLabel("00:00", SwingConstants.LEADING);
+        // Label's setText calls revalidate(), which borks the UI if called frequently, so we're using StyledComponent instead
+        label = new StyledComponent();
 
         var toolBar = new JToolBar();
         toolBar.setBorder(BorderFactory.createEmptyBorder());
@@ -94,9 +97,12 @@ final class AudioPlayer extends JPanel implements Disposable {
 
     private void setProgress(Duration position, Duration duration) {
         float value = duration.isZero() ? 0 : (float) position.toMillis() / duration.toMillis();
-        progress.setValue((int) (value * progress.getMaximum()));
         waveform.setProgress(value);
-        label.setText("%s / %s".formatted(formatDuration(position), formatDuration(duration)));
+        progress.setValue((int) (value * progress.getMaximum()));
+        progress.repaint(); // somehow is required ...
+
+        label.clear();
+        label.append(StyledFragment.regular("%s / %s".formatted(formatDuration(position), formatDuration(duration))));
     }
 
     private static String formatDuration(Duration duration) {
