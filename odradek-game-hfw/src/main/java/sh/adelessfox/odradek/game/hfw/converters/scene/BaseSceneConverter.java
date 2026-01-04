@@ -11,8 +11,6 @@ import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Scene;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -29,7 +27,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         HorizonForbiddenWest.StreamingDataSource dataSource,
         ForbiddenWestGame game
     ) {
-        var buffer = readDataSource(dataSource, game);
+        var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
         var primitives = new ArrayList<Primitive>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
@@ -203,19 +201,6 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             .order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(position + size);
         return view;
-    }
-
-    private static ByteBuffer readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource, ForbiddenWestGame game) {
-        if (dataSource.length() == 0) {
-            return null;
-        }
-        try {
-            return ByteBuffer
-                .wrap(game.getStreamingSystem().getDataSourceData(dataSource))
-                .order(ByteOrder.LITTLE_ENDIAN);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     private static int alignUp(int value, int alignment) {

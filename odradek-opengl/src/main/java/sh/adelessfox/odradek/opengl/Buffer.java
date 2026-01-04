@@ -75,15 +75,4 @@ public final class Buffer implements GLObject {
                 .put(0, buffer, buffer.position(), buffer.remaining());
         }
     }
-
-    private void ensureBound() {
-        // var name = switch (target) {
-        //     case GL_ARRAY_BUFFER -> GL_ARRAY_BUFFER_BINDING;
-        //     case GL_ELEMENT_ARRAY_BUFFER -> GL_ELEMENT_ARRAY_BUFFER_BINDING;
-        //     default -> throw new IllegalArgumentException("Unknown buffer target: " + target);
-        // };
-        // if (glGetInteger(name) != this.name) {
-        //     throw new IllegalArgumentException("Vertex buffer is not bound");
-        // }
-    }
 }

@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.game.hfw.game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.hfw.game.win32.ProductVersion;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
@@ -15,8 +14,10 @@ import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.util.ProductVersion;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -57,6 +58,15 @@ public final class ForbiddenWestGame implements Game {
 
         streamingSystem = new ObjectStreamingSystem(storageDevice, streamingGraph);
         streamingReader = new StreamingObjectReader(streamingSystem, typeFactory);
+    }
+
+    public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) {
+        try {
+            return getStreamingSystem().getDataSourceData(dataSource);
+        } catch (IOException e) {
+            // FIXME: Throwing unchecked exceptions is not ideal. Think about proper exception handling
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override

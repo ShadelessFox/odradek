@@ -37,6 +37,10 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-viewer-audio</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-viewer-model</artifactId>
         </dependency>
         <dependency>
@@ -186,11 +190,11 @@
                     </jLinkOptions>
                     <javaOptions>
                         <javaOption>--enable-native-access=com.formdev.flatlaf</javaOption>
-                        <javaOption>--enable-native-access=odradek.game.hfw</javaOption>
+                        <javaOption>--enable-native-access=odradek.core</javaOption>
                         <javaOption>--enable-native-access=odradek.viewer.shader</javaOption>
-                        <javaOption>--enable-native-access=org.lwjgl</javaOption>
-                        <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
+                        <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
+                        <javaOption>--enable-native-access=org.lwjgl</javaOption>
                         <javaOption>--enable-native-access=org.lz4.java</javaOption>
                         <!-- Allows usage of java.lang.StableValue -->
                         <javaOption>--enable-preview</javaOption>

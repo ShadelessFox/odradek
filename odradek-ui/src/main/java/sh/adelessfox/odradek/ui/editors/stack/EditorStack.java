@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.editors.stack;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.ui.editors.Editor;
+import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
 
 import javax.swing.*;
@@ -23,6 +24,7 @@ public class EditorStack extends FlatTabbedPane {
     }
 
     private final EditorStackManager manager;
+    private EditorComponent lastEditor;
 
     EditorStack(EditorStackManager manager) {
         this.manager = manager;
@@ -37,8 +39,17 @@ public class EditorStack extends FlatTabbedPane {
         });
 
         getModel().addChangeListener(_ -> {
-            if (getTabCount() == 0) {
+            // Deactivate last editor
+            if (lastEditor != null && lastEditor.hasComponent()) {
+                lastEditor.editor.deactivate();
+            }
+
+            // Retrieve new editor. If it doesn't exist, then this stack is empty; otherwise, activate
+            lastEditor = (EditorComponent) getSelectedComponent();
+            if (lastEditor == null) {
                 getContainer().compact();
+            } else if (lastEditor.hasComponent()) {
+                lastEditor.editor.activate();
             }
         });
 
@@ -62,6 +73,43 @@ public class EditorStack extends FlatTabbedPane {
                 }
             }
         });
+    }
+
+    void insertEditor(EditorInput input, EditorComponent component, int index) {
+        insertTab(input.getName(), null, component, input.getDescription(), index);
+    }
+
+    void reopenEditor(EditorComponent oldComponent, EditorInput newInput, EditorComponent newComponent) {
+        int index = indexOfComponent(oldComponent);
+        boolean selected = getSelectedIndex() == index;
+
+        if (index < 0) {
+            throw new IllegalArgumentException("Old component is not in this stack");
+        }
+
+        Editor oldEditor = oldComponent.editor;
+        Editor newEditor = newComponent.editor;
+
+        if (oldComponent.hasComponent()) {
+            if (selected) {
+                oldEditor.deactivate();
+            }
+            oldEditor.dispose();
+        }
+
+        setComponentAt(index, newComponent);
+        setTitleAt(index, newInput.getName());
+        setToolTipTextAt(index, newInput.getDescription());
+
+        if (selected) {
+            lastEditor = newComponent;
+            newEditor.activate();
+
+            if (oldEditor.isFocused()) {
+                // Restore focus
+                newEditor.setFocus();
+            }
+        }
     }
 
     public boolean move(Editor sourceEditor, EditorStack targetStack) {

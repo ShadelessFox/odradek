@@ -61,6 +61,9 @@ public record Texture(
         if (type != TextureType.ARRAY && duration.isPresent()) {
             throw new IllegalArgumentException("Only array textures can be animated");
         }
+        if (duration.isPresent() && !duration.get().isPositive()) {
+            throw new IllegalArgumentException("Duration must be positive");
+        }
         for (Surface surface : surfaces) {
             int size = format.block().surfaceSize(surface.width(), surface.height());
             if (surface.data().length != size) {

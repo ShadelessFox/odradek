@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.viewer.shader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.ProgramType;
 import sh.adelessfox.odradek.graphics.Shader;
@@ -15,11 +16,28 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.SymbolLookup;
 import java.util.Optional;
 
-public class ShaderViewer implements Viewer<Shader> {
+public record ShaderViewer(Shader shader) implements Viewer {
+    public static final class Provider implements Viewer.Provider<Shader> {
+        @Override
+        public Viewer create(Shader object, Game game) {
+            return new ShaderViewer(object);
+        }
+
+        @Override
+        public String name() {
+            return "Shader";
+        }
+
+        @Override
+        public Optional<String> icon() {
+            return Optional.of("fugue:color");
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(ShaderViewer.class);
 
     @Override
-    public JComponent createComponent(Shader shader) {
+    public JComponent createComponent() {
         try (Arena arena = Arena.ofConfined()) {
             var lookup = SymbolLookup.libraryLookup("dxcompiler.dll", arena);
             var compiler = new DxCompiler(lookup);
@@ -58,16 +76,6 @@ public class ShaderViewer implements Viewer<Shader> {
         ) {
             return disassemblyBlob.getBuffer().getString(0);
         }
-    }
-
-    @Override
-    public String name() {
-        return "Shader";
-    }
-
-    @Override
-    public Optional<String> icon() {
-        return Optional.of("fugue:color");
     }
 
     private static String toDisplayString(ProgramType type) {
