@@ -191,7 +191,6 @@
                     <javaOptions>
                         <javaOption>--enable-native-access=com.formdev.flatlaf</javaOption>
                         <javaOption>--enable-native-access=odradek.core</javaOption>
-                        <javaOption>--enable-native-access=odradek.game.hfw</javaOption>
                         <javaOption>--enable-native-access=odradek.viewer.shader</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
