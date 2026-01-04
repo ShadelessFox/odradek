@@ -26,6 +26,9 @@ final class AudioPlayer extends JPanel implements Disposable {
     private final Clip clip;
 
     public AudioPlayer(Audio audio) {
+        // Both waveform and clip expects pcm16, so do it right away to avoid extra conversion
+        Audio pcm16 = audio.toPcm16();
+
         progress = new FlatProgressBar();
         progress.setLargeHeight(true);
         progress.setMaximum(1000);
@@ -34,7 +37,7 @@ final class AudioPlayer extends JPanel implements Disposable {
         progress.addMouseListener(handler);
         progress.addMouseMotionListener(handler);
 
-        waveform = new AudioWaveform(audio);
+        waveform = new AudioWaveform(pcm16);
         waveform.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
 
         var playAction = new PlayAction();
@@ -54,7 +57,7 @@ final class AudioPlayer extends JPanel implements Disposable {
         add(toolBar);
 
         try {
-            clip = openClip(audio);
+            clip = openClip(pcm16);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

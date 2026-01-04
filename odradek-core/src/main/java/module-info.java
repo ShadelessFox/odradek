@@ -19,4 +19,6 @@ module odradek.core {
     exports sh.adelessfox.odradek.texture;
     exports sh.adelessfox.odradek.util;
     exports sh.adelessfox.odradek;
+
+    opens sh.adelessfox.odradek.audio.codec.libatrac9;
 }

@@ -12,21 +12,20 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-import java.nio.file.Path;
 
 public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements AudioCodec {
     @Override
     public Audio toPcm16(AudioFormat format, int samples, byte[] data) {
-        var baos = new ByteArrayOutputStream();
+        var output = new ByteArrayOutputStream();
 
         try (
             var arena = Arena.ofConfined();
-            var atrac9 = new Atrac9Decoder(arena, Path.of("D:/Tools/vgmstream-win64/libatrac9.dll"));
-            var channel = Channels.newChannel(baos);
+            var decoder = new Atrac9Decoder();
+            var channel = Channels.newChannel(output);
         ) {
-            atrac9.initialize(configData);
+            decoder.initialize(configData);
 
-            var info = atrac9.getCodecInfo();
+            var info = decoder.getCodecInfo();
             var src = arena.allocate(info.superframeSize()).asByteBuffer();
             var dst = arena.allocate(info.channels() * info.frameSamples() * info.framesInSuperframe() * (long) Short.BYTES).asByteBuffer();
 
@@ -37,7 +36,7 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
                 src.clear().put(0, data, i * info.superframeSize(), info.superframeSize());
 
                 dst.clear();
-                decodeSuperFrame(atrac9, info, src, dst);
+                decodeSuperFrame(decoder, info, src, dst);
 
                 dst.flip();
 
@@ -61,7 +60,7 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
             codec,
             format,
             samples,
-            baos.toByteArray()
+            output.toByteArray()
         );
     }
 
