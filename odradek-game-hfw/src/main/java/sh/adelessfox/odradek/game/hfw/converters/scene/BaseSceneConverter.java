@@ -27,7 +27,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         HorizonForbiddenWest.StreamingDataSource dataSource,
         ForbiddenWestGame game
     ) {
-        var buffer = ByteBuffer.wrap(game.readDataSourceUnchecked(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
+        var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
         var primitives = new ArrayList<Primitive>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();

@@ -19,7 +19,7 @@ public class WaveResourceToAudioConverter
     public Optional<Audio> convert(WaveResource object, ForbiddenWestGame game) {
         var encoding = object.format().encoding().unwrap();
         var data = object.format().isStreaming()
-            ? game.readDataSourceUnchecked(object.data().streamingDataSource())
+            ? game.readDataSource(object.data().streamingDataSource())
             : object.data().waveData();
 
         return switch (encoding) {

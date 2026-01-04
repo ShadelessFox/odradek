@@ -60,17 +60,11 @@ public final class ForbiddenWestGame implements Game {
         streamingReader = new StreamingObjectReader(streamingSystem, typeFactory);
     }
 
-    public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) throws IOException {
-        if (dataSource.length() == 0) {
-            return new byte[0];
-        }
-        return getStreamingSystem().getDataSourceData(dataSource);
-    }
-
-    public byte[] readDataSourceUnchecked(HorizonForbiddenWest.StreamingDataSource dataSource) {
+    public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) {
         try {
-            return readDataSource(dataSource);
+            return getStreamingSystem().getDataSourceData(dataSource);
         } catch (IOException e) {
+            // FIXME: Throwing unchecked exceptions is not ideal. Think about proper exception handling
             throw new UncheckedIOException(e);
         }
     }

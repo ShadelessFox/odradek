@@ -48,10 +48,16 @@ public final class OS {
     private OS() {
     }
 
+    /**
+     * Returns the current operating system name.
+     */
     public static Name name() {
         return name;
     }
 
+    /**
+     * Returns the current architecture.
+     */
     public static Arch arch() {
         return arch;
     }

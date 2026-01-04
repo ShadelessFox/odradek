@@ -17,7 +17,11 @@ import java.util.Optional;
 import static java.lang.foreign.ValueLayout.ADDRESS;
 import static java.lang.foreign.ValueLayout.JAVA_INT;
 
-// Vaguely based on com.formdev.flatlaf.util.NativeLibrary.loadLibraryFromJar
+/**
+ * A wrapper for the libatrac9 native library, licensed under the MIT License.
+ *
+ * @see <a href="https://github.com/Thealexbarney/LibAtrac9">https://github.com/Thealexbarney/LibAtrac9</a>
+ */
 final class Atrac9Library implements AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(Atrac9Library.class);
 
@@ -127,6 +131,7 @@ final class Atrac9Library implements AutoCloseable {
         }
     }
 
+    // Vaguely based on com.formdev.flatlaf.util.NativeLibrary.loadLibraryFromJar
     private static Optional<Atrac9Library> load(String libraryName, Arena arena) {
         var url = Atrac9Library.class.getResource(libraryName);
         if (url == null) {

@@ -20,12 +20,12 @@ public class WaveFmtChunk implements RiffChunk {
     private final WaveFormatExtensible extension;
 
     public WaveFmtChunk(BinaryReader reader) throws IOException {
-        formatTag = reader.readShort() & 0xffff;
-        channelCount = reader.readShort() & 0xffff;
+        formatTag = Short.toUnsignedInt(reader.readShort());
+        channelCount = Short.toUnsignedInt(reader.readShort());
         sampleRate = reader.readInt();
         avgBytesPerSec = reader.readInt();
-        blockAlign = reader.readShort() & 0xffff;
-        bitsPerSample = reader.readShort() & 0xffff;
+        blockAlign = Short.toUnsignedInt(reader.readShort());
+        bitsPerSample = Short.toUnsignedInt(reader.readShort());
 
         if (formatTag == WAVE_FORMAT_EXTENSIBLE) {
             extension = readExtension(reader);

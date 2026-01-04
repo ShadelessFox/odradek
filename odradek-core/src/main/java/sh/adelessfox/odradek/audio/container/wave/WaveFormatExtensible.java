@@ -11,8 +11,8 @@ public class WaveFormatExtensible {
     private final byte[] subFormat;
 
     public WaveFormatExtensible(BinaryReader reader) throws IOException {
-        size = reader.readShort() & 0xffff;
-        validBitsPerSample = reader.readShort() & 0xffff;
+        size = Short.toUnsignedInt(reader.readShort());
+        validBitsPerSample = Short.toUnsignedInt(reader.readShort());
         channelMask = reader.readInt();
         subFormat = reader.readBytes(16);
     }

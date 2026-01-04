@@ -26,7 +26,7 @@ public final class TextureToTextureConverter
 
         var textureSet = object.textureSetParent() != null ? object.textureSetParent().get() : null;
         var dataSource = textureSet != null ? textureSet.streamingDataSource() : object.streamingDataSource();
-        var streamedData = ByteBuffer.wrap(game.readDataSourceUnchecked(dataSource));
+        var streamedData = ByteBuffer.wrap(game.readDataSource(dataSource));
         var embeddedData = ByteBuffer.wrap(object.data().embeddedData());
 
         int width = object.header().width() & 0x3FFF;

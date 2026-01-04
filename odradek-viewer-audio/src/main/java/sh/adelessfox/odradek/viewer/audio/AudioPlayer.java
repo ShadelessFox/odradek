@@ -42,7 +42,7 @@ final class AudioPlayer extends JPanel implements Disposable {
 
         var playAction = new PlayAction();
 
-        // Label's setText calls revalidate(), which borks the UI if called frequently, so we're using StyledComponent instead
+        // JLabel's setText calls revalidate(), which borks the UI if called frequently, so we're using StyledComponent instead
         label = new StyledComponent();
 
         var toolBar = new JToolBar();

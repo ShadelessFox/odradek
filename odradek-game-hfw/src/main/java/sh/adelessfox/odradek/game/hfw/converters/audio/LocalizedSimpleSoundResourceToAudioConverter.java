@@ -24,7 +24,7 @@ public class LocalizedSimpleSoundResourceToAudioConverter
         assert properties.soundSettings().isStreaming();
 
         var encoding = EWaveDataEncoding.valueOf(properties.waveFormat().encoding());
-        var data = game.readDataSourceUnchecked(localizedDataSource.streamingDataSource());
+        var data = game.readDataSource(localizedDataSource.streamingDataSource());
 
         return switch (encoding) {
             case ATRAC9 -> convertAtrac9(data);
