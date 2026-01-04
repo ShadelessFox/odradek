@@ -52,7 +52,7 @@ public class EditorStackManager implements EditorManager {
 
             component = new EditorComponent(activation == Activation.NO ? null : editor.createComponent(), editor, provider);
             stack = findEditorStack(root);
-            stack.insertTab(input.getName(), null, component, input.getDescription(), stack.getSelectedIndex() + 1);
+            stack.insertEditor(input, component, stack.getSelectedIndex() + 1);
         } else {
             stack = component.getEditorStack();
         }
@@ -77,29 +77,16 @@ public class EditorStackManager implements EditorManager {
             EditorStack stack = (EditorStack) oldComponent.getParent();
 
             if (stack != null) {
-                int index = stack.indexOfComponent(oldComponent);
-                boolean selected = stack.getSelectedIndex() == index;
+                var selected = stack.getSelectedComponent() == oldComponent;
+                var result = createEditorForInput(newInput);
 
-                if (index >= 0) {
-                    if (oldComponent.hasComponent()) {
-                        oldEditor.dispose();
-                    }
+                var newComponent = new EditorComponent(
+                    selected ? result.editor().createComponent() : null,
+                    result.editor(),
+                    result.provider()
+                );
 
-                    var result = createEditorForInput(newInput);
-                    var editor = result.editor;
-                    var provider = result.provider();
-
-                    EditorComponent newComponent = new EditorComponent(selected ? editor.createComponent() : null, editor, provider);
-
-                    stack.setComponentAt(index, newComponent);
-                    stack.setTitleAt(index, newInput.getName());
-                    stack.setToolTipTextAt(index, newInput.getDescription());
-
-                    if (selected && oldEditor.isFocused()) {
-                        newComponent.validate();
-                        editor.setFocus();
-                    }
-                }
+                stack.reopenEditor(oldComponent, newInput, newComponent);
             }
         }
     }
