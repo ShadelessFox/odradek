@@ -51,7 +51,18 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
             throw new UncheckedIOException(e);
         }
 
-        return new Audio(new AudioCodecPcm16(), format, samples, baos.toByteArray());
+        var codec = new AudioCodecPcm(
+            16,
+            true,
+            false
+        );
+
+        return new Audio(
+            codec,
+            format,
+            samples,
+            baos.toByteArray()
+        );
     }
 
     private static int decodeSuperFrame(Atrac9Decoder atrac9, Atrac9CodecInfo codec, ByteBuffer src, ByteBuffer dst) {

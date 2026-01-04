@@ -7,7 +7,6 @@ module odradek.core {
     exports sh.adelessfox.odradek.audio.container.at9;
     exports sh.adelessfox.odradek.audio.container.riff;
     exports sh.adelessfox.odradek.audio.container.wave;
-    exports sh.adelessfox.odradek.audio.reader;
     exports sh.adelessfox.odradek.audio;
     exports sh.adelessfox.odradek.compression;
     exports sh.adelessfox.odradek.event;
