@@ -114,11 +114,6 @@ public final class PreviewManager extends MouseAdapter {
     }
 
     private void showTip(Point location) {
-        // if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) == 0) {
-        //     hidePopup();
-        //     return;
-        // }
-
         int rowIndex = tree.getRowForLocation(location.x, location.y);
         if (rowIndex < 0) {
             hidePopup();

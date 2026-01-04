@@ -84,7 +84,6 @@ public final class TextureViewer implements Viewer {
             imageToolbar.addSeparator();
             imageToolbar.add(animate);
             imageToolbar.add(slider);
-            // imageToolbar.add(Box.createHorizontalBox());
 
             timer = new Timer(Math.toIntExact(duration.toMillis()), _ -> {
                 imageView.setImage(surfaces.get(frame));
