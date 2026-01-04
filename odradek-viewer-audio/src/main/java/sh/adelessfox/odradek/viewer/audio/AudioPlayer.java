@@ -47,8 +47,8 @@ final class AudioPlayer extends JPanel implements Disposable {
 
         setLayout(new MigLayout("ins panel,wrap", "fill,grow", "[fill,grow][]"));
         add(waveform);
-        add(toolBar);
         add(progress);
+        add(toolBar);
 
         try {
             clip = openClip(audio);
