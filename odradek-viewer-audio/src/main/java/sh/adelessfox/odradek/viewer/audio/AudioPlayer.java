@@ -4,6 +4,7 @@ import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.odradek.ui.util.Fugue;
+import sh.adelessfox.odradek.util.Futures;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -85,7 +86,8 @@ final class AudioPlayer extends JPanel implements Disposable {
 
     @Override
     public void dispose() {
-        clip.close();
+        // DirectClip#close may block for up to two seconds. Close it asynchronously so it won't block the UI
+        Futures.submit(clip::close);
     }
 
     private void setProgress(Duration position, Duration duration) {
