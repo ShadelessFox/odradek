@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.app.ui.settings.Settings;
+import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -36,50 +38,80 @@ public final class Application {
         return application;
     }
 
-    @SuppressWarnings("resource")
-    public static void launch(ApplicationParameters params) throws IOException {
+    public static synchronized void start(ApplicationParameters params) throws IOException {
         if (application != null) {
             throw new IllegalStateException("Application is already running");
         }
 
         var game = new ForbiddenWestGame(params.sourcePath(), EPlatform.WinGame);
+        var component = DaggerApplicationComponent.builder()
+            .game(game)
+            .build();
+
+        application = new Application(component, params);
 
         log.info("Starting the application");
-        SwingUtilities.invokeLater(() -> {
-            if (params.enableDebugMode()) {
-                FlatInspector.install("ctrl shift alt X");
-                FlatUIDefaultsInspector.install("ctrl shift alt Y");
+        SwingUtilities.invokeLater(() -> run(component, params));
+    }
+
+    private static void run(ApplicationComponent component, ApplicationParameters params) {
+        if (params.enableDebugMode()) {
+            FlatInspector.install("ctrl shift alt X");
+            FlatUIDefaultsInspector.install("ctrl shift alt Y");
+        }
+
+        if (params.enableDarkTheme()) {
+            FlatDarkLaf.setup();
+        } else {
+            FlatLightLaf.setup();
+        }
+
+        var frame = new JFrame();
+        frame.add(component.presenter().getRoot());
+        frame.setTitle("Odradek - " + params.sourcePath());
+        frame.setSize(1280, 720);
+        frame.setLocationRelativeTo(null);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContext.focusedComponent());
+        JOptionPane.setRootFrame(frame);
+
+        component.events().subscribe(SettingsEvent.class, event -> {
+            switch (event) {
+                case SettingsEvent.AfterLoad(var settings) -> loadFrameSettings(settings, frame);
+                case SettingsEvent.BeforeSave(var settings) -> saveFrameSettings(settings, frame);
             }
-
-            if (params.enableDarkTheme()) {
-                FlatDarkLaf.setup();
-            } else {
-                FlatLightLaf.setup();
-            }
-
-            // Instantiate components here. Some objects, notably EditorManager,
-            // requires the UI to be completely set up so the LaF is not fucked.
-            // The loading order drives me crazy. Maybe I should get rid of Dagger completely?
-            ApplicationComponent component = DaggerApplicationComponent.builder()
-                .game(game)
-                .build();
-
-            application = new Application(component, params);
-
-            var frame = new JFrame();
-            Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContext.focusedComponent());
-            frame.add(component.presenter().getRoot());
-            frame.setTitle("Odradek - " + params.sourcePath());
-            frame.setSize(1280, 720);
-            frame.setLocationRelativeTo(null);
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            frame.setVisible(true);
-
-            JOptionPane.setRootFrame(frame);
-
-            // Ensure settings are loaded after everything else. Seems hacky
-            component.settings();
         });
+
+        // Ensure settings are initialized and loaded after everything else
+        component.settings();
+
+        // And now we can show the frame
+        frame.setVisible(true);
+    }
+
+    private static void loadFrameSettings(Settings settings, JFrame frame) {
+        settings.window().ifPresent(window -> {
+            if (window.maximized()) {
+                frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            } else {
+                frame.setBounds(window.x(), window.y(), window.width(), window.height());
+            }
+        });
+    }
+
+    private static void saveFrameSettings(Settings settings, JFrame frame) {
+        var state = frame.getExtendedState();
+        var bounds = frame.getBounds();
+        var maximized = (state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
+
+        settings.window().set(new Settings.WindowState(
+            bounds.x,
+            bounds.y,
+            bounds.width,
+            bounds.height,
+            maximized
+        ));
     }
 
     public ForbiddenWestGame game() {
@@ -87,7 +119,7 @@ public final class Application {
     }
 
     public EditorManager editors() {
-        return component.editorManager();
+        return component.editors();
     }
 
     public Bookmarks bookmarks() {

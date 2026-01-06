@@ -49,7 +49,7 @@ public class Main implements Callable<Void> {
             source = chooseGameDirectory();
         }
         if (source != null) {
-            Application.launch(new ApplicationParameters(
+            Application.start(new ApplicationParameters(
                 source,
                 darkTheme,
                 debugMode
