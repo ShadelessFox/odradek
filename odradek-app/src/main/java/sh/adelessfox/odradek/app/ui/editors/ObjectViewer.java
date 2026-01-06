@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
+import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
@@ -63,9 +64,21 @@ public final class ObjectViewer implements Viewer {
         tree.setLabelProvider(new ObjectEditorLabelProvider());
         tree.addActionListener(event -> {
             var component = event.getLastPathComponent();
-            if (component instanceof ObjectStructure structure && structure.value() instanceof StreamingLink<?> link) {
-                var input = new ObjectEditorInput(game, link.get(), link.groupId(), link.objectIndex());
-                Application.getInstance().editors().openEditor(input);
+            if (!(component instanceof ObjectStructure structure)) {
+                return;
+            }
+            switch (structure.value()) {
+                case StreamingRef<?> ref -> {
+                    var input = new ObjectEditorInputLazy(ref.groupId(), ref.objectIndex());
+                    Application.getInstance().editors().openEditor(input);
+                }
+                case StreamingLink<?> link -> {
+                    var input = new ObjectEditorInput(game, link.get(), link.groupId(), link.objectIndex());
+                    Application.getInstance().editors().openEditor(input);
+                }
+                default -> {
+                    // nothing to do
+                }
             }
         });
         Actions.installContextMenu(tree, ObjectMenu.ID, tree.or(key -> {
