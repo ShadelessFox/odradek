@@ -16,11 +16,11 @@ import java.lang.foreign.Arena;
 import java.lang.foreign.SymbolLookup;
 import java.util.Optional;
 
-public record ShaderViewer(Shader shader) implements Viewer {
+public record ShaderViewer(Shader shader, Game game) implements Viewer {
     public static final class Provider implements Viewer.Provider<Shader> {
         @Override
         public Viewer create(Shader object, Game game) {
-            return new ShaderViewer(object);
+            return new ShaderViewer(object, game);
         }
 
         @Override
@@ -39,7 +39,8 @@ public record ShaderViewer(Shader shader) implements Viewer {
     @Override
     public JComponent createComponent() {
         try (Arena arena = Arena.ofConfined()) {
-            var lookup = SymbolLookup.libraryLookup("dxcompiler.dll", arena);
+            var path = game.resolvePath("tools:bin/x64/dxcompiler.dll");
+            var lookup = SymbolLookup.libraryLookup(path, arena);
             var compiler = new DxCompiler(lookup);
             return createShaderPanel(shader, compiler);
         } catch (Exception e) {

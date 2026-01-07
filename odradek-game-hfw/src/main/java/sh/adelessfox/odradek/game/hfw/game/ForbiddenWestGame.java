@@ -29,6 +29,7 @@ public final class ForbiddenWestGame implements Game {
     private final StorageReadDevice storageDevice;
     private final ObjectStreamingSystem streamingSystem;
     private final StreamingObjectReader streamingReader;
+    private final ForbiddenWestFileSystem fileSystem;
 
     public ForbiddenWestGame(Path source, EPlatform platform) throws IOException {
         var version = Optional.of(source.resolve("HorizonForbiddenWest.exe"))
@@ -41,7 +42,7 @@ public final class ForbiddenWestGame implements Game {
         log.debug("[GAME] Platform: {}", platform);
         log.debug("[GAME] Version:  {}", version);
 
-        var fileSystem = new ForbiddenWestFileSystem(source, platform);
+        fileSystem = new ForbiddenWestFileSystem(source, platform);
 
         log.debug("Loading type factory");
         var typeFactory = new HFWTypeFactory();
@@ -74,6 +75,11 @@ public final class ForbiddenWestGame implements Game {
         synchronized (streamingReader) {
             return streamingReader.readGroup(groupId).objects().get(objectIndex).object();
         }
+    }
+
+    @Override
+    public Path resolvePath(String path) {
+        return fileSystem.resolve(path);
     }
 
     public StreamingGraphResource getStreamingGraph() {

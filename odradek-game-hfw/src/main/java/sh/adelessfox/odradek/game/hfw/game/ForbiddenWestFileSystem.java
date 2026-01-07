@@ -10,6 +10,7 @@ public record ForbiddenWestFileSystem(Path source, EPlatform platform) {
         return switch (parts[0]) {
             case "source" -> source.resolve(parts[1]);
             case "cache" -> resolve("source:LocalCache" + platform).resolve(parts[1]);
+            case "tools" -> resolve("source:tools").resolve(parts[1]);
             default -> throw new IllegalArgumentException("Unknown device path: " + path);
         };
     }
