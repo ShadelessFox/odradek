@@ -58,9 +58,15 @@ public final class RenderMeshesPass implements RenderPass {
     @Override
     public void dispose() {
         clearCache();
-        program.dispose();
-        diffuseSampler.dispose();
-        diffuseTexture.dispose();
+        if (program != null) {
+            program.dispose();
+        }
+        if (diffuseSampler != null) {
+            diffuseSampler.dispose();
+        }
+        if (diffuseTexture != null) {
+            diffuseTexture.dispose();
+        }
         scene = null;
     }
 

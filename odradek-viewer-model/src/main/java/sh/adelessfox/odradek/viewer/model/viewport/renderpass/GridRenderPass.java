@@ -29,8 +29,12 @@ public class GridRenderPass implements RenderPass {
 
     @Override
     public void dispose() {
-        program.dispose();
-        vao.dispose();
+        if (program != null) {
+            program.dispose();
+        }
+        if (vao != null) {
+            vao.dispose();
+        }
     }
 
     @Override

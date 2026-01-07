@@ -43,7 +43,9 @@ public class OverlayRenderPass implements RenderPass {
 
     @Override
     public void dispose() {
-        debug.dispose();
+        if (debug != null) {
+            debug.dispose();
+        }
     }
 
     @Override
