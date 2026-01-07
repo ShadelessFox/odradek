@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.ui.settings;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.settings.gson.ObjectIdTypeAdapter;
@@ -63,7 +62,7 @@ public final class SettingsManager {
 
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             return Optional.of(gson.fromJson(reader, Settings.class));
-        } catch (IOException | JsonParseException e) {
+        } catch (Exception e) {
             log.error("Error while loading settings", e);
             return Optional.empty();
         }
