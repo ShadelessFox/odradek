@@ -42,6 +42,7 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
             var path = game.resolvePath("tools:bin/x64/dxcompiler.dll");
             var lookup = SymbolLookup.libraryLookup(path, arena);
             var compiler = new DxCompiler(lookup);
+
             return createShaderPanel(shader, compiler);
         } catch (Exception e) {
             log.error("Unable to preview the shader", e);

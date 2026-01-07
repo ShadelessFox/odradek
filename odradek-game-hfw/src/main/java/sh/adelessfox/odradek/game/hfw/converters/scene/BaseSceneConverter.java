@@ -48,7 +48,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             primitives.add(new Primitive(indexAccessor, vertexAccessors, primitive.hashCode()));
         }
 
-        if (buffer != null && buffer.hasRemaining()) {
+        if (buffer.hasRemaining()) {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
