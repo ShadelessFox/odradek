@@ -99,15 +99,20 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
 
                 var semantic = switch (element.element().unwrap()) {
                     case Pos -> Semantic.POSITION;
+                    case TangentBFlip -> Semantic.TANGENT_BFLIP;
                     case Tangent -> Semantic.TANGENT;
+                    case Binormal -> Semantic.BINORMAL;
                     case Normal -> Semantic.NORMAL;
-                    case Color -> Semantic.COLOR_0;
+                    case Color -> Semantic.COLOR;
                     case UV0 -> Semantic.TEXTURE_0;
                     case UV1 -> Semantic.TEXTURE_1;
+                    case UV2 -> Semantic.TEXTURE_2;
                     case BlendWeights -> Semantic.WEIGHTS_0;
                     case BlendWeights2 -> Semantic.WEIGHTS_1;
+                    case BlendWeights3 -> Semantic.WEIGHTS_2;
                     case BlendIndices -> Semantic.JOINTS_0;
                     case BlendIndices2 -> Semantic.JOINTS_1;
+                    case BlendIndices3 -> Semantic.JOINTS_2;
                     default -> {
                         log.warn("Skipping unsupported element (semantic: {})", element.element());
                         yield null;
@@ -151,6 +156,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                         new Accessor(view, elementType, ComponentType.HALF_FLOAT, offset, count, stride, false);
                     case Float ->
                         new Accessor(view, elementType, ComponentType.FLOAT, offset, count, stride, false);
+                    case X10Y10Z10W2Normalized ->
+                        new Accessor(view, elementType, ComponentType.INT_10_10_10_2, offset, count, stride, true);
+                    case X10Y10Z10W2UNorm ->
+                        new Accessor(view, elementType, ComponentType.UNSIGNED_INT_10_10_10_2, offset, count, stride, true);
                     default -> {
                         log.warn("Skipping unsupported element (semantic: {}, format: {})", element.element(), element.storageType());
                         yield null;
