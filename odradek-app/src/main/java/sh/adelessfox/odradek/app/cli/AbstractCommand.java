@@ -2,8 +2,6 @@ package sh.adelessfox.odradek.app.cli;
 
 import picocli.CommandLine.Option;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,8 +21,7 @@ abstract class AbstractCommand implements Callable<Void> {
 
     abstract void execute(Game game) throws IOException;
 
-    private Game createGame(Path source) throws IOException {
-        // For the dear future me: this should be game agnostic
-        return new ForbiddenWestGame(source, HorizonForbiddenWest.EPlatform.WinGame);
+    private Game createGame(Path path) throws IOException {
+        return Game.load(path);
     }
 }

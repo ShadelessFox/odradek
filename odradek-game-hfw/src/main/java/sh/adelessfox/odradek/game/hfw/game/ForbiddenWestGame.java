@@ -23,6 +23,18 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public final class ForbiddenWestGame implements Game {
+    public static final class Provider implements Game.Provider {
+        @Override
+        public boolean supports(Path path) {
+            return Files.exists(path.resolve("HorizonForbiddenWest.exe"));
+        }
+
+        @Override
+        public Game load(Path path) throws IOException {
+            return new ForbiddenWestGame(path, EPlatform.WinGame);
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(ForbiddenWestGame.class);
 
     private final StreamingGraphResource streamingGraph;

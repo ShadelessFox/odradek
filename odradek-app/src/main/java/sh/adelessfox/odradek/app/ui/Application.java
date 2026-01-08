@@ -10,8 +10,8 @@ import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
@@ -43,7 +43,7 @@ public final class Application {
             throw new IllegalStateException("Application is already running");
         }
 
-        var game = new ForbiddenWestGame(params.sourcePath(), EPlatform.WinGame);
+        var game = (ForbiddenWestGame) Game.load(params.sourcePath());
         var component = DaggerApplicationComponent.builder()
             .game(game)
             .build();

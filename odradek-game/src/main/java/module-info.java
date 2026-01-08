@@ -6,4 +6,5 @@ module odradek.game {
 
     uses sh.adelessfox.odradek.game.Converter;
     uses sh.adelessfox.odradek.game.Exporter;
+    uses sh.adelessfox.odradek.game.Game.Provider;
 }
