@@ -32,6 +32,8 @@ public final class RenderMeshesPass implements RenderPass {
 
     private static final int FLAG_HAS_NORMAL = 1;
     private static final int FLAG_HAS_UV = 1 << 1;
+    private static final int FLAG_HAS_COLOR = 1 << 2;
+    private static final int FLAG_WIREFRAME = 1 << 3;
 
     private final List<GpuNode> nodes = new ArrayList<>();
 
@@ -97,15 +99,17 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_view_position", camera.position());
 
             var frustum = Frustum.of(camera.projectionView());
+            int flags = wireframe ? FLAG_WIREFRAME : 0;
+
             for (GpuNode node : nodes) {
-                renderNode(node, frustum);
+                renderNode(node, frustum, flags);
             }
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    private void renderNode(GpuNode node, Frustum frustum) {
+    private void renderNode(GpuNode node, Frustum frustum, int flags) {
         if (!frustum.test(node.bbox())) {
             return;
         }
@@ -113,7 +117,7 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_model", node.transform());
             program.set("u_color", primitive.color());
             program.set("u_texture", diffuseSampler);
-            program.set("u_flags", primitive.buildFlags());
+            program.set("u_flags", flags | primitive.buildFlags());
 
             try (var _ = primitive.vao().bind()) {
                 glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
@@ -144,7 +148,7 @@ public final class RenderMeshesPass implements RenderPass {
         int location = 0;
         var semantics = new HashSet<Semantic>();
 
-        for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL, Semantic.TEXTURE_0)) {
+        for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL, Semantic.TEXTURE_0, Semantic.COLOR)) {
             var accessor = vertices.get(semantic);
             var location1 = location++;
             if (accessor == null) {
@@ -254,6 +258,9 @@ public final class RenderMeshesPass implements RenderPass {
             }
             if (semantics.contains(Semantic.TEXTURE_0)) {
                 flags |= FLAG_HAS_UV;
+            }
+            if (semantics.contains(Semantic.COLOR)) {
+                flags |= FLAG_HAS_COLOR;
             }
             return flags;
         }
