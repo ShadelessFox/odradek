@@ -47,7 +47,7 @@ public final class MeshToSceneConverter
             case PrefabInstance r -> convertPrefabInstance(r, game);
             case MockupGeometry r -> convertMockupGeometry(r, game);
             default -> {
-                log.error("Unsupported resource type: {}", object);
+                log.debug("Unsupported resource type: {}", object);
                 yield Optional.empty();
             }
         };
@@ -137,8 +137,11 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertDestructibilityPart(DestructibilityPart part, ForbiddenWestGame game) {
         var initialState = part.initialState().get();
-        var modePartResource = initialState.state().modelPartResource().get();
-        return convertModelPartResource(modePartResource, game);
+        var modelPartResource = initialState.state().modelPartResource();
+        if (modelPartResource != null) {
+            return convertModelPartResource(modelPartResource.get(), game);
+        }
+        return Optional.empty();
     }
 
     private static Optional<Node> convertModelPartResource(ModelPartResource resource, ForbiddenWestGame game) {
@@ -156,7 +159,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-            log.warn("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
+            log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
         var mesh = convertMesh(
@@ -170,7 +173,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertRegularSkinnedMeshResource(RegularSkinnedMeshResource resource, ForbiddenWestGame game) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-            log.warn("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
+            log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
