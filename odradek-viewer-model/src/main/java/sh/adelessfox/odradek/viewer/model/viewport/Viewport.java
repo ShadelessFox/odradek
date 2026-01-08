@@ -18,6 +18,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL43.*;
@@ -159,6 +160,12 @@ public final class Viewport extends JPanel implements GLEventListener {
 
     public Vector3f getCameraOrigin() {
         return camera.forward().fma(cameraDistance, camera.position());
+    }
+
+    public void setCameraOrigin(Vector3f origin) {
+        Objects.requireNonNull(camera, "camera is not set");
+        camera.lookAt(origin);
+        cameraDistance = camera.position().sub(origin).length();
     }
 
     public boolean isCameraOriginShown() {

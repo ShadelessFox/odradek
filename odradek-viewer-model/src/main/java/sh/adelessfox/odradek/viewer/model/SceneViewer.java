@@ -35,10 +35,12 @@ public record SceneViewer(Scene scene) implements Viewer {
 
     @Override
     public JComponent createComponent() {
-        Camera camera = new Camera(30.f, 0.01f, 1000.f);
-        camera.position(scene.computeBoundingBox()
+        Vector3f center = scene.computeBoundingBox()
             .map(BoundingBox::center)
-            .orElse(Vector3f.zero()));
+            .orElse(Vector3f.zero());
+
+        Camera camera = new Camera(30.f, 0.01f, 1000.f);
+        camera.position(center.sub(1.0f, -1.0f, -1.0f));
 
         Viewport viewport = new Viewport();
         viewport.setMinimumSize(new Dimension(100, 100));
@@ -46,6 +48,7 @@ public record SceneViewer(Scene scene) implements Viewer {
         viewport.addRenderPass(new GridRenderPass());
         viewport.addRenderPass(new OverlayRenderPass());
         viewport.setCamera(camera);
+        viewport.setCameraOrigin(center);
         viewport.setScene(scene);
 
         return viewport;
