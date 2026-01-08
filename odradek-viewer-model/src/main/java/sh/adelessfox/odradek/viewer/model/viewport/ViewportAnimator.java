@@ -76,6 +76,7 @@ final class ViewportAnimator {
             } catch (InterruptedException ignored) {
             } catch (InvocationTargetException e) {
                 log.error("Error during rendering", e.getTargetException());
+                stop();
             }
         }
     }
