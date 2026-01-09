@@ -12,10 +12,8 @@ public final class Atrac9Decoder {
     /// The config data for the current ATRAC9 stream.
     /// </summary>
     public Atrac9Config Config;
-
+    private final BitReader Reader = new BitReader();
     private Frame Frame;
-    private BitReader Reader;
-    private boolean _initialized;
 
     /// <summary>
     /// Sets up the decoder to decode an ATRAC9 stream based on the information in <paramref name="configData"/>.
@@ -24,8 +22,6 @@ public final class Atrac9Decoder {
     public void Initialize(byte[] configData) {
         Config = new Atrac9Config(configData);
         Frame = new Frame(Config);
-        Reader = new BitReader(null);
-        _initialized = true;
     }
 
     /// <summary>
@@ -37,7 +33,7 @@ public final class Atrac9Decoder {
     /// The array must have dimensions of at least [<see cref="Config"/>.<see cref="Atrac9Config.ChannelCount"/>]
     /// [<see cref="Config"/>.<see cref="Atrac9Config.SuperframeSamples"/>].</param>
     public void Decode(byte[] atrac9Data, short[][] pcmOut) {
-        if (!_initialized) {
+        if (Config == null) {
             throw new IllegalStateException("Decoder must be initialized before decoding.");
         }
 

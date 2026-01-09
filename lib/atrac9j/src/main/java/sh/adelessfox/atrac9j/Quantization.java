@@ -3,8 +3,11 @@ package sh.adelessfox.atrac9j;
 
 import java.util.Arrays;
 
-class Quantization {
-    public static void DequantizeSpectra(Block block) {
+final class Quantization {
+    private Quantization() {
+    }
+
+    static void DequantizeSpectra(Block block) {
         for (Channel channel : block.Channels) {
             Arrays.fill(channel.Spectra, 0);
 
@@ -27,7 +30,7 @@ class Quantization {
         }
     }
 
-    public static void ScaleSpectrum(Block block) {
+    static void ScaleSpectrum(Block block) {
         for (Channel channel : block.Channels) {
             ScaleSpectrum(channel);
         }

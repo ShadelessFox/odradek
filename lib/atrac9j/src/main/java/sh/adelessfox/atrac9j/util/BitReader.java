@@ -5,13 +5,12 @@ public final class BitReader {
     private int LengthBits;
     public int Position;
 
-    public BitReader(byte[] buffer) {
-        SetBuffer(buffer);
+    public BitReader() {
     }
 
     public void SetBuffer(byte[] buffer) {
         Buffer = buffer;
-        LengthBits = Buffer != null ? Buffer.length * 8 : 0;
+        LengthBits = Buffer.length * 8;
         Position = 0;
     }
 

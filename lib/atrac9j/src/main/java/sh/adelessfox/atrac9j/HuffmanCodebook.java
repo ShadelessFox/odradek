@@ -3,13 +3,24 @@ package sh.adelessfox.atrac9j;
 
 import sh.adelessfox.atrac9j.util.Helpers;
 
-class HuffmanCodebook {
-    public HuffmanCodebook(short[] codes, byte[] bits, byte valueCountPower) {
+import java.util.Objects;
+
+final class HuffmanCodebook {
+    final short[] Codes;
+    final byte[] Bits;
+    final byte[] Lookup;
+    final int ValueCount;
+    final int ValueCountPower;
+    final int ValueBits;
+    final int ValueMax;
+    final int MaxBitSize;
+
+    HuffmanCodebook(short[] codes, byte[] bits, byte valueCountPower) {
+        Objects.requireNonNull(codes, "codes");
+        Objects.requireNonNull(bits, "bits");
+
         Codes = codes;
         Bits = bits;
-        if (Codes == null || Bits == null) {
-            return;
-        }
 
         ValueCount = 1 << valueCountPower;
         ValueCountPower = valueCountPower;
@@ -49,14 +60,5 @@ class HuffmanCodebook {
         }
         return dest;
     }
-
-    public short[] Codes;
-    public byte[] Bits;
-    public byte[] Lookup;
-    public int ValueCount;
-    public int ValueCountPower;
-    public int ValueBits;
-    public int ValueMax;
-    public int MaxBitSize;
 }
 

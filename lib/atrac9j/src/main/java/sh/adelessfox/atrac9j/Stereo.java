@@ -4,8 +4,8 @@ final class Stereo {
     private Stereo() {
     }
 
-    public static void ApplyIntensityStereo(Block block) {
-        if (block.BlockType != BlockType.Stereo) {
+    static void ApplyIntensityStereo(Block block) {
+        if (block.BlockType != BlockType.STEREO) {
             return;
         }
 

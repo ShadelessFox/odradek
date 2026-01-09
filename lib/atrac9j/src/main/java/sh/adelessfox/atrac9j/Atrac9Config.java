@@ -10,63 +10,63 @@ public final class Atrac9Config {
     /// <summary>
     /// The 4-byte ATRAC9 configuration data.
     /// </summary>
-    public byte[] ConfigData;
+    public final byte[] ConfigData;
 
     /// <summary>
     /// A 4-bit value specifying one of 16 sample rates.
     /// </summary>
-    public int SampleRateIndex;
+    public final int SampleRateIndex;
     /// <summary>
     /// A 3-bit value specifying one of 6 substream channel mappings.
     /// </summary>
-    public int ChannelConfigIndex;
+    public final int ChannelConfigIndex;
     /// <summary>
     /// An 11-bit value containing the average size of a single frame.
     /// </summary>
-    public int FrameBytes;
+    public final int FrameBytes;
     /// <summary>
     /// A 2-bit value indicating how many frames are in each superframe.
     /// </summary>
-    public int SuperframeIndex;
+    public final int SuperframeIndex;
 
     /// <summary>
     /// The channel mapping used by the ATRAC9 stream.
     /// </summary>
-    public ChannelConfig ChannelConfig;
+    public final ChannelConfig ChannelConfig;
     /// <summary>
     /// The total number of channels in the ATRAC9 stream.
     /// </summary>
-    public int ChannelCount;
+    public final int ChannelCount;
     /// <summary>
     /// The sample rate of the ATRAC9 stream.
     /// </summary>
-    public int SampleRate;
+    public final int SampleRate;
     /// <summary>
     /// Indicates whether the ATRAC9 stream has a <see cref="SampleRateIndex"/> of 8 or above.
     /// </summary>
-    public boolean HighSampleRate;
+    public final boolean HighSampleRate;
 
     /// <summary>
     /// The number of frames in each superframe.
     /// </summary>
-    public int FramesPerSuperframe;
+    public final int FramesPerSuperframe;
     /// <summary>
     /// The number of samples in one frame as an exponent of 2.
     /// <see cref="FrameSamples"/> = 2^<see cref="FrameSamplesPower"/>.
     /// </summary>
-    public int FrameSamplesPower;
+    public final int FrameSamplesPower;
     /// <summary>
     /// The number of samples in one frame.
     /// </summary>
-    public int FrameSamples;
+    public final int FrameSamples;
     /// <summary>
     /// The number of bytes in one superframe.
     /// </summary>
-    public int SuperframeBytes;
+    public final int SuperframeBytes;
     /// <summary>
     /// The number of samples in one superframe.
     /// </summary>
-    public int SuperframeSamples;
+    public final int SuperframeSamples;
 
     /// <summary>
     /// Reads ATRAC9 configuration data and calculates the stream parameters from it.

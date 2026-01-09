@@ -5,8 +5,11 @@ import sh.adelessfox.atrac9j.util.BitReader;
 
 import java.util.Arrays;
 
-class Unpack {
-    public static void UnpackFrame(BitReader reader, Frame frame) {
+final class Unpack {
+    private Unpack() {
+    }
+
+    static void UnpackFrame(BitReader reader, Frame frame) {
         for (Block block : frame.Blocks) {
             UnpackBlock(reader, block);
         }
@@ -76,7 +79,7 @@ class Unpack {
             return;
         }
 
-        if (block.BlockType == BlockType.Stereo) {
+        if (block.BlockType == BlockType.STEREO) {
             block.StereoBand = reader.ReadInt(4);
             block.StereoBand += minBandCount;
             block.StereoQuantizationUnit = Tables.BandToQuantUnitCount[block.StereoBand];
@@ -136,7 +139,7 @@ class Unpack {
     }
 
     private static void ReadStereoParams(BitReader reader, Block block) {
-        if (block.BlockType != BlockType.Stereo) {
+        if (block.BlockType != BlockType.STEREO) {
             return;
         }
 
@@ -159,7 +162,7 @@ class Unpack {
             int[] unused2 = new int[1];
             BandExtension.GetBexBandInfo(bexBand1, unused1, unused2, block.QuantizationUnitCount);
             bexBand = bexBand1[0];
-            if (block.BlockType == BlockType.Stereo) {
+            if (block.BlockType == BlockType.STEREO) {
                 ReadBexHeader(reader, block.Channels[1], bexBand);
             } else {
                 reader.Position += 1;
@@ -187,7 +190,7 @@ class Unpack {
 
         ReadBexData(reader, block.Channels[0], bexBand);
 
-        if (block.BlockType == BlockType.Stereo) {
+        if (block.BlockType == BlockType.STEREO) {
             ReadBexData(reader, block.Channels[1], bexBand);
         }
 

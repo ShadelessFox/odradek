@@ -8,71 +8,71 @@ final class Tables {
     private Tables() {
     }
 
-    public static int MaxHuffPrecision(boolean highSampleRate) {
+    static int MaxHuffPrecision(boolean highSampleRate) {
         return highSampleRate ? 1 : 7;
     }
 
-    public static int MinBandCount(boolean highSampleRate) {
+    static int MinBandCount(boolean highSampleRate) {
         return highSampleRate ? 1 : 3;
     }
 
-    public static int MaxExtensionBand(boolean highSampleRate) {
+    static int MaxExtensionBand(boolean highSampleRate) {
         return highSampleRate ? 16 : 18;
     }
 
-    public static final int[] SampleRates = {
+    static final int[] SampleRates = {
         11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000,
         44100, 48000, 64000, 88200, 96000, 128000, 176400, 192000
     };
 
-    public static final byte[] SamplingRateIndexToFrameSamplesPower = {6, 6, 7, 7, 7, 8, 8, 8, 6, 6, 7, 7, 7, 8, 8, 8};
+    static final byte[] SamplingRateIndexToFrameSamplesPower = {6, 6, 7, 7, 7, 8, 8, 8, 6, 6, 7, 7, 7, 8, 8, 8};
 
     // From sampling rate index
-    public static final byte[] MaxBandCount = {8, 8, 12, 12, 12, 18, 18, 18, 8, 8, 12, 12, 12, 16, 16, 16};
-    public static final byte[] BandToQuantUnitCount = {0, 4, 8, 10, 12, 13, 14, 15, 16, 18, 20, 21, 22, 23, 24, 25, 26, 28, 30};
+    static final byte[] MaxBandCount = {8, 8, 12, 12, 12, 18, 18, 18, 8, 8, 12, 12, 12, 16, 16, 16};
+    static final byte[] BandToQuantUnitCount = {0, 4, 8, 10, 12, 13, 14, 15, 16, 18, 20, 21, 22, 23, 24, 25, 26, 28, 30};
 
-    public static final byte[] QuantUnitToCoeffCount = {
+    static final byte[] QuantUnitToCoeffCount = {
         2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 8, 8, 8,
         8, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16
     };
 
-    public static final short[] QuantUnitToCoeffIndex = {
+    static final short[] QuantUnitToCoeffIndex = {
         0, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56,
         64, 72, 80, 88, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256
     };
 
-    public static final byte[] QuantUnitToCodebookIndex = {
+    static final byte[] QuantUnitToCodebookIndex = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2,
         2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
     };
 
-    public static final ChannelConfig[] ChannelConfig = {
-        new ChannelConfig(BlockType.Mono),
-        new ChannelConfig(BlockType.Mono, BlockType.Mono),
-        new ChannelConfig(BlockType.Stereo),
-        new ChannelConfig(BlockType.Stereo, BlockType.Mono, BlockType.LFE, BlockType.Stereo),
-        new ChannelConfig(BlockType.Stereo, BlockType.Mono, BlockType.LFE, BlockType.Stereo, BlockType.Stereo),
-        new ChannelConfig(BlockType.Stereo, BlockType.Stereo)
+    static final ChannelConfig[] ChannelConfig = {
+        new ChannelConfig(BlockType.MONO),
+        new ChannelConfig(BlockType.MONO, BlockType.MONO),
+        new ChannelConfig(BlockType.STEREO),
+        new ChannelConfig(BlockType.STEREO, BlockType.MONO, BlockType.LFE, BlockType.STEREO),
+        new ChannelConfig(BlockType.STEREO, BlockType.MONO, BlockType.LFE, BlockType.STEREO, BlockType.STEREO),
+        new ChannelConfig(BlockType.STEREO, BlockType.STEREO)
     };
 
-    public static final HuffmanCodebook[] HuffmanScaleFactorsUnsigned =
+    static final HuffmanCodebook[] HuffmanScaleFactorsUnsigned =
         GenerateHuffmanCodebooks(HuffmanScaleFactorsACodes, HuffmanScaleFactorsABits, HuffmanScaleFactorsGroupSizes);
 
-    public static final HuffmanCodebook[] HuffmanScaleFactorsSigned =
+    static final HuffmanCodebook[] HuffmanScaleFactorsSigned =
         GenerateHuffmanCodebooks(HuffmanScaleFactorsBCodes, HuffmanScaleFactorsBBits, HuffmanScaleFactorsGroupSizes);
 
-    public static final HuffmanCodebook[][][] HuffmanSpectrum = {
+    static final HuffmanCodebook[][][] HuffmanSpectrum = {
         GenerateHuffmanCodebooks(HuffmanSpectrumACodes, HuffmanSpectrumABits, HuffmanSpectrumAGroupSizes),
         GenerateHuffmanCodebooks(HuffmanSpectrumBCodes, HuffmanSpectrumBBits, HuffmanSpectrumBGroupSizes)
     };
 
-    public static final double[][] ImdctWindow = {GenerateImdctWindow(6), GenerateImdctWindow(7), GenerateImdctWindow(8)};
+    static final double[][] ImdctWindow = {GenerateImdctWindow(6), GenerateImdctWindow(7), GenerateImdctWindow(8)};
 
-    public static final double[] SpectrumScale = Generate(32, Tables::SpectrumScaleFunction);
-    public static final double[] QuantizerStepSize = Generate(16, Tables::QuantizerStepSizeFunction);
-    public static final double[] QuantizerFineStepSize = Generate(16, Tables::QuantizerFineStepSizeFunction);
+    static final double[] SpectrumScale = Generate(32, Tables::SpectrumScaleFunction);
+    static final double[] QuantizerStepSize = Generate(16, Tables::QuantizerStepSizeFunction);
+    static final double[] QuantizerFineStepSize = Generate(16, Tables::QuantizerFineStepSizeFunction);
 
-    public static final byte[][] GradientCurves = BitAllocation.GenerateGradientCurves();
+    static final byte[][] GradientCurves = BitAllocation.GenerateGradientCurves();
 
     private static double QuantizerStepSizeFunction(int x) {
         return 2.0 / ((1 << (x + 1)) - 1);

@@ -8,7 +8,7 @@ final class HuffmanCodebooks {
     private HuffmanCodebooks() {
     }
 
-    public static HuffmanCodebook[][] GenerateHuffmanCodebooks(short[][][] codes, byte[][][] bits, byte[][] groupCounts) {
+    static HuffmanCodebook[][] GenerateHuffmanCodebooks(short[][][] codes, byte[][][] bits, byte[][] groupCounts) {
         var tables = new HuffmanCodebook[bits.length][];
         for (int i = 0; i < tables.length; i++) {
             if (codes[i] != null) {
@@ -18,7 +18,7 @@ final class HuffmanCodebooks {
         return tables;
     }
 
-    public static HuffmanCodebook[] GenerateHuffmanCodebooks(short[][] codes, byte[][] bits, byte[] groupCounts) {
+    static HuffmanCodebook[] GenerateHuffmanCodebooks(short[][] codes, byte[][] bits, byte[] groupCounts) {
         var tables = new HuffmanCodebook[bits.length];
         for (int i = 0; i < tables.length; i++) {
             if (codes[i] != null) {
@@ -28,31 +28,31 @@ final class HuffmanCodebooks {
         return tables;
     }
 
-    public static final byte[][] HuffmanScaleFactorsABits = {
+    static final byte[][] HuffmanScaleFactorsABits = {
         null,
         ScaleFactorsA1Bits, ScaleFactorsA2Bits, ScaleFactorsA3Bits,
         ScaleFactorsA4Bits, ScaleFactorsA5Bits, ScaleFactorsA6Bits
     };
 
-    public static final short[][] HuffmanScaleFactorsACodes = {
+    static final short[][] HuffmanScaleFactorsACodes = {
         null,
         ScaleFactorsA1Codes, ScaleFactorsA2Codes, ScaleFactorsA3Codes,
         ScaleFactorsA4Codes, ScaleFactorsA5Codes, ScaleFactorsA6Codes
     };
 
-    public static final byte[][] HuffmanScaleFactorsBBits = {
+    static final byte[][] HuffmanScaleFactorsBBits = {
         null, null,
         ScaleFactorsB2Bits, ScaleFactorsB3Bits, ScaleFactorsB4Bits, ScaleFactorsB5Bits
     };
 
-    public static final short[][] HuffmanScaleFactorsBCodes = {
+    static final short[][] HuffmanScaleFactorsBCodes = {
         null, null,
         ScaleFactorsB2Codes, ScaleFactorsB3Codes, ScaleFactorsB4Codes, ScaleFactorsB5Codes
     };
 
-    public static final byte[] HuffmanScaleFactorsGroupSizes = {0, 0, 0, 0, 0, 0, 0};
+    static final byte[] HuffmanScaleFactorsGroupSizes = {0, 0, 0, 0, 0, 0, 0};
 
-    public static final byte[][][] HuffmanSpectrumABits = {
+    static final byte[][][] HuffmanSpectrumABits = {
         null,
         null,
         {SpectrumA21Bits, SpectrumA22Bits, SpectrumA23Bits, SpectrumA24Bits},
@@ -63,7 +63,7 @@ final class HuffmanCodebooks {
         {SpectrumA71Bits, SpectrumA72Bits, SpectrumA73Bits, SpectrumA74Bits}
     };
 
-    public static final short[][][] HuffmanSpectrumACodes = {
+    static final short[][][] HuffmanSpectrumACodes = {
         null,
         null,
         {SpectrumA21Codes, SpectrumA22Codes, SpectrumA23Codes, SpectrumA24Codes},
@@ -74,7 +74,7 @@ final class HuffmanCodebooks {
         {SpectrumA71Codes, SpectrumA72Codes, SpectrumA73Codes, SpectrumA74Codes}
     };
 
-    public static final byte[][] HuffmanSpectrumAGroupSizes = {
+    static final byte[][] HuffmanSpectrumAGroupSizes = {
         {0, 0, 0, 0},
         {0, 0, 0, 0},
         {1, 2, 2, 2},
@@ -85,7 +85,7 @@ final class HuffmanCodebooks {
         {0, 0, 0, 0}
     };
 
-    public static final byte[][][] HuffmanSpectrumBBits = {
+    static final byte[][][] HuffmanSpectrumBBits = {
         null,
         null,
         {null, SpectrumB22Bits, SpectrumB23Bits, SpectrumB24Bits},
@@ -96,7 +96,7 @@ final class HuffmanCodebooks {
         {null, SpectrumB72Bits, SpectrumB73Bits, SpectrumB74Bits}
     };
 
-    public static final short[][][] HuffmanSpectrumBCodes = {
+    static final short[][][] HuffmanSpectrumBCodes = {
         null,
         null,
         {null, SpectrumB22Codes, SpectrumB23Codes, SpectrumB24Codes},
@@ -107,7 +107,7 @@ final class HuffmanCodebooks {
         {null, SpectrumB72Codes, SpectrumB73Codes, SpectrumB74Codes}
     };
 
-    public static final byte[][] HuffmanSpectrumBGroupSizes = {
+    static final byte[][] HuffmanSpectrumBGroupSizes = {
         {0, 0, 0, 0},
         {0, 0, 0, 0},
         {0, 2, 2, 2},

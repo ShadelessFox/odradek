@@ -1,11 +1,11 @@
 package sh.adelessfox.atrac9j;
 
 final class Frame {
-    public Atrac9Config Config;
-    public int FrameIndex;
-    public Block[] Blocks;
+    Atrac9Config Config;
+    int FrameIndex;
+    Block[] Blocks;
 
-    public Frame(Atrac9Config config) {
+    Frame(Atrac9Config config) {
         Config = config;
         Blocks = new Block[config.ChannelConfig.BlockCount];
 

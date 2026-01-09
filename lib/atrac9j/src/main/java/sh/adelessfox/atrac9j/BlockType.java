@@ -3,23 +3,17 @@ package sh.adelessfox.atrac9j;
 /// <summary>
 /// An ATRAC9 block (substream) type
 /// </summary>
-public enum BlockType {
+enum BlockType {
     /// <summary>
     /// Mono ATRAC9 block
     /// </summary>
-    Mono(0),
+    MONO,
     /// <summary>
     /// Stereo ATRAC9 block
     /// </summary>
-    Stereo(1),
+    STEREO,
     /// <summary>
     /// Low-frequency effects ATRAC9 block
     /// </summary>
-    LFE(2);
-
-    private int value;
-
-    BlockType(int value) {
-        this.value = value;
-    }
+    LFE;
 }

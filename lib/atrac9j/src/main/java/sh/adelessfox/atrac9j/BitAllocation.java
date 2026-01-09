@@ -3,8 +3,8 @@ package sh.adelessfox.atrac9j;
 
 import java.util.Arrays;
 
-class BitAllocation {
-    public static void CreateGradient(Block block) {
+final class BitAllocation {
+    static void CreateGradient(Block block) {
         int valueCount = block.GradientEndValue - block.GradientStartValue;
         int unitCount = block.GradientEndUnit - block.GradientStartUnit;
 
@@ -38,7 +38,7 @@ class BitAllocation {
         }
     }
 
-    public static void CalculateMask(Channel channel) {
+    static void CalculateMask(Channel channel) {
         Arrays.fill(channel.PrecisionMask, 0);
         for (int i = 1; i < channel.Block.QuantizationUnitCount; i++) {
             int delta = channel.ScaleFactors[i] - channel.ScaleFactors[i - 1];
@@ -50,7 +50,7 @@ class BitAllocation {
         }
     }
 
-    public static void CalculatePrecisions(Channel channel) {
+    static void CalculatePrecisions(Channel channel) {
         Block block = channel.Block;
 
         if (block.GradientMode != 0) {
@@ -95,7 +95,7 @@ class BitAllocation {
         }
     }
 
-    public static byte[][] GenerateGradientCurves() {
+    static byte[][] GenerateGradientCurves() {
         byte[] main = {
             1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15,
             16, 18, 19, 20, 21, 22, 23, 24, 25, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 30
