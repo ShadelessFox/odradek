@@ -15,29 +15,27 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
     @Override
     public Audio toPcm16(AudioFormat format, int samples, byte[] data) {
         var output = new ByteArrayOutputStream();
-        var decoder = new Atrac9Decoder();
 
         try (var channel = Channels.newChannel(output)) {
-            decoder.Initialize(configData);
+            var decoder = Atrac9Decoder.of(configData);
+            var config = decoder.config();
 
-            var config = decoder.Config;
-            int superframes = Math.ceilDiv(data.length, config.SuperframeBytes);
-
-            var src = new byte[config.SuperframeBytes];
-            var dst = new short[config.ChannelCount][config.SuperframeSamples];
+            var src = new byte[config.superframeBytes()];
+            var dst = new short[config.channelCount()][config.superframeSamples()];
             var buf = ByteBuffer
-                .allocate(config.SuperframeSamples * config.ChannelCount * Short.BYTES)
+                .allocate(config.superframeSamples() * config.channelCount() * Short.BYTES)
                 .order(ByteOrder.LITTLE_ENDIAN);
 
+            int superframes = Math.ceilDiv(data.length, config.superframeBytes());
             for (int i = 0; i < superframes; i++) {
-                System.arraycopy(data, i * config.SuperframeBytes, src, 0, config.SuperframeBytes);
-                decoder.Decode(src, dst);
+                System.arraycopy(data, i * config.superframeBytes(), src, 0, config.superframeBytes());
+                decoder.decode(src, dst);
 
                 // TODO: Skip encoder delay frames
 
                 buf.clear();
-                for (int smpl = 0; smpl < config.SuperframeSamples; smpl++) {
-                    for (int chnl = 0; chnl < config.ChannelCount; chnl++) {
+                for (int smpl = 0; smpl < config.superframeSamples(); smpl++) {
+                    for (int chnl = 0; chnl < config.channelCount(); chnl++) {
                         buf.putShort(dst[chnl][smpl]);
                     }
                 }

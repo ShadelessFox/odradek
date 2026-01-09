@@ -9,219 +9,218 @@ final class Unpack {
     private Unpack() {
     }
 
-    static void UnpackFrame(BitReader reader, Frame frame) {
-        for (Block block : frame.Blocks) {
-            UnpackBlock(reader, block);
+    static void unpackFrame(BitReader reader, Frame frame, int frameIndex) {
+        for (Block block : frame.blocks()) {
+            unpackBlock(reader, block, frameIndex);
         }
     }
 
-    private static void UnpackBlock(BitReader reader, Block block) {
-        ReadBlockHeader(reader, block);
+    private static void unpackBlock(BitReader reader, Block block, int frameIndex) {
+        readBlockHeader(reader, block, frameIndex);
 
-        if (block.BlockType == BlockType.LFE) {
-            UnpackLfeBlock(reader, block);
+        if (block.blockType == BlockType.LFE) {
+            unpackLfeBlock(reader, block);
         } else {
-            UnpackStandardBlock(reader, block);
+            unpackStandardBlock(reader, block);
         }
 
-        reader.AlignPosition(8);
+        reader.align(8);
     }
 
-    private static void ReadBlockHeader(BitReader reader, Block block) {
-        boolean firstInSuperframe = block.Frame.FrameIndex == 0;
-        block.FirstInSuperframe = !reader.ReadBool();
-        block.ReuseBandParams = reader.ReadBool();
+    private static void readBlockHeader(BitReader reader, Block block, int frameIndex) {
+        boolean firstInSuperframe = frameIndex == 0;
+        block.firstInSuperframe = !reader.readBool();
+        block.reuseBandParams = reader.readBool();
 
-        if (block.FirstInSuperframe != firstInSuperframe) {
+        if (block.firstInSuperframe != firstInSuperframe) {
             throw new IllegalArgumentException();
         }
 
-        if (firstInSuperframe && block.ReuseBandParams && block.BlockType != BlockType.LFE) {
+        if (firstInSuperframe && block.reuseBandParams && block.blockType != BlockType.LFE) {
             throw new IllegalArgumentException();
         }
     }
 
-    private static void UnpackStandardBlock(BitReader reader, Block block) {
-        Channel[] channels = block.Channels;
+    private static void unpackStandardBlock(BitReader reader, Block block) {
+        Channel[] channels = block.channels;
 
-        if (!block.ReuseBandParams) {
-            ReadBandParams(reader, block);
+        if (!block.reuseBandParams) {
+            readBandParams(reader, block);
         }
 
-        ReadGradientParams(reader, block);
-        BitAllocation.CreateGradient(block);
-        ReadStereoParams(reader, block);
-        ReadExtensionParams(reader, block);
+        readGradientParams(reader, block);
+        BitAllocation.createGradient(block);
+        readStereoParams(reader, block);
+        readExtensionParams(reader, block);
 
         for (Channel channel : channels) {
-            channel.UpdateCodedUnits();
+            channel.updateCodedUnits();
 
-            ScaleFactors.Read(reader, channel);
-            BitAllocation.CalculateMask(channel);
-            BitAllocation.CalculatePrecisions(channel);
-            CalculateSpectrumCodebookIndex(channel);
+            ScaleFactors.read(reader, channel);
+            BitAllocation.calculateMask(channel);
+            BitAllocation.calculatePrecisions(channel);
+            calculateSpectrumCodebookIndex(channel);
 
-            ReadSpectra(reader, channel);
-            ReadSpectraFine(reader, channel);
+            readSpectra(reader, channel);
+            readSpectraFine(reader, channel);
         }
 
-        block.QuantizationUnitsPrev = block.BandExtensionEnabled ? block.ExtensionUnit : block.QuantizationUnitCount;
+        block.quantizationUnitsPrev = block.bandExtensionEnabled ? block.extensionUnit : block.quantizationUnitCount;
     }
 
-    private static void ReadBandParams(BitReader reader, Block block) {
-        int minBandCount = Tables.MinBandCount(block.Config.HighSampleRate);
-        int maxExtensionBand = Tables.MaxExtensionBand(block.Config.HighSampleRate);
-        block.BandCount = reader.ReadInt(4);
-        block.BandCount += minBandCount;
-        block.QuantizationUnitCount = Tables.BandToQuantUnitCount[block.BandCount];
-        if (block.BandCount < minBandCount || block.BandCount >
-            Tables.MaxBandCount[block.Config.SampleRateIndex]) {
+    private static void readBandParams(BitReader reader, Block block) {
+        int minBandCount = Tables.minBandCount(block.config.highSampleRate());
+        int maxExtensionBand = Tables.maxExtensionBand(block.config.highSampleRate());
+        block.bandCount = reader.readInt(4);
+        block.bandCount += minBandCount;
+        block.quantizationUnitCount = Tables.bandToQuantUnitCount[block.bandCount];
+        if (block.bandCount < minBandCount || block.bandCount >
+            Tables.maxBandCount[block.config.sampleRateIndex()]) {
             return;
         }
 
-        if (block.BlockType == BlockType.STEREO) {
-            block.StereoBand = reader.ReadInt(4);
-            block.StereoBand += minBandCount;
-            block.StereoQuantizationUnit = Tables.BandToQuantUnitCount[block.StereoBand];
+        if (block.blockType == BlockType.STEREO) {
+            block.stereoBand = reader.readInt(4);
+            block.stereoBand += minBandCount;
+            block.stereoQuantizationUnit = Tables.bandToQuantUnitCount[block.stereoBand];
         } else {
-            block.StereoBand = block.BandCount;
+            block.stereoBand = block.bandCount;
         }
 
-        block.BandExtensionEnabled = reader.ReadBool();
-        if (block.BandExtensionEnabled) {
-            block.ExtensionBand = reader.ReadInt(4);
-            block.ExtensionBand += minBandCount;
+        block.bandExtensionEnabled = reader.readBool();
+        if (block.bandExtensionEnabled) {
+            block.extensionBand = reader.readInt(4);
+            block.extensionBand += minBandCount;
 
-            if (block.ExtensionBand < block.BandCount || block.ExtensionBand > maxExtensionBand) {
+            if (block.extensionBand < block.bandCount || block.extensionBand > maxExtensionBand) {
                 throw new IllegalArgumentException();
             }
 
-            block.ExtensionUnit = Tables.BandToQuantUnitCount[block.ExtensionBand];
+            block.extensionUnit = Tables.bandToQuantUnitCount[block.extensionBand];
         } else {
-            block.ExtensionBand = block.BandCount;
-            block.ExtensionUnit = block.QuantizationUnitCount;
+            block.extensionBand = block.bandCount;
+            block.extensionUnit = block.quantizationUnitCount;
         }
     }
 
-    private static void ReadGradientParams(BitReader reader, Block block) {
-        block.GradientMode = reader.ReadInt(2);
-        if (block.GradientMode > 0) {
-            block.GradientEndUnit = 31;
-            block.GradientEndValue = 31;
-            block.GradientStartUnit = reader.ReadInt(5);
-            block.GradientStartValue = reader.ReadInt(5);
+    private static void readGradientParams(BitReader reader, Block block) {
+        block.gradientMode = reader.readInt(2);
+        if (block.gradientMode > 0) {
+            block.gradientEndUnit = 31;
+            block.gradientEndValue = 31;
+            block.gradientStartUnit = reader.readInt(5);
+            block.gradientStartValue = reader.readInt(5);
         } else {
-            block.GradientStartUnit = reader.ReadInt(6);
-            block.GradientEndUnit = reader.ReadInt(6) + 1;
-            block.GradientStartValue = reader.ReadInt(5);
-            block.GradientEndValue = reader.ReadInt(5);
+            block.gradientStartUnit = reader.readInt(6);
+            block.gradientEndUnit = reader.readInt(6) + 1;
+            block.gradientStartValue = reader.readInt(5);
+            block.gradientEndValue = reader.readInt(5);
         }
-        block.GradientBoundary = reader.ReadInt(4);
-
-        if (block.GradientBoundary > block.QuantizationUnitCount) {
+        block.gradientBoundary = reader.readInt(4);
+        if (block.gradientBoundary > block.quantizationUnitCount) {
             throw new IllegalArgumentException();
         }
-        if (block.GradientStartUnit < 1 || block.GradientStartUnit >= 48) {
+        if (block.gradientStartUnit < 1 || block.gradientStartUnit >= 48) {
             throw new IllegalArgumentException();
         }
-        if (block.GradientEndUnit < 1 || block.GradientEndUnit >= 48) {
+        if (block.gradientEndUnit < 1 || block.gradientEndUnit >= 48) {
             throw new IllegalArgumentException();
         }
-        if (block.GradientStartUnit > block.GradientEndUnit) {
+        if (block.gradientStartUnit > block.gradientEndUnit) {
             throw new IllegalArgumentException();
         }
-        if (block.GradientStartValue < 0 || block.GradientStartValue >= 32) {
+        if (block.gradientStartValue < 0 || block.gradientStartValue >= 32) {
             throw new IllegalArgumentException();
         }
-        if (block.GradientEndValue < 0 || block.GradientEndValue >= 32) {
+        if (block.gradientEndValue < 0 || block.gradientEndValue >= 32) {
             throw new IllegalArgumentException();
         }
     }
 
-    private static void ReadStereoParams(BitReader reader, Block block) {
-        if (block.BlockType != BlockType.STEREO) {
+    private static void readStereoParams(BitReader reader, Block block) {
+        if (block.blockType != BlockType.STEREO) {
             return;
         }
 
-        block.PrimaryChannelIndex = reader.ReadInt(1);
-        block.HasJointStereoSigns = reader.ReadBool();
-        if (block.HasJointStereoSigns) {
-            for (int i = block.StereoQuantizationUnit; i < block.QuantizationUnitCount; i++) {
-                block.JointStereoSigns[i] = reader.ReadInt(1);
+        block.primaryChannelIndex = reader.readInt(1);
+        block.hasJointStereoSigns = reader.readBool();
+        if (block.hasJointStereoSigns) {
+            for (int i = block.stereoQuantizationUnit; i < block.quantizationUnitCount; i++) {
+                block.jointStereoSigns[i] = reader.readInt(1);
             }
         } else {
-            Arrays.fill(block.JointStereoSigns, 0);
+            Arrays.fill(block.jointStereoSigns, 0);
         }
     }
 
-    private static void ReadExtensionParams(BitReader reader, Block block) {
+    private static void readExtensionParams(BitReader reader, Block block) {
         int bexBand = 0;
-        if (block.BandExtensionEnabled) {
+        if (block.bandExtensionEnabled) {
             int[] bexBand1 = new int[1];
             int[] unused1 = new int[1];
             int[] unused2 = new int[1];
-            BandExtension.GetBexBandInfo(bexBand1, unused1, unused2, block.QuantizationUnitCount);
+            BandExtension.getBexBandInfo(bexBand1, unused1, unused2, block.quantizationUnitCount);
             bexBand = bexBand1[0];
-            if (block.BlockType == BlockType.STEREO) {
-                ReadBexHeader(reader, block.Channels[1], bexBand);
+            if (block.blockType == BlockType.STEREO) {
+                readBexHeader(reader, block.channels[1], bexBand);
             } else {
-                reader.Position += 1;
+                reader.position(reader.position() + 1);
             }
         }
-        block.HasExtensionData = reader.ReadBool();
+        block.hasExtensionData = reader.readBool();
 
-        if (!block.HasExtensionData) {
+        if (!block.hasExtensionData) {
             return;
         }
-        if (!block.BandExtensionEnabled) {
-            block.BexMode = reader.ReadInt(2);
-            block.BexDataLength = reader.ReadInt(5);
-            reader.Position += block.BexDataLength;
+        if (!block.bandExtensionEnabled) {
+            block.bexMode = reader.readInt(2);
+            block.bexDataLength = reader.readInt(5);
+            reader.position(reader.position() + block.bexDataLength);
             return;
         }
 
-        ReadBexHeader(reader, block.Channels[0], bexBand);
+        readBexHeader(reader, block.channels[0], bexBand);
 
-        block.BexDataLength = reader.ReadInt(5);
-        if (block.BexDataLength <= 0) {
+        block.bexDataLength = reader.readInt(5);
+        if (block.bexDataLength <= 0) {
             return;
         }
-        int bexDataEnd = reader.Position + block.BexDataLength;
+        int bexDataEnd = reader.position() + block.bexDataLength;
 
-        ReadBexData(reader, block.Channels[0], bexBand);
+        readBexData(reader, block.channels[0], bexBand);
 
-        if (block.BlockType == BlockType.STEREO) {
-            ReadBexData(reader, block.Channels[1], bexBand);
+        if (block.blockType == BlockType.STEREO) {
+            readBexData(reader, block.channels[1], bexBand);
         }
 
         // Make sure we didn't read too many bits
-        if (reader.Position > bexDataEnd) {
+        if (reader.position() > bexDataEnd) {
             throw new IllegalArgumentException();
         }
     }
 
-    private static void ReadBexHeader(BitReader reader, Channel channel, int bexBand) {
-        int bexMode = reader.ReadInt(2);
-        channel.BexMode = bexBand > 2 ? bexMode : 4;
-        channel.BexValueCount = BandExtension.BexEncodedValueCounts[channel.BexMode][bexBand];
+    private static void readBexHeader(BitReader reader, Channel channel, int bexBand) {
+        int bexMode = reader.readInt(2);
+        channel.bexMode = bexBand > 2 ? bexMode : 4;
+        channel.bexValueCount = BandExtension.bexEncodedValueCounts[channel.bexMode][bexBand];
     }
 
-    private static void ReadBexData(BitReader reader, Channel channel, int bexBand) {
-        for (int i = 0; i < channel.BexValueCount; i++) {
-            int dataLength = BandExtension.BexDataLengths[channel.BexMode][bexBand][i];
-            channel.BexValues[i] = reader.ReadInt(dataLength);
+    private static void readBexData(BitReader reader, Channel channel, int bexBand) {
+        for (int i = 0; i < channel.bexValueCount; i++) {
+            int dataLength = BandExtension.bexDataLengths[channel.bexMode][bexBand][i];
+            channel.bexValues[i] = reader.readInt(dataLength);
         }
     }
 
-    private static void CalculateSpectrumCodebookIndex(Channel channel) {
+    private static void calculateSpectrumCodebookIndex(Channel channel) {
         Arrays.fill(channel.CodebookSet, 0);
-        int quantUnits = channel.CodedQuantUnits;
-        int[] sf = channel.ScaleFactors;
+        int quantUnits = channel.codedQuantUnits;
+        int[] sf = channel.scaleFactors;
 
         if (quantUnits <= 1) {
             return;
         }
-        if (channel.Config.HighSampleRate) {
+        if (channel.config.highSampleRate()) {
             return;
         }
 
@@ -250,7 +249,7 @@ final class Unpack {
         for (int i = 12; i < quantUnits; i++) {
             if (channel.CodebookSet[i] == 0) {
                 int minSf = Math.min(sf[i - 1], sf[i + 1]);
-                if (sf[i] - minSf >= 2 && sf[i] >= avg - (Tables.QuantUnitToCoeffCount[i] == 16 ? 1 : 0)) {
+                if (sf[i] - minSf >= 2 && sf[i] >= avg - (Tables.quantUnitToCoeffCount[i] == 16 ? 1 : 0)) {
                     channel.CodebookSet[i] = 1;
                 }
             }
@@ -259,105 +258,105 @@ final class Unpack {
         sf[quantUnits] = originalScaleTmp;
     }
 
-    private static void ReadSpectra(BitReader reader, Channel channel) {
+    private static void readSpectra(BitReader reader, Channel channel) {
         int[] values = channel.SpectraValuesBuffer;
         Arrays.fill(channel.QuantizedSpectra, 0);
-        int maxHuffPrecision = Tables.MaxHuffPrecision(channel.Config.HighSampleRate);
+        int maxHuffPrecision = Tables.maxHuffPrecision(channel.config.highSampleRate());
 
-        for (int i = 0; i < channel.CodedQuantUnits; i++) {
-            int subbandCount = Tables.QuantUnitToCoeffCount[i];
+        for (int i = 0; i < channel.codedQuantUnits; i++) {
+            int subbandCount = Tables.quantUnitToCoeffCount[i];
             int precision = channel.Precisions[i] + 1;
             if (precision <= maxHuffPrecision) {
-                HuffmanCodebook huff = Tables.HuffmanSpectrum[channel.CodebookSet[i]][precision][Tables.QuantUnitToCodebookIndex[i]];
-                int groupCount = subbandCount >>> huff.ValueCountPower;
+                HuffmanCodebook huff = Tables.huffmanSpectrum[channel.CodebookSet[i]][precision][Tables.quantUnitToCodebookIndex[i]];
+                int groupCount = subbandCount >>> huff.valueCountPower();
                 for (int j = 0; j < groupCount; j++) {
-                    values[j] = ReadHuffmanValue(huff, reader, false);
+                    values[j] = readHuffmanValue(huff, reader, false);
                 }
 
-                DecodeHuffmanValues(channel.QuantizedSpectra, Tables.QuantUnitToCoeffIndex[i], subbandCount, huff, values);
+                decodeHuffmanValues(channel.QuantizedSpectra, Tables.quantUnitToCoeffIndex[i], subbandCount, huff, values);
             } else {
-                int subbandIndex = Tables.QuantUnitToCoeffIndex[i];
-                for (int j = subbandIndex; j < Tables.QuantUnitToCoeffIndex[i + 1]; j++) {
-                    channel.QuantizedSpectra[j] = reader.ReadSignedInt(precision);
+                int subbandIndex = Tables.quantUnitToCoeffIndex[i];
+                for (int j = subbandIndex; j < Tables.quantUnitToCoeffIndex[i + 1]; j++) {
+                    channel.QuantizedSpectra[j] = reader.readSignedInt(precision);
                 }
             }
         }
     }
 
-    private static void ReadSpectraFine(BitReader reader, Channel channel) {
+    private static void readSpectraFine(BitReader reader, Channel channel) {
         Arrays.fill(channel.QuantizedSpectraFine, 0);
 
-        for (int i = 0; i < channel.CodedQuantUnits; i++) {
+        for (int i = 0; i < channel.codedQuantUnits; i++) {
             if (channel.PrecisionsFine[i] > 0) {
                 int overflowBits = channel.PrecisionsFine[i] + 1;
-                int startSubband = Tables.QuantUnitToCoeffIndex[i];
-                int endSubband = Tables.QuantUnitToCoeffIndex[i + 1];
+                int startSubband = Tables.quantUnitToCoeffIndex[i];
+                int endSubband = Tables.quantUnitToCoeffIndex[i + 1];
 
                 for (int j = startSubband; j < endSubband; j++) {
-                    channel.QuantizedSpectraFine[j] = reader.ReadSignedInt(overflowBits);
+                    channel.QuantizedSpectraFine[j] = reader.readSignedInt(overflowBits);
                 }
             }
         }
     }
 
-    private static void DecodeHuffmanValues(int[] spectrum, int index, int bandCount, HuffmanCodebook huff, int[] values) {
-        int valueCount = bandCount >>> huff.ValueCountPower;
-        int mask = (1 << huff.ValueBits) - 1;
+    private static void decodeHuffmanValues(int[] spectrum, int index, int bandCount, HuffmanCodebook huff, int[] values) {
+        int valueCount = bandCount >>> huff.valueCountPower();
+        int mask = (1 << huff.valueBits()) - 1;
 
         for (int i = 0; i < valueCount; i++) {
             int value = values[i];
-            for (int j = 0; j < huff.ValueCount; j++) {
-                spectrum[index++] = Bit.SignExtend32(value & mask, huff.ValueBits);
-                value >>= huff.ValueBits;
+            for (int j = 0; j < huff.valueCount(); j++) {
+                spectrum[index++] = Bit.signExtend32(value & mask, huff.valueBits());
+                value >>= huff.valueBits();
             }
         }
     }
 
-    public static int ReadHuffmanValue(HuffmanCodebook huff, BitReader reader, boolean signed/* = false*/) {
-        int code = reader.PeekInt(huff.MaxBitSize);
-        int value = Byte.toUnsignedInt(huff.Lookup[code]);
-        int bits = Byte.toUnsignedInt(huff.Bits[value]);
-        reader.Position += bits;
-        return signed ? Bit.SignExtend32(value, huff.ValueBits) : value;
+    public static int readHuffmanValue(HuffmanCodebook huff, BitReader reader, boolean signed/* = false*/) {
+        int code = reader.peekInt(huff.maxBitSize());
+        int value = Byte.toUnsignedInt(huff.lookup()[code]);
+        int bits = Byte.toUnsignedInt(huff.bits()[value]);
+        reader.position(reader.position() + bits);
+        return signed ? Bit.signExtend32(value, huff.valueBits()) : value;
     }
 
-    private static void UnpackLfeBlock(BitReader reader, Block block) {
-        Channel channel = block.Channels[0];
-        block.QuantizationUnitCount = 2;
+    private static void unpackLfeBlock(BitReader reader, Block block) {
+        Channel channel = block.channels[0];
+        block.quantizationUnitCount = 2;
 
-        DecodeLfeScaleFactors(reader, channel);
-        CalculateLfePrecision(channel);
-        channel.CodedQuantUnits = block.QuantizationUnitCount;
-        ReadLfeSpectra(reader, channel);
+        decodeLfeScaleFactors(reader, channel);
+        calculateLfePrecision(channel);
+        channel.codedQuantUnits = block.quantizationUnitCount;
+        readLfeSpectra(reader, channel);
     }
 
-    private static void DecodeLfeScaleFactors(BitReader reader, Channel channel) {
-        Arrays.fill(channel.ScaleFactors, 0);
-        for (int i = 0; i < channel.Block.QuantizationUnitCount; i++) {
-            channel.ScaleFactors[i] = reader.ReadInt(5);
+    private static void decodeLfeScaleFactors(BitReader reader, Channel channel) {
+        Arrays.fill(channel.scaleFactors, 0);
+        for (int i = 0; i < channel.block.quantizationUnitCount; i++) {
+            channel.scaleFactors[i] = reader.readInt(5);
         }
     }
 
-    private static void CalculateLfePrecision(Channel channel) {
-        Block block = channel.Block;
-        int precision = block.ReuseBandParams ? 8 : 4;
-        for (int i = 0; i < block.QuantizationUnitCount; i++) {
+    private static void calculateLfePrecision(Channel channel) {
+        Block block = channel.block;
+        int precision = block.reuseBandParams ? 8 : 4;
+        for (int i = 0; i < block.quantizationUnitCount; i++) {
             channel.Precisions[i] = precision;
             channel.PrecisionsFine[i] = 0;
         }
     }
 
-    private static void ReadLfeSpectra(BitReader reader, Channel channel) {
+    private static void readLfeSpectra(BitReader reader, Channel channel) {
         Arrays.fill(channel.QuantizedSpectra, 0);
 
-        for (int i = 0; i < channel.CodedQuantUnits; i++) {
+        for (int i = 0; i < channel.codedQuantUnits; i++) {
             if (channel.Precisions[i] <= 0) {
                 continue;
             }
 
             int precision = channel.Precisions[i] + 1;
-            for (int j = Tables.QuantUnitToCoeffIndex[i]; j < Tables.QuantUnitToCoeffIndex[i + 1]; j++) {
-                channel.QuantizedSpectra[j] = reader.ReadSignedInt(precision);
+            for (int j = Tables.quantUnitToCoeffIndex[i]; j < Tables.quantUnitToCoeffIndex[i + 1]; j++) {
+                channel.QuantizedSpectra[j] = reader.readSignedInt(precision);
             }
         }
     }

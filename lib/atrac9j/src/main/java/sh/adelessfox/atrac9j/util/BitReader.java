@@ -1,92 +1,107 @@
 package sh.adelessfox.atrac9j.util;
 
+import java.util.Objects;
+
 public final class BitReader {
-    private byte[] Buffer;
-    private int LengthBits;
-    public int Position;
+    private byte[] buffer;
+    private int lengthBits;
+    public int position;
 
     public BitReader() {
     }
 
     public BitReader(byte[] buffer) {
-        SetBuffer(buffer);
+        setBuffer(buffer);
     }
 
-    public void SetBuffer(byte[] buffer) {
-        Buffer = buffer;
-        LengthBits = Buffer.length * 8;
-        Position = 0;
+    public void setBuffer(byte[] buffer) {
+        this.buffer = buffer;
+        lengthBits = this.buffer.length * 8;
+        position = 0;
     }
 
-    public int ReadInt(int bitCount) {
-        int value = PeekInt(bitCount);
-        Position += bitCount;
+    public int readInt(int bitCount) {
+        int value = peekInt(bitCount);
+        position += bitCount;
         return value;
     }
 
-    public int ReadSignedInt(int bitCount) {
-        int value = PeekInt(bitCount);
-        Position += bitCount;
-        return Bit.SignExtend32(value, bitCount);
+    public int readSignedInt(int bitCount) {
+        return Bit.signExtend32(readInt(bitCount), bitCount);
     }
 
-    public boolean ReadBool() {
-        return ReadInt(1) == 1;
+    public boolean readBool() {
+        return readInt(1) == 1;
     }
 
-    public int ReadOffsetBinary(int bitCount) {
+    public int readOffsetBinary(int bitCount) {
         int offset = (1 << (bitCount - 1));
-        int value = PeekInt(bitCount) - offset;
-        Position += bitCount;
+        int value = peekInt(bitCount) - offset;
+        position += bitCount;
         return value;
     }
 
-    public void AlignPosition(int multiple) {
-        Position = Helpers.GetNextMultiple(Position, multiple);
-    }
-
-    public int PeekInt(int bitCount) {
+    public int peekInt(int bitCount) {
         assert bitCount >= 0 && bitCount <= 32;
 
-        if (bitCount > Remaining()) {
-            if (Position >= LengthBits) {
+        if (bitCount > remaining()) {
+            if (position >= lengthBits) {
                 return 0;
             }
 
-            int extraBits = bitCount - Remaining();
-            return PeekIntFallback(Remaining()) << extraBits;
+            int extraBits = bitCount - remaining();
+            return peekIntFallback(remaining()) << extraBits;
         }
 
-        int byteIndex = Position / 8;
-        int bitIndex = Position % 8;
+        int byteIndex = position / 8;
+        int bitIndex = position % 8;
 
-        if (bitCount <= 9 && Remaining() >= 16) {
-            int value = Byte.toUnsignedInt(Buffer[byteIndex]) << 8 | Byte.toUnsignedInt(Buffer[byteIndex + 1]);
+        if (bitCount <= 9 && remaining() >= 16) {
+            int value = Byte.toUnsignedInt(buffer[byteIndex]) << 8
+                | Byte.toUnsignedInt(buffer[byteIndex + 1]);
             value &= 0xFFFF >>> bitIndex;
             value >>= 16 - bitCount - bitIndex;
             return value;
         }
 
-        if (bitCount <= 17 && Remaining() >= 24) {
-            int value = Byte.toUnsignedInt(Buffer[byteIndex]) << 16 | Byte.toUnsignedInt(Buffer[byteIndex + 1]) << 8 | Byte.toUnsignedInt(Buffer[byteIndex + 2]);
+        if (bitCount <= 17 && remaining() >= 24) {
+            int value = Byte.toUnsignedInt(buffer[byteIndex]) << 16
+                | Byte.toUnsignedInt(buffer[byteIndex + 1]) << 8
+                | Byte.toUnsignedInt(buffer[byteIndex + 2]);
             value &= 0xFFFFFF >>> bitIndex;
             value >>= 24 - bitCount - bitIndex;
             return value;
         }
 
-        if (bitCount <= 25 && Remaining() >= 32) {
-            int value = Byte.toUnsignedInt(Buffer[byteIndex]) << 24 | Byte.toUnsignedInt(Buffer[byteIndex + 1]) << 16 | Byte.toUnsignedInt(Buffer[byteIndex + 2]) << 8 | Byte.toUnsignedInt(Buffer[byteIndex + 3]);
+        if (bitCount <= 25 && remaining() >= 32) {
+            int value = Byte.toUnsignedInt(buffer[byteIndex]) << 24
+                | Byte.toUnsignedInt(buffer[byteIndex + 1]) << 16
+                | Byte.toUnsignedInt(buffer[byteIndex + 2]) << 8
+                | Byte.toUnsignedInt(buffer[byteIndex + 3]);
             value &= 0xFFFFFFFF >>> bitIndex;
             value >>= 32 - bitCount - bitIndex;
             return value;
         }
-        return PeekIntFallback(bitCount);
+        return peekIntFallback(bitCount);
     }
 
-    private int PeekIntFallback(int bitCount) {
+    public int position() {
+        return position;
+    }
+
+    public void position(int position) {
+        Objects.checkIndex(position, lengthBits + 1);
+        this.position = position;
+    }
+
+    public void align(int multiple) {
+        position = Helpers.getNextMultiple(position, multiple);
+    }
+
+    private int peekIntFallback(int bitCount) {
         int value = 0;
-        int byteIndex = Position / 8;
-        int bitIndex = Position % 8;
+        int byteIndex = position / 8;
+        int bitIndex = position % 8;
 
         while (bitCount > 0) {
             if (bitIndex >= 8) {
@@ -96,7 +111,7 @@ public final class BitReader {
 
             int bitsToRead = Math.min(bitCount, 8 - bitIndex);
             int mask = 0xFF >>> bitIndex;
-            int currentByte = (mask & Byte.toUnsignedInt(Buffer[byteIndex])) >>> (8 - bitIndex - bitsToRead);
+            int currentByte = (mask & Byte.toUnsignedInt(buffer[byteIndex])) >>> (8 - bitIndex - bitsToRead);
 
             value = (value << bitsToRead) | currentByte;
             bitIndex += bitsToRead;
@@ -105,7 +120,7 @@ public final class BitReader {
         return value;
     }
 
-    private int Remaining() {
-        return LengthBits - Position;
+    private int remaining() {
+        return lengthBits - position;
     }
 }

@@ -8,106 +8,108 @@ import sh.adelessfox.atrac9j.util.Helpers;
  * Decodes an ATRAC9 stream into 16-bit PCM.
  */
 public final class Atrac9Decoder {
-    /**
-     * The config data for the current ATRAC9 stream.
-     */
-    public Atrac9Config Config;
     private final BitReader Reader = new BitReader();
-    private Frame Frame;
+    private final Atrac9Config config;
+    private final Frame frame;
+
+    private Atrac9Decoder(Atrac9Config config, Frame frame) {
+        this.config = config;
+        this.frame = frame;
+    }
 
     /**
      * Sets up the decoder to decode an ATRAC9 stream based on the information in {@code configData}.
      *
      * @param configData A 4-byte value containing information about the ATRAC9 stream.
      */
-    public void Initialize(byte[] configData) {
-        Config = new Atrac9Config(configData);
-        Frame = new Frame(Config);
+    public static Atrac9Decoder of(byte[] configData) {
+        var config = Atrac9Config.read(configData);
+        var frame = Frame.of(config);
+        return new Atrac9Decoder(config, frame);
     }
 
     /**
      * Decodes one superframe of ATRAC9 data.
      *
      * @param atrac9Data The ATRAC9 data to decode. The array must be at least
-     *                   {@link #Config}.{@link Atrac9Config#SuperframeBytes} bytes long.
+     *                   {@link #config}.{@link Atrac9Config#superframeBytes()} bytes long.
      * @param pcmOut     A buffer that the decoded PCM data will be placed in.
-     *                   The array must have dimensions of at least [{@link #Config}.{@link Atrac9Config#ChannelCount}]
-     *                   [{@link #Config}.{@link Atrac9Config#SuperframeSamples}].
+     *                   The array must have dimensions of at least [{@link #config}.{@link Atrac9Config#channelCount()}]
+     *                   [{@link #config}.{@link Atrac9Config#superframeSamples()}].
      */
-    public void Decode(byte[] atrac9Data, short[][] pcmOut) {
-        if (Config == null) {
+    public void decode(byte[] atrac9Data, short[][] pcmOut) {
+        if (config == null) {
             throw new IllegalStateException("Decoder must be initialized before decoding.");
         }
 
-        ValidateDecodeBuffers(atrac9Data, pcmOut);
-        Reader.SetBuffer(atrac9Data);
+        validateDecodeBuffers(atrac9Data, pcmOut);
+        Reader.setBuffer(atrac9Data);
         DecodeSuperFrame(pcmOut);
     }
 
-    private void ValidateDecodeBuffers(byte[] atrac9Buffer, short[][] pcmBuffer) {
-        if (atrac9Buffer == null) {
-            throw new NullPointerException("atrac9Buffer");
-        }
-        if (pcmBuffer == null) {
-            throw new NullPointerException("pcmBuffer");
-        }
+    /**
+     * The config data for the current ATRAC9 stream.
+     */
+    public Atrac9Config config() {
+        return config;
+    }
 
-        if (atrac9Buffer.length < Config.SuperframeBytes) {
+    private void validateDecodeBuffers(byte[] atrac9Buffer, short[][] pcmBuffer) {
+        if (atrac9Buffer.length < config.superframeBytes()) {
             throw new IllegalArgumentException("ATRAC9 buffer is too small");
         }
 
-        if (pcmBuffer.length < Config.ChannelCount) {
+        if (pcmBuffer.length < config.channelCount()) {
             throw new IllegalArgumentException("PCM buffer is too small");
         }
 
-        for (int i = 0; i < Config.ChannelCount; i++) {
-            if (pcmBuffer[i] != null && pcmBuffer[i].length < Config.SuperframeSamples) {
+        for (int i = 0; i < config.channelCount(); i++) {
+            if (pcmBuffer[i] != null && pcmBuffer[i].length < config.superframeSamples()) {
                 throw new IllegalArgumentException("PCM buffer is too small");
             }
         }
     }
 
     private void DecodeSuperFrame(short[][] pcmOut) {
-        for (int i = 0; i < Config.FramesPerSuperframe; i++) {
-            Frame.FrameIndex = i;
-            DecodeFrame(Reader, Frame);
-            PcmFloatToShort(pcmOut, i * Config.FrameSamples);
-            Reader.AlignPosition(8);
+        for (int i = 0; i < config.framesPerSuperframe(); i++) {
+            decodeFrame(Reader, frame, i);
+            pcmFloatToShort(pcmOut, i * config.frameSamples());
+            Reader.align(8);
         }
     }
 
-    private void PcmFloatToShort(short[][] pcmOut, int start) {
-        int endSample = start + Config.FrameSamples;
+    private void pcmFloatToShort(short[][] pcmOut, int start) {
+        int endSample = start + config.frameSamples();
         int channelNum = 0;
-        for (Block block : Frame.Blocks) {
-            for (Channel channel : block.Channels) {
-                double[] pcmSrc = channel.Pcm;
+        for (Block block : frame.blocks()) {
+            for (Channel channel : block.channels) {
+                double[] pcmSrc = channel.pcm;
                 short[] pcmDest = pcmOut[channelNum++];
                 for (int d = 0, s = start; s < endSample; d++, s++) {
                     double sample = pcmSrc[d];
                     // Not using Math.Round because it's ~20x slower on 64-bit
                     int roundedSample = (int) Math.floor(sample + 0.5);
-                    pcmDest[s] = Helpers.Clamp16(roundedSample);
+                    pcmDest[s] = Helpers.clamp16(roundedSample);
                 }
             }
         }
     }
 
-    private static void DecodeFrame(BitReader reader, Frame frame) {
-        Unpack.UnpackFrame(reader, frame);
+    private static void decodeFrame(BitReader reader, Frame frame, int frameIndex) {
+        Unpack.unpackFrame(reader, frame, frameIndex);
 
-        for (Block block : frame.Blocks) {
-            Quantization.DequantizeSpectra(block);
-            Stereo.ApplyIntensityStereo(block);
-            Quantization.ScaleSpectrum(block);
-            BandExtension.ApplyBandExtension(block);
-            ImdctBlock(block);
+        for (Block block : frame.blocks()) {
+            Quantization.dequantizeSpectra(block);
+            Stereo.applyIntensityStereo(block);
+            Quantization.scaleSpectrum(block);
+            BandExtension.applyBandExtension(block);
+            imdctBlock(block);
         }
     }
 
-    private static void ImdctBlock(Block block) {
-        for (Channel channel : block.Channels) {
-            channel.Mdct.RunImdct(channel.Spectra, channel.Pcm);
+    private static void imdctBlock(Block block) {
+        for (Channel channel : block.channels) {
+            channel.mdct.runImdct(channel.spectra, channel.pcm);
         }
     }
 }

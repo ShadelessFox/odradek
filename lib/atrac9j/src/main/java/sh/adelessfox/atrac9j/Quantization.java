@@ -7,42 +7,42 @@ final class Quantization {
     private Quantization() {
     }
 
-    static void DequantizeSpectra(Block block) {
-        for (Channel channel : block.Channels) {
-            Arrays.fill(channel.Spectra, 0);
+    static void dequantizeSpectra(Block block) {
+        for (Channel channel : block.channels) {
+            Arrays.fill(channel.spectra, 0);
 
-            for (int i = 0; i < channel.CodedQuantUnits; i++) {
-                DequantizeQuantUnit(channel, i);
+            for (int i = 0; i < channel.codedQuantUnits; i++) {
+                dequantizeQuantUnit(channel, i);
             }
         }
     }
 
-    private static void DequantizeQuantUnit(Channel channel, int band) {
-        int subBandIndex = Tables.QuantUnitToCoeffIndex[band];
-        int subBandCount = Tables.QuantUnitToCoeffCount[band];
-        double stepSize = Tables.QuantizerStepSize[channel.Precisions[band]];
-        double stepSizeFine = Tables.QuantizerFineStepSize[channel.PrecisionsFine[band]];
+    private static void dequantizeQuantUnit(Channel channel, int band) {
+        int subBandIndex = Tables.quantUnitToCoeffIndex[band];
+        int subBandCount = Tables.quantUnitToCoeffCount[band];
+        double stepSize = Tables.quantizerStepSize[channel.Precisions[band]];
+        double stepSizeFine = Tables.quantizerFineStepSize[channel.PrecisionsFine[band]];
 
         for (int sb = 0; sb < subBandCount; sb++) {
             double coarse = channel.QuantizedSpectra[subBandIndex + sb] * stepSize;
             double fine = channel.QuantizedSpectraFine[subBandIndex + sb] * stepSizeFine;
-            channel.Spectra[subBandIndex + sb] = coarse + fine;
+            channel.spectra[subBandIndex + sb] = coarse + fine;
         }
     }
 
-    static void ScaleSpectrum(Block block) {
-        for (Channel channel : block.Channels) {
-            ScaleSpectrum(channel);
+    static void scaleSpectrum(Block block) {
+        for (Channel channel : block.channels) {
+            scaleSpectrum(channel);
         }
     }
 
-    private static void ScaleSpectrum(Channel channel) {
-        int quantUnitCount = channel.Block.QuantizationUnitCount;
-        double[] spectra = channel.Spectra;
+    private static void scaleSpectrum(Channel channel) {
+        int quantUnitCount = channel.block.quantizationUnitCount;
+        double[] spectra = channel.spectra;
 
         for (int i = 0; i < quantUnitCount; i++) {
-            for (int sb = Tables.QuantUnitToCoeffIndex[i]; sb < Tables.QuantUnitToCoeffIndex[i + 1]; sb++) {
-                spectra[sb] *= Tables.SpectrumScale[channel.ScaleFactors[i]];
+            for (int sb = Tables.quantUnitToCoeffIndex[i]; sb < Tables.quantUnitToCoeffIndex[i + 1]; sb++) {
+                spectra[sb] *= Tables.spectrumScale[channel.scaleFactors[i]];
             }
         }
     }

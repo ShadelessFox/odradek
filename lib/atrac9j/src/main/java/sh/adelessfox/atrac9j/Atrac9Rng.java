@@ -18,7 +18,7 @@ final class Atrac9Rng {
         stateD = (short) /**/-startValue;
     }
 
-    short Next() {
+    short next() {
         int t = (short) (stateD & 0xffff ^ (stateD & 0xffff) << 5) & 0xffff;
         stateD = stateC;
         stateC = stateB;

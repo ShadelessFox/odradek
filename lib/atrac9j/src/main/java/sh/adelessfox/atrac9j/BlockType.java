@@ -15,5 +15,12 @@ public enum BlockType {
     /**
      * Low-frequency effects ATRAC9 block
      */
-    LFE
+    LFE;
+
+    int channelCount() {
+        return switch (this) {
+            case MONO, LFE -> 1;
+            case STEREO -> 2;
+        };
+    }
 }

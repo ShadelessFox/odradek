@@ -3,17 +3,17 @@ package sh.adelessfox.atrac9j;
 import sh.adelessfox.atrac9j.util.Mdct;
 
 final class Channel {
-    final Atrac9Config Config;
-    final int ChannelIndex;
-    final Block Block;
-    final Mdct Mdct;
+    final Atrac9Config config;
+    final int channelIndex;
+    final Block block;
+    final Mdct mdct;
 
-    final double[] Pcm = new double[256];
-    final double[] Spectra = new double[256];
+    final double[] pcm = new double[256];
+    final double[] spectra = new double[256];
 
-    int CodedQuantUnits;
-    int ScaleFactorCodingMode;
-    final int[] ScaleFactors = new int[31];
+    int codedQuantUnits;
+    int scaleFactorCodingMode;
+    final int[] scaleFactors = new int[31];
     final int[] ScaleFactorsPrev = new int[31];
 
     final int[] Precisions = new int[30];
@@ -26,24 +26,24 @@ final class Channel {
     final int[] QuantizedSpectra = new int[256];
     final int[] QuantizedSpectraFine = new int[256];
 
-    int BexMode;
-    int BexValueCount;
-    final int[] BexValues = new int[4];
-    final double[] BexScales = new double[6];
-    Atrac9Rng Rng;
+    int bexMode;
+    int bexValueCount;
+    final int[] bexValues = new int[4];
+    final double[] bexScales = new double[6];
+    Atrac9Rng rng;
 
     Channel(Block parentBlock, int channelIndex) {
-        Block = parentBlock;
-        ChannelIndex = channelIndex;
-        Config = parentBlock.Config;
-        Mdct = new Mdct(Config.FrameSamplesPower, Tables.ImdctWindow[Config.FrameSamplesPower - 6], 1);
+        this.block = parentBlock;
+        this.channelIndex = channelIndex;
+        this.config = parentBlock.config;
+        this.mdct = new Mdct(config.frameSamplesPower(), Tables.imdctWindow[config.frameSamplesPower() - 6], 1);
     }
 
-    boolean IsPrimary() {
-        return Block.PrimaryChannelIndex == ChannelIndex;
+    boolean isPrimary() {
+        return block.primaryChannelIndex == channelIndex;
     }
 
-    void UpdateCodedUnits() {
-        CodedQuantUnits = IsPrimary() ? Block.QuantizationUnitCount : Block.StereoQuantizationUnit;
+    void updateCodedUnits() {
+        codedQuantUnits = isPrimary() ? block.quantizationUnitCount : block.stereoQuantizationUnit;
     }
 }

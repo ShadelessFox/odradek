@@ -1,79 +1,79 @@
 package sh.adelessfox.atrac9j;
 
 final class BandExtension {
-    static void ApplyBandExtension(Block block) {
-        if (!block.BandExtensionEnabled || !block.HasExtensionData) {
+    static void applyBandExtension(Block block) {
+        if (!block.bandExtensionEnabled || !block.hasExtensionData) {
             return;
         }
 
-        for (Channel channel : block.Channels) {
-            ApplyBandExtensionChannel(channel);
+        for (Channel channel : block.channels) {
+            applyBandExtensionChannel(channel);
         }
     }
 
-    private static void ApplyBandExtensionChannel(Channel channel) {
-        int groupAUnit = channel.Block.QuantizationUnitCount;
-        int[] scaleFactors = channel.ScaleFactors;
-        double[] spectra = channel.Spectra;
-        double[] scales = channel.BexScales;
-        int[] values = channel.BexValues;
+    private static void applyBandExtensionChannel(Channel channel) {
+        int groupAUnit = channel.block.quantizationUnitCount;
+        int[] scaleFactors = channel.scaleFactors;
+        double[] spectra = channel.spectra;
+        double[] scales = channel.bexScales;
+        int[] values = channel.bexValues;
 
         int[] bandCount = new int[1];
         int[] groupBUnit = new int[1];
         int[] groupCUnit = new int[1];
-        GetBexBandInfo(bandCount, groupBUnit, groupCUnit, groupAUnit);
+        getBexBandInfo(bandCount, groupBUnit, groupCUnit, groupAUnit);
         int totalUnits = Math.max(groupCUnit[0], 22);
 
-        int groupABin = Tables.QuantUnitToCoeffIndex[groupAUnit];
-        int groupBBin = Tables.QuantUnitToCoeffIndex[groupBUnit[0]];
-        int groupCBin = Tables.QuantUnitToCoeffIndex[groupCUnit[0]];
-        int totalBins = Tables.QuantUnitToCoeffIndex[totalUnits];
+        int groupABin = Tables.quantUnitToCoeffIndex[groupAUnit];
+        int groupBBin = Tables.quantUnitToCoeffIndex[groupBUnit[0]];
+        int groupCBin = Tables.quantUnitToCoeffIndex[groupCUnit[0]];
+        int totalBins = Tables.quantUnitToCoeffIndex[totalUnits];
 
-        FillHighFrequencies(spectra, groupABin, groupBBin, groupCBin, totalBins);
+        fillHighFrequencies(spectra, groupABin, groupBBin, groupCBin, totalBins);
 
-        switch (channel.BexMode) {
+        switch (channel.bexMode) {
             case 0 -> {
                 int bexQuantUnits = totalUnits - groupAUnit;
 
                 switch (bandCount[0]) {
                     case 3:
-                        scales[0] = BexMode0Bands3[0][values[0]];
-                        scales[1] = BexMode0Bands3[1][values[0]];
-                        scales[2] = BexMode0Bands3[2][values[1]];
-                        scales[3] = BexMode0Bands3[3][values[2]];
-                        scales[4] = BexMode0Bands3[4][values[3]];
+                        scales[0] = bexMode0Bands3[0][values[0]];
+                        scales[1] = bexMode0Bands3[1][values[0]];
+                        scales[2] = bexMode0Bands3[2][values[1]];
+                        scales[3] = bexMode0Bands3[3][values[2]];
+                        scales[4] = bexMode0Bands3[4][values[3]];
                         break;
                     case 4:
-                        scales[0] = BexMode0Bands4[0][values[0]];
-                        scales[1] = BexMode0Bands4[1][values[0]];
-                        scales[2] = BexMode0Bands4[2][values[1]];
-                        scales[3] = BexMode0Bands4[3][values[2]];
-                        scales[4] = BexMode0Bands4[4][values[3]];
+                        scales[0] = bexMode0Bands4[0][values[0]];
+                        scales[1] = bexMode0Bands4[1][values[0]];
+                        scales[2] = bexMode0Bands4[2][values[1]];
+                        scales[3] = bexMode0Bands4[3][values[2]];
+                        scales[4] = bexMode0Bands4[4][values[3]];
                         break;
                     case 5:
-                        scales[0] = BexMode0Bands5[0][values[0]];
-                        scales[1] = BexMode0Bands5[1][values[1]];
-                        scales[2] = BexMode0Bands5[2][values[1]];
+                        scales[0] = bexMode0Bands5[0][values[0]];
+                        scales[1] = bexMode0Bands5[1][values[1]];
+                        scales[2] = bexMode0Bands5[2][values[1]];
                         break;
                 }
 
-                scales[bexQuantUnits - 1] = Tables.SpectrumScale[scaleFactors[groupAUnit]];
+                scales[bexQuantUnits - 1] = Tables.spectrumScale[scaleFactors[groupAUnit]];
 
-                AddNoiseToSpectrum(channel, Tables.QuantUnitToCoeffIndex[totalUnits - 1],
-                    Tables.QuantUnitToCoeffCount[totalUnits - 1]);
-                ScaleBexQuantUnits(spectra, scales, groupAUnit, totalUnits);
+                addNoiseToSpectrum(channel, Tables.quantUnitToCoeffIndex[totalUnits - 1],
+                    Tables.quantUnitToCoeffCount[totalUnits - 1]);
+                scaleBexQuantUnits(spectra, scales, groupAUnit, totalUnits);
             }
             case 1 -> {
                 for (int i = groupAUnit; i < totalUnits; i++) {
-                    scales[i - groupAUnit] = Tables.SpectrumScale[scaleFactors[i]];
+                    scales[i - groupAUnit] = Tables.spectrumScale[scaleFactors[i]];
                 }
 
-                AddNoiseToSpectrum(channel, groupABin, totalBins - groupABin);
-                ScaleBexQuantUnits(spectra, scales, groupAUnit, totalUnits);
+                addNoiseToSpectrum(channel, groupABin, totalBins - groupABin);
+                scaleBexQuantUnits(spectra, scales, groupAUnit, totalUnits);
             }
             case 2 -> {
-                double groupAScale2 = BexMode2Scale[values[0]];
-                double groupBScale2 = BexMode2Scale[values[1]];
+                double groupAScale2 = bexMode2Scale[values[0]];
+                double groupBScale2 = bexMode2Scale[values[1]];
 
                 for (int i = groupABin; i < groupBBin; i++) {
                     spectra[i] *= groupAScale2;
@@ -84,15 +84,15 @@ final class BandExtension {
                 }
             }
             case 3 -> {
-                double rate = Math.pow(2, BexMode3Rate[values[1]]);
-                double scale = BexMode3Initial[values[0]];
+                double rate = Math.pow(2, bexMode3Rate[values[1]]);
+                double scale = bexMode3Initial[values[0]];
                 for (int i = groupABin; i < totalBins; i++) {
                     scale *= rate;
                     spectra[i] *= scale;
                 }
             }
             case 4 -> {
-                double mult = BexMode4Multiplier[values[0]];
+                double mult = bexMode4Multiplier[values[0]];
                 double groupAScale4 = 0.7079468 * mult;
                 double groupBScale4 = 0.5011902 * mult;
                 double groupCScale4 = 0.3548279 * mult;
@@ -112,15 +112,15 @@ final class BandExtension {
         }
     }
 
-    private static void ScaleBexQuantUnits(double[] spectra, double[] scales, int startUnit, int totalUnits) {
+    private static void scaleBexQuantUnits(double[] spectra, double[] scales, int startUnit, int totalUnits) {
         for (int i = startUnit; i < totalUnits; i++) {
-            for (int k = Tables.QuantUnitToCoeffIndex[i]; k < Tables.QuantUnitToCoeffIndex[i + 1]; k++) {
+            for (int k = Tables.quantUnitToCoeffIndex[i]; k < Tables.quantUnitToCoeffIndex[i + 1]; k++) {
                 spectra[k] *= scales[i - startUnit];
             }
         }
     }
 
-    private static void FillHighFrequencies(double[] spectra, int groupABin, int groupBBin, int groupCBin, int totalBins) {
+    private static void fillHighFrequencies(double[] spectra, int groupABin, int groupBBin, int groupCBin, int totalBins) {
         for (int i = 0; i < groupBBin - groupABin; i++) {
             spectra[groupABin + i] = spectra[groupABin - i - 1];
         }
@@ -134,24 +134,24 @@ final class BandExtension {
         }
     }
 
-    private static void AddNoiseToSpectrum(Channel channel, int index, int count) {
-        if (channel.Rng == null) {
-            int[] sf = channel.ScaleFactors;
+    private static void addNoiseToSpectrum(Channel channel, int index, int count) {
+        if (channel.rng == null) {
+            int[] sf = channel.scaleFactors;
             short seed = (short) (543 * (sf[8] + sf[12] + sf[15] + 1));
-            channel.Rng = new Atrac9Rng(seed);
+            channel.rng = new Atrac9Rng(seed);
         }
         for (int i = 0; i < count; i++) {
-            channel.Spectra[i + index] = Short.toUnsignedInt(channel.Rng.Next()) / 65535.0 * 2.0 - 1.0;
+            channel.spectra[i + index] = Short.toUnsignedInt(channel.rng.next()) / 65535.0 * 2.0 - 1.0;
         }
     }
 
-    static void GetBexBandInfo(int[] bandCount, int[] groupAUnit, int[] groupBUnit, int quantUnits) {
-        groupAUnit[0] = BexGroupInfo[quantUnits - 13][0];
-        groupBUnit[0] = BexGroupInfo[quantUnits - 13][1];
-        bandCount[0] = BexGroupInfo[quantUnits - 13][2];
+    static void getBexBandInfo(int[] bandCount, int[] groupAUnit, int[] groupBUnit, int quantUnits) {
+        groupAUnit[0] = bexGroupInfo[quantUnits - 13][0];
+        groupBUnit[0] = bexGroupInfo[quantUnits - 13][1];
+        bandCount[0] = bexGroupInfo[quantUnits - 13][2];
     }
 
-    static final byte[][] BexGroupInfo = {
+    static final byte[][] bexGroupInfo = {
         {16, 21, 0},
         {18, 22, 1},
         {20, 22, 2},
@@ -164,7 +164,7 @@ final class BandExtension {
 
     // [mode][bands]
 
-    static final byte[][] BexEncodedValueCounts = {
+    static final byte[][] bexEncodedValueCounts = {
         {0, 0, 0, 4, 4, 2},
         {0, 0, 0, 0, 0, 0},
         {0, 0, 0, 2, 2, 1},
@@ -174,7 +174,7 @@ final class BandExtension {
 
     // [mode][bands][valueIndex]
 
-    static final byte[][][] BexDataLengths = {
+    static final byte[][][] bexDataLengths = {
         {
             {0, 0, 0, 0},
             {0, 0, 0, 0},
@@ -217,7 +217,7 @@ final class BandExtension {
         }
     };
 
-    static final double[][] BexMode0Bands3 = {
+    static final double[][] bexMode0Bands3 = {
         {
             0.000000e+0, 1.988220e-1, 2.514343e-1, 2.960510e-1,
             3.263550e-1, 3.771362e-1, 3.786926e-1, 4.540405e-1,
@@ -254,7 +254,7 @@ final class BandExtension {
         }
     };
 
-    static final double[][] BexMode0Bands4 = {
+    static final double[][] bexMode0Bands4 = {
         {
             0.000000e+0, 2.708740e-1, 3.479614e-1, 3.578186e-1,
             5.083618e-1, 5.299072e-1, 5.819092e-1, 6.381836e-1,
@@ -285,7 +285,7 @@ final class BandExtension {
         }
     };
 
-    static final double[][] BexMode0Bands5 = {
+    static final double[][] bexMode0Bands5 = {
         {
             0.000000e+0, 7.379150e-2, 1.806335e-1, 2.687073e-1,
             3.407898e-1, 4.047546e-1, 4.621887e-1, 5.168762e-1,
@@ -314,7 +314,7 @@ final class BandExtension {
         }
     };
 
-    static final double[] BexMode2Scale = {
+    static final double[] bexMode2Scale = {
         4.272461e-4, 1.312256e-3, 2.441406e-3, 3.692627e-3,
         4.913330e-3, 6.134033e-3, 7.507324e-3, 8.972168e-3,
         1.049805e-2, 1.223755e-2, 1.406860e-2, 1.599121e-2,
@@ -333,21 +333,21 @@ final class BandExtension {
         8.718567e-1, 9.125671e-1, 9.575806e-1, 9.996643e-1
     };
 
-    static final double[] BexMode3Initial = {
+    static final double[] bexMode3Initial = {
         3.491211e-1, 5.371094e-1, 6.782227e-1, 7.910156e-1,
         9.057617e-1, 1.024902e+0, 1.156250e+0, 1.290527e+0,
         1.458984e+0, 1.664551e+0, 1.929688e+0, 2.278320e+0,
         2.831543e+0, 3.659180e+0, 5.257813e+0, 8.373047e+0
     };
 
-    static final double[] BexMode3Rate = {
+    static final double[] bexMode3Rate = {
         -2.913818e-1, -2.541504e-1, -1.664429e-1, -1.476440e-1,
         -1.342163e-1, -1.220703e-1, -1.117554e-1, -1.026611e-1,
         -9.436035e-2, -8.483887e-2, -7.476807e-2, -6.304932e-2,
         -4.492188e-2, -2.447510e-2, +1.831055e-4, +4.174805e-2
     };
 
-    static final double[] BexMode4Multiplier = {
+    static final double[] bexMode4Multiplier = {
         3.610229e-2, 1.260681e-1, 2.227478e-1, 3.338318e-1,
         4.662170e-1, 6.221313e-1, 7.989197e-1, 9.939575e-1
     };

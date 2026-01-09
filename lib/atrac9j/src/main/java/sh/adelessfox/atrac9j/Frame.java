@@ -1,16 +1,14 @@
 package sh.adelessfox.atrac9j;
 
-final class Frame {
-    final Atrac9Config Config;
-    final Block[] Blocks;
-    int FrameIndex;
-
-    Frame(Atrac9Config config) {
-        Config = config;
-        Blocks = new Block[config.ChannelConfig.BlockCount];
-
-        for (int i = 0; i < config.ChannelConfig.BlockCount; i++) {
-            Blocks[i] = new Block(this, i);
+record Frame(
+    Atrac9Config config,
+    Block[] blocks
+) {
+    static Frame of(Atrac9Config config) {
+        var blocks = new Block[config.channelConfig().blockCount()];
+        for (int i = 0; i < config.channelConfig().blockCount(); i++) {
+            blocks[i] = new Block(config, i);
         }
+        return new Frame(config, blocks);
     }
 }

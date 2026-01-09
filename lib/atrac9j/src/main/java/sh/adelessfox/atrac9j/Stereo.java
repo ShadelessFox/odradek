@@ -4,27 +4,27 @@ final class Stereo {
     private Stereo() {
     }
 
-    static void ApplyIntensityStereo(Block block) {
-        if (block.BlockType != BlockType.STEREO) {
+    static void applyIntensityStereo(Block block) {
+        if (block.blockType != BlockType.STEREO) {
             return;
         }
 
-        int totalUnits = block.QuantizationUnitCount;
-        int stereoUnits = block.StereoQuantizationUnit;
+        int totalUnits = block.quantizationUnitCount;
+        int stereoUnits = block.stereoQuantizationUnit;
         if (stereoUnits >= totalUnits) {
             return;
         }
 
-        Channel source = block.PrimaryChannel();
-        Channel dest = block.SecondaryChannel();
+        Channel source = block.primaryChannel();
+        Channel dest = block.secondaryChannel();
 
         for (int i = stereoUnits; i < totalUnits; i++) {
-            int sign = block.JointStereoSigns[i];
-            for (int sb = Tables.QuantUnitToCoeffIndex[i]; sb < Tables.QuantUnitToCoeffIndex[i + 1]; sb++) {
+            int sign = block.jointStereoSigns[i];
+            for (int sb = Tables.quantUnitToCoeffIndex[i]; sb < Tables.quantUnitToCoeffIndex[i + 1]; sb++) {
                 if (sign > 0) {
-                    dest.Spectra[sb] = -source.Spectra[sb];
+                    dest.spectra[sb] = -source.spectra[sb];
                 } else {
-                    dest.Spectra[sb] = source.Spectra[sb];
+                    dest.spectra[sb] = source.spectra[sb];
                 }
             }
         }

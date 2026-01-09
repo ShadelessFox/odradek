@@ -1,66 +1,57 @@
 package sh.adelessfox.atrac9j;
 
 final class Block {
-    public final Atrac9Config Config;
-    public final BlockType BlockType;
-    public final int BlockIndex;
-    public final Frame Frame;
+    final Atrac9Config config;
+    final BlockType blockType;
+    final int blockIndex;
 
-    public final Channel[] Channels;
-    public final int ChannelCount;
+    final Channel[] channels;
+    final int channelCount;
 
-    public boolean FirstInSuperframe;
-    public boolean ReuseBandParams;
+    boolean firstInSuperframe;
+    boolean reuseBandParams;
 
-    public int BandCount;
-    public int StereoBand;
-    public int ExtensionBand;
-    public int QuantizationUnitCount;
-    public int StereoQuantizationUnit;
-    public int ExtensionUnit;
-    public int QuantizationUnitsPrev;
+    int bandCount;
+    int stereoBand;
+    int extensionBand;
+    int quantizationUnitCount;
+    int stereoQuantizationUnit;
+    int extensionUnit;
+    int quantizationUnitsPrev;
 
-    public final int[] Gradient = new int[31];
-    public int GradientMode;
-    public int GradientStartUnit;
-    public int GradientStartValue;
-    public int GradientEndUnit;
-    public int GradientEndValue;
-    public int GradientBoundary;
+    final int[] gradient = new int[31];
+    int gradientMode;
+    int gradientStartUnit;
+    int gradientStartValue;
+    int gradientEndUnit;
+    int gradientEndValue;
+    int gradientBoundary;
 
-    public int PrimaryChannelIndex;
-    public final int[] JointStereoSigns = new int[30];
-    public boolean HasJointStereoSigns;
+    int primaryChannelIndex;
+    final int[] jointStereoSigns = new int[30];
+    boolean hasJointStereoSigns;
 
-    public boolean BandExtensionEnabled;
-    public boolean HasExtensionData;
-    public int BexDataLength;
-    public int BexMode;
+    boolean bandExtensionEnabled;
+    boolean hasExtensionData;
+    int bexDataLength;
+    int bexMode;
 
-    public Block(Frame parentFrame, int blockIndex) {
-        Frame = parentFrame;
-        BlockIndex = blockIndex;
-        Config = parentFrame.Config;
-        BlockType = Config.ChannelConfig.BlockTypes[blockIndex];
-        ChannelCount = BlockTypeToChannelCount(BlockType);
-        Channels = new Channel[ChannelCount];
-        for (int i = 0; i < ChannelCount; i++) {
-            Channels[i] = new Channel(this, i);
+    Block(Atrac9Config config, int blockIndex) {
+        this.blockIndex = blockIndex;
+        this.config = config;
+        blockType = this.config.channelConfig().blockTypes()[blockIndex];
+        channelCount = blockType.channelCount();
+        channels = new Channel[channelCount];
+        for (int i = 0; i < channelCount; i++) {
+            channels[i] = new Channel(this, i);
         }
     }
 
-    public static int BlockTypeToChannelCount(BlockType blockType) {
-        return switch (blockType) {
-            case MONO, LFE -> 1;
-            case STEREO -> 2;
-        };
+    Channel primaryChannel() {
+        return channels[primaryChannelIndex == 0 ? 0 : 1];
     }
 
-    public Channel PrimaryChannel() {
-        return Channels[PrimaryChannelIndex == 0 ? 0 : 1];
-    }
-
-    public Channel SecondaryChannel() {
-        return Channels[PrimaryChannelIndex == 0 ? 1 : 0];
+    Channel secondaryChannel() {
+        return channels[primaryChannelIndex == 0 ? 1 : 0];
     }
 }

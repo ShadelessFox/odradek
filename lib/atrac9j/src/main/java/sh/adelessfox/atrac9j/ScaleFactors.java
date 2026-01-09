@@ -5,7 +5,7 @@ import sh.adelessfox.atrac9j.util.BitReader;
 import java.util.Arrays;
 
 final class ScaleFactors {
-    static final byte[][] ScaleFactorWeights = {
+    static final byte[][] scaleFactorWeights = {
         {0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 3, 2, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 10, 12, 12, 12},
         {3, 2, 2, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 2, 3, 3, 4, 5, 7, 10, 10, 10},
         {0, 2, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 9, 12, 12, 12},
@@ -19,128 +19,128 @@ final class ScaleFactors {
     private ScaleFactors() {
     }
 
-    static void Read(BitReader reader, Channel channel) {
-        Arrays.fill(channel.ScaleFactors, 0);
+    static void read(BitReader reader, Channel channel) {
+        Arrays.fill(channel.scaleFactors, 0);
 
-        channel.ScaleFactorCodingMode = reader.ReadInt(2);
-        if (channel.ChannelIndex == 0) {
-            switch (channel.ScaleFactorCodingMode) {
+        channel.scaleFactorCodingMode = reader.readInt(2);
+        if (channel.channelIndex == 0) {
+            switch (channel.scaleFactorCodingMode) {
                 case 0:
-                    ReadVlcDeltaOffset(reader, channel);
+                    readVlcDeltaOffset(reader, channel);
                     break;
                 case 1:
-                    ReadClcOffset(reader, channel);
+                    readClcOffset(reader, channel);
                     break;
                 case 2:
-                    if (channel.Block.FirstInSuperframe) {
+                    if (channel.block.firstInSuperframe) {
                         throw new IllegalArgumentException();
                     }
-                    ReadVlcDistanceToBaseline(reader, channel, channel.ScaleFactorsPrev, channel.Block.QuantizationUnitsPrev);
+                    readVlcDistanceToBaseline(reader, channel, channel.ScaleFactorsPrev, channel.block.quantizationUnitsPrev);
                     break;
                 case 3:
-                    if (channel.Block.FirstInSuperframe) {
+                    if (channel.block.firstInSuperframe) {
                         throw new IllegalArgumentException();
                     }
-                    ReadVlcDeltaOffsetWithBaseline(reader, channel, channel.ScaleFactorsPrev, channel.Block.QuantizationUnitsPrev);
+                    readVlcDeltaOffsetWithBaseline(reader, channel, channel.ScaleFactorsPrev, channel.block.quantizationUnitsPrev);
                     break;
             }
         } else {
-            switch (channel.ScaleFactorCodingMode) {
+            switch (channel.scaleFactorCodingMode) {
                 case 0:
-                    ReadVlcDeltaOffset(reader, channel);
+                    readVlcDeltaOffset(reader, channel);
                     break;
                 case 1:
-                    ReadVlcDistanceToBaseline(reader, channel, channel.Block.Channels[0].ScaleFactors, channel.Block.ExtensionUnit);
+                    readVlcDistanceToBaseline(reader, channel, channel.block.channels[0].scaleFactors, channel.block.extensionUnit);
                     break;
                 case 2:
-                    ReadVlcDeltaOffsetWithBaseline(reader, channel, channel.Block.Channels[0].ScaleFactors, channel.Block.ExtensionUnit);
+                    readVlcDeltaOffsetWithBaseline(reader, channel, channel.block.channels[0].scaleFactors, channel.block.extensionUnit);
                     break;
                 case 3:
-                    if (channel.Block.FirstInSuperframe) {
+                    if (channel.block.firstInSuperframe) {
                         throw new IllegalArgumentException();
                     }
-                    ReadVlcDistanceToBaseline(reader, channel, channel.ScaleFactorsPrev, channel.Block.QuantizationUnitsPrev);
+                    readVlcDistanceToBaseline(reader, channel, channel.ScaleFactorsPrev, channel.block.quantizationUnitsPrev);
                     break;
             }
         }
 
-        for (int i = 0; i < channel.Block.ExtensionUnit; i++) {
-            if (channel.ScaleFactors[i] < 0 || channel.ScaleFactors[i] > 31) {
+        for (int i = 0; i < channel.block.extensionUnit; i++) {
+            if (channel.scaleFactors[i] < 0 || channel.scaleFactors[i] > 31) {
                 throw new IllegalArgumentException("Scale factor values are out of range.");
             }
         }
 
-        System.arraycopy(channel.ScaleFactors, 0, channel.ScaleFactorsPrev, 0, channel.ScaleFactors.length);
+        System.arraycopy(channel.scaleFactors, 0, channel.ScaleFactorsPrev, 0, channel.scaleFactors.length);
     }
 
-    private static void ReadClcOffset(BitReader reader, Channel channel) {
+    private static void readClcOffset(BitReader reader, Channel channel) {
         int maxBits = 5;
-        int[] sf = channel.ScaleFactors;
-        int bitLength = reader.ReadInt(2) + 2;
-        int baseValue = bitLength < maxBits ? reader.ReadInt(maxBits) : 0;
+        int[] sf = channel.scaleFactors;
+        int bitLength = reader.readInt(2) + 2;
+        int baseValue = bitLength < maxBits ? reader.readInt(maxBits) : 0;
 
-        for (int i = 0; i < channel.Block.ExtensionUnit; i++) {
-            sf[i] = reader.ReadInt(bitLength) + baseValue;
+        for (int i = 0; i < channel.block.extensionUnit; i++) {
+            sf[i] = reader.readInt(bitLength) + baseValue;
         }
     }
 
-    private static void ReadVlcDeltaOffset(BitReader reader, Channel channel) {
-        int weightIndex = reader.ReadInt(3);
-        byte[] weights = ScaleFactorWeights[weightIndex];
+    private static void readVlcDeltaOffset(BitReader reader, Channel channel) {
+        int weightIndex = reader.readInt(3);
+        byte[] weights = scaleFactorWeights[weightIndex];
 
-        int[] sf = channel.ScaleFactors;
-        int baseValue = reader.ReadInt(5);
-        int bitLength = reader.ReadInt(2) + 3;
-        HuffmanCodebook codebook = Tables.HuffmanScaleFactorsUnsigned[bitLength];
+        int[] sf = channel.scaleFactors;
+        int baseValue = reader.readInt(5);
+        int bitLength = reader.readInt(2) + 3;
+        HuffmanCodebook codebook = Tables.huffmanScaleFactorsUnsigned[bitLength];
 
-        sf[0] = reader.ReadInt(bitLength);
+        sf[0] = reader.readInt(bitLength);
 
-        for (int i = 1; i < channel.Block.ExtensionUnit; i++) {
-            int delta = Unpack.ReadHuffmanValue(codebook, reader, false);
-            sf[i] = (sf[i - 1] + delta) & (codebook.ValueMax - 1);
+        for (int i = 1; i < channel.block.extensionUnit; i++) {
+            int delta = Unpack.readHuffmanValue(codebook, reader, false);
+            sf[i] = (sf[i - 1] + delta) & (codebook.valueMax() - 1);
         }
 
-        for (int i = 0; i < channel.Block.ExtensionUnit; i++) {
+        for (int i = 0; i < channel.block.extensionUnit; i++) {
             sf[i] += baseValue - weights[i];
         }
     }
 
-    private static void ReadVlcDistanceToBaseline(BitReader reader, Channel channel, int[] baseline, int baselineLength) {
-        int[] sf = channel.ScaleFactors;
-        int bitLength = reader.ReadInt(2) + 2;
-        HuffmanCodebook codebook = Tables.HuffmanScaleFactorsSigned[bitLength];
-        int unitCount = Math.min(channel.Block.ExtensionUnit, baselineLength);
+    private static void readVlcDistanceToBaseline(BitReader reader, Channel channel, int[] baseline, int baselineLength) {
+        int[] sf = channel.scaleFactors;
+        int bitLength = reader.readInt(2) + 2;
+        HuffmanCodebook codebook = Tables.huffmanScaleFactorsSigned[bitLength];
+        int unitCount = Math.min(channel.block.extensionUnit, baselineLength);
 
         for (int i = 0; i < unitCount; i++) {
-            int distance = Unpack.ReadHuffmanValue(codebook, reader, true);
+            int distance = Unpack.readHuffmanValue(codebook, reader, true);
             sf[i] = (baseline[i] + distance) & 31;
         }
 
-        for (int i = unitCount; i < channel.Block.ExtensionUnit; i++) {
-            sf[i] = reader.ReadInt(5);
+        for (int i = unitCount; i < channel.block.extensionUnit; i++) {
+            sf[i] = reader.readInt(5);
         }
     }
 
-    private static void ReadVlcDeltaOffsetWithBaseline(BitReader reader, Channel channel, int[] baseline, int baselineLength) {
-        int[] sf = channel.ScaleFactors;
-        int baseValue = reader.ReadOffsetBinary(5);
-        int bitLength = reader.ReadInt(2) + 1;
-        HuffmanCodebook codebook = Tables.HuffmanScaleFactorsUnsigned[bitLength];
-        int unitCount = Math.min(channel.Block.ExtensionUnit, baselineLength);
+    private static void readVlcDeltaOffsetWithBaseline(BitReader reader, Channel channel, int[] baseline, int baselineLength) {
+        int[] sf = channel.scaleFactors;
+        int baseValue = reader.readOffsetBinary(5);
+        int bitLength = reader.readInt(2) + 1;
+        HuffmanCodebook codebook = Tables.huffmanScaleFactorsUnsigned[bitLength];
+        int unitCount = Math.min(channel.block.extensionUnit, baselineLength);
 
-        sf[0] = reader.ReadInt(bitLength);
+        sf[0] = reader.readInt(bitLength);
 
         for (int i = 1; i < unitCount; i++) {
-            int delta = Unpack.ReadHuffmanValue(codebook, reader, false);
-            sf[i] = (sf[i - 1] + delta) & (codebook.ValueMax - 1);
+            int delta = Unpack.readHuffmanValue(codebook, reader, false);
+            sf[i] = (sf[i - 1] + delta) & (codebook.valueMax() - 1);
         }
 
         for (int i = 0; i < unitCount; i++) {
             sf[i] += baseValue + baseline[i];
         }
 
-        for (int i = unitCount; i < channel.Block.ExtensionUnit; i++) {
-            sf[i] = reader.ReadInt(5);
+        for (int i = unitCount; i < channel.block.extensionUnit; i++) {
+            sf[i] = reader.readInt(5);
         }
     }
 }
