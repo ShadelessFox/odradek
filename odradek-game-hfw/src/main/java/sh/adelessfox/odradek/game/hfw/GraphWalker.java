@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Comparator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -28,7 +30,7 @@ public final class GraphWalker {
         Class<T> type,
         ForbiddenWestGame game,
         boolean readSubgroups
-    ) throws IOException {
+    ) {
         return stream(type, game.getStreamingReader(), game.getStreamingGraph(), readSubgroups)::iterator;
     }
 
@@ -37,7 +39,7 @@ public final class GraphWalker {
         StreamingObjectReader reader,
         StreamingGraphResource graph,
         boolean readSubgroups
-    ) throws IOException {
+    ) {
         return StreamSupport.stream(spliterator(type, reader, graph, readSubgroups), false);
     }
 
@@ -46,7 +48,11 @@ public final class GraphWalker {
         StreamingObjectReader reader,
         StreamingGraphResource graph,
         boolean readSubgroups
-    ) throws IOException {
+    ) {
+        var groups = graph.groups().stream()
+            .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
+            .toList();
+
         return new Spliterator<>() {
             private StreamingObjectReader.GroupResult result;
             private int nextGroupIndex;
@@ -78,11 +84,10 @@ public final class GraphWalker {
             }
 
             private boolean tryAdvanceGroup() {
-                var groups = graph.groups();
                 for (int i = nextGroupIndex; i < groups.size(); i++) {
                     var group = groups.get(i);
                     if (graph.types(group).anyMatch(t -> ofType.isAssignableFrom(t.type()))) {
-                        log.debug("Reading group {}/{}", i + 1, groups.size());
+                        log.debug("[{}/{}] Reading group {}", i + 1, groups.size(), group.groupID());
                         try {
                             result = reader.readGroup(group.groupID(), readSubgroups);
                             nextGroupIndex = i + 1;
