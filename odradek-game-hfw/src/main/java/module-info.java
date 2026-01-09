@@ -87,7 +87,6 @@ module odradek.game.hfw {
     exports sh.adelessfox.odradek.game.hfw;
 
     provides sh.adelessfox.odradek.game.Converter with
-        sh.adelessfox.odradek.game.hfw.converters.audio.LocalizedSimpleSoundResourceToAudioConverter,
         sh.adelessfox.odradek.game.hfw.converters.audio.SimpleSoundResourceToAudioConverter,
         sh.adelessfox.odradek.game.hfw.converters.audio.WaveResourceToAudioConverter,
         sh.adelessfox.odradek.game.hfw.converters.scene.MeshToSceneConverter,
