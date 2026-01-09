@@ -76,11 +76,12 @@ public final class Mdct {
         }
     }
 
-    /// <summary>
-    /// Does a Type-4 DCT.
-    /// </summary>
-    /// <param name="input">The input array containing the time or frequency-domain samples</param>
-    /// <param name="output">The output array that will contain the transformed time or frequency-domain samples</param>
+    /**
+     * Does a Type-4 DCT.
+     *
+     * @param input  The input array containing the time or frequency-domain samples
+     * @param output The output array that will contain the transformed time or frequency-domain samples
+     */
     private void Dct4(double[] input, double[] output) {
         int[] shuffleTable = ShuffleTables.get(MdctBits);
         double[] sinTable = SinTables.get(MdctBits);

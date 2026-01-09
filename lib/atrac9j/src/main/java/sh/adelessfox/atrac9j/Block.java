@@ -1,6 +1,6 @@
 package sh.adelessfox.atrac9j;
 
-class Block {
+final class Block {
     public final Atrac9Config Config;
     public final BlockType BlockType;
     public final int BlockIndex;

@@ -1,8 +1,8 @@
 package sh.adelessfox.atrac9j;
 
-/// <summary>
-/// Describes the channel mapping for an ATRAC9 stream
-/// </summary>
+/**
+ * Describes the channel mapping for an ATRAC9 stream
+ */
 public final class ChannelConfig {
     ChannelConfig(BlockType... blockTypes) {
         BlockCount = blockTypes.length;
@@ -12,19 +12,19 @@ public final class ChannelConfig {
         }
     }
 
-    /// <summary>
-    /// The number of blocks or substreams in the ATRAC9 stream
-    /// </summary>
+    /**
+     * The number of blocks or substreams in the ATRAC9 stream
+     */
     public int BlockCount;
 
-    /// <summary>
-    /// The type of each block or substream in the ATRAC9 stream
-    /// </summary>
+    /**
+     * The type of each block or substream in the ATRAC9 stream
+     */
     public BlockType[] BlockTypes;
 
-    /// <summary>
-    /// The number of channels in the ATRAC9 stream
-    /// </summary>
+    /**
+     * The number of channels in the ATRAC9 stream
+     */
     public int ChannelCount;
 }
 

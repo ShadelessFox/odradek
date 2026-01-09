@@ -26,11 +26,12 @@ public class Helpers {
         return value + multiple - value % multiple;
     }
 
-    /// <summary>
-    /// Returns the floor of the base 2 logarithm of a specified number.
-    /// </summary>
-    /// <param name="value">The number whose logarithm is to be found.</param>
-    /// <returns>The floor of the base 2 logarithm of <paramref name="value"/>.</returns>
+    /**
+     * Returns the floor of the base 2 logarithm of a specified number.
+     *
+     * @param value The number whose logarithm is to be found.
+     * @return The floor of the base 2 logarithm of {@code value}
+     */
     public static int Log2(int value) {
         value |= value >>> 1;
         value |= value >>> 2;
@@ -41,9 +42,8 @@ public class Helpers {
         return MultiplyDeBruijnBitPosition[(value * 0x07C4ACDD) >>> 27];
     }
 
-    private static final int[] MultiplyDeBruijnBitPosition =
-        {
-            0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
-            8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
-        };
+    private static final int[] MultiplyDeBruijnBitPosition = {
+        0, 9, 1, 10, 13, 21, 2, 29, 11, 14, 16, 18, 22, 25, 3, 30,
+        8, 12, 20, 28, 15, 17, 24, 7, 19, 27, 23, 6, 26, 5, 4, 31
+    };
 }

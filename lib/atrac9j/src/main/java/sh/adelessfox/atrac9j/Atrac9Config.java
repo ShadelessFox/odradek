@@ -3,75 +3,76 @@ package sh.adelessfox.atrac9j;
 
 import sh.adelessfox.atrac9j.util.BitReader;
 
-/// <summary>
-/// Stores the configuration data needed to decode or encode an ATRAC9 stream.
-/// </summary>
+/**
+ * Stores the configuration data needed to decode or encode an ATRAC9 stream.
+ */
 public final class Atrac9Config {
-    /// <summary>
-    /// The 4-byte ATRAC9 configuration data.
-    /// </summary>
+    /**
+     * The 4-byte ATRAC9 configuration data.
+     */
     public final byte[] ConfigData;
 
-    /// <summary>
-    /// A 4-bit value specifying one of 16 sample rates.
-    /// </summary>
+    /**
+     * A 4-bit value specifying one of 16 sample rates.
+     */
     public final int SampleRateIndex;
-    /// <summary>
-    /// A 3-bit value specifying one of 6 substream channel mappings.
-    /// </summary>
+    /**
+     * A 3-bit value specifying one of 6 substream channel mappings.
+     */
     public final int ChannelConfigIndex;
-    /// <summary>
-    /// An 11-bit value containing the average size of a single frame.
-    /// </summary>
+    /**
+     * An 11-bit value containing the average size of a single frame.
+     */
     public final int FrameBytes;
-    /// <summary>
-    /// A 2-bit value indicating how many frames are in each superframe.
-    /// </summary>
+    /**
+     * A 2-bit value indicating how many frames are in each superframe.
+     */
     public final int SuperframeIndex;
 
-    /// <summary>
-    /// The channel mapping used by the ATRAC9 stream.
-    /// </summary>
+    /**
+     * The channel mapping used by the ATRAC9 stream.
+     */
     public final ChannelConfig ChannelConfig;
-    /// <summary>
-    /// The total number of channels in the ATRAC9 stream.
-    /// </summary>
+    /**
+     * The total number of channels in the ATRAC9 stream.
+     */
     public final int ChannelCount;
-    /// <summary>
-    /// The sample rate of the ATRAC9 stream.
-    /// </summary>
+    /**
+     * The sample rate of the ATRAC9 stream.
+     */
     public final int SampleRate;
-    /// <summary>
-    /// Indicates whether the ATRAC9 stream has a <see cref="SampleRateIndex"/> of 8 or above.
-    /// </summary>
+    /**
+     * Indicates whether the ATRAC9 stream has a {@link #SampleRateIndex} of 8 or above.
+     */
     public final boolean HighSampleRate;
 
-    /// <summary>
-    /// The number of frames in each superframe.
-    /// </summary>
+    /**
+     * The number of frames in each superframe.
+     */
     public final int FramesPerSuperframe;
-    /// <summary>
-    /// The number of samples in one frame as an exponent of 2.
-    /// <see cref="FrameSamples"/> = 2^<see cref="FrameSamplesPower"/>.
-    /// </summary>
+    /**
+     * The number of samples in one frame as an exponent of 2.
+     * {@link #FrameSamples} = {@code 2^FrameSamplesPower}.
+     */
     public final int FrameSamplesPower;
-    /// <summary>
-    /// The number of samples in one frame.
-    /// </summary>
+    /**
+     * The number of samples in one frame.
+     */
     public final int FrameSamples;
-    /// <summary>
-    /// The number of bytes in one superframe.
-    /// </summary>
+    /**
+     * The number of bytes in one superframe.
+     */
     public final int SuperframeBytes;
-    /// <summary>
-    /// The number of samples in one superframe.
-    /// </summary>
+    /**
+     * The number of samples in one superframe.
+     */
     public final int SuperframeSamples;
 
-    /// <summary>
-    /// Reads ATRAC9 configuration data and calculates the stream parameters from it.
-    /// </summary>
-    /// <param name="configData">The processed ATRAC9 configuration.</param>
+    /**
+     * Reads ATRAC9 configuration data and calculates the stream parameters from it.
+     *
+     * @param configData The processed ATRAC9 configuration.
+     */
     public Atrac9Config(byte[] configData) {
         if (configData == null || configData.length != 4) {
             throw new IllegalArgumentException("Config data must be 4 bytes long");

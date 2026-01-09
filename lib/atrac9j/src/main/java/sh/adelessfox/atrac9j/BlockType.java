@@ -1,19 +1,19 @@
 package sh.adelessfox.atrac9j;
 
-/// <summary>
-/// An ATRAC9 block (substream) type
-/// </summary>
-enum BlockType {
-    /// <summary>
-    /// Mono ATRAC9 block
-    /// </summary>
+/**
+ * An ATRAC9 block (substream) type
+ */
+public enum BlockType {
+    /**
+     * Mono ATRAC9 block
+     */
     MONO,
-    /// <summary>
-    /// Stereo ATRAC9 block
-    /// </summary>
+    /**
+     * Stereo ATRAC9 block
+     */
     STEREO,
-    /// <summary>
-    /// Low-frequency effects ATRAC9 block
-    /// </summary>
-    LFE;
+    /**
+     * Low-frequency effects ATRAC9 block
+     */
+    LFE
 }

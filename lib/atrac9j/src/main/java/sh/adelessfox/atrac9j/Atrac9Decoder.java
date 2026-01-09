@@ -4,34 +4,36 @@ package sh.adelessfox.atrac9j;
 import sh.adelessfox.atrac9j.util.BitReader;
 import sh.adelessfox.atrac9j.util.Helpers;
 
-/// <summary>
-/// Decodes an ATRAC9 stream into 16-bit PCM.
-/// </summary>
+/**
+ * Decodes an ATRAC9 stream into 16-bit PCM.
+ */
 public final class Atrac9Decoder {
-    /// <summary>
-    /// The config data for the current ATRAC9 stream.
-    /// </summary>
+    /**
+     * The config data for the current ATRAC9 stream.
+     */
     public Atrac9Config Config;
     private final BitReader Reader = new BitReader();
     private Frame Frame;
 
-    /// <summary>
-    /// Sets up the decoder to decode an ATRAC9 stream based on the information in <paramref name="configData"/>.
-    /// </summary>
-    /// <param name="configData">A 4-byte value containing information about the ATRAC9 stream.</param>
+    /**
+     * Sets up the decoder to decode an ATRAC9 stream based on the information in {@code configData}.
+     *
+     * @param configData A 4-byte value containing information about the ATRAC9 stream.
+     */
     public void Initialize(byte[] configData) {
         Config = new Atrac9Config(configData);
         Frame = new Frame(Config);
     }
 
-    /// <summary>
-    /// Decodes one superframe of ATRAC9 data.
-    /// </summary>
-    /// <param name="atrac9Data">The ATRAC9 data to decode. The array must be at least
-    /// <see cref="Config"/>.<see cref="Atrac9Config.SuperframeBytes"/> bytes long.</param>
-    /// <param name="pcmOut">A buffer that the decoded PCM data will be placed in.
-    /// The array must have dimensions of at least [<see cref="Config"/>.<see cref="Atrac9Config.ChannelCount"/>]
-    /// [<see cref="Config"/>.<see cref="Atrac9Config.SuperframeSamples"/>].</param>
+    /**
+     * Decodes one superframe of ATRAC9 data.
+     *
+     * @param atrac9Data The ATRAC9 data to decode. The array must be at least
+     *                   {@link #Config}.{@link Atrac9Config#SuperframeBytes} bytes long.
+     * @param pcmOut     A buffer that the decoded PCM data will be placed in.
+     *                   The array must have dimensions of at least [{@link #Config}.{@link Atrac9Config#ChannelCount}]
+     *                   [{@link #Config}.{@link Atrac9Config#SuperframeSamples}].
+     */
     public void Decode(byte[] atrac9Data, short[][] pcmOut) {
         if (Config == null) {
             throw new IllegalStateException("Decoder must be initialized before decoding.");
