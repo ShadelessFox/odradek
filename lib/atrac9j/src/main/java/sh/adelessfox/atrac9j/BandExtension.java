@@ -18,7 +18,6 @@ final class BandExtension {
         double[] scales = channel.BexScales;
         int[] values = channel.BexValues;
 
-
         int[] bandCount = new int[1];
         int[] groupBUnit = new int[1];
         int[] groupCUnit = new int[1];
@@ -33,7 +32,7 @@ final class BandExtension {
         FillHighFrequencies(spectra, groupABin, groupBBin, groupCBin, totalBins);
 
         switch (channel.BexMode) {
-            case 0:
+            case 0 -> {
                 int bexQuantUnits = totalUnits - groupAUnit;
 
                 switch (bandCount[0]) {
@@ -63,16 +62,16 @@ final class BandExtension {
                 AddNoiseToSpectrum(channel, Tables.QuantUnitToCoeffIndex[totalUnits - 1],
                     Tables.QuantUnitToCoeffCount[totalUnits - 1]);
                 ScaleBexQuantUnits(spectra, scales, groupAUnit, totalUnits);
-                break;
-            case 1:
+            }
+            case 1 -> {
                 for (int i = groupAUnit; i < totalUnits; i++) {
                     scales[i - groupAUnit] = Tables.SpectrumScale[scaleFactors[i]];
                 }
 
                 AddNoiseToSpectrum(channel, groupABin, totalBins - groupABin);
                 ScaleBexQuantUnits(spectra, scales, groupAUnit, totalUnits);
-                break;
-            case 2:
+            }
+            case 2 -> {
                 double groupAScale2 = BexMode2Scale[values[0]];
                 double groupBScale2 = BexMode2Scale[values[1]];
 
@@ -83,16 +82,16 @@ final class BandExtension {
                 for (int i = groupBBin; i < groupCBin; i++) {
                     spectra[i] *= groupBScale2;
                 }
-                return;
-            case 3:
+            }
+            case 3 -> {
                 double rate = Math.pow(2, BexMode3Rate[values[1]]);
                 double scale = BexMode3Initial[values[0]];
                 for (int i = groupABin; i < totalBins; i++) {
                     scale *= rate;
                     spectra[i] *= scale;
                 }
-                return;
-            case 4:
+            }
+            case 4 -> {
                 double mult = BexMode4Multiplier[values[0]];
                 double groupAScale4 = 0.7079468 * mult;
                 double groupBScale4 = 0.5011902 * mult;
@@ -109,6 +108,7 @@ final class BandExtension {
                 for (int i = groupCBin; i < totalBins; i++) {
                     spectra[i] *= groupCScale4;
                 }
+            }
         }
     }
 
