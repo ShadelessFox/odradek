@@ -8,6 +8,10 @@ public final class BitReader {
     public BitReader() {
     }
 
+    public BitReader(byte[] buffer) {
+        SetBuffer(buffer);
+    }
+
     public void SetBuffer(byte[] buffer) {
         Buffer = buffer;
         LengthBits = Buffer.length * 8;

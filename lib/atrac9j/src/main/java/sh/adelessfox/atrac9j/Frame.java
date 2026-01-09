@@ -1,9 +1,9 @@
 package sh.adelessfox.atrac9j;
 
 final class Frame {
-    Atrac9Config Config;
+    final Atrac9Config Config;
+    final Block[] Blocks;
     int FrameIndex;
-    Block[] Blocks;
 
     Frame(Atrac9Config config) {
         Config = config;

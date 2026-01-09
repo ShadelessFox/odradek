@@ -1,13 +1,13 @@
 package sh.adelessfox.atrac9j;
 
 class Block {
-    public Atrac9Config Config;
-    public BlockType BlockType;
-    public int BlockIndex;
-    public Frame Frame;
+    public final Atrac9Config Config;
+    public final BlockType BlockType;
+    public final int BlockIndex;
+    public final Frame Frame;
 
-    public Channel[] Channels;
-    public int ChannelCount;
+    public final Channel[] Channels;
+    public final int ChannelCount;
 
     public boolean FirstInSuperframe;
     public boolean ReuseBandParams;
@@ -20,7 +20,7 @@ class Block {
     public int ExtensionUnit;
     public int QuantizationUnitsPrev;
 
-    public int[] Gradient = new int[31];
+    public final int[] Gradient = new int[31];
     public int GradientMode;
     public int GradientStartUnit;
     public int GradientStartValue;
@@ -29,7 +29,7 @@ class Block {
     public int GradientBoundary;
 
     public int PrimaryChannelIndex;
-    public int[] JointStereoSigns = new int[30];
+    public final int[] JointStereoSigns = new int[30];
     public boolean HasJointStereoSigns;
 
     public boolean BandExtensionEnabled;
