@@ -14,6 +14,7 @@
     </properties>
 
     <modules>
+        <module>lib/libatrac9</module>
         <module>odradek-app</module>
         <module>odradek-core</module>
         <module>odradek-export-dds</module>
@@ -143,6 +144,13 @@
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <!-- Libraries -->
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>libatrac9</artifactId>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <!-- External dependencies -->
