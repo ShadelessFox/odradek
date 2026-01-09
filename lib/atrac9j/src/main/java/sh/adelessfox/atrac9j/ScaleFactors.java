@@ -123,7 +123,7 @@ final class ScaleFactors {
 
     private static void ReadVlcDeltaOffsetWithBaseline(BitReader reader, Channel channel, int[] baseline, int baselineLength) {
         int[] sf = channel.ScaleFactors;
-        int baseValue = reader.ReadOffsetBinary(5, BitReader.OffsetBias.Negative);
+        int baseValue = reader.ReadOffsetBinary(5);
         int bitLength = reader.ReadInt(2) + 1;
         HuffmanCodebook codebook = Tables.HuffmanScaleFactorsUnsigned[bitLength];
         int unitCount = Math.min(channel.Block.ExtensionUnit, baselineLength);

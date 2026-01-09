@@ -34,8 +34,8 @@ public final class BitReader {
         return ReadInt(1) == 1;
     }
 
-    public int ReadOffsetBinary(int bitCount, OffsetBias bias) {
-        int offset = (1 << (bitCount - 1)) - bias.ordinal();
+    public int ReadOffsetBinary(int bitCount) {
+        int offset = (1 << (bitCount - 1));
         int value = PeekInt(bitCount) - offset;
         Position += bitCount;
         return value;
@@ -76,7 +76,7 @@ public final class BitReader {
 
         if (bitCount <= 25 && Remaining() >= 32) {
             int value = Byte.toUnsignedInt(Buffer[byteIndex]) << 24 | Byte.toUnsignedInt(Buffer[byteIndex + 1]) << 16 | Byte.toUnsignedInt(Buffer[byteIndex + 2]) << 8 | Byte.toUnsignedInt(Buffer[byteIndex + 3]);
-            value &= (int) (0xFFFFFFFF >>> bitIndex);
+            value &= 0xFFFFFFFF >>> bitIndex;
             value >>= 32 - bitCount - bitIndex;
             return value;
         }
@@ -107,19 +107,5 @@ public final class BitReader {
 
     private int Remaining() {
         return LengthBits - Position;
-    }
-
-    /// <summary>
-    /// Specifies the bias of an offset binary value. A positive bias can represent one more
-    /// positive value than negative value, and a negative bias can represent one more
-    /// negative value than positive value.
-    /// </summary>
-    /// <remarks>Example:
-    /// A 4-bit offset binary value with a positive bias can store
-    /// the values 8 through -7 inclusive.
-    /// A 4-bit offset binary value with a positive bias can store
-    /// the values 7 through -8 inclusive.</remarks>
-    public enum OffsetBias {
-        Negative
     }
 }
