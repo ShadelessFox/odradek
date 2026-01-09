@@ -1,7 +1,7 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
 
-import sh.adelessfox.libatrac9.util.BitReader;
+import sh.adelessfox.atrac9j.util.BitReader;
 
 /// <summary>
 /// Stores the configuration data needed to decode or encode an ATRAC9 stream.

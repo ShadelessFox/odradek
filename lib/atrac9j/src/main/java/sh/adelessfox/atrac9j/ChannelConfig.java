@@ -1,4 +1,4 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
 /// <summary>
 /// Describes the channel mapping for an ATRAC9 stream

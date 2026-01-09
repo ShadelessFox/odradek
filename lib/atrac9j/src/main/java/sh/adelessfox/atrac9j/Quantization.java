@@ -1,4 +1,4 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
 
 import java.util.Arrays;

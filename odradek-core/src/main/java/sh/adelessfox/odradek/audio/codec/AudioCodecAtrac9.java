@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.audio.codec;
 
-import sh.adelessfox.libatrac9.Atrac9Decoder;
+import sh.adelessfox.atrac9j.Atrac9Decoder;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.audio.AudioFormat;
 

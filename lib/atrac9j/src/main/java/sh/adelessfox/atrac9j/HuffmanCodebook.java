@@ -1,7 +1,7 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
 
-import sh.adelessfox.libatrac9.util.Helpers;
+import sh.adelessfox.atrac9j.util.Helpers;
 
 class HuffmanCodebook {
     public HuffmanCodebook(short[] codes, byte[] bits, byte valueCountPower) {

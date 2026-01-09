@@ -1,7 +1,7 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
-import sh.adelessfox.libatrac9.util.Bit;
-import sh.adelessfox.libatrac9.util.BitReader;
+import sh.adelessfox.atrac9j.util.Bit;
+import sh.adelessfox.atrac9j.util.BitReader;
 
 import java.util.Arrays;
 

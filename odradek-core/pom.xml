@@ -14,7 +14,7 @@
         <!-- Internal dependencies -->
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>libatrac9</artifactId>
+            <artifactId>atrac9j</artifactId>
         </dependency>
 
         <!-- External dependencies -->

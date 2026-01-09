@@ -1,8 +1,8 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
 import java.util.function.IntToDoubleFunction;
 
-import static sh.adelessfox.libatrac9.HuffmanCodebooks.*;
+import static sh.adelessfox.atrac9j.HuffmanCodebooks.*;
 
 final class Tables {
     private Tables() {

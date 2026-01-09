@@ -1,6 +1,6 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
-import sh.adelessfox.libatrac9.util.Mdct;
+import sh.adelessfox.atrac9j.util.Mdct;
 
 final class Channel {
     public Atrac9Config Config;

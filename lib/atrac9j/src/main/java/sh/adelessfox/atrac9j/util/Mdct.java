@@ -1,4 +1,4 @@
-package sh.adelessfox.libatrac9.util;
+package sh.adelessfox.atrac9j.util;
 
 import java.util.ArrayList;
 import java.util.List;

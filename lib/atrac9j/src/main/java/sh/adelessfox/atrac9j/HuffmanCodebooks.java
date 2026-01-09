@@ -1,8 +1,8 @@
-package sh.adelessfox.libatrac9;
+package sh.adelessfox.atrac9j;
 
-import static sh.adelessfox.libatrac9.HuffmanCodebooks.ScaleFactors.*;
-import static sh.adelessfox.libatrac9.HuffmanCodebooks.SpectrumA.*;
-import static sh.adelessfox.libatrac9.HuffmanCodebooks.SpectrumB.*;
+import static sh.adelessfox.atrac9j.HuffmanCodebooks.ScaleFactors.*;
+import static sh.adelessfox.atrac9j.HuffmanCodebooks.SpectrumA.*;
+import static sh.adelessfox.atrac9j.HuffmanCodebooks.SpectrumB.*;
 
 final class HuffmanCodebooks {
     private HuffmanCodebooks() {
