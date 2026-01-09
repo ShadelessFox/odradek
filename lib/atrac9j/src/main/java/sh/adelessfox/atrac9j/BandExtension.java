@@ -141,7 +141,7 @@ final class BandExtension {
             channel.Rng = new Atrac9Rng(seed);
         }
         for (int i = 0; i < count; i++) {
-            channel.Spectra[i + index] = channel.Rng.Next() / 65535.0 * 2.0 - 1.0;
+            channel.Spectra[i + index] = Short.toUnsignedInt(channel.Rng.Next()) / 65535.0 * 2.0 - 1.0;
         }
     }
 

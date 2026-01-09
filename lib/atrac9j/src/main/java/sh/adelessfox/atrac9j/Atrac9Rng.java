@@ -10,20 +10,20 @@ final class Atrac9Rng {
     private short stateD;
 
     Atrac9Rng(short seed) {
-        int startValue = 0x4D93 * (seed ^ (seed >>> 14));
+        int startValue = 0x4D93 * (seed & 0xffff ^ (seed & 0xffff) >>> 14);
 
         stateA = (short) (3 - startValue);
         stateB = (short) (2 - startValue);
         stateC = (short) (1 - startValue);
-        stateD = (short) (-startValue);
+        stateD = (short) /**/-startValue;
     }
 
     short Next() {
-        short t = (short) (stateD ^ (stateD << 5));
+        int t = (short) (stateD & 0xffff ^ (stateD & 0xffff) << 5) & 0xffff;
         stateD = stateC;
         stateC = stateB;
         stateB = stateA;
-        stateA = (short) (t ^ stateA ^ ((t ^ (stateA >>> 5)) >>> 4));
+        stateA = (short) (stateA & 0xffff ^ ((stateA & 0xffff) >>> 5 ^ t) >>> 4 ^ t);
         return stateA;
     }
 }
