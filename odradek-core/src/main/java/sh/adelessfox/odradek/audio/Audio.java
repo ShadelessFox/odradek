@@ -18,6 +18,6 @@ public record Audio(AudioCodec codec, AudioFormat format, int samples, byte[] da
     }
 
     public Audio toPcm16() {
-        return codec.toPcm16(format, samples, data);
+        return codec.toPcm16(format, data);
     }
 }
