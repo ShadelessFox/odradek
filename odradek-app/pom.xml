@@ -63,6 +63,10 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-export-json</artifactId>
         </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-export-wave</artifactId>
+        </dependency>
 
         <!-- External dependencies -->
         <dependency>

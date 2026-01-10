@@ -25,6 +25,7 @@ module odradek.app {
     requires odradek.export.cast;
     requires odradek.export.dds;
     requires odradek.export.json;
+    requires odradek.export.wave;
 
     // Viewers
     requires odradek.viewer.audio;

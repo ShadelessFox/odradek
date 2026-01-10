@@ -17,8 +17,10 @@
         <module>lib/atrac9j</module>
         <module>odradek-app</module>
         <module>odradek-core</module>
+        <module>odradek-export-cast</module>
         <module>odradek-export-dds</module>
         <module>odradek-export-json</module>
+        <module>odradek-export-wave</module>
         <module>odradek-game</module>
         <module>odradek-game-hfw-ui</module>
         <module>odradek-game-hfw</module>
@@ -31,7 +33,6 @@
         <module>odradek-viewer-model</module>
         <module>odradek-viewer-shader</module>
         <module>odradek-viewer-texture</module>
-        <module>odradek-export-cast</module>
     </modules>
 
     <build>
@@ -138,6 +139,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-json</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-export-wave</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
