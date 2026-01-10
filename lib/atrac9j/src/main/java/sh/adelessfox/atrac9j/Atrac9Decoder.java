@@ -5,7 +5,7 @@ import sh.adelessfox.atrac9j.util.BitReader;
 import sh.adelessfox.atrac9j.util.Helpers;
 
 /**
- * Decodes an ATRAC9 stream into 16-bit PCM.
+ * Decoder for ATRAC9 audio streams.
  */
 public final class Atrac9Decoder {
     private final BitReader Reader = new BitReader();
@@ -29,7 +29,7 @@ public final class Atrac9Decoder {
     }
 
     /**
-     * Decodes one superframe of ATRAC9 data.
+     * Decodes one superframe of ATRAC9 data into 16-bit PCM.
      *
      * @param atrac9Data The ATRAC9 data to decode. The array must be at least
      *                   {@link #config}.{@link Atrac9Config#superframeBytes()} bytes long.

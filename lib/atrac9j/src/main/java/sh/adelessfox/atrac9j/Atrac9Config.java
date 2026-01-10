@@ -4,6 +4,8 @@ package sh.adelessfox.atrac9j;
 import sh.adelessfox.atrac9j.util.BitReader;
 
 /**
+ * Configuration data of an ATRAC9 stream.
+ *
  * @param configData          Stores the configuration data needed to decode or encode an ATRAC9 stream.
  * @param sampleRateIndex     The 4-byte ATRAC9 configuration data.
  * @param channelConfigIndex  A 4-bit value specifying one of 16 sample rates.
