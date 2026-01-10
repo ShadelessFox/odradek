@@ -14,7 +14,7 @@ Horizon Forbidden West in an attempt to come up with something that could be use
 - Make sure you have **Git** installed
 
 Open the terminal and execute the following commands:
-1. `git clone https://github.com/ShadelessFox/odradek`
+1. `git clone https://github.com/ShadelessFox/odradek --recursive`
 2. `cd odradek`
 3. `./mvnw clean package`
 

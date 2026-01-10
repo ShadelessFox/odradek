@@ -11,6 +11,12 @@
     <artifactId>odradek-core</artifactId>
 
     <dependencies>
+        <!-- Internal dependencies -->
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>atrac9j</artifactId>
+        </dependency>
+
         <!-- External dependencies -->
         <dependency>
             <groupId>at.yawk.lz4</groupId>

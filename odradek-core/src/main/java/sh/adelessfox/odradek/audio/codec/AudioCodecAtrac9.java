@@ -1,16 +1,14 @@
 package sh.adelessfox.odradek.audio.codec;
 
+import sh.adelessfox.atrac9j.Atrac9Decoder;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.audio.AudioFormat;
-import sh.adelessfox.odradek.audio.codec.libatrac9.Atrac9CodecInfo;
-import sh.adelessfox.odradek.audio.codec.libatrac9.Atrac9Decoder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.foreign.Arena;
-import java.lang.foreign.MemorySegment;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 
 public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements AudioCodec {
@@ -18,33 +16,32 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
     public Audio toPcm16(AudioFormat format, int samples, byte[] data) {
         var output = new ByteArrayOutputStream();
 
-        try (
-            var arena = Arena.ofConfined();
-            var decoder = new Atrac9Decoder();
-            var channel = Channels.newChannel(output);
-        ) {
-            decoder.initialize(configData);
+        try (var channel = Channels.newChannel(output)) {
+            var decoder = Atrac9Decoder.of(configData);
+            var config = decoder.config();
 
-            var info = decoder.getCodecInfo();
-            var src = arena.allocate(info.superframeSize()).asByteBuffer();
-            var dst = arena.allocate(info.channels() * info.frameSamples() * info.framesInSuperframe() * (long) Short.BYTES).asByteBuffer();
+            var src = new byte[config.superframeBytes()];
+            var dst = new short[config.channelCount()][config.superframeSamples()];
+            var buf = ByteBuffer
+                .allocate(config.superframeSamples() * config.channelCount() * Short.BYTES)
+                .order(ByteOrder.LITTLE_ENDIAN);
 
-            int superframeCount = Math.toIntExact(data.length / info.superframeSize());
+            int superframes = Math.ceilDiv(data.length, config.superframeBytes());
+            for (int i = 0; i < superframes; i++) {
+                System.arraycopy(data, i * config.superframeBytes(), src, 0, config.superframeBytes());
+                decoder.decode(src, dst);
 
-            for (int i = 0; i < superframeCount; i++) {
-                src.clear();
-                src.clear().put(0, data, i * info.superframeSize(), info.superframeSize());
+                // TODO: Skip encoder delay frames
 
-                dst.clear();
-                decodeSuperFrame(decoder, info, src, dst);
-
-                dst.flip();
-
-                if (i == 0) {
-                    dst.position(dst.position() + encoderDelay * info.channels() * Short.BYTES);
+                buf.clear();
+                for (int smpl = 0; smpl < config.superframeSamples(); smpl++) {
+                    for (int chnl = 0; chnl < config.channelCount(); chnl++) {
+                        buf.putShort(dst[chnl][smpl]);
+                    }
                 }
 
-                channel.write(dst);
+                buf.flip();
+                channel.write(buf);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -62,28 +59,5 @@ public record AudioCodecAtrac9(byte[] configData, int encoderDelay) implements A
             samples,
             output.toByteArray()
         );
-    }
-
-    private static int decodeSuperFrame(Atrac9Decoder atrac9, Atrac9CodecInfo codec, ByteBuffer src, ByteBuffer dst) {
-        var srcSegment = MemorySegment.ofBuffer(src);
-        var dstSegment = MemorySegment.ofBuffer(dst);
-
-        int srcPos = src.position();
-        int dstPos = dst.position();
-        int samples = 0;
-
-        for (int i = 0; i < codec.framesInSuperframe(); i++) {
-            int bytesRead = atrac9.decode(
-                srcSegment.asSlice(srcPos),
-                dstSegment.asSlice(dstPos));
-            srcPos += bytesRead;
-            dstPos += codec.frameSamples() * codec.channels() * Short.BYTES;
-            samples += codec.frameSamples();
-        }
-
-        src.position(srcPos);
-        dst.position(dstPos);
-
-        return samples;
     }
 }

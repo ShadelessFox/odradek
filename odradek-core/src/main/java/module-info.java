@@ -2,6 +2,7 @@ module odradek.core {
     requires be.twofold.tinybcdec;
     requires org.lz4.java;
     requires org.slf4j;
+    requires sh.adelessfox.atrac9j;
 
     exports sh.adelessfox.odradek.audio.codec;
     exports sh.adelessfox.odradek.audio.container.at9;
@@ -19,6 +20,4 @@ module odradek.core {
     exports sh.adelessfox.odradek.texture;
     exports sh.adelessfox.odradek.util;
     exports sh.adelessfox.odradek;
-
-    opens sh.adelessfox.odradek.audio.codec.libatrac9;
 }
