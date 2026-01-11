@@ -11,7 +11,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import javax.swing.*;
 
 @ActionRegistration(text = "&Open Object\u2026", keystroke = "ctrl O")
-@ActionContribution(parent = MainMenu.File.ID)
+@ActionContribution(parent = MainMenu.File.ID, order = 1)
 public class OpenObjectAction extends Action {
     private static String lastInput;
 

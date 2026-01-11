@@ -45,6 +45,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,
+        sh.adelessfox.odradek.app.ui.menu.main.file.OpenGraphAction,
         sh.adelessfox.odradek.app.ui.menu.main.file.OpenObjectAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.ReportAnIssueAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.AboutAction,

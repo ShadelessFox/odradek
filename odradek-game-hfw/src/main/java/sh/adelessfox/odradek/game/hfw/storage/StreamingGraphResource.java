@@ -58,6 +58,10 @@ public class StreamingGraphResource {
         }
     }
 
+    public HorizonForbiddenWest.StreamingGraphResource resource() {
+        return graph;
+    }
+
     public long linkTableID() {
         return graph.linkTableID();
     }
