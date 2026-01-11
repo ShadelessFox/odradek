@@ -14,6 +14,12 @@ public record Scene(List<Node> nodes) {
         return new Scene(List.of(node));
     }
 
+    public void accept(NodeVisitor visitor) {
+        for (var node : nodes) {
+            node.accept(visitor);
+        }
+    }
+
     public Optional<BoundingBox> computeBoundingBox() {
         return nodes.stream()
             .map(Node::computeBoundingBox)
