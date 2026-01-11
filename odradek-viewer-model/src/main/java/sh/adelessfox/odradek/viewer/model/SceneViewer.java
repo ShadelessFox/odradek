@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.GridRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.OverlayRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderMeshesPass;
@@ -42,7 +43,11 @@ public record SceneViewer(Scene scene) implements Viewer {
         Camera camera = new Camera(30.f, 0.01f, 1000.f);
         camera.position(center.sub(1.0f, -1.0f, -1.0f));
 
-        Viewport viewport = new Viewport();
+        ViewportContext context = new ViewportContext();
+        context.setShowVertexUVs(true);
+        context.setShowVertexColors(true);
+
+        Viewport viewport = new Viewport(context);
         viewport.setMinimumSize(new Dimension(100, 100));
         viewport.addRenderPass(new RenderMeshesPass());
         viewport.addRenderPass(new GridRenderPass());

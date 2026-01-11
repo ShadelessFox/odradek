@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.opengl.ShaderSource;
 import sh.adelessfox.odradek.opengl.VertexArray;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 
 import java.io.IOException;
 
@@ -38,7 +39,7 @@ public class GridRenderPass implements RenderPass {
     }
 
     @Override
-    public void draw(Viewport viewport, double dt) {
+    public void draw(Viewport viewport, ViewportContext context, double dt) {
         Camera camera = viewport.getCamera();
         if (camera == null) {
             return;
