@@ -21,7 +21,7 @@ uniform sampler2D u_texture;
 
 void main() {
     if ((u_flags & FLAG_WIREFRAME) != 0) {
-        out_color = vec4(1.0);
+        out_color = vec4(u_color, 1.0);
         return;
     }
 
