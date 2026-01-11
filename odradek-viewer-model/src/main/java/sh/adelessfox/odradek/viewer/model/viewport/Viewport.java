@@ -32,20 +32,21 @@ public final class Viewport extends JComponent implements GLEventListener {
     private final GLCanvas canvas;
     private final ViewportInput input;
     private final ViewportAnimator animator;
+    private final ViewportContext context;
 
-    private float cameraSpeed = 5.f;
-    private float cameraDistance = 1.f;
-    private boolean cameraOriginShown;
+    private float cameraSpeed = 5f;
+    private float cameraDistance = 1f;
     private boolean initialized;
     private Instant lastUpdateTime;
 
     private Camera camera;
     private Scene scene;
 
-    public Viewport() {
+    public Viewport(ViewportContext context) {
         canvas = createCanvas();
         input = new ViewportInput(canvas);
         animator = new ViewportAnimator(this);
+        this.context = context;
 
         setLayout(new BorderLayout());
         add(canvas, BorderLayout.CENTER);
@@ -167,10 +168,6 @@ public final class Viewport extends JComponent implements GLEventListener {
         cameraDistance = camera.position().sub(origin).length();
     }
 
-    public boolean isCameraOriginShown() {
-        return cameraOriginShown;
-    }
-
     public Scene getScene() {
         return scene;
     }
@@ -187,10 +184,6 @@ public final class Viewport extends JComponent implements GLEventListener {
         return canvas.getFramebufferHeight();
     }
 
-    public boolean isKeyDown(int keyCode) {
-        return input.isKeyDown(keyCode);
-    }
-
     private void renderScene(float dt) {
         int width = getFramebufferWidth();
         int height = getFramebufferHeight();
@@ -202,14 +195,14 @@ public final class Viewport extends JComponent implements GLEventListener {
         glViewport(0, 0, width, height);
 
         for (RenderPass pass : effectivePasses) {
-            pass.draw(this, dt);
+            pass.draw(this, context, dt);
         }
     }
 
     private void processInput(float dt) {
         updateCamera(dt);
         for (RenderPass pass : effectivePasses) {
-            pass.process(this, dt, input);
+            pass.process(this, context, input, dt);
         }
         input.clear();
     }
@@ -221,7 +214,7 @@ public final class Viewport extends JComponent implements GLEventListener {
         }
 
         camera.resize(getFramebufferWidth(), getFramebufferHeight());
-        cameraOriginShown = false;
+        context.setShowCameraOrigin(false);
 
         var sensitivity = 1.0f;
         var mouseDelta = input.mousePositionDelta().mul(sensitivity);
@@ -233,11 +226,11 @@ public final class Viewport extends JComponent implements GLEventListener {
         } else if (input.isMouseDown(MouseEvent.BUTTON2)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updatePanCamera(dt, mouseDelta);
-            cameraOriginShown = true;
+            context.setShowCameraOrigin(true);
         } else if (input.isMouseDown(MouseEvent.BUTTON3)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updateOrbitCamera(mouseDelta);
-            cameraOriginShown = true;
+            context.setShowCameraOrigin(true);
         }
     }
 

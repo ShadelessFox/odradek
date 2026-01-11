@@ -18,9 +18,9 @@ import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 
 import javax.imageio.ImageIO;
-import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +75,7 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     @Override
-    public void draw(Viewport viewport, double dt) {
+    public void draw(Viewport viewport, ViewportContext context, double dt) {
         Camera activeCamera = viewport.getCamera();
         if (activeCamera == null) {
             return;
@@ -87,13 +87,13 @@ public final class RenderMeshesPass implements RenderPass {
         }
 
         if (scene != null) {
-            renderScene(activeCamera, viewport.isKeyDown(KeyEvent.VK_X));
+            renderScene(activeCamera, context);
         }
     }
 
-    private void renderScene(Camera camera, boolean wireframe) {
+    private void renderScene(Camera camera, ViewportContext context) {
         glEnable(GL_DEPTH_TEST);
-        glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
+        glPolygonMode(GL_FRONT_AND_BACK, context.isShowWireframe() ? GL_LINE : GL_FILL);
 
         try (var program = this.program.bind()) {
             program.set("u_view", camera.view());
@@ -101,17 +101,15 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_view_position", camera.position());
 
             var frustum = Frustum.of(camera.projectionView());
-            int flags = wireframe ? FLAG_WIREFRAME : 0;
-
             for (GpuNode node : nodes) {
-                renderNode(node, frustum, flags);
+                renderNode(node, frustum, context);
             }
         }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    private void renderNode(GpuNode node, Frustum frustum, int flags) {
+    private void renderNode(GpuNode node, Frustum frustum, ViewportContext context) {
         if (!frustum.test(node.bbox())) {
             return;
         }
@@ -119,12 +117,29 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_model", node.transform());
             program.set("u_color", primitive.color());
             program.set("u_texture", diffuseSampler);
-            program.set("u_flags", flags | primitive.buildFlags());
+            program.set("u_flags", buildPrimitiveFlags(primitive, context));
 
             try (var _ = primitive.vao().bind()) {
                 glDrawElements(GL_TRIANGLES, primitive.count(), primitive.type(), 0);
             }
         }
+    }
+
+    static int buildPrimitiveFlags(GpuPrimitive primitive, ViewportContext context) {
+        int flags = 0;
+        if (context.isShowWireframe()) {
+            flags |= FLAG_WIREFRAME;
+        }
+        if (context.isShowVertexUVs() && primitive.semantics.contains(Semantic.TEXTURE_0)) {
+            flags |= FLAG_HAS_UV;
+        }
+        if (context.isShowVertexColors() && primitive.semantics.contains(Semantic.COLOR)) {
+            flags |= FLAG_HAS_COLOR;
+        }
+        if (primitive.semantics.contains(Semantic.NORMAL)) {
+            flags |= FLAG_HAS_NORMAL;
+        }
+        return flags;
     }
 
     private GpuNode uploadNode(Node node, Matrix4f transform) {
@@ -253,20 +268,6 @@ public final class RenderMeshesPass implements RenderPass {
     private record GpuPrimitive(int count, int type, VertexArray vao, Vector3f color, Set<Semantic> semantics) {
         private GpuPrimitive {
             semantics = Set.copyOf(semantics);
-        }
-
-        int buildFlags() {
-            int flags = 0;
-            if (semantics.contains(Semantic.NORMAL)) {
-                flags |= FLAG_HAS_NORMAL;
-            }
-            if (semantics.contains(Semantic.TEXTURE_0)) {
-                flags |= FLAG_HAS_UV;
-            }
-            if (semantics.contains(Semantic.COLOR)) {
-                flags |= FLAG_HAS_COLOR;
-            }
-            return flags;
         }
 
         void dispose() {
