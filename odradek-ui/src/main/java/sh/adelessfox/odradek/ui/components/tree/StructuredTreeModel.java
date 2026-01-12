@@ -120,7 +120,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
 
         var added = new ArrayList<Integer>();
         var removed = new ArrayList<Integer>();
-        var unchanged = new HashMap<TreeStructure<T>, Integer>();
+        var unchanged = new HashMap<TreeStructure<T>, Node<T>>();
 
         difference(oldChildren, Node::getValue, newChildren, Function.identity(), added, removed, unchanged);
 
@@ -128,9 +128,9 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             var nodes = new ArrayList<Node<T>>(newChildren.size());
 
             for (T child : newChildren) {
-                var oldNodeIndex = unchanged.get(child);
-                if (oldNodeIndex != null) {
-                    nodes.add(node.children.get(oldNodeIndex));
+                var oldNode = unchanged.get(child);
+                if (oldNode != null) {
+                    nodes.add(oldNode);
                 } else {
                     nodes.add(new Node<>(child, node, null));
                 }
@@ -146,11 +146,11 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             }
 
             if (!removed.isEmpty()) {
-                treeNodesRemoved(node, removed.stream().mapToInt(i -> i).toArray());
+                treeNodesRemoved(node, removed.stream().mapToInt(Integer::intValue).toArray());
             }
 
             if (!added.isEmpty()) {
-                treeNodesInserted(node, added.stream().mapToInt(i -> i).toArray());
+                treeNodesInserted(node, added.stream().mapToInt(Integer::intValue).toArray());
             }
         }
 
@@ -160,36 +160,35 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     }
 
     private static <T1, T2, R> void difference(
-        List<? extends T1> original,
-        Function<? super T1, ? extends R> originalMapper,
-        List<? extends T2> updated,
-        Function<? super T2, ? extends R> updatedMapper,
+        List<? extends T1> oldItems, Function<? super T1, ? extends R> oldItemMapper,
+        List<? extends T2> newItems, Function<? super T2, ? extends R> newItemMapper,
         List<Integer> added,
         List<Integer> removed,
-        Map<? super R, Integer> unchanged
+        Map<? super R, ? super T1> unchanged
     ) {
         Set<R> matched = new HashSet<>();
 
-        int length = Math.min(original.size(), updated.size());
+        int length = Math.min(oldItems.size(), newItems.size());
         for (int i = 0; i < length; i++) {
-            R originalItem = originalMapper.apply(original.get(i));
-            R updatedItem = updatedMapper.apply(updated.get(i));
+            var sourceItemRaw = oldItems.get(i);
+            var sourceItem = oldItemMapper.apply(sourceItemRaw);
+            var targetItem = newItemMapper.apply(newItems.get(i));
 
-            if (originalItem.equals(updatedItem)) {
-                unchanged.put(originalItem, i);
-                matched.add(originalItem);
+            if (sourceItem.equals(targetItem)) {
+                unchanged.put(sourceItem, sourceItemRaw);
+                matched.add(sourceItem);
             }
         }
 
-        for (int i = 0; i < original.size(); i++) {
-            R item = originalMapper.apply(original.get(i));
+        for (int i = 0; i < oldItems.size(); i++) {
+            var item = oldItemMapper.apply(oldItems.get(i));
             if (!matched.contains(item)) {
                 removed.add(i);
             }
         }
 
-        for (int i = 0; i < updated.size(); i++) {
-            R item = updatedMapper.apply(updated.get(i));
+        for (int i = 0; i < newItems.size(); i++) {
+            var item = newItemMapper.apply(newItems.get(i));
             if (!matched.contains(item)) {
                 added.add(i);
             }
