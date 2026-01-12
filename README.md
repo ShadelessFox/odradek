@@ -23,6 +23,18 @@ Ready-to-use distributions can be found under the `odradek-app/target/dist` dire
 #### Troubleshooting
 
 <details>
+<summary>Module sh.adelessfox.atrac9j not found</summary>
+Make sure you cloned the repository with the `--recursive` flag, or run the following command in the root directory of the project:
+
+```bash
+git submodule update --init --recursive
+```
+
+Then refresh the Maven project in IntelliJ IDEA and make sure `sh.adelessfox:atrac9j` project is **not** marked as _ignored_.
+
+</details>
+
+<details>
 <summary>Preview features are not enabled</summary>
 You will need to supply a compiler flag  in IntelliJ IDEA's settings to make this error go away.
 
