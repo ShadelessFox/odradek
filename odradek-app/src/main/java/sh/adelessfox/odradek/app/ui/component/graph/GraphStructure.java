@@ -81,11 +81,13 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        public boolean equals(Object object) {
-            return object instanceof GroupedByType that
-                && parent.equals(that.parent)
-                && info.equals(that.info)
-                && Arrays.equals(keys, that.keys);
+        public boolean equals(Object o) {
+            return o instanceof GroupedByType that && parent.equals(that.parent) && info.equals(that.info);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(parent, info);
         }
 
         @Override
@@ -112,6 +114,42 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         public String toString() {
             return "Objects (" + graph.types().size() + ")";
+        }
+    }
+
+    final class GraphRoots extends GroupableByType implements GraphStructure {
+        GraphRoots(StreamingGraphResource graph) {
+            super(graph);
+        }
+
+        @Override
+        protected IntStream keys() {
+            return IntStream.range(0, graph.rootIndices().length);
+        }
+
+        @Override
+        protected StreamingGroupData group(int key) {
+            return graph.group(graph.rootUUIDs().get(key));
+        }
+
+        @Override
+        protected int index(int key) {
+            return graph.rootIndices()[key];
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof GraphRoots that && graph.equals(that.graph);
+        }
+
+        @Override
+        public int hashCode() {
+            return graph.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Roots (" + graph.rootIndices().length + ")";
         }
     }
 
@@ -159,14 +197,12 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof GraphObjectSetGroup that
-                && group.groupID() == that.group.groupID()
-                && Arrays.equals(indices, that.indices);
+            return object instanceof GraphObjectSetGroup that && group.groupID() == that.group.groupID();
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(group.groupID(), Arrays.hashCode(indices));
+            return group.groupID();
         }
 
         @Override
@@ -184,8 +220,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof Group that
-                && group.groupID() == that.group.groupID();
+            return object instanceof Group that && group.groupID() == that.group.groupID();
         }
 
         @Override
@@ -201,12 +236,32 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
     record GroupDependencies(StreamingGraphResource graph, StreamingGroupData group) implements GraphStructure {
         @Override
+        public boolean equals(Object o) {
+            return o instanceof GroupDependencies that && Objects.equals(group, that.group);
+        }
+
+        @Override
+        public int hashCode() {
+            return group.groupID();
+        }
+
+        @Override
         public String toString() {
             return "Dependencies (" + group.subGroupCount() + ")";
         }
     }
 
     record GroupDependents(StreamingGraphResource graph, StreamingGroupData group) implements GraphStructure {
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof GroupDependents that && Objects.equals(group, that.group);
+        }
+
+        @Override
+        public int hashCode() {
+            return group.groupID();
+        }
+
         @Override
         public String toString() {
             return "Dependents (" + graph.incomingGroups(group).size() + ")";
@@ -238,8 +293,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof GroupObjects that
-                && group.groupID() == that.group.groupID();
+            return object instanceof GroupObjects that && group.groupID() == that.group.groupID();
         }
 
         @Override
@@ -278,8 +332,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof GroupRoots that
-                && group.groupID() == that.group.groupID();
+            return object instanceof GroupRoots that && group.groupID() == that.group.groupID();
         }
 
         @Override
@@ -320,9 +373,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof GroupObject that
-                && group.groupID() == that.group.groupID()
-                && index == that.index;
+            return object instanceof GroupObject that && group.groupID() == that.group.groupID() && index == that.index;
         }
 
         @Override
@@ -332,34 +383,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public String toString() {
-            ClassTypeInfo type = objectType();
-            return "[%d] %s".formatted(index, type.name());
-        }
-    }
-
-    final class GraphRoots extends GroupableByType implements GraphStructure {
-        GraphRoots(StreamingGraphResource graph) {
-            super(graph);
-        }
-
-        @Override
-        protected IntStream keys() {
-            return IntStream.range(0, graph.rootIndices().length);
-        }
-
-        @Override
-        protected StreamingGroupData group(int key) {
-            return graph.group(graph.rootUUIDs().get(key));
-        }
-
-        @Override
-        protected int index(int key) {
-            return graph.rootIndices()[key];
-        }
-
-        @Override
-        public String toString() {
-            return "Roots (" + graph.rootIndices().length + ")";
+            return "[%d] %s".formatted(index, objectType());
         }
     }
 

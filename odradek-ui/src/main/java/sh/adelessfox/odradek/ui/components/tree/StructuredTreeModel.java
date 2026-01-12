@@ -170,26 +170,26 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
 
         int length = Math.min(oldItems.size(), newItems.size());
         for (int i = 0; i < length; i++) {
-            var sourceItemRaw = oldItems.get(i);
-            var sourceItem = oldItemMapper.apply(sourceItemRaw);
-            var targetItem = newItemMapper.apply(newItems.get(i));
+            var oldItemRaw = oldItems.get(i);
+            var oldItem = oldItemMapper.apply(oldItemRaw);
+            var newItem = newItemMapper.apply(newItems.get(i));
 
-            if (sourceItem.equals(targetItem)) {
-                unchanged.put(sourceItem, sourceItemRaw);
-                matched.add(sourceItem);
+            if (oldItem.equals(newItem)) {
+                unchanged.put(oldItem, oldItemRaw);
+                matched.add(oldItem);
             }
         }
 
         for (int i = 0; i < oldItems.size(); i++) {
-            var item = oldItemMapper.apply(oldItems.get(i));
-            if (!matched.contains(item)) {
+            var oldItem = oldItemMapper.apply(oldItems.get(i));
+            if (!matched.contains(oldItem)) {
                 removed.add(i);
             }
         }
 
         for (int i = 0; i < newItems.size(); i++) {
-            var item = newItemMapper.apply(newItems.get(i));
-            if (!matched.contains(item)) {
+            var newItem = newItemMapper.apply(newItems.get(i));
+            if (!matched.contains(newItem)) {
                 added.add(i);
             }
         }
