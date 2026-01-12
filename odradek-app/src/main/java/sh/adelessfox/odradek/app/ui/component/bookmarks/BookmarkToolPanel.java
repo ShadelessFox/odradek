@@ -50,7 +50,7 @@ public class BookmarkToolPanel implements ToolPanel {
         });
         Actions.installContextMenu(tree, BookmarkMenu.ID, tree);
 
-        eventBus.subscribe(BookmarkEvent.class, _ -> tree.getModel().update());
+        eventBus.subscribe(BookmarkEvent.class, _ -> tree.getModel().refresh());
 
         return new JScrollPane(tree);
     }

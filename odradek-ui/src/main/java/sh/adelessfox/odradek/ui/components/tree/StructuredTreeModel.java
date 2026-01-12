@@ -9,6 +9,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -17,7 +18,7 @@ import java.util.function.Predicate;
  * <p>
  * It supports filtering of the elements in the tree using a {@link Predicate}
  * set via {@link #setFilter(Predicate)}. After setting the filter, the
- * tree can be updated by calling {@link #update()}.
+ * tree can be updated by calling {@link #refresh()}.
  *
  * @param <T> the type of the elements in the tree
  * @see TreeStructure
@@ -82,17 +83,6 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         throw new UnsupportedOperationException("valueForPathChanged");
     }
 
-    public void update() {
-        if (rootNode != null) {
-            update(rootNode);
-        }
-    }
-
-    public void update(TreePath path) {
-        Node<T> node = cast(path.getLastPathComponent());
-        update(node);
-    }
-
     public Predicate<T> getFilter() {
         return filter;
     }
@@ -101,22 +91,41 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         this.filter = filter;
     }
 
-    private void update(Node<T> node) {
+    /**
+     * Refreshes the entire tree, recomputing the children of each node
+     */
+    public void refresh() {
+        if (rootNode != null) {
+            refresh(rootNode);
+        }
+    }
+
+    /**
+     * Refreshes a complete subtree starting from the given node path, recomputing
+     * the children of each node in that subtree.
+     *
+     * @param path the path to the node to refresh
+     */
+    public void refresh(TreePath path) {
+        refresh(cast(path.getLastPathComponent()));
+    }
+
+    private void refresh(Node<T> node) {
         if (node.children == null) {
             return;
         }
 
+        var oldChildren = node.children;
         var newChildren = computeChildren(node);
-        var oldChildren = node.children.stream().map(n -> n.structure).toList();
 
         var added = new ArrayList<Integer>();
         var removed = new ArrayList<Integer>();
         var unchanged = new HashMap<TreeStructure<T>, Integer>();
 
-        difference(oldChildren, newChildren, added, removed, unchanged);
+        difference(oldChildren, Node::getValue, newChildren, Function.identity(), added, removed, unchanged);
 
         if (!added.isEmpty() || !removed.isEmpty()) {
-            var nodes = new ArrayList<Node<T>>();
+            var nodes = new ArrayList<Node<T>>(newChildren.size());
 
             for (T child : newChildren) {
                 var oldNodeIndex = unchanged.get(child);
@@ -146,23 +155,25 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         }
 
         for (Node<T> child : node.children) {
-            update(child);
+            refresh(child);
         }
     }
 
-    private static <T> void difference(
-        List<? extends T> original,
-        List<? extends T> updated,
+    private static <T1, T2, R> void difference(
+        List<? extends T1> original,
+        Function<? super T1, ? extends R> originalMapper,
+        List<? extends T2> updated,
+        Function<? super T2, ? extends R> updatedMapper,
         List<Integer> added,
         List<Integer> removed,
-        Map<? super T, Integer> unchanged
+        Map<? super R, Integer> unchanged
     ) {
-        Set<T> matched = new HashSet<>();
+        Set<R> matched = new HashSet<>();
 
         int length = Math.min(original.size(), updated.size());
         for (int i = 0; i < length; i++) {
-            T originalItem = original.get(i);
-            T updatedItem = updated.get(i);
+            R originalItem = originalMapper.apply(original.get(i));
+            R updatedItem = updatedMapper.apply(updated.get(i));
 
             if (originalItem.equals(updatedItem)) {
                 unchanged.put(originalItem, i);
@@ -171,14 +182,14 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         }
 
         for (int i = 0; i < original.size(); i++) {
-            T item = original.get(i);
+            R item = originalMapper.apply(original.get(i));
             if (!matched.contains(item)) {
                 removed.add(i);
             }
         }
 
         for (int i = 0; i < updated.size(); i++) {
-            T item = updated.get(i);
+            R item = updatedMapper.apply(updated.get(i));
             if (!matched.contains(item)) {
                 added.add(i);
             }

@@ -20,7 +20,7 @@ abstract class AbstractObjectsOptionAction extends Action implements Action.Chec
             options.add(option);
         }
 
-        tree.getModel().update(Objects.requireNonNull(tree.getSelectionPath()));
+        tree.getModel().refresh(Objects.requireNonNull(tree.getSelectionPath()));
     }
 
     @Override
