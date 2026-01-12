@@ -9,6 +9,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -17,7 +18,7 @@ import java.util.function.Predicate;
  * <p>
  * It supports filtering of the elements in the tree using a {@link Predicate}
  * set via {@link #setFilter(Predicate)}. After setting the filter, the
- * tree can be updated by calling {@link #update()}.
+ * tree can be updated by calling {@link #refresh()}.
  *
  * @param <T> the type of the elements in the tree
  * @see TreeStructure
@@ -82,17 +83,6 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         throw new UnsupportedOperationException("valueForPathChanged");
     }
 
-    public void update() {
-        if (rootNode != null) {
-            update(rootNode);
-        }
-    }
-
-    public void update(TreePath path) {
-        Node<T> node = cast(path.getLastPathComponent());
-        update(node);
-    }
-
     public Predicate<T> getFilter() {
         return filter;
     }
@@ -101,27 +91,46 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         this.filter = filter;
     }
 
-    private void update(Node<T> node) {
+    /**
+     * Refreshes the entire tree, recomputing the children of each node
+     */
+    public void refresh() {
+        if (rootNode != null) {
+            refresh(rootNode);
+        }
+    }
+
+    /**
+     * Refreshes a complete subtree starting from the given node path, recomputing
+     * the children of each node in that subtree.
+     *
+     * @param path the path to the node to refresh
+     */
+    public void refresh(TreePath path) {
+        refresh(cast(path.getLastPathComponent()));
+    }
+
+    private void refresh(Node<T> node) {
         if (node.children == null) {
             return;
         }
 
+        var oldChildren = node.children;
         var newChildren = computeChildren(node);
-        var oldChildren = node.children.stream().map(n -> n.structure).toList();
 
         var added = new ArrayList<Integer>();
         var removed = new ArrayList<Integer>();
-        var unchanged = new HashMap<TreeStructure<T>, Integer>();
+        var unchanged = new HashMap<TreeStructure<T>, Node<T>>();
 
-        difference(oldChildren, newChildren, added, removed, unchanged);
+        difference(oldChildren, Node::getValue, newChildren, Function.identity(), added, removed, unchanged);
 
         if (!added.isEmpty() || !removed.isEmpty()) {
-            var nodes = new ArrayList<Node<T>>();
+            var nodes = new ArrayList<Node<T>>(newChildren.size());
 
             for (T child : newChildren) {
-                var oldNodeIndex = unchanged.get(child);
-                if (oldNodeIndex != null) {
-                    nodes.add(node.children.get(oldNodeIndex));
+                var oldNode = unchanged.get(child);
+                if (oldNode != null) {
+                    nodes.add(oldNode);
                 } else {
                     nodes.add(new Node<>(child, node, null));
                 }
@@ -137,49 +146,50 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             }
 
             if (!removed.isEmpty()) {
-                treeNodesRemoved(node, removed.stream().mapToInt(i -> i).toArray());
+                treeNodesRemoved(node, removed.stream().mapToInt(Integer::intValue).toArray());
             }
 
             if (!added.isEmpty()) {
-                treeNodesInserted(node, added.stream().mapToInt(i -> i).toArray());
+                treeNodesInserted(node, added.stream().mapToInt(Integer::intValue).toArray());
             }
         }
 
         for (Node<T> child : node.children) {
-            update(child);
+            refresh(child);
         }
     }
 
-    private static <T> void difference(
-        List<? extends T> original,
-        List<? extends T> updated,
+    private static <T1, T2, R> void difference(
+        List<? extends T1> oldItems, Function<? super T1, ? extends R> oldItemMapper,
+        List<? extends T2> newItems, Function<? super T2, ? extends R> newItemMapper,
         List<Integer> added,
         List<Integer> removed,
-        Map<? super T, Integer> unchanged
+        Map<? super R, ? super T1> unchanged
     ) {
-        Set<T> matched = new HashSet<>();
+        Set<R> matched = new HashSet<>();
 
-        int length = Math.min(original.size(), updated.size());
+        int length = Math.min(oldItems.size(), newItems.size());
         for (int i = 0; i < length; i++) {
-            T originalItem = original.get(i);
-            T updatedItem = updated.get(i);
+            var oldItemRaw = oldItems.get(i);
+            var oldItem = oldItemMapper.apply(oldItemRaw);
+            var newItem = newItemMapper.apply(newItems.get(i));
 
-            if (originalItem.equals(updatedItem)) {
-                unchanged.put(originalItem, i);
-                matched.add(originalItem);
+            if (oldItem.equals(newItem)) {
+                unchanged.put(oldItem, oldItemRaw);
+                matched.add(oldItem);
             }
         }
 
-        for (int i = 0; i < original.size(); i++) {
-            T item = original.get(i);
-            if (!matched.contains(item)) {
+        for (int i = 0; i < oldItems.size(); i++) {
+            var oldItem = oldItemMapper.apply(oldItems.get(i));
+            if (!matched.contains(oldItem)) {
                 removed.add(i);
             }
         }
 
-        for (int i = 0; i < updated.size(); i++) {
-            T item = updated.get(i);
-            if (!matched.contains(item)) {
+        for (int i = 0; i < newItems.size(); i++) {
+            var newItem = newItemMapper.apply(newItems.get(i));
+            if (!matched.contains(newItem)) {
                 added.add(i);
             }
         }

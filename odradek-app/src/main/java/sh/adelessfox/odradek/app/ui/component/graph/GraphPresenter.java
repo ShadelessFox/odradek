@@ -34,7 +34,7 @@ public class GraphPresenter implements Presenter<GraphView> {
                 case Result.Ok(var predicate) -> {
                     validation.setVisible(false);
                     treeModel.setFilter(predicate.orElse(null));
-                    treeModel.update();
+                    treeModel.refresh();
                 }
                 case Result.Error(var message) -> {
                     validation.setMessage(message);
