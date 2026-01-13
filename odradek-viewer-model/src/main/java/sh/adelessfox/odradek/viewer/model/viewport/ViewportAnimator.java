@@ -55,17 +55,27 @@ final class ViewportAnimator {
 
         viewport.removeHierarchyListener(handler);
         viewport.removeComponentListener(handler);
+
+        renderLock.lock();
+        try {
+            canRender.signal();
+        } finally {
+            renderLock.unlock();
+        }
     }
 
     private void loop() {
         while (isRunning.get()) {
             renderLock.lock();
             try {
-                while (isPaused.get()) {
+                while (isRunning.get() && isPaused.get()) {
                     canRender.awaitUninterruptibly();
                 }
             } finally {
                 renderLock.unlock();
+            }
+            if (!isRunning.get()) {
+                break;
             }
             try {
                 SwingUtilities.invokeAndWait(() -> {

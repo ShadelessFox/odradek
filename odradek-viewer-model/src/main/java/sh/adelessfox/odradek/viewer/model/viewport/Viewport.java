@@ -23,7 +23,7 @@ import java.util.Objects;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL43.*;
 
-public final class Viewport extends JPanel implements GLEventListener {
+public final class Viewport extends JComponent implements GLEventListener {
     private static final Logger log = LoggerFactory.getLogger(Viewport.class);
 
     private final List<RenderPass> passes = new ArrayList<>();
@@ -43,12 +43,11 @@ public final class Viewport extends JPanel implements GLEventListener {
     private Scene scene;
 
     public Viewport() {
-        super(new BorderLayout());
-
         canvas = createCanvas();
         input = new ViewportInput(canvas);
         animator = new ViewportAnimator(this);
 
+        setLayout(new BorderLayout());
         add(canvas, BorderLayout.CENTER);
     }
 
