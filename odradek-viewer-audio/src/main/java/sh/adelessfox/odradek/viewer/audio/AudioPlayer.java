@@ -106,6 +106,7 @@ final class AudioPlayer extends JPanel implements Disposable {
 
         label.clear();
         label.append(StyledFragment.regular("%s / %s".formatted(formatDuration(position), formatDuration(duration))));
+        label.repaint();
     }
 
     private static String formatDuration(Duration duration) {

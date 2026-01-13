@@ -30,8 +30,6 @@ public class StyledComponent extends JComponent {
         synchronized (fragments) {
             fragments.add(fragment);
         }
-
-        repaint();
     }
 
     public void clear() {
@@ -40,8 +38,6 @@ public class StyledComponent extends JComponent {
             leadingIcon = null;
             trailingIcon = null;
         }
-
-        repaint();
     }
 
     public Icon getLeadingIcon() {
@@ -53,7 +49,6 @@ public class StyledComponent extends JComponent {
             return;
         }
         this.leadingIcon = leadingIcon;
-        repaint();
     }
 
     public Icon getTrailingIcon() {
@@ -65,7 +60,6 @@ public class StyledComponent extends JComponent {
             return;
         }
         this.trailingIcon = trailingIcon;
-        repaint();
     }
 
     public int getIconTextGap() {
@@ -80,7 +74,6 @@ public class StyledComponent extends JComponent {
             return;
         }
         this.iconTextGap = iconTextGap;
-        repaint();
     }
 
     public Insets getPadding() {
@@ -92,7 +85,6 @@ public class StyledComponent extends JComponent {
             return;
         }
         this.padding = padding;
-        repaint();
     }
 
     @Override
