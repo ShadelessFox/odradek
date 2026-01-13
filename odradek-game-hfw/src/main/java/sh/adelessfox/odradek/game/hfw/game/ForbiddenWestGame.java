@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.ObjectStreamingSystem;
 import sh.adelessfox.odradek.game.hfw.storage.StorageReadDevice;
@@ -42,6 +43,10 @@ public final class ForbiddenWestGame implements Game {
     private final ObjectStreamingSystem streamingSystem;
     private final StreamingObjectReader streamingReader;
     private final ForbiddenWestFileSystem fileSystem;
+
+    // NOTE: Add customization later
+    private final ELanguage writtenLanguage = ELanguage.English;
+    private final ELanguage spokenLanguage = ELanguage.English;
 
     public ForbiddenWestGame(Path source, EPlatform platform) throws IOException {
         var version = Optional.of(source.resolve("HorizonForbiddenWest.exe"))
@@ -104,6 +109,14 @@ public final class ForbiddenWestGame implements Game {
 
     public StreamingObjectReader getStreamingReader() {
         return streamingReader;
+    }
+
+    public ELanguage getWrittenLanguage() {
+        return writtenLanguage;
+    }
+
+    public ELanguage getSpokenLanguage() {
+        return spokenLanguage;
     }
 
     @Override

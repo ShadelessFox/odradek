@@ -6,11 +6,14 @@ import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.LocalizedSimpleSoundResource;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.RandomSimpleSoundResource;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.SimpleSoundResource;
 
+import java.util.Comparator;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class SimpleSoundResourceToAudioConverter
     extends BaseAudioConverter<SimpleSoundResource>
@@ -37,7 +40,7 @@ public class SimpleSoundResourceToAudioConverter
 
     private static Optional<Audio> convertLocalizedSimpleSoundResource(LocalizedSimpleSoundResource object, ForbiddenWestGame game) {
         var properties = object.streaming().sharedWaveProperties();
-        var localizedDataSource = object.streaming().localizedDataSources().getFirst();
+        var localizedDataSource = localizedDataSourceForLanguage(object, game.getSpokenLanguage());
 
         assert properties.soundSettings().isStreaming();
 
@@ -63,5 +66,26 @@ public class SimpleSoundResourceToAudioConverter
     private static Optional<Audio> convertRandomSimpleSoundResource(RandomSimpleSoundResource object, ForbiddenWestGame game) {
         // TODO: Return all variants once Audio can contain multiple tracks
         return Optional.empty();
+    }
+
+    private static HorizonForbiddenWest.LocalizedDataSource localizedDataSourceForLanguage(LocalizedSimpleSoundResource resource, ELanguage language) {
+        var supportedLanguages = Stream.of(ELanguage.values())
+            .sorted(Comparator.comparingInt(ELanguage::value))
+            .filter(x -> (languageFlags(x) & 2) != 0)
+            .toList();
+
+        int index = supportedLanguages.indexOf(language);
+        var dataSources = resource.streaming().localizedDataSources();
+        return index < 0 ? dataSources.getFirst() : dataSources.get(index);
+    }
+
+    private static int languageFlags(ELanguage language) {
+        // Same code as in HZD. Still no idea what these flags actually mean
+        // FF C9 83 F9 14 77 24 48 63 C1 48 8D 15 ? ? ? ? 0F B6 84 02 ? ? ? ? 8B 8C 82 ? ? ? ? 48 03 CA FF E1
+        return switch (language.value()) {
+            case 1 -> 7;
+            case 2, 3, 4, 5, 7, 10, 11, 16, 17, 18, 20 -> 3;
+            default -> 1;
+        };
     }
 }
