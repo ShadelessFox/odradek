@@ -12,9 +12,9 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Singleton
 public class MainPresenter implements Presenter<MainView> {
@@ -30,7 +30,7 @@ public class MainPresenter implements Presenter<MainView> {
         this.view = view;
         this.editorManager = editorManager;
 
-        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> showObject(event.groupId(), event.objectIndex()));
+        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> openObject(event.groupId(), event.objectIndex()));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadEditors(settings);
@@ -44,27 +44,68 @@ public class MainPresenter implements Presenter<MainView> {
         return view;
     }
 
-    private void showObject(int groupId, int objectIndex) {
+    private void openObject(int groupId, int objectIndex) {
         editorManager.openEditor(new ObjectEditorInputLazy(groupId, objectIndex));
     }
 
     private void loadEditors(Settings settings) {
-        settings.objects().ifPresent(objects -> {
-            for (ObjectId object : objects) {
-                showObject(object.groupId(), object.objectIndex());
-            }
-        });
+        settings.editors().ifPresent(state -> loadContainer(editorManager.getRoot(), state));
     }
 
     private void saveEditors(Settings settings) {
-        var objects = new ArrayList<ObjectId>();
-        for (Editor editor : editorManager.getEditors()) {
-            switch (editor.getInput()) {
-                case ObjectEditorInput i -> objects.add(new ObjectId(i.groupId(), i.objectIndex()));
-                case ObjectEditorInputLazy i -> objects.add(new ObjectId(i.groupId(), i.objectIndex()));
-                default -> { /* do nothing*/ }
+        settings.editors().set(saveContainer(editorManager.getRoot()));
+    }
+
+    private void loadContainer(EditorStackContainer container, Settings.EditorState state) {
+        switch (state) {
+            case Settings.EditorState.Leaf leaf -> {
+                var stack = container.getEditorStack();
+                for (int i = 0; i < leaf.objects().size(); i++) {
+                    var input = new ObjectEditorInputLazy(leaf.objects().get(i));
+                    var select = i == leaf.selection();
+                    editorManager.openEditor(input, stack, select ? EditorManager.Activation.REVEAL : EditorManager.Activation.NO);
+                }
+            }
+            case Settings.EditorState.Split split -> {
+                var result = container.split(split.orientation(), split.proportion(), false);
+                loadContainer(result.left(), split.left());
+                loadContainer(result.right(), split.right());
             }
         }
-        settings.objects().set(List.copyOf(objects));
+    }
+
+    private Settings.EditorState saveContainer(EditorStackContainer container) {
+        if (container.isSplit()) {
+            var left = saveContainer(container.getLeftContainer());
+            var right = saveContainer(container.getRightContainer());
+
+            return new Settings.EditorState.Split(
+                left,
+                right,
+                container.getOrientation(),
+                container.getProportion()
+            );
+        } else {
+            var stack = container.getEditorStack();
+            var selected = stack.getSelectedEditor().orElse(null);
+
+            var objects = new ArrayList<ObjectId>();
+            int selection = 0;
+            for (Editor editor : stack.getEditors()) {
+                if (editor == selected) {
+                    selection = objects.size();
+                }
+                switch (editor.getInput()) {
+                    case ObjectEditorInput i -> objects.add(new ObjectId(i.groupId(), i.objectIndex()));
+                    case ObjectEditorInputLazy i -> objects.add(new ObjectId(i.groupId(), i.objectIndex()));
+                    default -> { /* do nothing*/ }
+                }
+            }
+
+            return new Settings.EditorState.Leaf(
+                objects,
+                selection
+            );
+        }
     }
 }

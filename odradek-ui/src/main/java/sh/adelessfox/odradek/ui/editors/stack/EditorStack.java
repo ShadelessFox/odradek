@@ -8,13 +8,14 @@ import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * A holder for one or more editors grouped together.
  */
-public class EditorStack extends FlatTabbedPane {
+public final class EditorStack extends FlatTabbedPane {
     public enum Position {
         TOP,
         BOTTOM,
@@ -205,6 +206,17 @@ public class EditorStack extends FlatTabbedPane {
         return opposite
             .filter(EditorStackContainer::isLeaf)
             .map(EditorStackContainer::getEditorStack);
+    }
+
+    public List<Editor> getEditors() {
+        return manager.getEditors(this);
+    }
+
+    public Optional<Editor> getSelectedEditor() {
+        if (lastEditor != null) {
+            return Optional.of(lastEditor.editor);
+        }
+        return Optional.empty();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.lazy.LazyEditorInput;
 
@@ -9,6 +10,10 @@ public record ObjectEditorInputLazy(
     int objectIndex,
     boolean canLoadImmediately
 ) implements LazyEditorInput {
+    public ObjectEditorInputLazy(ObjectId objectId) {
+        this(objectId.groupId(), objectId.objectIndex());
+    }
+
     public ObjectEditorInputLazy(int groupId, int objectIndex) {
         this(groupId, objectIndex, true);
     }

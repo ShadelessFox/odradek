@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanelContainer;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
-import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -22,14 +21,10 @@ public class MainView implements View<JComponent> {
         BookmarkToolPanel bookmarkPanel,
         EditorManager editorManager
     ) {
-        if (!(editorManager instanceof EditorStackManager editorStackManager)) {
-            throw new IllegalStateException();
-        }
-
         root = new ToolPanelContainer(ToolPanelContainer.Placement.LEFT);
         root.addPrimaryPanel("Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
         root.addSecondaryPanel("Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
-        root.setContent(editorStackManager.getRoot());
+        root.setContent(editorManager.getRoot());
         root.showPanel(graphPresenter.getView());
     }
 

@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * Hosts a single {@link EditorStack} or a split pane with two {@link EditorStackContainer}s.
  */
-public class EditorStackContainer extends JComponent {
+public final class EditorStackContainer extends JComponent {
     public enum Orientation {
         VERTICAL,
         HORIZONTAL
@@ -86,30 +86,51 @@ public class EditorStackContainer extends JComponent {
     }
 
     public Orientation getOrientation() {
-        assert isSplit();
-        JSplitPane pane = (JSplitPane) getComponent(0);
+        if (!(getComponent(0) instanceof JSplitPane pane)) {
+            throw new IllegalStateException("Container is not split");
+        }
         return pane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ? Orientation.HORIZONTAL : Orientation.VERTICAL;
     }
 
     public void setOrientation(Orientation orientation) {
-        assert isSplit();
-        JSplitPane pane = (JSplitPane) getComponent(0);
+        if (!(getComponent(0) instanceof JSplitPane pane)) {
+            throw new IllegalStateException("Container is not split");
+        }
+        double proportion = getProportion();
         pane.setOrientation(orientation == Orientation.HORIZONTAL ? JSplitPane.HORIZONTAL_SPLIT : JSplitPane.VERTICAL_SPLIT);
+        pane.setDividerLocation(proportion);
+    }
+
+    public double getProportion() {
+        if (!(getComponent(0) instanceof JSplitPane pane)) {
+            throw new IllegalStateException("Container is not split");
+        }
+        if (pane.getOrientation() == JSplitPane.VERTICAL_SPLIT) {
+            return (double) pane.getDividerLocation() / (getHeight() - pane.getDividerSize());
+        } else {
+            return (double) pane.getDividerLocation() / (getWidth() - pane.getDividerSize());
+        }
     }
 
     public EditorStack getEditorStack() {
-        assert isLeaf();
-        return (EditorStack) getComponent(0);
+        if (!(getComponent(0) instanceof EditorStack stack)) {
+            throw new IllegalStateException("Container is not a leaf");
+        }
+        return stack;
     }
 
     public EditorStackContainer getLeftContainer() {
-        assert isSplit();
-        return (EditorStackContainer) ((JSplitPane) getComponent(0)).getLeftComponent();
+        if (!(getComponent(0) instanceof JSplitPane pane)) {
+            throw new IllegalStateException("Container is not split");
+        }
+        return (EditorStackContainer) pane.getLeftComponent();
     }
 
     public EditorStackContainer getRightContainer() {
-        assert isSplit();
-        return (EditorStackContainer) ((JSplitPane) getComponent(0)).getRightComponent();
+        if (!(getComponent(0) instanceof JSplitPane pane)) {
+            throw new IllegalStateException("Container is not split");
+        }
+        return (EditorStackContainer) pane.getRightComponent();
     }
 
     public EditorStackContainer getSplitContainer() {

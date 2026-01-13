@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public class EditorStackManager implements EditorManager {
+public final class EditorStackManager implements EditorManager {
     private final EditorStackContainer root;
     private final EditorSite sharedSite = new MyEditorSite();
 
@@ -42,8 +42,12 @@ public class EditorStackManager implements EditorManager {
 
     @Override
     public void openEditor(EditorInput input, Activation activation) {
+        openEditor(input, findEditorStack(root), activation);
+    }
+
+    @Override
+    public void openEditor(EditorInput input, EditorStack stack, Activation activation) {
         EditorComponent component = findEditorComponent(e -> input.representsSameInput(e.getInput())).orElse(null);
-        EditorStack stack;
 
         if (component == null) {
             var result = createEditorForInput(input);
@@ -51,9 +55,9 @@ public class EditorStackManager implements EditorManager {
             var provider = result.provider();
 
             component = new EditorComponent(activation == Activation.NO ? null : editor.createComponent(), editor, provider);
-            stack = findEditorStack(root);
             stack.insertEditor(input, component, stack.getSelectedIndex() + 1);
         } else {
+            // Do we have to check whether this editor belongs to the given stack?
             stack = component.getEditorStack();
         }
 
@@ -146,6 +150,7 @@ public class EditorStackManager implements EditorManager {
         });
     }
 
+    @Override
     public EditorStackContainer getRoot() {
         return root;
     }
