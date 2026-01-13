@@ -62,6 +62,7 @@ import java.math.BigInteger;
     extensions = {
         @Extension(type = "DrawFlags", extension = DrawFlagsExtension.class),
         @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
+        @Extension(type = "ELanguage", extension = ELanguageExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
         @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)

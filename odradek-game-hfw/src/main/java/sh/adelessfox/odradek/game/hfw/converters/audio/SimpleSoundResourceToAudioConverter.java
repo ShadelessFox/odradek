@@ -12,6 +12,7 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.RandomSimpleSoun
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.SimpleSoundResource;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -20,6 +21,11 @@ public class SimpleSoundResourceToAudioConverter
     implements Converter<SimpleSoundResource, Audio, ForbiddenWestGame> {
 
     private static final Logger log = LoggerFactory.getLogger(SimpleSoundResourceToAudioConverter.class);
+
+    private static final List<ELanguage> spokenLanguages = Stream.of(ELanguage.values())
+        .filter(ELanguage::isSpokenLanguage)
+        .sorted(Comparator.comparingInt(ELanguage::value))
+        .toList();
 
     @Override
     public Optional<Audio> convert(SimpleSoundResource object, ForbiddenWestGame game) {
@@ -69,23 +75,7 @@ public class SimpleSoundResourceToAudioConverter
     }
 
     private static HorizonForbiddenWest.LocalizedDataSource localizedDataSourceForLanguage(LocalizedSimpleSoundResource resource, ELanguage language) {
-        var supportedLanguages = Stream.of(ELanguage.values())
-            .sorted(Comparator.comparingInt(ELanguage::value))
-            .filter(x -> (languageFlags(x) & 2) != 0)
-            .toList();
-
-        int index = supportedLanguages.indexOf(language);
-        var dataSources = resource.streaming().localizedDataSources();
-        return index < 0 ? dataSources.getFirst() : dataSources.get(index);
-    }
-
-    private static int languageFlags(ELanguage language) {
-        // Same code as in HZD. Still no idea what these flags actually mean
-        // FF C9 83 F9 14 77 24 48 63 C1 48 8D 15 ? ? ? ? 0F B6 84 02 ? ? ? ? 8B 8C 82 ? ? ? ? 48 03 CA FF E1
-        return switch (language.value()) {
-            case 1 -> 7;
-            case 2, 3, 4, 5, 7, 10, 11, 16, 17, 18, 20 -> 3;
-            default -> 1;
-        };
+        int index = Math.max(0, spokenLanguages.indexOf(language));
+        return resource.streaming().localizedDataSources().get(index);
     }
 }
