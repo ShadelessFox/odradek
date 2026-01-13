@@ -43,6 +43,7 @@ module odradek.ui {
         sh.adelessfox.odradek.ui.renderers.StringRenderer;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
+        sh.adelessfox.odradek.ui.editors.actions.ChangeSplitterOrientationAction,
         sh.adelessfox.odradek.ui.editors.actions.CloseActiveTabAction,
         sh.adelessfox.odradek.ui.editors.actions.CloseAllTabsAction,
         sh.adelessfox.odradek.ui.editors.actions.CloseOtherTabsAction,

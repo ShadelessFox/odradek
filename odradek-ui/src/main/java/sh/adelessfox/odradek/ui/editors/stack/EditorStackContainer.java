@@ -91,6 +91,12 @@ public class EditorStackContainer extends JComponent {
         return pane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ? Orientation.HORIZONTAL : Orientation.VERTICAL;
     }
 
+    public void setOrientation(Orientation orientation) {
+        assert isSplit();
+        JSplitPane pane = (JSplitPane) getComponent(0);
+        pane.setOrientation(orientation == Orientation.HORIZONTAL ? JSplitPane.HORIZONTAL_SPLIT : JSplitPane.VERTICAL_SPLIT);
+    }
+
     public EditorStack getEditorStack() {
         assert isLeaf();
         return (EditorStack) getComponent(0);

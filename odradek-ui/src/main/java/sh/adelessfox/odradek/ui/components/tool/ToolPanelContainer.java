@@ -14,7 +14,7 @@ import java.util.List;
  * A panel with buttons on either sides that reveal contents when clicked.
  * Clicking on an already selected button will unselect it and hide the contents.
  */
-public final class ToolPanelContainer extends JPanel {
+public final class ToolPanelContainer extends JComponent {
     private final Splitter groupSplitter = new Splitter(true); // splitter between primary and secondary groups
     private final Splitter outerSplitter = new Splitter(false); // splitter between the panel and contents
     private final JPanel buttonsPanel;
@@ -140,7 +140,7 @@ public final class ToolPanelContainer extends JPanel {
         return panel;
     }
 
-    private static final class Splitter extends JPanel {
+    private static final class Splitter extends JComponent {
         private final JSplitPane pane;
         private JComponent firstComponent;
         private JComponent secondComponent;
@@ -149,6 +149,7 @@ public final class ToolPanelContainer extends JPanel {
             pane = new JSplitPane(vertical ? JSplitPane.VERTICAL_SPLIT : JSplitPane.HORIZONTAL_SPLIT);
             pane.setLeftComponent(null);
             pane.setRightComponent(null);
+            pane.setContinuousLayout(true);
 
             setLayout(new BorderLayout());
         }
