@@ -10,7 +10,7 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class ShaderTextureBindingRenderer implements Renderer<ShaderTextureBinding, ForbiddenWestGame> {
+public class ShaderTextureBindingRenderer implements Renderer.OfObject<ShaderTextureBinding, ForbiddenWestGame> {
     @Override
     public Optional<StyledText> styledText(TypeInfo info, ShaderTextureBinding object, ForbiddenWestGame game) {
         var builder = StyledText.builder();

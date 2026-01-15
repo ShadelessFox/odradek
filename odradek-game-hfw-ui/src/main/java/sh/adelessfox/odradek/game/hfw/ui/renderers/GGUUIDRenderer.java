@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public class GGUUIDRenderer implements Renderer<GGUUID, ForbiddenWestGame> {
+public class GGUUIDRenderer implements Renderer.OfObject<GGUUID, ForbiddenWestGame> {
     @Override
     public Optional<String> text(TypeInfo info, GGUUID object, ForbiddenWestGame game) {
         return Optional.of(object.toDisplayString());

@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class StringRenderer implements Renderer<String, Game> {
+public class StringRenderer implements Renderer.OfObject<String, Game> {
     @Override
     public Optional<String> text(TypeInfo info, String object, Game game) {
         return Optional.ofNullable(object);

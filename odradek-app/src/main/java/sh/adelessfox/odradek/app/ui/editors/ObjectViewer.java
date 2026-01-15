@@ -128,29 +128,40 @@ public final class ObjectViewer implements Viewer {
         return Optional.ofNullable(function);
     }
 
-    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(ObjectStructure s, boolean allowStyledText) {
-        var value = s.value();
-        if (value == null) {
+    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(ObjectStructure structure, boolean allowStyledText) {
+        if (structure.value() == null) {
             return Optional.of(b -> b.add("null"));
         }
 
-        var type = s.type();
-        var renderer = (sh.adelessfox.odradek.ui.Renderer<Object, Game>) null;
-        if (s instanceof ObjectStructure.Attr(_, var clazz, var attr, _)) {
-            renderer = sh.adelessfox.odradek.ui.Renderer.renderer(clazz, attr).orElse(null);
+        var type = structure.type();
+        var value = structure.value();
+        var renderer = (Renderer<Object, Game>) null;
+
+        // Special handling for attributes
+        if (structure instanceof ObjectStructure.Attr(_, var clazz, var attr, var object)) {
+            renderer = Renderer.renderer(clazz, attr).orElse(null);
+
+            // For attribute renderers, the parent type/object is passed
+            if (renderer != null) {
+                type = clazz;
+                value = object;
+            }
         }
+
+        // If we couldn't find an attribute-specific renderer, try type-based renderer
         if (renderer == null) {
             renderer = Renderer.renderer(type).orElse(null);
         }
+
         if (renderer != null) {
             if (allowStyledText) {
-                var styledText = renderer.styledText(type, value, s.game()).orElse(null);
+                var styledText = renderer.styledText(type, value, structure.game()).orElse(null);
                 if (styledText != null) {
                     return Optional.of(tb -> tb.add(styledText));
                 }
             }
 
-            var text = renderer.text(type, value, s.game()).orElse(null);
+            var text = renderer.text(type, value, structure.game()).orElse(null);
             if (text != null) {
                 return Optional.of(tb -> tb.add(text));
             }
@@ -159,8 +170,9 @@ public final class ObjectViewer implements Viewer {
         }
 
         if (type instanceof AtomTypeInfo || type instanceof EnumTypeInfo) {
-            // Special case for primitive values; could become a dedicated renderer later
-            return Optional.of(tb -> tb.add(String.valueOf(value)));
+            // Special case for primitive values; SHOULD become a dedicated renderer later
+            var text = String.valueOf(value);
+            return Optional.of(tb -> tb.add(text));
         }
 
         // Other types don't deserve a toString representation unless provided explicitly

@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public class ContainerRenderer implements Renderer<Object, Game> {
+public class ContainerRenderer implements Renderer.OfObject<Object, Game> {
     @Override
     public Optional<String> text(TypeInfo info, Object object, Game game) {
         int length = ((ContainerTypeInfo) info).length(object);

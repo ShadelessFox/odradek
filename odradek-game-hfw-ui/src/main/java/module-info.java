@@ -9,10 +9,10 @@ module odradek.game.hfw.ui {
         sh.adelessfox.odradek.game.hfw.ui.renderers.GGUUIDRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.LocalizedTextResourceRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.MurmurHashValueRenderer,
-        sh.adelessfox.odradek.game.hfw.ui.renderers.RenderTechniqueSet$AvailableTechniquesMaskRenderer,
-        sh.adelessfox.odradek.game.hfw.ui.renderers.RenderTechniqueSet$InitiallyEnabledTechniquesMaskRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.ShaderTextureBindingRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.StreamingDataSourceRenderer,
-        sh.adelessfox.odradek.game.hfw.ui.renderers.TextureSetEntry$PackingInfoRenderer,
-        sh.adelessfox.odradek.game.hfw.ui.renderers.TextureSetTextureDescRenderer;
+        sh.adelessfox.odradek.game.hfw.ui.renderers.TextureSetTextureDescRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.attr.RenderTechniqueSet$AvailableTechniquesMaskRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.attr.RenderTechniqueSet$InitiallyEnabledTechniquesMaskRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.attr.TextureSetEntry$PackingInfoRenderer;
 }

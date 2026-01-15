@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public class MurmurHashValueRenderer implements Renderer<MurmurHashValue, ForbiddenWestGame> {
+public class MurmurHashValueRenderer implements Renderer.OfObject<MurmurHashValue, ForbiddenWestGame> {
     @Override
     public Optional<String> text(TypeInfo info, MurmurHashValue object, ForbiddenWestGame game) {
         return Optional.of(object.toDisplayString());

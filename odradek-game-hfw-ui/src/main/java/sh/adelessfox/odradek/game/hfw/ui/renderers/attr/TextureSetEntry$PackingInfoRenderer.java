@@ -1,6 +1,7 @@
-package sh.adelessfox.odradek.game.hfw.ui.renderers;
+package sh.adelessfox.odradek.game.hfw.ui.renderers.attr;
 
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureSetEntry;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPacking;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPackingChannel;
 import sh.adelessfox.odradek.rtti.ClassAttrInfo;
@@ -12,15 +13,15 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class TextureSetEntry$PackingInfoRenderer implements Renderer<Integer, ForbiddenWestGame> {
+public class TextureSetEntry$PackingInfoRenderer implements Renderer.OfAttribute<TextureSetEntry, ForbiddenWestGame> {
     @Override
-    public Optional<String> text(TypeInfo info, Integer object, ForbiddenWestGame game) {
-        return Optional.of(String.valueOf(object));
+    public Optional<String> text(TypeInfo info, TextureSetEntry object, ForbiddenWestGame game) {
+        return Optional.of(String.valueOf(object.packingInfo()));
     }
 
     @Override
-    public Optional<StyledText> styledText(TypeInfo info, Integer object, ForbiddenWestGame game) {
-        var packingInfo = TextureSetPacking.of(object);
+    public Optional<StyledText> styledText(TypeInfo info, TextureSetEntry object, ForbiddenWestGame game) {
+        var packingInfo = TextureSetPacking.of(object.packingInfo());
         var builder = StyledText.builder();
         appendChannel(packingInfo.red(), "R", builder);
         appendChannel(packingInfo.green(), "G", builder);
@@ -30,8 +31,8 @@ public class TextureSetEntry$PackingInfoRenderer implements Renderer<Integer, Fo
     }
 
     @Override
-    public boolean supports(ClassTypeInfo parent, ClassAttrInfo attr) {
-        return parent.name().equals("TextureSetEntry") && attr.name().equals("PackingInfo");
+    public boolean supports(ClassTypeInfo info, ClassAttrInfo attr) {
+        return info.name().equals("TextureSetEntry") && attr.name().equals("PackingInfo");
     }
 
     private static void appendChannel(Optional<TextureSetPackingChannel> channel, String name, StyledText.Builder builder) {

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class LocalizedTextResourceRenderer implements Renderer<LocalizedTextResource, ForbiddenWestGame> {
+public class LocalizedTextResourceRenderer implements Renderer.OfObject<LocalizedTextResource, ForbiddenWestGame> {
     private static final List<ELanguage> writtenLanguages = Stream.of(ELanguage.values())
         .filter(ELanguage::isWrittenLanguage)
         .sorted(Comparator.comparingInt(ELanguage::value))

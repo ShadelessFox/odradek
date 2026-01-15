@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public class TextureSetTextureDescRenderer implements Renderer<TextureSetTextureDesc, ForbiddenWestGame> {
+public class TextureSetTextureDescRenderer implements Renderer.OfObject<TextureSetTextureDesc, ForbiddenWestGame> {
     @Override
     public Optional<String> text(TypeInfo info, TextureSetTextureDesc object, ForbiddenWestGame game) {
         if (object.path().isEmpty()) {

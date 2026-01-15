@@ -33,7 +33,7 @@ public record StyledText(List<StyledFragment> fragments) {
     }
 
     public static final class Builder {
-        private final List<StyledFragment> segments = new ArrayList<>();
+        private final List<StyledFragment> segments = new ArrayList<>(1);
 
         private Builder() {
         }

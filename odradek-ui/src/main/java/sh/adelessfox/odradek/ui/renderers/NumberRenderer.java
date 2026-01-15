@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class NumberRenderer implements Renderer<Number, Game> {
+public class NumberRenderer implements Renderer.OfObject<Number, Game> {
     @Override
     public Optional<String> text(TypeInfo info, Number object, Game game) {
         var unsigned = isUnsigned(info);

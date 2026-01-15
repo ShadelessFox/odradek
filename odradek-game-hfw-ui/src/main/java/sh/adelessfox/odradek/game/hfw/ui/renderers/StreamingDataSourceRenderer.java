@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public class StreamingDataSourceRenderer implements Renderer<StreamingDataSource, ForbiddenWestGame> {
+public class StreamingDataSourceRenderer implements Renderer.OfObject<StreamingDataSource, ForbiddenWestGame> {
     @Override
     public Optional<String> text(TypeInfo info, StreamingDataSource object, ForbiddenWestGame game) {
         if (!object.isPresent()) {

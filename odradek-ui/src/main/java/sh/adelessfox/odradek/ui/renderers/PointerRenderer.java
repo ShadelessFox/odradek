@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public class PointerRenderer implements Renderer<Ref<?>, Game> {
+public class PointerRenderer implements Renderer.OfObject<Ref<?>, Game> {
     @Override
     public Optional<String> text(TypeInfo info, Ref<?> object, Game game) {
         if (object == null) {
