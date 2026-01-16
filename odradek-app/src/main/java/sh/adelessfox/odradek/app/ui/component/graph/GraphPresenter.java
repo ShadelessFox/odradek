@@ -119,8 +119,11 @@ public class GraphPresenter implements Presenter<GraphView> {
                     return input.contains(query);
                 }
             } else {
-                int index = indexOfIgnoreCase(query, input);
-                return index >= 0 && (!matchWholeWord || index == 0);
+                if (matchWholeWord) {
+                    return input.equalsIgnoreCase(query);
+                } else {
+                    return indexOfIgnoreCase(query, input) >= 0;
+                }
             }
         }
 
