@@ -64,6 +64,11 @@ public abstract class AbstractTypeFactory implements TypeFactory {
     }
 
     @Override
+    public Collection<TypeInfo> getAll() {
+        return context.getAll();
+    }
+
+    @Override
     @SuppressWarnings({"deprecation", "unchecked"})
     public <T> T newInstance(ClassTypeInfo info) {
         Class<?> clazz = classes.computeIfAbsent(info, generator::lookup);

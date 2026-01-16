@@ -4,16 +4,14 @@ import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 
-import java.lang.classfile.ClassBuilder;
-import java.lang.classfile.ClassFile;
-import java.lang.classfile.CodeBuilder;
-import java.lang.classfile.TypeKind;
+import java.lang.classfile.*;
 import java.lang.classfile.attribute.*;
-import java.lang.constant.ClassDesc;
-import java.lang.constant.MethodTypeDesc;
+import java.lang.constant.*;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.TypeDescriptor;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.AccessFlag;
+import java.lang.runtime.ObjectMethods;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -21,12 +19,25 @@ import static java.lang.classfile.ClassFile.*;
 import static java.lang.constant.ConstantDescs.*;
 
 public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
-    private static final ClassDesc CD_Ref = Ref.class.describeConstable().orElseThrow();
-    private static final ClassDesc CD_Value = Value.class.describeConstable().orElseThrow();
-    private static final ClassDesc CD_List = List.class.describeConstable().orElseThrow();
-    private static final ClassDesc CD_StableValue = StableValue.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_Arrays = Arrays.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_ClassTypeInfo = ClassTypeInfo.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_List = List.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_Ref = Ref.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_StableValue = StableValue.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_TypeDescriptor = TypeDescriptor.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_UnsupportedOperationException = UnsupportedOperationException.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_Value = Value.class.describeConstable().orElseThrow();
+
+    private static final DirectMethodHandleDesc BSM_ObjectMethods_boostrap = MethodHandleDesc.ofMethod(
+        DirectMethodHandleDesc.Kind.STATIC,
+        ObjectMethods.class.describeConstable().orElseThrow(),
+        "bootstrap",
+        MethodTypeDesc.of(
+            CD_Object,
+            CD_MethodHandles_Lookup, CD_String, CD_TypeDescriptor,
+            CD_Class, CD_String, CD_MethodHandle.arrayType()
+        )
+    );
 
     private final Map<ClassTypeInfo, Class<?>> classes = new IdentityHashMap<>();
     private final MethodHandles.Lookup lookup;
@@ -75,7 +86,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 .invokestatic(CD_StableValue, "of", MethodTypeDesc.of(CD_StableValue), true)
                 .putstatic(desc, "$type", CD_StableValue)
                 .return_());
-            cb.withMethodBody("getType", MethodTypeDesc.of(CD_ClassTypeInfo), ClassFile.ACC_PUBLIC, cob -> cob
+            cb.withMethodBody("getType", MethodTypeDesc.of(CD_ClassTypeInfo), ACC_PUBLIC, cob -> cob
                 .getstatic(desc, "$type", CD_StableValue)
                 .invokeinterface(CD_StableValue, "orElseThrow", MethodTypeDesc.of(CD_Object))
                 .checkcast(CD_ClassTypeInfo)
@@ -97,7 +108,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 cb.withField(groupField, groupDesc, ACC_FINAL | ACC_SYNTHETIC);
 
                 // Getter
-                cb.withMethodBody(toGetterName(group), MethodTypeDesc.of(groupDesc), ClassFile.ACC_PUBLIC, cob -> cob
+                cb.withMethodBody(toGetterName(group), MethodTypeDesc.of(groupDesc), ACC_PUBLIC, cob -> cob
                     .aload(0)
                     .getfield(desc, groupField, groupDesc)
                     .areturn());
@@ -115,11 +126,24 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 generateGroupClass(info, desc, group, groupDesc, groupImplDesc);
             }
 
+            // Constructor
+            cb.withMethodBody(INIT_NAME, MTD_void, ACC_PUBLIC, cob -> {
+                cob.aload(0);
+                cob.invokespecial(CD_Object, INIT_NAME, MTD_void);
+
+                constructor.forEach(c -> c.accept(cob));
+
+                cob.return_();
+            });
+
             // Integrate information about nested group classes
             cb.with(NestMembersAttribute.ofSymbols(groupClasses));
             cb.with(InnerClassesAttribute.of(groupClasses.stream()
                 .map(d -> InnerClassInfo.of(d, Optional.empty(), Optional.empty()))
                 .toList()));
+
+            // For bootstrapping toString, equals and hashCode
+            List<BoostrapAttrInfo> bootstrapAttrs = new ArrayList<>();
 
             // Attributes
             for (ClassAttrInfo attr : collectAttributes(info)) {
@@ -128,7 +152,12 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
 
                 if (attr.isSerialized() || !attr.isProperty()) {
                     // Non-serialized property values are evaluated via functions; they don't have any explicit storage.
-                    cb.withField(attrField, attrDesc, ClassFile.ACC_PRIVATE);
+                    cb.withField(attrField, attrDesc, ACC_PRIVATE);
+
+                    bootstrapAttrs.add(new BoostrapAttrInfo(
+                        attr,
+                        MethodHandleDesc.ofField(DirectMethodHandleDesc.Kind.GETTER, desc, attrField, attrDesc)
+                    ));
                 }
 
                 // Getter and setter, if no group
@@ -137,15 +166,9 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 }
             }
 
-            // Constructor
-            cb.withMethodBody(INIT_NAME, MTD_void, ClassFile.ACC_PUBLIC, cob -> {
-                cob.aload(0);
-                cob.invokespecial(CD_Object, INIT_NAME, MTD_void);
-
-                constructor.forEach(c -> c.accept(cob));
-
-                cob.return_();
-            });
+            // Bootstrap toString, equals, hashCode
+            buildToString(cb, desc, bootstrapAttrs);
+            buildEqualsHashCode(cb, desc, bootstrapAttrs);
         });
 
         try {
@@ -203,6 +226,123 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         holder.setOrThrow(info);
     }
 
+    private static void buildToString(ClassBuilder builder, ClassDesc desc, List<BoostrapAttrInfo> attrs) {
+        List<String> names = new ArrayList<>(attrs.size());
+        List<DirectMethodHandleDesc> handles = new ArrayList<>(attrs.size());
+
+        for (BoostrapAttrInfo attr : attrs) {
+            if (attr.attr().type() instanceof ContainerTypeInfo) {
+                // Exclude containers from toString (IDEA: show 'N items' instead)
+                continue;
+            }
+            names.add(toDisplayName(attr.attr()));
+            handles.add(attr.handle());
+        }
+
+        List<ConstantDesc> args = new ArrayList<>();
+        args.add(desc);
+        args.add(String.join(";", names));
+        args.addAll(handles);
+
+        builder.withMethodBody("toString", MethodTypeDesc.of(CD_String), ACC_PUBLIC, cob -> {
+            cob.aload(0);
+            cob.invokedynamic(DynamicCallSiteDesc.of(
+                BSM_ObjectMethods_boostrap,
+                "toString",
+                MethodTypeDesc.of(CD_String, desc),
+                args.toArray(ConstantDesc[]::new)
+            ));
+            cob.areturn();
+        });
+    }
+
+    private static void buildEqualsHashCode(ClassBuilder builder, ClassDesc desc, List<BoostrapAttrInfo> attrs) {
+        List<String> names = new ArrayList<>(attrs.size());
+        List<DirectMethodHandleDesc> handles = new ArrayList<>(attrs.size());
+        List<BoostrapAttrInfo> arrays = new ArrayList<>();
+
+        for (BoostrapAttrInfo attr : attrs) {
+            if (attr.handle().invocationType().returnType().isArray()) {
+                // Boostrap doesn't correctly work with arrays; rely on Arrays methods instead
+                arrays.add(attr);
+            } else {
+                names.add(toDisplayName(attr.attr()));
+                handles.add(attr.handle());
+            }
+        }
+
+        List<ConstantDesc> args = new ArrayList<>();
+        args.add(desc);
+        args.add(String.join(";", names));
+        args.addAll(handles);
+
+        builder.withMethodBody("equals", MethodTypeDesc.of(CD_boolean, CD_Object), ACC_PUBLIC, cob -> {
+            cob.aload(0);
+            cob.aload(1);
+            cob.invokedynamic(DynamicCallSiteDesc.of(
+                BSM_ObjectMethods_boostrap,
+                "equals",
+                MethodTypeDesc.of(CD_boolean, desc, CD_Object),
+                args.toArray(ConstantDesc[]::new)
+            ));
+
+            if (!arrays.isEmpty()) {
+                Label fail = cob.newLabel();
+                cob.ifeq(fail);
+
+                cob.aload(1);
+                cob.checkcast(desc);
+                cob.astore(1);
+
+                for (BoostrapAttrInfo attr : arrays) {
+                    var fieldName = attr.handle().methodName();
+                    var fieldDesc = attr.handle().invocationType().returnType();
+
+                    cob.aload(0);
+                    cob.getfield(desc, fieldName, fieldDesc);
+
+                    cob.aload(1);
+                    cob.getfield(desc, fieldName, fieldDesc);
+
+                    cob.invokestatic(CD_Arrays, "equals", MethodTypeDesc.of(CD_boolean, fieldDesc, fieldDesc));
+                    cob.ifeq(fail);
+                }
+
+                cob.iconst_1();
+                cob.ireturn();
+
+                cob.labelBinding(fail);
+                cob.iconst_0();
+            }
+
+            cob.ireturn();
+        });
+
+        builder.withMethodBody("hashCode", MethodTypeDesc.of(CD_int), ACC_PUBLIC, cob -> {
+            cob.aload(0);
+            cob.invokedynamic(DynamicCallSiteDesc.of(
+                BSM_ObjectMethods_boostrap,
+                "hashCode",
+                MethodTypeDesc.of(CD_int, desc),
+                args.toArray(ConstantDesc[]::new)
+            ));
+
+            for (BoostrapAttrInfo attr : arrays) {
+                var fieldName = attr.handle().methodName();
+                var fieldDesc = attr.handle().invocationType().returnType();
+
+                cob.ldc(31);
+                cob.imul();
+                cob.aload(0);
+                cob.getfield(desc, fieldName, fieldDesc);
+                cob.invokestatic(CD_Arrays, "hashCode", MethodTypeDesc.of(CD_int, fieldDesc));
+                cob.iadd();
+            }
+
+            cob.ireturn();
+        });
+    }
+
     private void buildAttr(ClassBuilder builder, ClassDesc desc, ClassAttrInfo attr) {
         if (attr.isSerialized() || !attr.isProperty()) {
             buildInstanceAttr(builder, desc, attr);
@@ -223,12 +363,12 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         var attrField = toFieldName(attr);
         var attrDesc = toClassDesc(attr.type(), true);
 
-        builder.withMethodBody(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, cob -> cob
+        builder.withMethodBody(toGetterName(attr), MethodTypeDesc.of(attrDesc), ACC_PUBLIC, cob -> cob
             .aload(0)
             .getfield(desc, attrField, attrDesc)
             .return_(TypeKind.from(attrDesc)));
 
-        builder.withMethodBody(toSetterName(attr), MethodTypeDesc.of(CD_void, attrDesc), ClassFile.ACC_PUBLIC, cob -> cob
+        builder.withMethodBody(toSetterName(attr), MethodTypeDesc.of(CD_void, attrDesc), ACC_PUBLIC, cob -> cob
             .aload(0)
             .loadLocal(TypeKind.from(attrDesc), 1)
             .putfield(desc, attrField, attrDesc)
@@ -239,13 +379,13 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         var attrField = toFieldName(attr);
         var attrDesc = toClassDesc(attr.type(), true);
 
-        builder.withMethodBody(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, cob -> cob
+        builder.withMethodBody(toGetterName(attr), MethodTypeDesc.of(attrDesc), ACC_PUBLIC, cob -> cob
             .aload(0)
             .getfield(groupDesc, "this$0", hostDesc)
             .getfield(hostDesc, attrField, attrDesc)
             .return_(TypeKind.from(attrDesc)));
 
-        builder.withMethodBody(toSetterName(attr), MethodTypeDesc.of(CD_void, attrDesc), ClassFile.ACC_PUBLIC, cob -> cob
+        builder.withMethodBody(toSetterName(attr), MethodTypeDesc.of(CD_void, attrDesc), ACC_PUBLIC, cob -> cob
             .aload(0)
             .getfield(groupDesc, "this$0", hostDesc)
             .loadLocal(TypeKind.from(attrDesc), 1)
@@ -256,10 +396,10 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     private void buildPropertyAttr(ClassBuilder builder, ClassAttrInfo attr) {
         var attrDesc = toClassDesc(attr.type(), true);
 
-        builder.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+        builder.withMethod(toGetterName(attr), MethodTypeDesc.of(attrDesc), ACC_PUBLIC, mb -> mb
             .withCode(TypeRuntimeGenerator::buildPropertyAccessException));
 
-        builder.withMethod(toSetterName(attr), MethodTypeDesc.of(CD_void, attrDesc), ClassFile.ACC_PUBLIC, mb -> mb
+        builder.withMethod(toSetterName(attr), MethodTypeDesc.of(CD_void, attrDesc), ACC_PUBLIC, mb -> mb
             .withCode(TypeRuntimeGenerator::buildPropertyAccessException));
     }
 
@@ -309,13 +449,22 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         };
     }
 
-    private String toFieldName(ClassAttrInfo attr) {
+    private static String toFieldName(ClassAttrInfo attr) {
         return attr.group()
             .map(group -> group + "$" + attr.name())
             .orElseGet(attr::name);
     }
 
+    private static String toDisplayName(ClassAttrInfo attr) {
+        return attr.group()
+            .map(group -> group + "." + attr.name())
+            .orElseGet(attr::name);
+    }
+
     private String toFieldName(ClassGroupInfo group) {
         return group.name();
+    }
+
+    private record BoostrapAttrInfo(ClassAttrInfo attr, DirectMethodHandleDesc handle) {
     }
 }

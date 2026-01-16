@@ -16,14 +16,13 @@ import java.util.Optional;
 public class EnumFact$DefaultValueUUIDRenderer implements Renderer.OfAttribute<EnumFact, ForbiddenWestGame> {
     @Override
     public Optional<StyledText> styledText(TypeInfo info, EnumFact object, ForbiddenWestGame game) {
-        var uuid = object.logic().defaultValueUUID().toDisplayString();
+        var uuid = object.logic().defaultValueUUID();
         var definition = object.logic().enumDefinition().get();
         for (EnumFactEntry entry : Ref.unwrap(definition.enumValues())) {
-            // FIXME: Implement proper equals and hashCode on generated POJOs
-            if (entry.general().objectUUID().toDisplayString().equals(uuid)) {
+            if (entry.general().objectUUID().equals(uuid)) {
                 return Optional.of(StyledText.builder()
                     .add(entry.general().name())
-                    .add(" (" + uuid + ")", StyledFragment.GRAYED)
+                    .add(" (" + uuid.toDisplayString() + ")", StyledFragment.GRAYED)
                     .build());
             }
         }
