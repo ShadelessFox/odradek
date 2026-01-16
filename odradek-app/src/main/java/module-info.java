@@ -50,12 +50,12 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.file.OpenObjectAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.ReportAnIssueAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.AboutAction,
+        sh.adelessfox.odradek.app.ui.menu.graph.CopyIdToClipboardAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,
         sh.adelessfox.odradek.app.ui.menu.graph.GroupObjectsByTypeAction,
         sh.adelessfox.odradek.app.ui.menu.graph.SortObjectsByCountAction,
-        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction,
-        sh.adelessfox.odradek.app.ui.menu.object.CopyIdToClipboardAction;
+        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction;
 
     provides sh.adelessfox.odradek.ui.editors.Editor.Provider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditor.Provider;
