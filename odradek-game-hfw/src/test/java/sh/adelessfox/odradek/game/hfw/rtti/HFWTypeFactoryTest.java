@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-@Disabled("Surefire loads classes in an unnamed module, so the type factory fails to initialize")
+@Disabled("JUnit ignores JPSM and loads everything in an unnamed module, so the type factory fails to initialize")
 class HFWTypeFactoryTest {
     private static TypeFactory factory;
 
