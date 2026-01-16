@@ -81,7 +81,7 @@
 		},
 		"LocalizedTextResourceExtension": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
-				{"name": "Translations", "type": "Array_String", "offset": 0, "flags": 0}
+				{"name": "Texts", "type": "Array_String", "offset": 0, "flags": 0}
 			]
 		},
 		"MorphemeAnimationExtension": {

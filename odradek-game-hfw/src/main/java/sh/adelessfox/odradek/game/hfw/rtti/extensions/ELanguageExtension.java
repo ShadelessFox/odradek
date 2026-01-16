@@ -2,10 +2,34 @@ package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
+
 public interface ELanguageExtension {
     int IS_WRITTEN_LANGUAGE = 1;
     int IS_SPOKEN_LANGUAGE = 2;
     int IS_DEFAULT_LANGUAGE = 4;
+
+    static List<ELanguage> writtenLanguages() {
+        class Holder {
+            static final List<ELanguage> languages = Stream.of(ELanguage.values())
+                .filter(ELanguage::isWrittenLanguage)
+                .sorted(Comparator.comparingInt(ELanguage::value))
+                .toList();
+        }
+        return Holder.languages;
+    }
+
+    static List<ELanguage> spokenLanguages() {
+        class Holder {
+            static final List<ELanguage> languages = Stream.of(ELanguage.values())
+                .filter(ELanguage::isSpokenLanguage)
+                .sorted(Comparator.comparingInt(ELanguage::value))
+                .toList();
+        }
+        return Holder.languages;
+    }
 
     default boolean isWrittenLanguage() {
         return (flags() & IS_WRITTEN_LANGUAGE) != 0;
