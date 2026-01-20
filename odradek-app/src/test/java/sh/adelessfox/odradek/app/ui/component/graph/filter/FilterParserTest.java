@@ -16,11 +16,11 @@ class FilterParserTest {
                 new Filter.And(
                     new Filter.Not(
                         new Filter.Or(
-                            new Filter.Type("Texture"),
-                            new Filter.Type("EnumFact")
+                            new Filter.GroupType("Texture"),
+                            new Filter.GroupType("EnumFact")
                         )
                     ),
-                    new Filter.GroupHas(Filter.GroupHas.What.SUBGROUPS)
+                    new Filter.GroupHasSubgroups()
                 )
             ),
             result

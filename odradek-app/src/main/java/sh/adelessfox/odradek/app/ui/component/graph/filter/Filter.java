@@ -1,12 +1,10 @@
 package sh.adelessfox.odradek.app.ui.component.graph.filter;
 
 import sh.adelessfox.odradek.app.ui.component.graph.GraphStructure;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.util.Result;
 
 import java.util.Set;
-import java.util.function.ToIntFunction;
 
 public sealed interface Filter {
     static Result<Filter, FilterError> parse(String input) {
@@ -30,35 +28,37 @@ public sealed interface Filter {
         }
     }
 
-    record GroupHas(What what) implements Filter {
-        enum What {
-            SUBGROUPS("subgroups", StreamingGroupData::subGroupCount),
-            ROOTS("roots", StreamingGroupData::rootCount);
-
-            private final String name;
-            private final ToIntFunction<StreamingGroupData> supplier;
-
-            What(String name, ToIntFunction<StreamingGroupData> supplier) {
-                this.name = name;
-                this.supplier = supplier;
-            }
-        }
-
+    record GroupHasSubgroups() implements Filter {
         @Override
         public boolean test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> what.supplier.applyAsInt(group.group()) > 0;
+                case GraphStructure.Group group -> group.group().subGroupCount() > 0;
                 default -> true;
             };
         }
 
         @Override
         public String toString() {
-            return "has:" + what.name;
+            return "has:subgroups";
         }
     }
 
-    record Type(String name) implements Filter {
+    record GroupHasRoots() implements Filter {
+        @Override
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+            return switch (structure) {
+                case GraphStructure.Group group -> group.group().rootCount() > 0;
+                default -> true;
+            };
+        }
+
+        @Override
+        public String toString() {
+            return "has:roots";
+        }
+    }
+
+    record GroupType(String name) implements Filter {
         @Override
         public boolean test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {

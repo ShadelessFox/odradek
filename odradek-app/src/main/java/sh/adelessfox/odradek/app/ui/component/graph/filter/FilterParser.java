@@ -97,15 +97,15 @@ public final class FilterParser {
                 if (!(value instanceof FilterToken.Name(var name, _))) {
                     yield Result.error(new FilterError("Expected type name after ':' but found " + value.toDisplayString(), value.offset()));
                 }
-                yield Result.ok(new Filter.Type(name));
+                yield Result.ok(new Filter.GroupType(name));
             }
             case "has" -> {
                 if (!(value instanceof FilterToken.Name(var what, _))) {
                     yield Result.error(new FilterError("Expected criteria name after ':' but found " + value.toDisplayString(), value.offset()));
                 }
                 yield switch (what) {
-                    case "subgroups" -> Result.ok(new Filter.GroupHas(Filter.GroupHas.What.SUBGROUPS));
-                    case "roots" -> Result.ok(new Filter.GroupHas(Filter.GroupHas.What.ROOTS));
+                    case "subgroups" -> Result.ok(new Filter.GroupHasSubgroups());
+                    case "roots" -> Result.ok(new Filter.GroupHasRoots());
                     default -> Result.error(new FilterError("Unknown 'has' criteria '" + what + "'", value.offset()));
                 };
             }
