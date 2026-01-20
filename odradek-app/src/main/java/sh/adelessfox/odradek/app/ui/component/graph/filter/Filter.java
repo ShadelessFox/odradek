@@ -9,15 +9,15 @@ import java.util.Set;
 import java.util.function.ToIntFunction;
 
 public sealed interface Filter {
-    static Result<Filter, FilterError> parse(String input, Set<FilterOption> options) {
-        return new FilterParser(options).parse(input);
+    static Result<Filter, FilterError> parse(String input) {
+        return FilterParser.parse(input);
     }
 
-    boolean test(GraphStructure structure);
+    boolean test(GraphStructure structure, Set<FilterOption> options);
 
     record GroupId(int id) implements Filter {
         @Override
-        public boolean test(GraphStructure structure) {
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
                 case GraphStructure.Group group -> group.filterable() && group.group().groupID() == id;
                 default -> true;
@@ -45,7 +45,7 @@ public sealed interface Filter {
         }
 
         @Override
-        public boolean test(GraphStructure structure) {
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
                 case GraphStructure.Group group -> what.supplier.applyAsInt(group.group()) > 0;
                 default -> true;
@@ -58,33 +58,32 @@ public sealed interface Filter {
         }
     }
 
-    record Type(String name, boolean caseSensitive, boolean wholeWord) implements Filter {
+    record Type(String name) implements Filter {
         @Override
-        public boolean test(GraphStructure structure) {
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group(var graph, var group, _) -> graph.types(group).anyMatch(this::matches);
-                case GraphStructure.GraphObjectSet(_, var info, _) -> matches(info);
-                case GraphStructure.GroupObject object -> matches(object.objectType());
-                case GraphStructure.GroupedByType groupedByType -> matches(groupedByType.info());
+                case GraphStructure.Group(var graph, var group, _) ->
+                    graph.types(group).anyMatch(info -> matches(info, options));
+                case GraphStructure.GraphObjectSet(_, var info, _) -> matches(info, options);
+                case GraphStructure.GroupObject object -> matches(object.objectType(), options);
+                case GraphStructure.GroupedByType groupedByType -> matches(groupedByType.info(), options);
                 default -> true;
             };
         }
 
         @Override
         public String toString() {
-            return switch ((caseSensitive ? 1 : 0) | (wholeWord ? 2 : 0)) {
-                case 1 -> "type[c]:" + name;
-                case 2 -> "type[w]:" + name;
-                case 3 -> "type[cw]:" + name;
-                default -> "type:" + name;
-            };
+            return "type:" + name;
         }
 
-        private boolean matches(TypeInfo info) {
-            return matches(info.name());
+        private boolean matches(TypeInfo info, Set<FilterOption> options) {
+            return matches(info.name(), options);
         }
 
-        private boolean matches(String input) {
+        private boolean matches(String input, Set<FilterOption> options) {
+            boolean wholeWord = options.contains(FilterOption.WHOLE_WORD);
+            boolean caseSensitive = options.contains(FilterOption.CASE_SENSITIVE);
+
             if (wholeWord && input.length() != name.length()) {
                 return false;
             }
@@ -118,8 +117,8 @@ public sealed interface Filter {
 
     record And(Filter left, Filter right) implements Filter {
         @Override
-        public boolean test(GraphStructure structure) {
-            return left.test(structure) && right.test(structure);
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+            return left.test(structure, options) && right.test(structure, options);
         }
 
         @Override
@@ -130,8 +129,8 @@ public sealed interface Filter {
 
     record Or(Filter left, Filter right) implements Filter {
         @Override
-        public boolean test(GraphStructure structure) {
-            return left.test(structure) || right.test(structure);
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+            return left.test(structure, options) || right.test(structure, options);
         }
 
         @Override
@@ -142,8 +141,8 @@ public sealed interface Filter {
 
     record Not(Filter filter) implements Filter {
         @Override
-        public boolean test(GraphStructure structure) {
-            return !filter.test(structure);
+        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+            return !filter.test(structure, options);
         }
 
         @Override

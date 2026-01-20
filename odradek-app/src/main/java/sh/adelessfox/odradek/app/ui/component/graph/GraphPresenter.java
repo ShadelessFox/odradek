@@ -61,8 +61,8 @@ public class GraphPresenter implements Presenter<GraphView> {
         if (matchWholeWord) {
             options.add(FilterOption.WHOLE_WORD);
         }
-        return Filter.parse(input, options)
-            .map(filter -> Optional.<Predicate<GraphStructure>>of(filter::test))
+        return Filter.parse(input)
+            .map(filter -> Optional.<Predicate<GraphStructure>>of(structure -> filter.test(structure, options)))
             .mapError(error -> "%s at %d".formatted(error.message(), error.offset()));
     }
 }

@@ -4,21 +4,20 @@ import org.junit.jupiter.api.Test;
 import sh.adelessfox.odradek.util.Result;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class FilterParserTest {
     @Test
     void parserTest() {
-        var result = Filter.parse("!(type:Texture OR type:EnumFact) AND has:subgroups", Set.of(FilterOption.WHOLE_WORD));
+        var result = Filter.parse("!(type:Texture OR type:EnumFact) AND has:subgroups");
         assertEquals(
             Result.ok(
                 new Filter.And(
                     new Filter.Not(
                         new Filter.Or(
-                            new Filter.Type("Texture", false, true),
-                            new Filter.Type("EnumFact", false, true)
+                            new Filter.Type("Texture"),
+                            new Filter.Type("EnumFact")
                         )
                     ),
                     new Filter.GroupHas(Filter.GroupHas.What.SUBGROUPS)

@@ -2,18 +2,20 @@ package sh.adelessfox.odradek.app.ui.component.graph.filter;
 
 import sh.adelessfox.odradek.util.Result;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
-public record FilterParser(Set<FilterOption> options) {
-    public FilterParser {
-        options = Set.copyOf(options);
+public final class FilterParser {
+    private FilterParser() {
     }
 
-    Result<Filter, FilterError> parse(String input) {
-        return tokenize(input).flatMap(this::parse);
+    static Result<Filter, FilterError> parse(String input) {
+        return tokenize(input).flatMap(FilterParser::parse);
     }
 
-    Result<Filter, FilterError> parse(List<FilterToken> tokens) {
+    private static Result<Filter, FilterError> parse(List<FilterToken> tokens) {
         var pending = new ArrayDeque<>(tokens);
         var result = parseInfix(pending);
         if (result.isError()) {
@@ -26,11 +28,11 @@ public record FilterParser(Set<FilterOption> options) {
         return result;
     }
 
-    Result<Filter, FilterError> parseInfix(Queue<FilterToken> tokens) {
+    private static Result<Filter, FilterError> parseInfix(Queue<FilterToken> tokens) {
         return parsePrefix(tokens).flatMap(left -> parseInfix(left, tokens));
     }
 
-    Result<Filter, FilterError> parseInfix(Filter left, Queue<FilterToken> tokens) {
+    private static Result<Filter, FilterError> parseInfix(Filter left, Queue<FilterToken> tokens) {
         while (tokens.element() instanceof FilterToken.And || tokens.element() instanceof FilterToken.Or) {
             var op = tokens.remove();
             var right = parsePrefix(tokens);
@@ -48,7 +50,7 @@ public record FilterParser(Set<FilterOption> options) {
         return Result.ok(left);
     }
 
-    Result<Filter, FilterError> parsePrefix(Queue<FilterToken> tokens) {
+    private static Result<Filter, FilterError> parsePrefix(Queue<FilterToken> tokens) {
         if (tokens.element() instanceof FilterToken.Not) {
             tokens.remove();
             return parsePrimary(tokens).map(Filter.Not::new);
@@ -56,7 +58,7 @@ public record FilterParser(Set<FilterOption> options) {
         return parsePrimary(tokens);
     }
 
-    Result<Filter, FilterError> parsePrimary(Queue<FilterToken> tokens) {
+    private static Result<Filter, FilterError> parsePrimary(Queue<FilterToken> tokens) {
         var token = tokens.remove();
         return switch (token) {
             case FilterToken.Name(var key, int offset) -> {
@@ -83,7 +85,7 @@ public record FilterParser(Set<FilterOption> options) {
         };
     }
 
-    private Result<Filter, FilterError> parseKey(String key, int offset, FilterToken value) {
+    private static Result<Filter, FilterError> parseKey(String key, int offset, FilterToken value) {
         return switch (key) {
             case "group" -> {
                 if (!(value instanceof FilterToken.Number(var id, _))) {
@@ -95,11 +97,7 @@ public record FilterParser(Set<FilterOption> options) {
                 if (!(value instanceof FilterToken.Name(var name, _))) {
                     yield Result.error(new FilterError("Expected type name after ':' but found " + value.toDisplayString(), value.offset()));
                 }
-                yield Result.ok(new Filter.Type(
-                    name,
-                    options.contains(FilterOption.CASE_SENSITIVE),
-                    options.contains(FilterOption.WHOLE_WORD)
-                ));
+                yield Result.ok(new Filter.Type(name));
             }
             case "has" -> {
                 if (!(value instanceof FilterToken.Name(var what, _))) {
