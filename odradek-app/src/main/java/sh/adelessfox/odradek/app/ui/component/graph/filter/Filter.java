@@ -123,7 +123,7 @@ public sealed interface Filter {
 
         @Override
         public String toString() {
-            return "(" + left + " AND " + right + ")";
+            return "(" + left + " and " + right + ")";
         }
     }
 
@@ -135,7 +135,7 @@ public sealed interface Filter {
 
         @Override
         public String toString() {
-            return "(" + left + " OR " + right + ")";
+            return "(" + left + " or " + right + ")";
         }
     }
 
@@ -147,7 +147,7 @@ public sealed interface Filter {
 
         @Override
         public String toString() {
-            return "!" + filter;
+            return "not " + filter;
         }
     }
 }

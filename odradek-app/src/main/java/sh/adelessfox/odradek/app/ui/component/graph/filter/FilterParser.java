@@ -124,8 +124,6 @@ public final class FilterParser {
                 tokens.add(new FilterToken.Open(offset));
             } else if (ch == ')') {
                 tokens.add(new FilterToken.Close(offset));
-            } else if (ch == '!') {
-                tokens.add(new FilterToken.Not(offset));
             } else if (ch == ':') {
                 tokens.add(new FilterToken.Colon(offset));
             } else if (isNameStart(ch)) {
@@ -138,8 +136,9 @@ public final class FilterParser {
                 }
                 var value = input.substring(start, offset + 1);
                 switch (value) {
-                    case "AND" -> tokens.add(new FilterToken.And(start));
-                    case "OR" -> tokens.add(new FilterToken.Or(start));
+                    case "and" -> tokens.add(new FilterToken.And(start));
+                    case "or" -> tokens.add(new FilterToken.Or(start));
+                    case "not" -> tokens.add(new FilterToken.Not(start));
                     default -> tokens.add(new FilterToken.Name(value, start));
                 }
             } else if (isNumberStart(ch)) {

@@ -10,9 +10,9 @@ sealed interface FilterToken {
             case Open _ -> "'('";
             case Close _ -> "')'";
             case Colon _ -> "':'";
-            case Not _ -> "'!'";
-            case And _ -> "'AND'";
-            case Or _ -> "'OR'";
+            case Not _ -> "'not'";
+            case And _ -> "'and'";
+            case Or _ -> "'or'";
             case End _ -> "<end of input>";
         };
     }
