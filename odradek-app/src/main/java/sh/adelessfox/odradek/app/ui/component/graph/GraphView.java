@@ -124,10 +124,14 @@ public class GraphView implements View<JComponent>, ToolPanel {
         filterField.setPlaceholderText("Search by object type\u2026");
         filterField.setToolTipText("""
             <html>
-            You can search for multiple type names separated by spaces.<br>
-            - To include groups that have <i>root objects</i>, use <b>has:roots</b>.<br>
-            - To include groups that have <i>child groups</i>, use <b>has:subgroups</b>.<br>
-            - To include a particular group, use <b>group:groupId</b>, where <i>groupId</i> is the id of a group.
+            Search uses a simple query language:<br>
+             - Use <code>not</code>, <code>and</code>, <code>or</code> (in order of priority) operators to combine conditions.<br>
+             - Use parentheses <code>()</code> to group conditions.<br>
+            You can also search based on specific attributes:<br>
+             - To include only a matching type name, use <code>type:&lt;typeName&gt;</code>.<br>
+             - To include only a particular group, use <code>group:&lt;groupId&gt;</code><br>
+             - To include groups that have <i>root objects</i>, use <code>has:roots</code>.<br>
+             - To include groups that have <i>child groups</i>, use <code>has:subgroups</code>.
             </html>
             """);
         filterField.setBorder(BorderFactory.createCompoundBorder(
