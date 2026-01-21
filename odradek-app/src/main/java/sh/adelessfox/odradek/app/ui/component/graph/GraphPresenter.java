@@ -5,6 +5,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.component.graph.filter.Filter;
 import sh.adelessfox.odradek.app.ui.component.graph.filter.FilterOption;
+import sh.adelessfox.odradek.app.ui.component.graph.filter.FilterResult;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.util.Result;
@@ -62,7 +63,7 @@ public class GraphPresenter implements Presenter<GraphView> {
             options.add(FilterOption.WHOLE_WORD);
         }
         return Filter.parse(input)
-            .map(filter -> Optional.<Predicate<GraphStructure>>of(structure -> filter.test(structure, options)))
+            .map(filter -> Optional.<Predicate<GraphStructure>>of(structure -> filter.test(structure, options) != FilterResult.FAIL))
             .mapError(error -> "%s at %d".formatted(error.message(), error.offset()));
     }
 }

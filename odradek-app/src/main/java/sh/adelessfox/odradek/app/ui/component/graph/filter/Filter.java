@@ -11,14 +11,15 @@ public sealed interface Filter {
         return FilterParser.parse(input);
     }
 
-    boolean test(GraphStructure structure, Set<FilterOption> options);
+    FilterResult test(GraphStructure structure, Set<FilterOption> options);
 
     record GroupId(int id) implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> group.filterable() && group.group().groupID() == id;
-                default -> true;
+                case GraphStructure.Group group when group.filterable() ->
+                    FilterResult.of(group.group().groupID() == id);
+                default -> FilterResult.NOT_APPLICABLE;
             };
         }
 
@@ -30,10 +31,10 @@ public sealed interface Filter {
 
     record GroupHasSubgroups() implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> group.group().subGroupCount() > 0;
-                default -> true;
+                case GraphStructure.Group group -> FilterResult.of(group.group().subGroupCount() > 0);
+                default -> FilterResult.NOT_APPLICABLE;
             };
         }
 
@@ -45,10 +46,10 @@ public sealed interface Filter {
 
     record GroupHasRoots() implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> group.group().rootCount() > 0;
-                default -> true;
+                case GraphStructure.Group group -> FilterResult.of(group.group().rootCount() > 0);
+                default -> FilterResult.NOT_APPLICABLE;
             };
         }
 
@@ -60,14 +61,19 @@ public sealed interface Filter {
 
     record GroupType(String name) implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
+                // @formatter:off
                 case GraphStructure.Group(var graph, var group, _) ->
-                    graph.types(group).anyMatch(info -> matches(info, options));
-                case GraphStructure.GraphObjectSet(_, var info, _) -> matches(info, options);
-                case GraphStructure.GroupObject object -> matches(object.objectType(), options);
-                case GraphStructure.GroupedByType groupedByType -> matches(groupedByType.info(), options);
-                default -> true;
+                    FilterResult.of(graph.types(group).anyMatch(info -> matches(info, options)));
+                case GraphStructure.GraphObjectSet(_, var info, _) ->
+                    FilterResult.of(matches(info, options));
+                case GraphStructure.GroupObject object ->
+                    FilterResult.of(matches(object.objectType(), options));
+                case GraphStructure.GroupedByType groupedByType ->
+                    FilterResult.of(matches(groupedByType.info(), options));
+                default -> FilterResult.NOT_APPLICABLE;
+                // @formatter:on
             };
         }
 
@@ -117,8 +123,12 @@ public sealed interface Filter {
 
     record And(Filter left, Filter right) implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
-            return left.test(structure, options) && right.test(structure, options);
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
+            FilterResult result = left.test(structure, options);
+            if (result == FilterResult.FAIL) {
+                return result;
+            }
+            return right.test(structure, options);
         }
 
         @Override
@@ -129,8 +139,12 @@ public sealed interface Filter {
 
     record Or(Filter left, Filter right) implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
-            return left.test(structure, options) || right.test(structure, options);
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
+            FilterResult result = left.test(structure, options);
+            if (result == FilterResult.PASS) {
+                return result;
+            }
+            return right.test(structure, options);
         }
 
         @Override
@@ -141,8 +155,8 @@ public sealed interface Filter {
 
     record Not(Filter filter) implements Filter {
         @Override
-        public boolean test(GraphStructure structure, Set<FilterOption> options) {
-            return !filter.test(structure, options);
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
+            return filter.test(structure, options).negate();
         }
 
         @Override

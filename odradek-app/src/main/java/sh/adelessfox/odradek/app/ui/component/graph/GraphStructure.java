@@ -211,8 +211,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record Group(StreamingGraphResource graph, StreamingGroupData group,
-                 boolean filterable) implements GraphStructure, Comparable<Group> {
+    record Group(
+        StreamingGraphResource graph,
+        StreamingGroupData group,
+        boolean filterable
+    ) implements GraphStructure, Comparable<Group> {
         @Override
         public int compareTo(Group o) {
             return Integer.compare(group.groupID(), o.group.groupID());
