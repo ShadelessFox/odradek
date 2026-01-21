@@ -38,7 +38,7 @@ public class OdradekDefaultsAddon extends FlatDefaultsAddon {
     }
 
     private static String processCss(String input, UIDefaults defaults) {
-        Pattern pattern = Pattern.compile("\\$([a-zA-Z0-9.]+)");
+        Pattern pattern = Pattern.compile("\\$([a-zA-Z0-9._]+)");
         Matcher matcher = pattern.matcher(input);
         return matcher.replaceAll(result -> processCssVariable(result.group(1), defaults));
     }
