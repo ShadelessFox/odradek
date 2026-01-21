@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FilterParserTest {
     @Test
     void parserTest() {
-        var result = Filter.parse("!(type:Texture OR type:EnumFact) AND has:subgroups");
+        var result = Filter.parse("not (type:Texture or type:EnumFact) and has:subgroups");
         assertEquals(
             Result.ok(
                 new Filter.And(
@@ -49,22 +49,22 @@ class FilterParserTest {
         assertEquals(
             Result.ok(List.of(
                 new FilterToken.Not(0),
-                new FilterToken.Open(1),
-                new FilterToken.Name("type", 2),
-                new FilterToken.Colon(6),
-                new FilterToken.Name("Texture", 7),
-                new FilterToken.Or(15),
-                new FilterToken.Name("type", 18),
-                new FilterToken.Colon(22),
-                new FilterToken.Name("EnumFact", 23),
-                new FilterToken.Close(31),
-                new FilterToken.And(33),
-                new FilterToken.Name("has", 37),
-                new FilterToken.Colon(40),
-                new FilterToken.Name("subgroups", 41),
-                new FilterToken.End(50)
+                new FilterToken.Open(4),
+                new FilterToken.Name("type", 5),
+                new FilterToken.Colon(9),
+                new FilterToken.Name("Texture", 10),
+                new FilterToken.Or(18),
+                new FilterToken.Name("type", 21),
+                new FilterToken.Colon(25),
+                new FilterToken.Name("EnumFact", 26),
+                new FilterToken.Close(34),
+                new FilterToken.And(36),
+                new FilterToken.Name("has", 40),
+                new FilterToken.Colon(43),
+                new FilterToken.Name("subgroups", 44),
+                new FilterToken.End(53)
             )),
-            FilterParser.tokenize("!(type:Texture OR type:EnumFact) AND has:subgroups")
+            FilterParser.tokenize("not (type:Texture or type:EnumFact) and has:subgroups")
         );
     }
 
