@@ -1,0 +1,5 @@
+code {
+    font-size: inherit;
+    font-family: Monospaced;
+    color: $StyledFragment.nameForeground;
+}
