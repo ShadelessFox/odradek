@@ -119,6 +119,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
         filterToolbar.add(Box.createHorizontalStrut(4));
 
         var filterField = new SearchTextField();
+        filterField.setShowClearButton(true);
         filterField.setTrailingComponent(filterToolbar);
         filterField.setPlaceholderText("Search by object type\u2026");
         filterField.setToolTipText("""
