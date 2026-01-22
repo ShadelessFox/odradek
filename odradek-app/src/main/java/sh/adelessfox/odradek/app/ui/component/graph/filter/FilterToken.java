@@ -1,0 +1,66 @@
+package sh.adelessfox.odradek.app.ui.component.graph.filter;
+
+sealed interface FilterToken {
+    sealed interface Prefix extends FilterToken {
+        int precedence();
+    }
+
+    sealed interface Infix extends FilterToken {
+        int precedence();
+    }
+
+    int offset();
+
+    default String toDisplayString() {
+        return switch (this) {
+            case Name(var value, _) -> "'" + value + "'";
+            case Number(var value, _) -> Integer.toString(value);
+            case Open _ -> "'('";
+            case Close _ -> "')'";
+            case Colon _ -> "':'";
+            case Not _ -> "'not'";
+            case And _ -> "'and'";
+            case Or _ -> "'or'";
+            case End _ -> "<end of input>";
+        };
+    }
+
+    record Name(String value, int offset) implements FilterToken {
+    }
+
+    record Number(int value, int offset) implements FilterToken {
+    }
+
+    record Open(int offset) implements FilterToken {
+    }
+
+    record Close(int offset) implements FilterToken {
+    }
+
+    record Colon(int offset) implements FilterToken {
+    }
+
+    record End(int offset) implements FilterToken {
+    }
+
+    record Not(int offset) implements Prefix {
+        @Override
+        public int precedence() {
+            return 30;
+        }
+    }
+
+    record And(int offset) implements Infix {
+        @Override
+        public int precedence() {
+            return 20;
+        }
+    }
+
+    record Or(int offset) implements Infix {
+        @Override
+        public int precedence() {
+            return 10;
+        }
+    }
+}

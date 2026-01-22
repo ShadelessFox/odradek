@@ -24,6 +24,8 @@ sealed public interface Result<T, E> {
 
     <U> Result<U, E> map(Function<? super T, ? extends U> mapper);
 
+    <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper);
+
     <U> Result<U, E> flatMap(Function<? super T, ? extends Result<? extends U, ? extends E>> mapper);
 
     <U> U fold(Function<? super T, ? extends U> mapper, Function<? super E, ? extends U> errorMapper);
@@ -60,6 +62,12 @@ sealed public interface Result<T, E> {
         @Override
         public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
             return Result.ok(mapper.apply(value));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper) {
+            return (Result<T, U>) this;
         }
 
         @SuppressWarnings("unchecked")
@@ -113,6 +121,11 @@ sealed public interface Result<T, E> {
         @Override
         public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
             return (Result<U, E>) this;
+        }
+
+        @Override
+        public <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper) {
+            return Result.error(mapper.apply(value));
         }
 
         @SuppressWarnings("unchecked")
