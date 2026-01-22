@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class FilterParserTest {
     @Test
     void parserTest() {
-        var result = Filter.parse("not (type:Texture or type:EnumFact) and has:subgroups");
         assertEquals(
             Result.ok(
                 new Filter.And(
@@ -23,7 +22,29 @@ class FilterParserTest {
                     new Filter.GroupHasSubgroups()
                 )
             ),
-            result
+            Filter.parse("not (type:Texture or type:EnumFact) and has:subgroups")
+        );
+
+        assertEquals(
+            Result.ok(
+                new Filter.Not(
+                    new Filter.GroupHasRoots()
+                )
+            ),
+            Filter.parse("not has:roots")
+        );
+
+        // not has:roots and has:subgroups
+        assertEquals(
+            Result.ok(
+                new Filter.And(
+                    new Filter.Not(
+                        new Filter.GroupHasRoots()
+                    ),
+                    new Filter.GroupHasSubgroups()
+                )
+            ),
+            Filter.parse("not has:roots and has:subgroups")
         );
     }
 

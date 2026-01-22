@@ -1,6 +1,14 @@
 package sh.adelessfox.odradek.app.ui.component.graph.filter;
 
 sealed interface FilterToken {
+    sealed interface Prefix extends FilterToken {
+        int precedence();
+    }
+
+    sealed interface Infix extends FilterToken {
+        int precedence();
+    }
+
     int offset();
 
     default String toDisplayString() {
@@ -32,15 +40,27 @@ sealed interface FilterToken {
     record Colon(int offset) implements FilterToken {
     }
 
-    record Not(int offset) implements FilterToken {
-    }
-
-    record And(int offset) implements FilterToken {
-    }
-
-    record Or(int offset) implements FilterToken {
-    }
-
     record End(int offset) implements FilterToken {
+    }
+
+    record Not(int offset) implements Prefix {
+        @Override
+        public int precedence() {
+            return 30;
+        }
+    }
+
+    record And(int offset) implements Infix {
+        @Override
+        public int precedence() {
+            return 20;
+        }
+    }
+
+    record Or(int offset) implements Infix {
+        @Override
+        public int precedence() {
+            return 10;
+        }
     }
 }

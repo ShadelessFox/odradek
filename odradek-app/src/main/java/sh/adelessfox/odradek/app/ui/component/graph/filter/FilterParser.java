@@ -29,46 +29,75 @@ public final class FilterParser {
     }
 
     private static Result<Filter, FilterError> parseInfix(Queue<FilterToken> tokens) {
-        return parsePrefix(tokens).flatMap(left -> parseInfix(left, tokens));
+        return parseInfix(tokens, 0);
     }
 
-    private static Result<Filter, FilterError> parseInfix(Filter left, Queue<FilterToken> tokens) {
-        while (tokens.element() instanceof FilterToken.And || tokens.element() instanceof FilterToken.Or) {
-            var op = tokens.remove();
-            var right = parsePrefix(tokens);
+    private static Result<Filter, FilterError> parseInfix(Queue<FilterToken> tokens, int rbp) {
+        var left = parsePrefix(tokens);
+        if (left.isError()) {
+            return left;
+        }
+
+        var result = left.ok().orElseThrow();
+        while (true) {
+            if (!(tokens.element() instanceof FilterToken.Infix infix)) {
+                break;
+            }
+
+            int lbp = infix.precedence();
+            if (lbp < rbp) {
+                break;
+            }
+
+            tokens.remove();
+
+            var right = parseInfix(tokens, lbp);
             if (right.isError()) {
                 return right;
             }
-            if (op instanceof FilterToken.And) {
-                left = new Filter.And(left, right.ok().orElseThrow());
-            } else if (op instanceof FilterToken.Or) {
-                left = new Filter.Or(left, right.ok().orElseThrow());
-            } else {
-                throw new IllegalStateException();
-            }
+
+            result = switch (infix) {
+                case FilterToken.And _ -> new Filter.And(result, right.ok().orElseThrow());
+                case FilterToken.Or _ -> new Filter.Or(result, right.ok().orElseThrow());
+            };
         }
-        return Result.ok(left);
+
+        return Result.ok(result);
     }
 
     private static Result<Filter, FilterError> parsePrefix(Queue<FilterToken> tokens) {
-        if (tokens.element() instanceof FilterToken.Not) {
+        if (tokens.element() instanceof FilterToken.Prefix prefix) {
             tokens.remove();
-            return parsePrimary(tokens).map(Filter.Not::new);
+
+            var right = parseInfix(tokens, prefix.precedence());
+            if (right.isError()) {
+                return right;
+            }
+
+            return switch (prefix) {
+                case FilterToken.Not _ -> right.map(Filter.Not::new);
+            };
         }
+
         return parsePrimary(tokens);
     }
 
     private static Result<Filter, FilterError> parsePrimary(Queue<FilterToken> tokens) {
         var token = tokens.remove();
         return switch (token) {
+            // [key] ':' [value]
             case FilterToken.Name(var key, int offset) -> {
                 var colon = tokens.remove();
                 if (!(colon instanceof FilterToken.Colon)) {
-                    yield Result.error(new FilterError("Expected ':' after name but found " + colon.toDisplayString(), colon.offset()));
+                    yield Result.error(new FilterError(
+                        "Expected ':' after name but found " + colon.toDisplayString(),
+                        colon.offset()
+                    ));
                 }
                 var value = tokens.remove();
                 yield parseKey(key, offset, value);
             }
+            // '(' [expr] ')'
             case FilterToken.Open _ -> {
                 var inner = parseInfix(tokens);
                 if (inner.isError()) {
@@ -76,7 +105,10 @@ public final class FilterParser {
                 }
                 var close = tokens.remove();
                 if (!(close instanceof FilterToken.Close)) {
-                    yield Result.error(new FilterError("Expected closing parenthesis but found " + close.toDisplayString(), close.offset()));
+                    yield Result.error(new FilterError(
+                        "Expected closing parenthesis but found " + close.toDisplayString(),
+                        close.offset()
+                    ));
                 }
                 yield inner;
             }
@@ -89,19 +121,28 @@ public final class FilterParser {
         return switch (key) {
             case "group" -> {
                 if (!(value instanceof FilterToken.Number(var id, _))) {
-                    yield Result.error(new FilterError("Expected group ID after ':' but found " + value.toDisplayString(), value.offset()));
+                    yield Result.error(new FilterError(
+                        "Expected group ID after ':' but found " + value.toDisplayString(),
+                        value.offset()
+                    ));
                 }
                 yield Result.ok(new Filter.GroupId(id));
             }
             case "type" -> {
                 if (!(value instanceof FilterToken.Name(var name, _))) {
-                    yield Result.error(new FilterError("Expected type name after ':' but found " + value.toDisplayString(), value.offset()));
+                    yield Result.error(new FilterError(
+                        "Expected type name after ':' but found " + value.toDisplayString(),
+                        value.offset()
+                    ));
                 }
                 yield Result.ok(new Filter.GroupType(name));
             }
             case "has" -> {
                 if (!(value instanceof FilterToken.Name(var what, _))) {
-                    yield Result.error(new FilterError("Expected criteria name after ':' but found " + value.toDisplayString(), value.offset()));
+                    yield Result.error(new FilterError(
+                        "Expected criteria name after ':' but found " + value.toDisplayString(),
+                        value.offset()
+                    ));
                 }
                 yield switch (what) {
                     case "subgroups" -> Result.ok(new Filter.GroupHasSubgroups());
