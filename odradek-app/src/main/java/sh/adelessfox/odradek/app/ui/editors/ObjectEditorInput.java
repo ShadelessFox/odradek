@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.editors.EditorInput;
 public record ObjectEditorInput(Game game, TypedObject object, int groupId, int objectIndex) implements EditorInput {
     @Override
     public String getName() {
-        return object.getType().toString();
+        return "[%d:%d] %s".formatted(groupId, objectIndex, object.getType());
     }
 
     @Override
