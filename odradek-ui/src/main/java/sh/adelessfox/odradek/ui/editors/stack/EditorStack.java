@@ -17,11 +17,11 @@ import java.util.Optional;
  */
 public final class EditorStack extends FlatTabbedPane {
     public enum Position {
+        CENTER,
         TOP,
         BOTTOM,
         LEFT,
-        RIGHT,
-        CENTER
+        RIGHT
     }
 
     private final EditorStackManager manager;
@@ -33,11 +33,7 @@ public final class EditorStack extends FlatTabbedPane {
         setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         setTabsClosable(true);
         setTabCloseToolTipText("Close");
-        setTabCloseCallback((_, index) -> {
-            var component = (JComponent) getComponentAt(index);
-            var editor = manager.findEditor(component).orElseThrow();
-            manager.closeEditor(editor);
-        });
+        setTabCloseCallback((_, index) -> manager.closeEditor(getEditorAt(index)));
 
         getModel().addChangeListener(_ -> {
             // Deactivate last editor
@@ -66,10 +62,11 @@ public final class EditorStack extends FlatTabbedPane {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (SwingUtilities.isMiddleMouseButton(e) && lastPressedIndex >= 0 && lastPressedIndex == indexAtLocation(e.getX(), e.getY())) {
-                    var component = (JComponent) getComponentAt(lastPressedIndex);
-                    var editor = manager.findEditor(component).orElseThrow();
-                    manager.closeEditor(editor);
+                if (SwingUtilities.isMiddleMouseButton(e) &&
+                    lastPressedIndex >= 0 &&
+                    lastPressedIndex == indexAtLocation(e.getX(), e.getY())
+                ) {
+                    manager.closeEditor(getEditorAt(lastPressedIndex));
                     lastPressedIndex = -1;
                 }
             }
@@ -115,31 +112,35 @@ public final class EditorStack extends FlatTabbedPane {
 
     public boolean move(Editor sourceEditor, EditorStack targetStack) {
         for (int i = 0; i < getTabCount(); i++) {
-            var component = (JComponent) getComponentAt(i);
-            var editor = manager.findEditor(component).orElseThrow();
-
+            var editor = getEditorAt(i);
             if (editor == sourceEditor) {
                 return move(this, i, targetStack, targetStack.getTabCount());
             }
         }
-
         return false;
     }
 
     public boolean move(Editor sourceEditor, EditorStack targetStack, Position position) {
         for (int i = 0; i < getTabCount(); i++) {
-            var component = (JComponent) getComponentAt(i);
-            var editor = manager.findEditor(component).orElseThrow();
-
+            var editor = getEditorAt(i);
             if (editor == sourceEditor) {
                 return move(this, i, targetStack, position);
             }
         }
-
         return false;
     }
 
-    private boolean move(EditorStack source, int sourceIndex, EditorStack target, Position targetPosition) {
+    public boolean move(Editor sourceEditor, EditorStack targetStack, int targetIndex) {
+        for (int i = 0; i < getTabCount(); i++) {
+            var editor = getEditorAt(i);
+            if (editor == sourceEditor) {
+                return move(this, i, targetStack, targetIndex);
+            }
+        }
+        return false;
+    }
+
+    private static boolean move(EditorStack source, int sourceIndex, EditorStack target, Position targetPosition) {
         if (source == target && target.getTabCount() < 2) {
             return false;
         }
@@ -155,7 +156,7 @@ public final class EditorStack extends FlatTabbedPane {
         return move(source, sourceIndex, destination, destination.getTabCount());
     }
 
-    private boolean move(EditorStack source, int sourceIndex, EditorStack target, int targetIndex) {
+    private static boolean move(EditorStack source, int sourceIndex, EditorStack target, int targetIndex) {
         Objects.checkIndex(sourceIndex, source.getTabCount());
         Objects.checkIndex(targetIndex, target.getTabCount() + 1);
 
@@ -189,7 +190,7 @@ public final class EditorStack extends FlatTabbedPane {
             target.setSelectedIndex(targetIndex - 1);
         }
 
-        getContainer().compact();
+        source.getContainer().compact();
         return true;
     }
 
@@ -217,6 +218,12 @@ public final class EditorStack extends FlatTabbedPane {
             return Optional.of(lastEditor.editor);
         }
         return Optional.empty();
+    }
+
+    public Editor getEditorAt(int index) {
+        Objects.checkIndex(index, getTabCount());
+        var component = (JComponent) getComponentAt(index);
+        return manager.findEditor(component).orElseThrow();
     }
 
     @Override

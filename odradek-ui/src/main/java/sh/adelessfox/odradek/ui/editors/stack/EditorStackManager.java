@@ -8,10 +8,15 @@ import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.EditorSite;
 import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
+import sh.adelessfox.odradek.ui.editors.stack.dnd.EditorStackDropOverlay;
+import sh.adelessfox.odradek.ui.editors.stack.dnd.EditorStackDropTarget;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +24,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class EditorStackManager implements EditorManager {
+    private static final Integer OVERLAY_LAYER = JLayeredPane.POPUP_LAYER - 1;
+
     private final EditorStackContainer root;
     private final EditorSite sharedSite = new MyEditorSite();
+
+    private EditorStackDropOverlay overlay;
 
     public EditorStackManager() {
         root = new EditorStackContainer(this, createStack());
@@ -54,7 +63,10 @@ public final class EditorStackManager implements EditorManager {
             var editor = result.editor();
             var provider = result.provider();
 
-            component = new EditorComponent(activation == Activation.NO ? null : editor.createComponent(), editor, provider);
+            component = new EditorComponent(
+                activation == Activation.NO ? null : editor.createComponent(),
+                editor,
+                provider);
             stack.insertEditor(input, component, stack.getSelectedIndex() + 1);
         } else {
             // Do we have to check whether this editor belongs to the given stack?
@@ -181,6 +193,11 @@ public final class EditorStackManager implements EditorManager {
             }
             return Optional.empty();
         });
+
+        var listener = new EditorDragSourceListener(stack);
+        stack.addMouseListener(listener);
+        stack.addMouseMotionListener(listener);
+
         return stack;
     }
 
@@ -249,6 +266,24 @@ public final class EditorStackManager implements EditorManager {
         return forEachStack(container.getRightContainer(), terminator);
     }
 
+    private EditorStackDropOverlay obtainOverlay() {
+        var rootPane = root.getRootPane();
+
+        if (overlay == null) {
+            overlay = new EditorStackDropOverlay(this);
+            rootPane.getLayeredPane().add(overlay, OVERLAY_LAYER);
+        }
+
+        Insets insets = rootPane.getInsets();
+        Rectangle bounds = new Rectangle(
+            SwingUtilities.convertPoint(root, -insets.left, -insets.top, rootPane),
+            root.getSize()
+        );
+        overlay.setBounds(bounds);
+
+        return overlay;
+    }
+
     private record EditorResult(Editor editor, Editor.Provider provider) {
     }
 
@@ -256,6 +291,50 @@ public final class EditorStackManager implements EditorManager {
         @Override
         public EditorManager getManager() {
             return EditorStackManager.this;
+        }
+    }
+
+    private class EditorDragSourceListener extends MouseAdapter {
+        private final EditorStack stack;
+        private int index;
+
+        EditorDragSourceListener(EditorStack stack) {
+            this.stack = stack;
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            index = stack.indexAtLocation(e.getX(), e.getY());
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            if (index < 0) {
+                return;
+            }
+
+            var overlay = obtainOverlay();
+            overlay.setVisible(true);
+            overlay.update(stack, e.getXOnScreen(), e.getYOnScreen());
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (index < 0) {
+                return;
+            }
+
+            var overlay = obtainOverlay();
+            overlay.setVisible(false);
+            overlay.getTarget().ifPresent(result -> {
+                switch (result) {
+                    case EditorStackDropTarget.Move(var target, int targetIndex) ->
+                        stack.move(stack.getEditorAt(index), target, targetIndex);
+                    case EditorStackDropTarget.Split(var target, var targetPosition) ->
+                        stack.move(stack.getEditorAt(index), target, targetPosition);
+                }
+            });
+            overlay.release();
         }
     }
 }
