@@ -135,7 +135,8 @@ public final class TextureViewer implements Viewer {
         }
     }
 
-    private static JComponent createImagePane(ImageView view) {
+    // FIXME extract
+    static JComponent createImagePane(ImageView view) {
         var scrollPane = new JScrollPane();
         scrollPane.setViewport(new ImageViewport(view));
         scrollPane.addMouseWheelListener(e -> {
@@ -204,7 +205,8 @@ public final class TextureViewer implements Viewer {
         }
     }
 
-    private static BufferedImage createImage(Surface surface) {
+    // FIXME extract
+    static BufferedImage createImage(Surface surface) {
         var image = new BufferedImage(surface.width(), surface.height(), BufferedImage.TYPE_INT_ARGB);
         var imageData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 

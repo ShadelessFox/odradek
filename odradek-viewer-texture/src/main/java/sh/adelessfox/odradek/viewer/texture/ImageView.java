@@ -73,7 +73,9 @@ public class ImageView extends JComponent implements Scrollable {
     }
 
     public void fit() {
-        setZoom(computeFitZoom());
+        if (image != null) {
+            setZoom(computeFitZoom());
+        }
     }
 
     public Set<Channel> getChannels() {

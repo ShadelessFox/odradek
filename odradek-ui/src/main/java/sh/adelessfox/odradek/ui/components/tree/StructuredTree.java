@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.components.tree;
 
 import com.formdev.flatlaf.util.UIScale;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
+import sh.adelessfox.odradek.ui.components.StyledTreeCellRenderer;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Listeners;
