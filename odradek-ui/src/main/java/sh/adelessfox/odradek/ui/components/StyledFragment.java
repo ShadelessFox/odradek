@@ -2,39 +2,50 @@ package sh.adelessfox.odradek.ui.components;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public record StyledFragment(
     String text,
     Optional<Color> background,
     Optional<Color> foreground,
-    boolean bold,
-    boolean italic
+    Set<StyledFlag> flags
 ) {
+    // @formatter:off
     public static final Consumer<Builder> NAME = b -> b.foreground(UIManager.getColor("StyledFragment.nameForeground"));
-    public static final Consumer<Builder> NAME_DISABLED = b -> b.foreground(UIManager.getColor("StyledFragment.nameDisabledForeground"));
     public static final Consumer<Builder> NUMBER = b -> b.foreground(UIManager.getColor("StyledFragment.numberForeground"));
     public static final Consumer<Builder> STRING = b -> b.foreground(UIManager.getColor("StyledFragment.stringForeground"));
-    public static final Consumer<Builder> GRAYED = b -> b.foreground(UIManager.getColor("Label.disabledForeground"));
+    public static final Consumer<Builder> BOLD = Builder::bold;
+    public static final Consumer<Builder> ITALIC = Builder::italic;
+    public static final Consumer<Builder> GRAYED = Builder::grayed;
+    // @formatter:on
+
+    public StyledFragment {
+        flags = Set.copyOf(flags);
+    }
 
     public static Builder builder() {
         return new Builder();
     }
 
     public static StyledFragment regular(String text) {
-        return new StyledFragment(text, Optional.empty(), Optional.empty(), false, false);
+        return new StyledFragment(text, Optional.empty(), Optional.empty(), Set.of());
     }
 
-    public StyledFragment withForeground(Color color) {
-        return new StyledFragment(text, background, Optional.of(color), bold, italic);
+    public StyledFragment withForeground(Color foreground) {
+        return new StyledFragment(text, background, Optional.of(foreground), flags);
+    }
+
+    public StyledFragment withFlags(Set<StyledFlag> flags) {
+        return new StyledFragment(text, background, foreground, flags);
     }
 
     public static final class Builder {
+        private final Set<StyledFlag> flags = EnumSet.noneOf(StyledFlag.class);
         private Color background;
         private Color foreground;
-        private boolean bold;
-        private boolean italic;
 
         private Builder() {
         }
@@ -50,12 +61,19 @@ public record StyledFragment(
         }
 
         public Builder bold() {
-            this.bold = true;
-            return this;
+            return flag(StyledFlag.BOLD);
         }
 
         public Builder italic() {
-            this.italic = true;
+            return flag(StyledFlag.ITALIC);
+        }
+
+        public Builder grayed() {
+            return flag(StyledFlag.GRAYED);
+        }
+
+        private Builder flag(StyledFlag flag) {
+            flags.add(flag);
             return this;
         }
 
@@ -64,8 +82,7 @@ public record StyledFragment(
                 text,
                 Optional.ofNullable(background),
                 Optional.ofNullable(foreground),
-                bold,
-                italic
+                flags
             );
         }
     }

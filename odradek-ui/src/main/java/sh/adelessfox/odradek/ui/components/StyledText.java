@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.ui.components;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -12,18 +11,17 @@ import java.util.function.Consumer;
  *
  * @param fragments a list of fragments this styled text consists of
  */
-
 public record StyledText(List<StyledFragment> fragments) {
+    public StyledText {
+        fragments = List.copyOf(fragments);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
 
     public static StyledText of(String text) {
         return new StyledText(List.of(StyledFragment.regular(text)));
-    }
-
-    public StyledText {
-        fragments = List.copyOf(fragments);
     }
 
     @Override
@@ -37,10 +35,6 @@ public record StyledText(List<StyledFragment> fragments) {
         private final List<StyledFragment> segments = new ArrayList<>(1);
 
         private Builder() {
-        }
-
-        private Builder(Collection<StyledFragment> c) {
-            segments.addAll(c);
         }
 
         public Builder add(String text) {

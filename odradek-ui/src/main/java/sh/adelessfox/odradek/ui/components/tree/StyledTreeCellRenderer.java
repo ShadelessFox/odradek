@@ -2,11 +2,13 @@ package sh.adelessfox.odradek.ui.components.tree;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import sh.adelessfox.odradek.ui.components.StyledComponent;
+import sh.adelessfox.odradek.ui.components.StyledFlag;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 
 import javax.swing.*;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
+import java.util.EnumSet;
 import java.util.Objects;
 
 public abstract class StyledTreeCellRenderer<T> extends StyledComponent implements TreeCellRenderer {
@@ -60,7 +62,15 @@ public abstract class StyledTreeCellRenderer<T> extends StyledComponent implemen
     @Override
     public void append(StyledFragment fragment) {
         if (selected && isFocused()) {
-            super.append(fragment.withForeground(getForeground()));
+            var flags = EnumSet.noneOf(StyledFlag.class);
+            flags.addAll(fragment.flags());
+            flags.remove(StyledFlag.GRAYED);
+
+            var newFragment = fragment
+                .withForeground(getForeground())
+                .withFlags(flags);
+
+            super.append(newFragment);
         } else {
             super.append(fragment);
         }

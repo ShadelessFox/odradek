@@ -112,7 +112,7 @@ public final class ObjectViewer implements Viewer {
         Function<StyledText.Builder, StyledText.Builder> function = switch (s) {
             // [Group].[Attr] =
             case ObjectStructure.Attr(_, _, var attr, _) when attr.group().isPresent() -> b -> b
-                .add(attr.group().orElseThrow() + '.', StyledFragment.NAME_DISABLED)
+                .add(attr.group().orElseThrow() + '.', StyledFragment.NAME.andThen(StyledFragment.GRAYED))
                 .add(attr.name(), StyledFragment.NAME).add(" = ");
 
             // [Attr] =

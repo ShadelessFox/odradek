@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.components;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
+import com.formdev.flatlaf.util.ColorFunctions;
 import com.formdev.flatlaf.util.UIScale;
 
 import javax.swing.*;
@@ -173,9 +174,9 @@ public class StyledComponent extends JComponent {
             for (StyledFragment fragment : fragments) {
                 FontMetrics metrics = getFontMetrics(font);
 
-                int fragmentBaseline = area.y + area.height - metrics.getDescent();
-                float fragmentWidth = computeFragmentWidth(fragment, font);
-                Color color = fragment.foreground().orElseGet(this::getForeground);
+                var fragmentBaseline = area.y + area.height - metrics.getDescent();
+                var fragmentWidth = computeFragmentWidth(fragment, font);
+                var fragmentColor = computeFragmentForeground(fragment);
 
                 if (DEBUG_OVERLAY) {
                     g.setColor(Color.LIGHT_GRAY);
@@ -183,7 +184,7 @@ public class StyledComponent extends JComponent {
                 }
 
                 g.setFont(font);
-                g.setColor(color);
+                g.setColor(fragmentColor);
                 g.drawString(fragment.text(), offset, fragmentBaseline);
 
                 offset = offset + fragmentWidth;
@@ -235,6 +236,23 @@ public class StyledComponent extends JComponent {
             rect.y += insets.top;
             rect.width -= insets.left + insets.right;
             rect.height -= insets.top + insets.bottom;
+        }
+    }
+
+    private Color computeFragmentForeground(StyledFragment fragment) {
+        var foreground = fragment.foreground().orElse(null);
+        if (fragment.flags().contains(StyledFlag.GRAYED)) {
+            if (foreground != null) {
+                return ColorFunctions.mix(foreground, getBackground(), 0.5f);
+            } else {
+                return UIManager.getColor("Label.disabledForeground");
+            }
+        } else {
+            if (foreground != null) {
+                return foreground;
+            } else {
+                return getForeground();
+            }
         }
     }
 
