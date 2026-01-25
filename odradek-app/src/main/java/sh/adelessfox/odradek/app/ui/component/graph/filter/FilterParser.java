@@ -38,7 +38,7 @@ public final class FilterParser {
             return left;
         }
 
-        var result = left.ok().orElseThrow();
+        var result = left.unwrap();
         while (true) {
             if (!(tokens.element() instanceof FilterToken.Infix infix)) {
                 break;
@@ -57,8 +57,8 @@ public final class FilterParser {
             }
 
             result = switch (infix) {
-                case FilterToken.And _ -> new Filter.And(result, right.ok().orElseThrow());
-                case FilterToken.Or _ -> new Filter.Or(result, right.ok().orElseThrow());
+                case FilterToken.And _ -> new Filter.And(result, right.unwrap());
+                case FilterToken.Or _ -> new Filter.Or(result, right.unwrap());
             };
         }
 

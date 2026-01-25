@@ -1,11 +1,11 @@
 package sh.adelessfox.odradek.util;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-sealed public interface Result<T, E> {
+public sealed interface Result<T, E> {
     static <T, E> Result<T, E> ok(T value) {
         return new Ok<>(value);
     }
@@ -14,139 +14,84 @@ sealed public interface Result<T, E> {
         return new Error<>(error);
     }
 
-    boolean isOk();
+    default boolean isOk() {
+        return this instanceof Ok<T, E>;
+    }
 
-    boolean isError();
+    default boolean isError() {
+        return this instanceof Error<T, E>;
+    }
 
-    Optional<T> ok();
+    default T unwrap() {
+        return switch (this) {
+            case Ok<T, E>(var value) -> value;
+            case Error<T, E> _ -> throw new NoSuchElementException("No value present");
+        };
+    }
 
-    Optional<E> error();
+    default E unwrapError() {
+        return switch (this) {
+            case Ok<T, E> _ -> throw new NoSuchElementException("No error present");
+            case Error<T, E>(var value) -> value;
+        };
+    }
 
-    <U> Result<U, E> map(Function<? super T, ? extends U> mapper);
+    default <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
+        return switch (this) {
+            case Ok<T, E>(var value) -> Result.ok(mapper.apply(value));
+            case Error<T, E>(var error) -> Result.error(error);
+        };
+    }
 
-    <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper);
+    default <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper) {
+        return switch (this) {
+            case Ok<T, E>(var value) -> Result.ok(value);
+            case Error<T, E>(var error) -> Result.error(mapper.apply(error));
+        };
+    }
 
-    <U> Result<U, E> flatMap(Function<? super T, ? extends Result<? extends U, ? extends E>> mapper);
+    @SuppressWarnings("unchecked")
+    default <U> Result<U, E> flatMap(Function<? super T, ? extends Result<? extends U, ? extends E>> mapper) {
+        return switch (this) {
+            case Ok<T, E>(var value) -> (Result<U, E>) mapper.apply(value);
+            case Error<T, E>(var error) -> Result.error(error);
+        };
+    }
 
-    <U> U fold(Function<? super T, ? extends U> mapper, Function<? super E, ? extends U> errorMapper);
+    default <U> U fold(Function<? super T, ? extends U> mapper, Function<? super E, ? extends U> errorMapper) {
+        return switch (this) {
+            case Ok<T, E>(var value) -> mapper.apply(value);
+            case Error<T, E>(var error) -> errorMapper.apply(error);
+        };
+    }
 
-    T orElse(T other);
+    default T orElse(T other) {
+        return switch (this) {
+            case Ok<T, E>(var value) -> value;
+            case Error<T, E> _ -> other;
+        };
+    }
 
-    T orElseGet(Supplier<? extends T> supplier);
+    default T orElseGet(Supplier<? extends T> supplier) {
+        return switch (this) {
+            case Ok<T, E>(var value) -> value;
+            case Error<T, E> _ -> supplier.get();
+        };
+    }
 
     record Ok<T, E>(T value) implements Result<T, E> {
+        /** @deprecated Use the static factory method {@link Result#ok(Object)} instead. */
+        @Deprecated
         public Ok {
             Objects.requireNonNull(value);
-        }
-
-        @Override
-        public boolean isOk() {
-            return true;
-        }
-
-        @Override
-        public boolean isError() {
-            return false;
-        }
-
-        @Override
-        public Optional<T> ok() {
-            return Optional.of(value);
-        }
-
-        @Override
-        public Optional<E> error() {
-            return Optional.empty();
-        }
-
-        @Override
-        public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
-            return Result.ok(mapper.apply(value));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper) {
-            return (Result<T, U>) this;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <U> Result<U, E> flatMap(Function<? super T, ? extends Result<? extends U, ? extends E>> mapper) {
-            return (Result<U, E>) mapper.apply(value);
-        }
-
-        @Override
-        public <U> U fold(Function<? super T, ? extends U> mapper, Function<? super E, ? extends U> errorMapper) {
-            return mapper.apply(value);
-        }
-
-        @Override
-        public T orElse(T other) {
-            return value;
-        }
-
-        @Override
-        public T orElseGet(Supplier<? extends T> supplier) {
-            return value;
         }
     }
 
     record Error<T, E>(E value) implements Result<T, E> {
+        /** @deprecated Use the static factory method {@link Result#error(Object)} instead. */
+        @Deprecated
         public Error {
             Objects.requireNonNull(value);
-        }
-
-        @Override
-        public boolean isOk() {
-            return false;
-        }
-
-        @Override
-        public boolean isError() {
-            return true;
-        }
-
-        @Override
-        public Optional<T> ok() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<E> error() {
-            return Optional.of(value);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <U> Result<U, E> map(Function<? super T, ? extends U> mapper) {
-            return (Result<U, E>) this;
-        }
-
-        @Override
-        public <U> Result<T, U> mapError(Function<? super E, ? extends U> mapper) {
-            return Result.error(mapper.apply(value));
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <U> Result<U, E> flatMap(Function<? super T, ? extends Result<? extends U, ? extends E>> mapper) {
-            return (Result<U, E>) this;
-        }
-
-        @Override
-        public <U> U fold(Function<? super T, ? extends U> mapper, Function<? super E, ? extends U> errorMapper) {
-            return errorMapper.apply(value);
-        }
-
-        @Override
-        public T orElse(T other) {
-            return other;
-        }
-
-        @Override
-        public T orElseGet(Supplier<? extends T> supplier) {
-            return supplier.get();
         }
     }
 }
