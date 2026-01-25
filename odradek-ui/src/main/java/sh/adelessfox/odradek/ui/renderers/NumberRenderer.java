@@ -26,7 +26,7 @@ public class NumberRenderer implements Renderer.OfObject<Number, Game> {
     @Override
     public Optional<StyledText> styledText(TypeInfo info, Number object, Game game) {
         return text(info, object, game)
-            .map(text -> StyledText.builder()
+            .flatMap(text -> StyledText.builder()
                 .add(text, StyledFragment.NUMBER)
                 .build());
     }

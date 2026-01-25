@@ -17,7 +17,7 @@ public class StringRenderer implements Renderer.OfObject<String, Game> {
     @Override
     public Optional<StyledText> styledText(TypeInfo info, String object, Game game) {
         return text(info, object, game)
-            .map(text -> StyledText.builder()
+            .flatMap(text -> StyledText.builder()
                 .add('"' + text + '"', StyledFragment.STRING)
                 .build());
     }

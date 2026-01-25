@@ -23,7 +23,6 @@ public class ShaderTextureBindingRenderer implements Renderer.OfObject<ShaderTex
                 .add("Target", StyledFragment.NAME).add(": ").add(packingInfo.red().orElseThrow().type().toString());
         }
 
-        return Optional.of(builder.build());
+        return builder.build();
     }
-
 }

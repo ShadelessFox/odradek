@@ -95,11 +95,12 @@ public final class ObjectViewer implements Viewer {
     private static Optional<Transferable> getElementTransferable(ObjectStructure s) {
         return valueTextBuilder(s, false)
             .map(b -> b.apply(StyledText.builder()))
-            .map(b -> b.build().toString())
+            .flatMap(StyledText.Builder::build)
+            .map(StyledText::toString)
             .map(StringSelection::new);
     }
 
-    private static StyledText getElementText(ObjectStructure s) {
+    private static Optional<StyledText> getElementText(ObjectStructure s) {
         var builder = StyledText.builder();
         keyTextBuilder(s).ifPresent(b -> b.apply(builder));
         builder.add("{" + s.type() + "} ", StyledFragment.GRAYED);
@@ -301,7 +302,7 @@ public final class ObjectViewer implements Viewer {
     private static class ObjectEditorLabelProvider implements StyledTreeLabelProvider<ObjectStructure> {
         @Override
         public Optional<StyledText> getStyledText(ObjectStructure element) {
-            return Optional.of(getElementText(element));
+            return getElementText(element);
         }
 
         @Override

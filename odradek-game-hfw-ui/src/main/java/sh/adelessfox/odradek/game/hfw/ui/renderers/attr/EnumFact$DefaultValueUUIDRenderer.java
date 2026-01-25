@@ -20,10 +20,10 @@ public class EnumFact$DefaultValueUUIDRenderer implements Renderer.OfAttribute<E
         var definition = object.logic().enumDefinition().get();
         for (EnumFactEntry entry : Ref.unwrap(definition.enumValues())) {
             if (entry.general().objectUUID().equals(uuid)) {
-                return Optional.of(StyledText.builder()
+                return StyledText.builder()
                     .add(entry.general().name())
                     .add(" (" + uuid.toDisplayString() + ")", StyledFragment.GRAYED)
-                    .build());
+                    .build();
             }
         }
         return Optional.empty();

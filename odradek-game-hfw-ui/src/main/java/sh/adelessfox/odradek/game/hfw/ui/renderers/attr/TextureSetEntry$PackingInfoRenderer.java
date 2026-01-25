@@ -27,7 +27,7 @@ public class TextureSetEntry$PackingInfoRenderer implements Renderer.OfAttribute
         appendChannel(packingInfo.green(), "G", builder);
         appendChannel(packingInfo.blue(), "B", builder);
         appendChannel(packingInfo.alpha(), "A", builder);
-        return Optional.of(builder.build());
+        return builder.build();
     }
 
     @Override

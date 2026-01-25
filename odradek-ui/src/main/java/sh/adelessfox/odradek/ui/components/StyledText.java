@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.ui.components;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -63,8 +64,11 @@ public record StyledText(List<StyledFragment> fragments) {
             return segments.isEmpty();
         }
 
-        public StyledText build() {
-            return new StyledText(segments);
+        public Optional<StyledText> build() {
+            if (segments.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(new StyledText(segments));
         }
     }
 

@@ -11,12 +11,12 @@ final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStr
     @Override
     public Optional<StyledText> getStyledText(BookmarkStructure element) {
         return switch (element) {
-            case BookmarkStructure.Root _ -> Optional.of(StyledText.builder()
+            case BookmarkStructure.Root _ -> StyledText.builder()
                 .add("User bookmarks", StyledFragment.GRAYED)
-                .build());
-            case BookmarkStructure.Bookmark b -> Optional.of(StyledText.builder()
+                .build();
+            case BookmarkStructure.Bookmark b -> StyledText.builder()
                 .add(b.id().toString(), StyledFragment.GRAYED).add(" ").add(b.name())
-                .build());
+                .build();
         };
     }
 

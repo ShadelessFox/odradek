@@ -20,9 +20,9 @@ public final class SentenceResourceRenderer implements Renderer.OfObject<Sentenc
 
         var text = textRef.get().text(game.getWrittenLanguage());
         var voice = voiceRef.get().general().nameResource().get().text(game.getWrittenLanguage());
-        return Optional.of(StyledText.builder()
+        return StyledText.builder()
             .add("[" + voice + "] ", StyledFragment.NAME)
             .add(text)
-            .build());
+            .build();
     }
 }
