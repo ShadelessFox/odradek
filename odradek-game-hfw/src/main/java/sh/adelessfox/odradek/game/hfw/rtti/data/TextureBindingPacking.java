@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data;
 
-sealed public interface TextureBindingPacking {
+public sealed interface TextureBindingPacking {
     record Texture() implements TextureBindingPacking {
     }
 

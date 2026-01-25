@@ -13,7 +13,7 @@ import static org.lwjgl.system.jawt.JAWTFunctions.*;
  *
  * @author Kai Burjack
  */
-sealed abstract class PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWin32GLCanvas {
+abstract sealed class PlatformGLCanvas permits PlatformLinuxGLCanvas, PlatformWin32GLCanvas {
     protected JAWT awt;
     protected JAWTDrawingSurface ds;
 

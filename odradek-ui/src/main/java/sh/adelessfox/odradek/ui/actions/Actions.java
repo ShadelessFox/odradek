@@ -297,7 +297,7 @@ public final class Actions {
         return Map.copyOf(result);
     }
 
-    private static abstract class AbstractMenuAction extends AbstractAction {
+    private abstract static class AbstractMenuAction extends AbstractAction {
         protected final ActionDescriptor descriptor;
         protected final ActionContext context;
 
