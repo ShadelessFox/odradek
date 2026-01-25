@@ -6,7 +6,9 @@ import java.util.Optional;
 public interface TreeLabelProvider<T> {
     Optional<String> getText(T element);
 
-    Optional<Icon> getIcon(T element);
+    default Optional<Icon> getIcon(T element) {
+        return Optional.empty();
+    }
 
     default Optional<String> getToolTip(T element) {
         return Optional.empty();
