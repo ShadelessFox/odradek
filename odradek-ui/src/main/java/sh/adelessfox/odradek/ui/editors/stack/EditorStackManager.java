@@ -304,7 +304,9 @@ public final class EditorStackManager implements EditorManager {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            index = stack.indexAtLocation(e.getX(), e.getY());
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                index = stack.indexAtLocation(e.getX(), e.getY());
+            }
         }
 
         @Override
@@ -320,7 +322,7 @@ public final class EditorStackManager implements EditorManager {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (index < 0) {
+            if (index < 0 || !SwingUtilities.isLeftMouseButton(e)) {
                 return;
             }
 
