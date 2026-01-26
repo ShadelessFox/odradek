@@ -20,6 +20,8 @@ import java.util.Optional;
  */
 public final class EditorStackDropOverlay extends JComponent {
     private static final int TAB_OVERLAY_WIDTH = 50;
+    private static final int TAB_OVERLAY_PADDING = 2;
+    private static final int TAB_OVERLAY_ARC = 10;
 
     private final EditorStackManager manager;
     private EditorStackDropTarget target;
@@ -32,7 +34,7 @@ public final class EditorStackDropOverlay extends JComponent {
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
-        FlatUIUtils.setRenderingHints(g);
+        FlatUIUtils.setRenderingHints(g2);
         g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 
         switch (target) {
@@ -104,10 +106,10 @@ public final class EditorStackDropOverlay extends JComponent {
         }
 
         g2.setColor(UIManager.getColor("Tree.selectionBackground"));
-        g2.fillRoundRect(rect.x + 2, rect.y + 2, rect.width - 5, rect.height - 5, 5, 5);
+        g2.fill(getTabVisualShape(rect, true));
 
         g2.setColor(UIManager.getColor("Tree.selectionBorderColor"));
-        g2.drawRoundRect(rect.x + 2, rect.y + 2, rect.width - 5, rect.height - 5, 5, 5);
+        g2.draw(getTabVisualShape(rect, false));
     }
 
     private void paintSplitMarker(Graphics2D g2, EditorStack stack, EditorStack.Position position) {
@@ -118,13 +120,11 @@ public final class EditorStackDropOverlay extends JComponent {
         bounds.x += origin.x;
         bounds.y += origin.y;
 
-        Shape shape = getDropVisualShape(bounds, position);
-
         g2.setColor(UIManager.getColor("Tree.selectionBackground"));
-        g2.fill(shape);
+        g2.fill(getSplitVisualShape(bounds, position, true));
 
         g2.setColor(UIManager.getColor("Tree.selectionBorderColor"));
-        g2.draw(shape);
+        g2.draw(getSplitVisualShape(bounds, position, false));
     }
 
     private static EditorStackDropTarget determineDropTarget(
@@ -155,7 +155,7 @@ public final class EditorStackDropOverlay extends JComponent {
                     // When moving within the same stack, ignore center splits
                     continue;
                 }
-                if (getDropHoverShape(bounds, position).contains(point)) {
+                if (getSplitHoverShape(bounds, position).contains(point)) {
                     return new EditorStackDropTarget.Split(stack, position);
                 }
             }
@@ -178,7 +178,7 @@ public final class EditorStackDropOverlay extends JComponent {
         return null;
     }
 
-    private static Shape getDropHoverShape(Rectangle b, EditorStack.Position position) {
+    private static Shape getSplitHoverShape(Rectangle b, EditorStack.Position position) {
         int bw = b.x + b.width;
         int bh = b.y + b.height;
         int bw2 = b.x + b.width / 2;
@@ -192,24 +192,67 @@ public final class EditorStackDropOverlay extends JComponent {
             case CENTER -> new Polygon(
                 new int[]{b.x + b.width / 4, bw - b.width / 4, bw - b.width / 4, b.x + b.width / 4},
                 new int[]{b.y + b.height / 4, b.y + b.height / 4, bh - b.height / 4, bh - b.height / 4},
-                4
-            );
+                4);
         };
     }
 
-    private static Shape getDropVisualShape(Rectangle b, EditorStack.Position position) {
-        int bw = b.width;
-        int bh = b.height;
-        int bw2 = b.width / 2;
-        int bh2 = b.height / 2;
+    private static Shape getSplitVisualShape(Rectangle rect, EditorStack.Position position, boolean fill) {
+        int x = rect.x + TAB_OVERLAY_PADDING;
+        int y = rect.y + TAB_OVERLAY_PADDING;
+        int w = rect.width;
+        int h = rect.height;
+        int w2 = rect.width / 2;
+        int h2 = rect.height / 2;
+        int inset = TAB_OVERLAY_PADDING * 2 + (fill ? 0 : 1);
 
         return switch (position) {
-            case TOP -> new RoundRectangle2D.Float(b.x + 2, b.y + 2, bw - 5, bh2 - 5, 5, 5);
-            case BOTTOM -> new RoundRectangle2D.Float(b.x + 2, b.y + 2 + bh - bh2, bw - 5, bh2 - 5, 5, 5);
-            case LEFT -> new RoundRectangle2D.Float(b.x + 2, b.y + 2, bw2 - 5, bh - 5, 5, 5);
-            case RIGHT -> new RoundRectangle2D.Float(b.x + 2 + bw - bw2, b.y + 2, bw2 - 5, bh - 5, 5, 5);
-            case CENTER -> new RoundRectangle2D.Float(b.x + 2, b.y + 2, bw - 5, bh - 5, 5, 5);
+            case TOP -> new RoundRectangle2D.Float(
+                x,
+                y,
+                w - inset,
+                h2 - inset,
+                TAB_OVERLAY_ARC,
+                TAB_OVERLAY_ARC);
+            case BOTTOM -> new RoundRectangle2D.Float(
+                x,
+                y + h - h2,
+                w - inset,
+                h2 - inset,
+                TAB_OVERLAY_ARC,
+                TAB_OVERLAY_ARC);
+            case LEFT -> new RoundRectangle2D.Float(
+                x,
+                y,
+                w2 - inset,
+                h - inset,
+                TAB_OVERLAY_ARC,
+                TAB_OVERLAY_ARC);
+            case RIGHT -> new RoundRectangle2D.Float(
+                x + w - w2,
+                y,
+                w2 - inset,
+                h - inset,
+                TAB_OVERLAY_ARC,
+                TAB_OVERLAY_ARC);
+            case CENTER -> new RoundRectangle2D.Float(
+                x,
+                y,
+                w - inset,
+                h - inset,
+                TAB_OVERLAY_ARC,
+                TAB_OVERLAY_ARC);
         };
+    }
+
+    private static Shape getTabVisualShape(Rectangle rect, boolean fill) {
+        int inset = TAB_OVERLAY_PADDING * 2 + (fill ? 0 : 1);
+        return new RoundRectangle2D.Float(
+            rect.x + TAB_OVERLAY_PADDING,
+            rect.y + TAB_OVERLAY_PADDING,
+            rect.width - inset,
+            rect.height - inset,
+            TAB_OVERLAY_ARC,
+            TAB_OVERLAY_ARC);
     }
 
     private static int getTabIndex(EditorStack target, Point point) {
