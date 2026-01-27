@@ -28,13 +28,14 @@ public class TextureSetToTextureSetConverter
             .toList();
 
         return Optional.of(new TextureSet(
-            sourceTextures, packedTextures
+            sourceTextures,
+            packedTextures
         ));
     }
 
     private static Optional<TextureSet.SourceTexture> mapSourceTexture(TextureSetTextureDesc desc) {
         // TODO: Check if all paths use 'work' device
-        var name = desc.path().substring("work:".length());
+        var name = desc.path().isEmpty() ? desc.textureType().toString() : desc.path().substring("work:".length());
         var type = mapTextureSetType(desc.textureType().unwrap()).orElse(null);
         if (type == null) {
             return Optional.empty();

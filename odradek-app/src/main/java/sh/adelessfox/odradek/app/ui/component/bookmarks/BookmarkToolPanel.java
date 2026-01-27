@@ -13,6 +13,7 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 
 import javax.swing.*;
 
@@ -40,14 +41,14 @@ public class BookmarkToolPanel implements ToolPanel {
         tree = new StructuredTree<>(new BookmarkStructure.Root(repository));
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new BookmarkLabelProvider());
-        tree.addActionListener(event -> {
+        tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof BookmarkStructure.Bookmark bookmark) {
                 var manager = Application.getInstance().editors();
                 var input = new ObjectEditorInputLazy(bookmark.id());
                 manager.openEditor(input);
             }
-        });
+        }));
         Actions.installContextMenu(tree, BookmarkMenu.ID, tree);
 
         eventBus.subscribe(BookmarkEvent.class, _ -> tree.getModel().refresh());
