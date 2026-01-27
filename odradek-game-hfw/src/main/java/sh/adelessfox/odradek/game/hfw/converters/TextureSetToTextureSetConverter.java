@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.game.hfw.converters;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
@@ -16,8 +14,6 @@ import java.util.Optional;
 
 public class TextureSetToTextureSetConverter
     implements Converter<HorizonForbiddenWest.TextureSet, TextureSet, ForbiddenWestGame> {
-
-    private static final Logger log = LoggerFactory.getLogger(TextureSetToTextureSetConverter.class);
 
     @Override
     public Optional<TextureSet> convert(HorizonForbiddenWest.TextureSet object, ForbiddenWestGame game) {
@@ -37,7 +33,8 @@ public class TextureSetToTextureSetConverter
     }
 
     private static Optional<TextureSet.SourceTexture> mapSourceTexture(TextureSetTextureDesc desc) {
-        var name = desc.path();
+        // TODO: Check if all paths use 'work' device
+        var name = desc.path().substring("work:".length());
         var type = mapTextureSetType(desc.textureType().unwrap()).orElse(null);
         if (type == null) {
             return Optional.empty();

@@ -8,11 +8,12 @@ import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
-import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
+import sh.adelessfox.odradek.viewer.texture.component.CompactFileProvider;
+import sh.adelessfox.odradek.viewer.texture.component.FilePath;
+import sh.adelessfox.odradek.viewer.texture.component.FileStructure;
 
 import javax.swing.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class TextureSetViewer implements Viewer {
     public static final class Provider implements Viewer.Provider<TextureSet> {
@@ -62,27 +63,32 @@ public final class TextureSetViewer implements Viewer {
             textures.put(path, sourceTexture);
         }
 
-        var root = new Node(new TreeSet<>(paths), null, FilePath.of(), false);
-        var tree = new StructuredTree<>(root);
+        var provider = new CompactFileProvider(paths);
+        var tree = new StructuredTree<>(FileStructure.of(provider));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
-        tree.setLabelProvider((StyledTreeLabelProvider<Node>) element -> {
-            if (!element.leaf && element.parent != null) {
-                return Optional.of(StyledText.of(element.path.subpath(element.parent.path.length()).full()));
-            } else if (element.leaf) {
-                return Optional.of(StyledText.builder()
-                    .add(element.path.last())
-                    .add(" (" + textures.get(element.path).type() + ")", StyledFragment.GRAYED)
-                    .build());
-            } else {
-                return Optional.empty();
+        tree.setLabelProvider((StyledTreeLabelProvider<FileStructure>) element -> switch (element) {
+            case FileStructure.File file -> StyledText.builder()
+                .add(file.path().last())
+                .add(" (" + textures.get(file.path()).type() + ")", StyledFragment.GRAYED)
+                .build();
+            case FileStructure.Folder folder -> {
+                int start = folder.parent().isPresent() ? folder.parent().get().length() : 0;
+                var builder = StyledText.builder();
+                for (int i = start; i < folder.path().length(); i++) {
+                    if (i > start) {
+                        builder.add("\u2009/\u2009", StyledFragment.GRAYED);
+                    }
+                    builder.add(folder.path().part(i));
+                }
+                yield builder.build();
             }
         });
         tree.addActionListener(event -> {
-            if (!(event.getLastPathComponent() instanceof Node node && node.leaf)) {
+            if (!(event.getLastPathComponent() instanceof FileStructure.File file)) {
                 return;
             }
-            show(textures.get(node.path));
+            show(textures.get(file.path()));
         });
 
         imageView = new ImageView();
@@ -121,155 +127,5 @@ public final class TextureSetViewer implements Viewer {
         imageView.setImage(image);
         imageView.setChannels(channels);
         imageView.fit();
-    }
-
-    private static class Node implements TreeStructure<Node> {
-        private static final Comparator<Node> COMPARATOR = Comparator
-            .comparingInt((Node node) -> node.leaf ? 1 : -1)
-            .thenComparing((Node node) -> node.path.last());
-
-        private final SortedSet<FilePath> paths;
-        private final Node parent;
-        private final FilePath path;
-        private final boolean leaf;
-
-        Node(SortedSet<FilePath> paths, Node parent, FilePath path, boolean leaf) {
-            this.paths = paths;
-            this.parent = parent;
-            this.path = path;
-            this.leaf = leaf;
-        }
-
-        @Override
-        public List<? extends Node> getChildren() {
-            var files = paths.subSet(path, path.concat("*"));
-            var children = new HashMap<FilePath, Node>();
-
-            for (FilePath directory : getCommonPrefixes(files, path.length())) {
-                if (path.equals(directory)) {
-                    continue;
-                }
-
-                children.computeIfAbsent(
-                    directory,
-                    path -> new Node(files, this, path, false)
-                );
-            }
-
-            for (FilePath file : files) {
-                if (file.length() - path.length() <= 1) {
-                    children.computeIfAbsent(
-                        file,
-                        path -> new Node(files, this, path, true)
-                    );
-                }
-            }
-
-            return children.values().stream()
-                .sorted(COMPARATOR)
-                .toList();
-        }
-
-        @Override
-        public boolean hasChildren() {
-            return !leaf;
-        }
-    }
-
-    private record FilePath(List<String> parts) implements Comparable<FilePath> {
-        private FilePath {
-            parts = List.copyOf(parts);
-        }
-
-        public static FilePath of() {
-            return new FilePath(List.of());
-        }
-
-        public static FilePath of(String path) {
-            return new FilePath(List.of(path.split("/")));
-        }
-
-        String part(int index) {
-            return parts.get(index);
-        }
-
-        FilePath subpath(int fromIndex) {
-            return subpath(fromIndex, length());
-        }
-
-        FilePath subpath(int fromIndex, int toIndex) {
-            Objects.checkFromToIndex(fromIndex, toIndex, length());
-            return new FilePath(parts.subList(fromIndex, toIndex));
-        }
-
-        FilePath concat(String part) {
-            var newParts = new ArrayList<>(parts);
-            newParts.add(part);
-            return new FilePath(newParts);
-        }
-
-        public String full() {
-            return String.join("/", parts);
-        }
-
-        int length() {
-            return parts.size();
-        }
-
-        @Override
-        public int compareTo(FilePath o) {
-            int length = Math.min(length(), o.length());
-
-            for (int i = 0; i < length; i++) {
-                String a = part(i);
-                String b = o.part(i);
-
-                if (a.equals("*")) {
-                    return 1;
-                }
-
-                if (b.equals("*")) {
-                    return -1;
-                }
-
-                int value = a.compareTo(b);
-
-                if (value != 0) {
-                    return value;
-                }
-            }
-
-            return length() - o.length();
-        }
-
-        public String last() {
-            return parts.getLast();
-        }
-    }
-
-    private static List<FilePath> getCommonPrefixes(Collection<FilePath> paths, int offset) {
-        return paths.stream()
-            .collect(Collectors.groupingBy(p -> p.part(offset)))
-            .values().stream()
-            .map(p -> getCommonPrefix(p, offset))
-            .toList();
-    }
-
-    private static FilePath getCommonPrefix(List<FilePath> paths, int offset) {
-        FilePath path = paths.getFirst();
-        int position = Math.min(offset, path.length() - 1);
-
-        outer:
-        while (position < path.length() - 1) {
-            for (FilePath other : paths) {
-                if (other.length() < position || !path.part(position).equals(other.part(position))) {
-                    break outer;
-                }
-            }
-
-            position += 1;
-        }
-
-        return path.subpath(0, position);
     }
 }
