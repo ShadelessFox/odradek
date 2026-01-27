@@ -16,7 +16,7 @@ import java.util.Optional;
  * It appears when an editor tab is being dragged and provides visual feedback
  * for potential drop targets within the editor stack.
  * <p>
- * After the drag operation completes, this overlay is hidden.
+ * After the drag operation completes, the overlay is hidden.
  */
 public final class EditorStackDropOverlay extends JComponent {
     private static final int TAB_OVERLAY_WIDTH = 50;
@@ -26,16 +26,28 @@ public final class EditorStackDropOverlay extends JComponent {
     private final EditorStackManager manager;
     private EditorStackDropTarget target;
 
+    private Color overlayBackgroundColor;
+    private Color overlayBorderColor;
+
     public EditorStackDropOverlay(EditorStackManager manager) throws HeadlessException {
         this.manager = manager;
+
+        updateUI();
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
         setBackground(new Color(0, 0, 0, 0));
+
+        overlayBackgroundColor = UIManager.getColor("EditorStack.overlay.background");
+        overlayBorderColor = UIManager.getColor("EditorStack.overlay.borderColor");
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
         FlatUIUtils.setRenderingHints(g2);
-        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 
         switch (target) {
             case EditorStackDropTarget.Move(var stack, int index) -> paintMoveMarker(g2, stack, index);
@@ -105,10 +117,10 @@ public final class EditorStackDropOverlay extends JComponent {
                 bounds.height);
         }
 
-        g2.setColor(UIManager.getColor("Tree.selectionBackground"));
+        g2.setColor(overlayBackgroundColor);
         g2.fill(getTabVisualShape(rect, true));
 
-        g2.setColor(UIManager.getColor("Tree.selectionBorderColor"));
+        g2.setColor(overlayBorderColor);
         g2.draw(getTabVisualShape(rect, false));
     }
 
@@ -120,10 +132,10 @@ public final class EditorStackDropOverlay extends JComponent {
         bounds.x += origin.x;
         bounds.y += origin.y;
 
-        g2.setColor(UIManager.getColor("Tree.selectionBackground"));
+        g2.setColor(overlayBackgroundColor);
         g2.fill(getSplitVisualShape(bounds, position, true));
 
-        g2.setColor(UIManager.getColor("Tree.selectionBorderColor"));
+        g2.setColor(overlayBorderColor);
         g2.draw(getSplitVisualShape(bounds, position, false));
     }
 
