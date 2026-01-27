@@ -21,19 +21,9 @@ public record FilePath(List<String> parts) implements Comparable<FilePath> {
         return parts.get(index);
     }
 
-    public FilePath subpath(int fromIndex) {
-        return subpath(fromIndex, length());
-    }
-
     public FilePath subpath(int fromIndex, int toIndex) {
         Objects.checkFromToIndex(fromIndex, toIndex, length());
         return new FilePath(parts.subList(fromIndex, toIndex));
-    }
-
-    public FilePath concat(FilePath other) {
-        var newParts = new ArrayList<>(parts);
-        newParts.addAll(other.parts);
-        return new FilePath(newParts);
     }
 
     public FilePath concat(String part) {
@@ -48,6 +38,10 @@ public record FilePath(List<String> parts) implements Comparable<FilePath> {
 
     public String full() {
         return full("/");
+    }
+
+    public String last() {
+        return parts.getLast();
     }
 
     public int length() {
@@ -83,9 +77,5 @@ public record FilePath(List<String> parts) implements Comparable<FilePath> {
     @Override
     public String toString() {
         return full();
-    }
-
-    public String last() {
-        return parts.getLast();
     }
 }

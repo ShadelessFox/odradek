@@ -1,10 +1,10 @@
-package sh.adelessfox.odradek.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture.view;
 
 import java.awt.image.RGBImageFilter;
 import java.util.EnumSet;
 import java.util.Set;
 
-public class ChannelFilter extends RGBImageFilter {
+public final class ChannelFilter extends RGBImageFilter {
     private final Set<Channel> channels;
 
     public ChannelFilter(Set<Channel> channels) {

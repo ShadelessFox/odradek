@@ -3,18 +3,16 @@ package sh.adelessfox.odradek.viewer.texture;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
-import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.ui.Viewer;
-import sh.adelessfox.odradek.util.Arrays;
+import sh.adelessfox.odradek.viewer.texture.view.Channel;
+import sh.adelessfox.odradek.viewer.texture.view.ImagePanel;
+import sh.adelessfox.odradek.viewer.texture.view.ImageView;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -37,10 +35,6 @@ public final class TextureViewer implements Viewer {
         }
     }
 
-    private static final float ZOOM_STEP = 0.2f;
-    private static final float ZOOM_MIN_LEVEL = (float) Math.pow(2, -5);
-    private static final float ZOOM_MAX_LEVEL = (float) Math.pow(2, 7);
-
     private final Texture texture;
 
     // Animated texture handling
@@ -54,17 +48,17 @@ public final class TextureViewer implements Viewer {
 
     @Override
     public JComponent createComponent() {
-        var converted = texture.convert(TextureFormat.B8G8R8A8_UNORM);
-        var surfaces = converted.surfaces().stream()
-            .map(TextureViewer::createImage)
-            .limit(texture.duration().isPresent() ? Long.MAX_VALUE : 1) // NOTE: dirty!
+        var surfaces = texture.surfaces().stream()
+            .map(s -> s.convert(texture.format(), new Surface.Converter.AWT()))
+            // vvv pick either the very first mip, or all frames if it's an animated texture
+            .limit(texture.duration().isPresent() ? Long.MAX_VALUE : 1)
             .toList();
 
         var imageView = new ImageView();
         imageView.setImage(surfaces.getFirst());
         imageView.setZoomToFit(true);
 
-        var imagePane = createImagePane(imageView);
+        var imagePane = new ImagePanel(imageView);
         var imageToolbar = new JToolBar();
 
         populateChannelActions(imageToolbar, imageView);
@@ -135,40 +129,6 @@ public final class TextureViewer implements Viewer {
         }
     }
 
-    // FIXME extract
-    static JComponent createImagePane(ImageView view) {
-        var scrollPane = new JScrollPane();
-        scrollPane.setViewport(new ImageViewport(view));
-        scrollPane.addMouseWheelListener(e -> {
-            float step = ZOOM_STEP * (float) -e.getPreciseWheelRotation();
-            float oldZoom = view.getZoom();
-            float newZoom = Math.clamp((float) Math.exp(Math.log(oldZoom) + step), ZOOM_MIN_LEVEL, ZOOM_MAX_LEVEL);
-
-            if (oldZoom == newZoom) {
-                return;
-            }
-
-            var viewport = scrollPane.getViewport();
-            var point = SwingUtilities.convertPoint(viewport, e.getX(), e.getY(), view);
-            var rect = viewport.getViewRect();
-            rect.x = (int) Math.round(point.getX() * newZoom / oldZoom - point.getX() + rect.getX());
-            rect.y = (int) Math.round(point.getY() * newZoom / oldZoom - point.getY() + rect.getY());
-
-            // Zoom is now controlled by the user
-            view.setZoomToFit(false);
-
-            if (newZoom > oldZoom) {
-                view.setZoom(newZoom);
-                view.scrollRectToVisible(rect);
-            } else {
-                view.scrollRectToVisible(rect);
-                view.setZoom(newZoom);
-            }
-        });
-
-        return scrollPane;
-    }
-
     private static void populateChannelActions(JToolBar toolBar, ImageView view) {
         var buttons = new ArrayList<ToggleChannelButton>();
         var update = (Runnable) () -> {
@@ -203,18 +163,6 @@ public final class TextureViewer implements Viewer {
             toolBar.add(button);
             buttons.add(button);
         }
-    }
-
-    // FIXME extract
-    static BufferedImage createImage(Surface surface) {
-        var image = new BufferedImage(surface.width(), surface.height(), BufferedImage.TYPE_INT_ARGB);
-        var imageData = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-
-        for (int i = 0, o = 0, len = surface.data().length; i < len; i += 4, o++) {
-            imageData[o] = Arrays.getInt(surface.data(), i, ByteOrder.LITTLE_ENDIAN);
-        }
-
-        return image;
     }
 
     private static class ToggleChannelButton extends JToggleButton {

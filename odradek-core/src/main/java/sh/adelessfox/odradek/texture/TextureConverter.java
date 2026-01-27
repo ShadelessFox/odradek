@@ -9,27 +9,38 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 final class TextureConverter {
-    public static Texture convert(Texture texture, TextureFormat format) {
-        if (texture.format() == format) {
-            return texture;
+    private TextureConverter() {
+    }
+
+    public static Texture convert(Texture texture, TextureFormat target) {
+        return map(texture, target, converter(texture.format(), target));
+    }
+
+    public static Surface convert(Surface surface, TextureFormat source, TextureFormat target) {
+        return converter(source, target).apply(surface);
+    }
+
+    private static Function<Surface, Surface> converter(TextureFormat source, TextureFormat target) {
+        if (source == target) {
+            return Function.identity();
         }
 
-        if (format.isCompressed()) {
-            throw new UnsupportedOperationException("Compressing textures is not supported");
+        if (target.isCompressed()) {
+            throw new UnsupportedOperationException("Compressed target formats are not supported");
         }
 
-        var converter = Optional.of(Converter.noop(texture.format()))
+        var converter = Optional.of(Converter.noop(source))
             .map(c -> decompress(c.format()).map(c::andThen).orElse(c))
             .map(c -> tonemap(c.format()).map(c::andThen).orElse(c))
-            .map(c -> unpack(c.format(), format).map(c::andThen).orElse(c))
-            .map(c -> swizzle(c.format(), format).map(c::andThen).orElse(c))
+            .map(c -> unpack(c.format(), target).map(c::andThen).orElse(c))
+            .map(c -> swizzle(c.format(), target).map(c::andThen).orElse(c))
             .orElseThrow();
 
-        if (converter.format() != format) {
-            throw new UnsupportedOperationException("Could not convert texture from " + texture.format() + " to " + format);
+        if (converter.format() != target) {
+            throw new UnsupportedOperationException("Could not create converter from " + source + " to " + target);
         }
 
-        return map(texture, format, converter.operator);
+        return converter.operator;
     }
 
     private static Optional<Converter> decompress(TextureFormat srcFormat) {
@@ -70,7 +81,8 @@ final class TextureConverter {
 
     private static Optional<Converter> tonemap(TextureFormat srcFormat) {
         Converter operator = switch (srcFormat) {
-            case R16G16B16_SFLOAT -> new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8_UNORM), TextureFormat.R8G8B8_UNORM);
+            case R16G16B16_SFLOAT ->
+                new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8_UNORM), TextureFormat.R8G8B8_UNORM);
             default -> null;
         };
 

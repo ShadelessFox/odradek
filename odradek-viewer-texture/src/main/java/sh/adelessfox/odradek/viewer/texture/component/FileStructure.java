@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.viewer.texture.component;
 
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,9 @@ sealed public interface FileStructure extends TreeStructure<FileStructure> {
                 .map(p -> provider.isFile(p)
                     ? new File(Optional.of(path), p)
                     : new Folder(Optional.of(path), p, provider))
+                .sorted(Comparator
+                    .comparingInt((FileStructure node) -> node instanceof File ? 1 : -1)
+                    .thenComparing(FileStructure::path))
                 .toList();
             case File _ -> List.of();
         };

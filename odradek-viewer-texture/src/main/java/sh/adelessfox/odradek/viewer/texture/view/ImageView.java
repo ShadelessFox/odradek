@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture.view;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,7 @@ public class ImageView extends JComponent implements Scrollable {
         if (this.image != image) {
             this.image = image;
             this.filteredImage = null;
-            update();
+            update(true);
         }
     }
 
@@ -60,7 +60,7 @@ public class ImageView extends JComponent implements Scrollable {
     public void setZoom(float zoom) {
         if (this.zoom != zoom) {
             this.zoom = Math.max(0.0f, zoom);
-            update();
+            update(false);
         }
     }
 
@@ -85,17 +85,23 @@ public class ImageView extends JComponent implements Scrollable {
     public void setChannels(Set<Channel> channels) {
         if (this.channels.size() != channels.size() || !this.channels.containsAll(channels)) {
             this.channels = EnumSet.copyOf(channels);
-            update();
+            update(true);
         }
     }
 
-    private void update() {
-        computeFilteredImage();
+    private void update(boolean recompute) {
+        if (recompute) {
+            computeFilteredImage();
+        }
         revalidate();
         repaint();
     }
 
     private void computeFilteredImage() {
+        if (image == null) {
+            return;
+        }
+
         ImageProducer producer = null;
 
         if (channels.size() != Channel.values().length) {
