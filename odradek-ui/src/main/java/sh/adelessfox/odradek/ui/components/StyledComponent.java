@@ -9,6 +9,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class StyledComponent extends JComponent {
     private static final boolean DEBUG_OVERLAY = false;
@@ -25,6 +26,16 @@ public class StyledComponent extends JComponent {
         padding = new Insets(1, 2, 1, 2);
         setOpaque(true);
         updateUI();
+    }
+
+    public final void append(String text) {
+        append(StyledFragment.regular(text));
+    }
+
+    public final void append(String text, Consumer<StyledFragment.Builder> handler) {
+        var builder = StyledFragment.builder();
+        handler.accept(builder);
+        append(builder.build(text));
     }
 
     public void append(StyledFragment fragment) {

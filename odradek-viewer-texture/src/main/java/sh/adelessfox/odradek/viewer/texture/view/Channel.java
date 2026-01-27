@@ -1,7 +1,7 @@
-package sh.adelessfox.odradek.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture.view;
 
 public enum Channel {
-    R("Red") {
+    R("R") {
         @Override
         public int getComponent(int rgb) {
             return rgb >> 16 & 0xff;
@@ -12,7 +12,7 @@ public enum Channel {
             return rgb & 0xff00ffff | value << 16;
         }
     },
-    G("Green") {
+    G("G") {
         @Override
         public int getComponent(int rgb) {
             return rgb >> 8 & 0xff;
@@ -23,7 +23,7 @@ public enum Channel {
             return rgb & 0xffff00ff | value << 8;
         }
     },
-    B("Blue") {
+    B("B") {
         @Override
         public int getComponent(int rgb) {
             return rgb & 0xff;
@@ -34,7 +34,7 @@ public enum Channel {
             return rgb & 0xffffff00 | value;
         }
     },
-    A("Alpha") {
+    A("A") {
         @Override
         public int getComponent(int rgb) {
             return rgb >> 24 & 0xff;

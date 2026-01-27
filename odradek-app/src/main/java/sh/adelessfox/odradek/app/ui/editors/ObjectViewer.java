@@ -17,6 +17,7 @@ import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
+import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
@@ -62,7 +63,7 @@ public final class ObjectViewer implements Viewer {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
         tree.setTransferHandler(new ObjectEditorTransferHandler());
         tree.setLabelProvider(new ObjectEditorLabelProvider());
-        tree.addActionListener(event -> {
+        tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (!(component instanceof ObjectStructure structure)) {
                 return;
@@ -80,7 +81,7 @@ public final class ObjectViewer implements Viewer {
                     // nothing to do
                 }
             }
-        });
+        }));
         Actions.installContextMenu(tree, ObjectMenu.ID, tree.or(key -> {
             if (DataKeys.GAME.is(key)) {
                 return Optional.of(game);

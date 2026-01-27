@@ -1,4 +1,6 @@
 module odradek.core {
+    requires static java.desktop; // sh.adelessfox.odradek.texture.Converter.AWT
+
     requires be.twofold.tinybcdec;
     requires org.lz4.java;
     requires org.slf4j;

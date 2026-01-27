@@ -17,6 +17,7 @@ import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -179,7 +180,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
                 });
             }
         });
-        tree.addActionListener(event -> {
+        tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 eventBus.publish(new GraphViewEvent.ShowObject(
@@ -187,7 +188,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
                     groupObject.index()
                 ));
             }
-        });
+        }));
 
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override

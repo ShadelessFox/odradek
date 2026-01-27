@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.viewer.texture;
+package sh.adelessfox.odradek.viewer.texture.view;
 
 import javax.swing.*;
 import java.awt.*;

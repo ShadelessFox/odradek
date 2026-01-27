@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.components.tree;
+package sh.adelessfox.odradek.ui.components;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
 import sh.adelessfox.odradek.ui.components.StyledComponent;
@@ -86,7 +86,7 @@ public abstract class StyledTreeCellRenderer<T> extends StyledComponent implemen
         }
     }
 
-    protected final boolean isFocused() {
+    private boolean isFocused() {
         return FlatUIUtils.isPermanentFocusOwner(tree);
     }
 

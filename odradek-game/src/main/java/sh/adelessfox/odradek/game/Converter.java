@@ -13,9 +13,9 @@ import java.util.stream.Stream;
 /**
  * Converts game-specific resource objects to a more generic type.
  *
- * @param <G> the type of the game
  * @param <T> the input object type of the conversion
  * @param <R> the result type of the conversion
+ * @param <G> the type of the game
  */
 public interface Converter<T, R, G extends Game> {
     static Stream<Converter<?, ?, ?>> converters() {

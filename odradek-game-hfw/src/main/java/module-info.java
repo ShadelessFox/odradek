@@ -97,7 +97,8 @@ module odradek.game.hfw {
         sh.adelessfox.odradek.game.hfw.converters.texture.TextureToTextureConverter,
         sh.adelessfox.odradek.game.hfw.converters.texture.UITextureToTextureConverter,
         sh.adelessfox.odradek.game.hfw.converters.ShaderResourceToShaderConverter,
-        sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter;
+        sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter,
+        sh.adelessfox.odradek.game.hfw.converters.TextureSetToTextureSetConverter;
 
     provides sh.adelessfox.odradek.game.Game.Provider with
         sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame.Provider;

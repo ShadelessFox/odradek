@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.components.tree;
 
 import com.formdev.flatlaf.util.UIScale;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
+import sh.adelessfox.odradek.ui.components.StyledTreeCellRenderer;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Listeners;
@@ -11,10 +12,15 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.EventObject;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
@@ -31,7 +37,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             @Override
             public void mousePressed(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() % getToggleClickCount() == 0) {
-                    fireActionListener(e);
+                    notifyTreeAction(e, TreeActionListener::treePathClicked);
                 }
             }
         });
@@ -39,8 +45,14 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    fireActionListener(e);
+                    notifyTreeAction(e, TreeActionListener::treePathClicked);
                 }
+            }
+        });
+        addTreeSelectionListener(e -> {
+            TreePath path = e.getNewLeadSelectionPath();
+            if (path != null) {
+                notifyTreeAction(path, e, TreeActionListener::treePathSelected);
             }
         });
 
@@ -162,18 +174,18 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         return getSelectionComponent(getSelectionPath());
     }
 
-    private void fireActionListener(InputEvent event) {
-        TreePath[] paths = getSelectionPaths();
+    private void notifyTreeAction(EventObject event, BiConsumer<TreeActionListener, TreeActionEvent> consumer) {
+        var paths = getSelectionPaths();
         if (paths == null) {
             return;
         }
         for (TreePath path : paths) {
-            fireActionListener(event, path, getRowForPath(path));
+            notifyTreeAction(path, event, consumer);
         }
     }
 
-    private void fireActionListener(InputEvent event, TreePath path, int row) {
-        actionListeners.broadcast().treePathSelected(new TreeActionEvent(event, path, row));
+    private void notifyTreeAction(TreePath path, EventObject event, BiConsumer<TreeActionListener, TreeActionEvent> consumer) {
+        consumer.accept(actionListeners.broadcast(), new TreeActionEvent(event, path, getRowForPath(path)));
     }
 
     private Object getSelectionComponent(TreePath path) {

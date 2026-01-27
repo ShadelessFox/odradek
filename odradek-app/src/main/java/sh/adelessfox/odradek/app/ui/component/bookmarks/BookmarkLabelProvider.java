@@ -4,7 +4,6 @@ import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
 
-import javax.swing.*;
 import java.util.Optional;
 
 final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStructure> {
@@ -18,10 +17,5 @@ final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStr
                 .add(b.id().toString(), StyledFragment.GRAYED).add(" ").add(b.name())
                 .build();
         };
-    }
-
-    @Override
-    public Optional<Icon> getIcon(BookmarkStructure element) {
-        return Optional.empty();
     }
 }
