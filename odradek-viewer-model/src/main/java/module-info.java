@@ -1,4 +1,11 @@
 module odradek.viewer.model {
+    requires static org.immutables.value;
+    requires static java.compiler;
+
+    requires sh.adelessfox.wgpuj;
+    requires sh.adelessfox.wgpuj.natives;
+    requires com.formdev.flatlaf; // com.formdev.flatlaf.util.HSLColor
+
     requires com.google.gson;
     requires java.desktop;
     requires odradek.core;
