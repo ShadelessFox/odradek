@@ -43,6 +43,18 @@ public record Node(
         return new Node(name, mesh, skin, children, matrix.mul(transform));
     }
 
+    public void accept(NodeVisitor visitor) {
+        accept(visitor, matrix);
+    }
+
+    private void accept(NodeVisitor visitor, Matrix4f transform) {
+        if (visitor.visit(this, transform)) {
+            for (var child : children) {
+                child.accept(visitor, transform.mul(child.matrix));
+            }
+        }
+    }
+
     public Optional<BoundingBox> computeBoundingBox() {
         var bbox1 = mesh.stream()
             .map(Mesh::computeBoundingBox);

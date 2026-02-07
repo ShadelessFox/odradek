@@ -6,7 +6,7 @@ import sh.adelessfox.wgpuj.Queue;
 import sh.adelessfox.wgpuj.RenderPass;
 
 public interface Layer {
-    void onAttach(Viewport2 viewport, Device device);
+    void onAttach(Viewport2 viewport, Device device, Queue queue);
 
     void onRender(Viewport2 viewport, Queue queue, RenderPass pass, float delta);
 

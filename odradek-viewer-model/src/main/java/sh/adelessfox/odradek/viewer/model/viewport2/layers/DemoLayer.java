@@ -48,7 +48,7 @@ public final class DemoLayer implements Layer {
     private float hue;
 
     @Override
-    public void onAttach(Viewport2 viewport, Device device) {
+    public void onAttach(Viewport2 viewport, Device device, Queue queue) {
         module = device.createShaderModule(ShaderModuleDescriptor.builder()
             .label("model layer shader module")
             .source(new ShaderSource.Wgsl(SHADER))

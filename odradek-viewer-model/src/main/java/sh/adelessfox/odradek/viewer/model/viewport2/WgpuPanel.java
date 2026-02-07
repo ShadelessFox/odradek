@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.util.Optional;
 
 public abstract class WgpuPanel extends JPanel implements Disposable {
     private final Instance instance;
@@ -20,8 +19,10 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
     // TODO shitte
     protected final TextureFormat format = TextureFormat.RGBA8_UNORM;
 
-    private Buffer backBuffer;
-    private Texture backTexture;
+    private Texture colorTexture;
+    private Texture depthTexture;
+    private Buffer colorBuffer;
+
     private BufferedImage image;
 
     public WgpuPanel() {
@@ -46,27 +47,38 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         int bufferWidth = clipWidth + 127 & ~127;
         int bufferHeight = clipHeight + 127 & ~127;
 
-        if (backTexture == null || backTexture.getWidth() != bufferWidth || backTexture.getHeight() != bufferHeight) {
-            recreateRenderTexture(bufferWidth, bufferHeight);
-            recreateRenderBuffer(bufferWidth, bufferHeight);
-            recreateRenderImage(bufferWidth, bufferHeight);
+        if (colorTexture == null || colorTexture.getWidth() != bufferWidth || colorTexture.getHeight() != bufferHeight) {
+            recreateColorTexture(bufferWidth, bufferHeight);
+            recreateDepthTexture(bufferWidth, bufferHeight);
+            recreateColorBuffer(bufferWidth, bufferHeight);
+            recreateImage(bufferWidth, bufferHeight);
         }
 
         try (
-            var view = backTexture.createView();
+            var colorTextureView = colorTexture.createView();
+            var depthTextureView = depthTexture.createView();
             var encoder = device.createCommandEncoder(CommandEncoderDescriptor.builder().build())
         ) {
             var color = getBackground();
             var descriptor = RenderPassDescriptor.builder()
                 .label("panel render pass")
                 .addColorAttachments(RenderPassColorAttachment.builder()
-                    .view(view)
-                    .load(new LoadOp.Clear<>(new Color(
-                        color.getRed() / 255.0f,
-                        color.getGreen() / 255.0f,
-                        color.getBlue() / 255.0f,
-                        color.getAlpha() / 255.0f)))
-                    .store(StoreOp.STORE)
+                    .view(colorTextureView)
+                    .ops(new Operations<>(
+                        new LoadOp.Clear<>(new Color(
+                            color.getRed() / 255.0f,
+                            color.getGreen() / 255.0f,
+                            color.getBlue() / 255.0f,
+                            color.getAlpha() / 255.0f)),
+                        StoreOp.STORE
+                    ))
+                    .build())
+                .depthStencilAttachment(RenderPassDepthStencilAttachment.builder()
+                    .view(depthTextureView)
+                    .depthOps(new Operations<>(
+                        new LoadOp.Clear<>(1.0f),
+                        StoreOp.STORE
+                    ))
                     .build())
                 .build();
 
@@ -79,13 +91,13 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             // Copy the rendered texture to the buffer
             encoder.copyTextureToBuffer(
                 TexelCopyTextureInfo.builder()
-                    .texture(backTexture)
+                    .texture(colorTexture)
                     .mipLevel(0)
                     .origin(new Origin3D(0, 0, 0))
                     .aspect(TextureAspect.ALL)
                     .build(),
                 TexelCopyBufferInfo.builder()
-                    .buffer(backBuffer)
+                    .buffer(colorBuffer)
                     .layout(TexelCopyBufferLayout.builder()
                         .offset(0)
                         .bytesPerRow(bufferWidth * 4)
@@ -95,16 +107,16 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
                 new Extent3D(bufferWidth, bufferHeight, 1)
             );
 
-            try (var encoded = encoder.finish(Optional.empty())) {
+            try (var encoded = encoder.finish()) {
                 queue.submit(encoded);
             }
         }
 
-        long size = backBuffer.getSize();
-        try (var mapped = backBuffer.map(instance, 0, size, MapMode.READ)) {
+        long size = colorBuffer.getSize();
+        try (var mapped = colorBuffer.map(0, size, MapMode.READ)) {
             var buffer = (DataBufferByte) image.getRaster().getDataBuffer();
             var dst = buffer.getData();
-            var src = mapped.getMappedRange(0, size);
+            var src = mapped.asBuffer(0, size);
 
             for (int i = 0; i < size; i += 4) {
                 dst[i/**/] = src.get(i + 3); // A
@@ -125,9 +137,9 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
 
     protected abstract void render(RenderPass pass);
 
-    private void recreateRenderTexture(int width, int height) {
-        if (backTexture != null) {
-            backTexture.close();
+    private void recreateColorTexture(int width, int height) {
+        if (colorTexture != null) {
+            colorTexture.close();
         }
         var descriptor = TextureDescriptor.builder()
             .size(new Extent3D(width, height, 1))
@@ -137,22 +149,37 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             .format(TextureFormat.RGBA8_UNORM)
             .addUsages(TextureUsage.COPY_SRC, TextureUsage.RENDER_ATTACHMENT)
             .build();
-        backTexture = device.createTexture(descriptor);
+        colorTexture = device.createTexture(descriptor);
     }
 
-    private void recreateRenderBuffer(int width, int height) {
-        if (backBuffer != null) {
-            backBuffer.close();
+    private void recreateDepthTexture(int width, int height) {
+        if (depthTexture != null) {
+            depthTexture.close();
+        }
+        var descriptor = TextureDescriptor.builder()
+            .size(new Extent3D(width, height, 1))
+            .mipLevelCount(1)
+            .sampleCount(1)
+            .dimension(TextureDimension.D2)
+            .format(TextureFormat.DEPTH24_PLUS)
+            .addUsages(TextureUsage.RENDER_ATTACHMENT)
+            .build();
+        depthTexture = device.createTexture(descriptor);
+    }
+
+    private void recreateColorBuffer(int width, int height) {
+        if (colorBuffer != null) {
+            colorBuffer.close();
         }
         var descriptor = BufferDescriptor.builder()
             .size(width * height * 4L)
             .addUsages(BufferUsage.COPY_DST, BufferUsage.MAP_READ)
             .mappedAtCreation(false)
             .build();
-        backBuffer = device.createBuffer(descriptor);
+        colorBuffer = device.createBuffer(descriptor);
     }
 
-    private void recreateRenderImage(int width, int height) {
+    private void recreateImage(int width, int height) {
         image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
     }
 

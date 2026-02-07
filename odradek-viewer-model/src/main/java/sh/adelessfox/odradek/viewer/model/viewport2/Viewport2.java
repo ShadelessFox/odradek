@@ -19,10 +19,10 @@ import java.util.List;
 
 public final class Viewport2 extends JPanel implements Disposable {
     private final WgpuPanel panel;
+    private final ViewportInput input;
 
     private final Scene scene;
     private final List<Layer> layers;
-    private final ViewportInput input = new ViewportInput(this);
 
     private final Camera camera;
     private float cameraSpeed = 5.f;
@@ -45,7 +45,7 @@ public final class Viewport2 extends JPanel implements Disposable {
             @Override
             protected void setup() {
                 for (Layer layer : layers) {
-                    layer.onAttach(Viewport2.this, device);
+                    layer.onAttach(Viewport2.this, device, queue);
                 }
             }
 
@@ -72,6 +72,9 @@ public final class Viewport2 extends JPanel implements Disposable {
         setLayout(new BorderLayout());
         add(panel, BorderLayout.CENTER);
 
+        this.panel.setFocusable(true);
+        this.input = new ViewportInput(panel);
+
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
@@ -84,6 +87,10 @@ public final class Viewport2 extends JPanel implements Disposable {
 
     public Scene getScene() {
         return scene;
+    }
+
+    public Camera getCamera() {
+        return camera;
     }
 
     @Override

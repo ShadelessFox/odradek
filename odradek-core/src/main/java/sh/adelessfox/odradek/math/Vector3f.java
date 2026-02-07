@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.math;
 
+import java.nio.FloatBuffer;
+
 /**
  * Contains the definition of an immutable vector comprising 3 floats and associated transformations.
  *
@@ -119,5 +121,9 @@ public record Vector3f(float x, float y, float z) {
 
     public Vector3f negate() {
         return new Vector3f(-x, -y, -z);
+    }
+
+    public void get(FloatBuffer dst) {
+        dst.put(x).put(y).put(z);
     }
 }

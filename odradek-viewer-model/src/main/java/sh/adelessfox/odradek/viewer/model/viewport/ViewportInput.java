@@ -90,6 +90,8 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
         if (robot != null) {
             viewport.setCursor(EMPTY_CURSOR);
         }
+
+        viewport.requestFocusInWindow();
     }
 
     @Override
