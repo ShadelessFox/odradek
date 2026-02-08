@@ -11,8 +11,8 @@ import sh.adelessfox.odradek.viewer.model.viewport.renderpass.GridRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.OverlayRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderMeshesPass;
 import sh.adelessfox.odradek.viewer.model.viewport2.CameraDescriptor;
-import sh.adelessfox.odradek.viewer.model.viewport2.Viewport2;
 import sh.adelessfox.odradek.viewer.model.viewport2.ViewportDescriptor;
+import sh.adelessfox.odradek.viewer.model.viewport2.WgpuViewport;
 import sh.adelessfox.odradek.viewer.model.viewport2.layers.MeshLayer;
 
 import javax.swing.*;
@@ -38,7 +38,7 @@ public final class SceneViewer implements Viewer {
     }
 
     private final Scene scene;
-    private Viewport2 viewport;
+    private WgpuViewport viewport;
 
     private SceneViewer(Scene scene) {
         this.scene = scene;
@@ -77,7 +77,7 @@ public final class SceneViewer implements Viewer {
             .addLayers(new MeshLayer())
             .build();
 
-        return viewport = new Viewport2(descriptor);
+        return viewport = new WgpuViewport(descriptor);
     }
 
     @Override

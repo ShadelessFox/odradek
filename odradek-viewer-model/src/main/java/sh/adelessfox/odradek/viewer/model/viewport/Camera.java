@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.model.viewport;
 
 import sh.adelessfox.odradek.math.Matrix4f;
+import sh.adelessfox.odradek.math.Vector2f;
 import sh.adelessfox.odradek.math.Vector3f;
 
 public final class Camera {
@@ -19,9 +20,13 @@ public final class Camera {
         this.far = far;
     }
 
+    public void rotate(Vector2f delta) {
+        rotate(delta.x(), delta.y());
+    }
+
     public void rotate(float deltaX, float deltaY) {
-        yaw -= (float) (Math.PI * deltaX / width);
-        pitch -= (float) (Math.PI * deltaY / height);
+        yaw -= (float) (Math.PI * deltaX);
+        pitch -= (float) (Math.PI * deltaY);
         pitch = Math.clamp(pitch, -PITCH_LIMIT, PITCH_LIMIT);
     }
 

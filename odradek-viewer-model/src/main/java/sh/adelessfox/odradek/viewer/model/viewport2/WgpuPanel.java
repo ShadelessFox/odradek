@@ -11,13 +11,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 public abstract class WgpuPanel extends JPanel implements Disposable {
+    public static final TextureFormat COLOR_ATTACHMENT_FORMAT = TextureFormat.RGBA8_UNORM;
+    public static final TextureFormat DEPTH_ATTACHMENT_FORMAT = TextureFormat.DEPTH24_PLUS;
+
     private final Instance instance;
     private final Adapter adapter;
     protected final Device device;
     protected final Queue queue;
-
-    // TODO shitte
-    protected final TextureFormat format = TextureFormat.RGBA8_UNORM;
 
     private Texture colorTexture;
     private Texture depthTexture;
@@ -36,14 +36,17 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         adapter = instance.requestAdapter();
         device = adapter.requestDevice(deviceDescriptor);
         queue = device.getQueue();
-
-        setup();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         int clipWidth = getWidth();
         int clipHeight = getHeight();
+
+        // This helps reduce the number of texture recreations by
+        // aligning buffers to 128 so that small resizes don't
+        // invalidate old buffers, as well as ensuring that
+        // bytesPerRow is a multiple of 256, enforced by wgpu
         int bufferWidth = clipWidth + 127 & ~127;
         int bufferHeight = clipHeight + 127 & ~127;
 
@@ -133,8 +136,6 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             null);
     }
 
-    protected abstract void setup();
-
     protected abstract void render(RenderPass pass);
 
     private void recreateColorTexture(int width, int height) {
@@ -146,7 +147,7 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             .mipLevelCount(1)
             .sampleCount(1)
             .dimension(TextureDimension.D2)
-            .format(TextureFormat.RGBA8_UNORM)
+            .format(COLOR_ATTACHMENT_FORMAT)
             .addUsages(TextureUsage.COPY_SRC, TextureUsage.RENDER_ATTACHMENT)
             .build();
         colorTexture = device.createTexture(descriptor);
@@ -161,7 +162,7 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             .mipLevelCount(1)
             .sampleCount(1)
             .dimension(TextureDimension.D2)
-            .format(TextureFormat.DEPTH24_PLUS)
+            .format(DEPTH_ATTACHMENT_FORMAT)
             .addUsages(TextureUsage.RENDER_ATTACHMENT)
             .build();
         depthTexture = device.createTexture(descriptor);

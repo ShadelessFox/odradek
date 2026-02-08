@@ -10,79 +10,70 @@ import sh.adelessfox.wgpuj.Queue;
 import sh.adelessfox.wgpuj.RenderPass;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
-public final class Viewport2 extends JPanel implements Disposable {
-    private final WgpuPanel panel;
+public final class WgpuViewport extends WgpuPanel implements Disposable {
     private final ViewportInput input;
-
     private final Scene scene;
     private final List<Layer> layers;
 
     private final Camera camera;
     private float cameraSpeed = 5.f;
+    private float cameraSensitivity = 0.001f;
     private float cameraDistance;
-    private boolean cameraOriginShown;
 
-    public Viewport2(ViewportDescriptor descriptor) {
+    private Instant lastUpdateTime = Instant.now();
+    private boolean running = true;
+
+    public WgpuViewport(ViewportDescriptor descriptor) {
         this.scene = descriptor.scene();
         this.layers = descriptor.layers();
+        this.input = new ViewportInput(this);
 
-        var desc = descriptor.camera();
-        camera = new Camera(desc.fov(), desc.near(), desc.far());
-        camera.position(desc.position());
-        camera.lookAt(desc.target());
-        cameraDistance = camera.position().sub(desc.target()).length();
+        var c = descriptor.camera();
+        camera = new Camera(c.fov(), c.near(), c.far());
+        camera.position(c.position());
+        camera.lookAt(c.target());
+        cameraDistance = camera.position().sub(c.target()).length();
 
-        this.panel = new WgpuPanel() {
-            Instant lastUpdateTime = Instant.now();
+        for (Layer layer : layers) {
+            layer.onAttach(WgpuViewport.this, device, queue);
+        }
 
-            @Override
-            protected void setup() {
-                for (Layer layer : layers) {
-                    layer.onAttach(Viewport2.this, device, queue);
-                }
-            }
-
-            @Override
-            protected void render(RenderPass pass) {
-                var now = Instant.now();
-                var delta = Duration.between(lastUpdateTime, now).toMillis() / 1000.0f;
-
-                updateInput(delta);
-                renderScene(queue, pass, delta);
-
-                lastUpdateTime = now;
-            }
-
-            @Override
-            public void dispose() {
-                for (Layer layer : layers) {
-                    layer.onDetach();
-                }
-                super.dispose();
-            }
-        };
-
-        setLayout(new BorderLayout());
-        add(panel, BorderLayout.CENTER);
-
-        this.panel.setFocusable(true);
-        this.input = new ViewportInput(panel);
-
+        // TODO replace with a proper render loop
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                // TODO shitte
-                panel.repaint();
-                SwingUtilities.invokeLater(this);
+                if (running) {
+                    repaint();
+                    SwingUtilities.invokeLater(this);
+                }
             }
         });
+    }
+
+    @Override
+    protected void render(RenderPass pass) {
+        var now = Instant.now();
+        var delta = Duration.between(lastUpdateTime, now).toMillis() / 1000.0f;
+
+        updateInput(delta);
+        renderScene(queue, pass, delta);
+
+        lastUpdateTime = now;
+    }
+
+    @Override
+    public void dispose() {
+        running = false;
+        for (Layer layer : layers) {
+            layer.onDetach();
+        }
+        super.dispose();
     }
 
     public Scene getScene() {
@@ -93,11 +84,6 @@ public final class Viewport2 extends JPanel implements Disposable {
         return camera;
     }
 
-    @Override
-    public void dispose() {
-        panel.dispose();
-    }
-
     private void updateInput(float dt) {
         updateCamera(dt);
         input.clear();
@@ -105,7 +91,7 @@ public final class Viewport2 extends JPanel implements Disposable {
 
     private void renderScene(Queue queue, RenderPass pass, float delta) {
         for (Layer layer : layers) {
-            layer.onRender(Viewport2.this, queue, pass, delta);
+            layer.onRender(WgpuViewport.this, queue, pass, delta);
         }
     }
 
@@ -116,7 +102,6 @@ public final class Viewport2 extends JPanel implements Disposable {
         }
 
         camera.resize(getWidth(), getHeight());
-        cameraOriginShown = false;
 
         var sensitivity = 1.0f;
         var mouseDelta = input.mousePositionDelta().mul(sensitivity);
@@ -128,11 +113,9 @@ public final class Viewport2 extends JPanel implements Disposable {
         } else if (input.isMouseDown(MouseEvent.BUTTON2)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updatePanCamera(dt, mouseDelta);
-            cameraOriginShown = true;
         } else if (input.isMouseDown(MouseEvent.BUTTON3)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
             updateOrbitCamera(mouseDelta);
-            cameraOriginShown = true;
         }
     }
 
@@ -180,7 +163,7 @@ public final class Viewport2 extends JPanel implements Disposable {
         }
 
         camera.position(position);
-        camera.rotate(mouse.x(), mouse.y());
+        camera.rotate(mouse.mul(cameraSensitivity));
     }
 
     private void updatePanCamera(float dt, Vector2f mouse) {
@@ -191,7 +174,7 @@ public final class Viewport2 extends JPanel implements Disposable {
 
     private void updateOrbitCamera(Vector2f mouse) {
         var target = camera.forward();
-        camera.rotate(mouse.x(), mouse.y());
+        camera.rotate(mouse.mul(cameraSensitivity));
         var distance = target.sub(camera.forward()).mul(cameraDistance);
         camera.move(distance);
     }

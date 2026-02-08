@@ -34,6 +34,7 @@ public final class Viewport extends JComponent implements GLEventListener {
     private final ViewportAnimator animator;
 
     private float cameraSpeed = 5.f;
+    private float cameraSensitivity = 0.001f;
     private float cameraDistance = 1.f;
     private boolean cameraOriginShown;
     private boolean initialized;
@@ -285,7 +286,7 @@ public final class Viewport extends JComponent implements GLEventListener {
         }
 
         camera.position(position);
-        camera.rotate(mouse.x(), mouse.y());
+        camera.rotate(mouse.mul(cameraSensitivity));
     }
 
     private void updatePanCamera(float dt, Vector2f mouse) {
@@ -296,7 +297,7 @@ public final class Viewport extends JComponent implements GLEventListener {
 
     private void updateOrbitCamera(Vector2f mouse) {
         var target = camera.forward();
-        camera.rotate(mouse.x(), mouse.y());
+        camera.rotate(mouse.mul(cameraSensitivity));
         var distance = target.sub(camera.forward()).mul(cameraDistance);
         camera.move(distance);
     }

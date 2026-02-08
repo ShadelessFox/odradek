@@ -4,9 +4,10 @@ import sh.adelessfox.odradek.geometry.Accessor;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.math.Matrix4f;
-import sh.adelessfox.odradek.math.Vector3f;
+import sh.adelessfox.odradek.math.Vector4f;
 import sh.adelessfox.odradek.scene.Node;
-import sh.adelessfox.odradek.viewer.model.viewport2.Viewport2;
+import sh.adelessfox.odradek.viewer.model.viewport2.WgpuPanel;
+import sh.adelessfox.odradek.viewer.model.viewport2.WgpuViewport;
 import sh.adelessfox.wgpuj.*;
 
 import java.nio.ByteBuffer;
@@ -19,13 +20,13 @@ import java.util.OptionalLong;
 public final class MeshLayer implements Layer {
     private static final String SHADER = """
         struct Uniforms {
-            model: mat4x4<f32>,
             view:  mat4x4<f32>,
             proj:  mat4x4<f32>,
             pos:   vec3<f32>,
         }
         
         @group(0) @binding(0) var<uniform> u: Uniforms;
+        @group(0) @binding(1) var<uniform> u_model: mat4x4<f32>;
         
         struct VertexInput {
             @location(0) position: vec3f,
@@ -40,8 +41,8 @@ public final class MeshLayer implements Layer {
         @vertex
         fn vs_main(in: VertexInput) -> VertexOutput {
             var out: VertexOutput;
-            out.position = u.proj * u.view * u.model * vec4f(in.position, 1.0);
-            out.model_position = (u.model * vec4f(in.position, 1.0)).xyz;
+            out.position = u.proj * u.view * u_model * vec4f(in.position, 1.0);
+            out.model_position = (u_model * vec4f(in.position, 1.0)).xyz;
             return out;
         }
         
@@ -63,91 +64,119 @@ public final class MeshLayer implements Layer {
     private BindGroupLayout uniformBindGroupLayout;
     private BindGroup uniformBindGroup;
 
-    private final List<GpuNode> nodes = new ArrayList<>();
+    private final List<GpuMesh> meshes = new ArrayList<>();
 
     @Override
-    public void onAttach(Viewport2 viewport, Device device, Queue queue) {
+    public void onAttach(WgpuViewport viewport, Device device, Queue queue) {
+        viewport.getScene().accept((node, transform) -> {
+            node.mesh().ifPresent(_ -> {
+                meshes.add(uploadNode(device, queue, node, transform));
+            });
+            return true;
+        });
+
         module = device.createShaderModule(ShaderModuleDescriptor.builder()
             .label("model layer shader module")
             .source(new ShaderSource.Wgsl(SHADER))
             .build());
 
-        int size = Matrix4f.BYTES * 3 + Vector3f.BYTES + 4 /* alignment */;
-        uniformsGpu = device.createBuffer(BufferDescriptor.builder()
-            .size(size)
-            .addUsages(BufferUsage.COPY_DST, BufferUsage.UNIFORM)
-            .mappedAtCreation(false)
-            .build());
-        uniformsCpu = ByteBuffer.allocateDirect(size)
-            .order(ByteOrder.LITTLE_ENDIAN);
+        {
+            // 0x0000: mat4f view
+            // 0x0040: mat4f proj
+            // 0x0080: vec3f pos
+            // 0x00c0: <0x40 padding>
+            // 0x0100: mat4f model[0]
+            // 0x0140: <0xc0 padding>
+            // 0x0200: mat4f model[1]
 
-        uniformBindGroupLayout = device.createBindGroupLayout(BindGroupLayoutDescriptor.builder()
-            .label("uniform bind group layout")
-            .addEntries(BindGroupLayoutEntry.builder()
-                .binding(0)
-                .addVisibility(ShaderStage.FRAGMENT, ShaderStage.VERTEX)
-                .type(BindingType.Buffer.builder()
-                    .type(new BufferBindingType.Uniform())
-                    .hasDynamicOffset(false)
+            int size = 256 + 256 * meshes.size();
+            uniformsGpu = device.createBuffer(BufferDescriptor.builder()
+                .size(size)
+                .addUsages(BufferUsage.COPY_DST, BufferUsage.UNIFORM)
+                .mappedAtCreation(false)
+                .build());
+            uniformsCpu = ByteBuffer.allocateDirect(size)
+                .order(ByteOrder.LITTLE_ENDIAN);
+
+            uniformBindGroupLayout = device.createBindGroupLayout(BindGroupLayoutDescriptor.builder()
+                .label("uniform bind group layout")
+                .addEntries(BindGroupLayoutEntry.builder()
+                    .binding(0)
+                    .addVisibility(ShaderStage.FRAGMENT, ShaderStage.VERTEX)
+                    .type(BindingType.Buffer.builder()
+                        .type(new BufferBindingType.Uniform())
+                        .hasDynamicOffset(false)
+                        .build())
                     .build())
-                .build())
-            .build());
+                .addEntries(BindGroupLayoutEntry.builder()
+                    .binding(1)
+                    .addVisibility(ShaderStage.FRAGMENT, ShaderStage.VERTEX)
+                    .type(BindingType.Buffer.builder()
+                        .type(new BufferBindingType.Uniform())
+                        .hasDynamicOffset(true)
+                        .build())
+                    .build())
+                .build());
 
-        uniformBindGroup = device.createBindGroup(BindGroupDescriptor.builder()
-            .label("uniform bind group")
-            .layout(uniformBindGroupLayout)
-            .addEntries(BindGroupEntry.builder()
-                .binding(0)
-                .resource(new BindingResource.Buffer(new BufferBinding(uniformsGpu, 0, OptionalLong.empty())))
-                .build())
-            .build());
+            uniformBindGroup = device.createBindGroup(BindGroupDescriptor.builder()
+                .label("uniform bind group")
+                .layout(uniformBindGroupLayout)
+                .addEntries(BindGroupEntry.builder()
+                    .binding(0)
+                    .resource(new BindingResource.Buffer(new BufferBinding(uniformsGpu, 0, OptionalLong.of(Matrix4f.BYTES * 2 + Vector4f.BYTES))))
+                    .build())
+                .addEntries(BindGroupEntry.builder()
+                    .binding(1)
+                    .resource(new BindingResource.Buffer(new BufferBinding(uniformsGpu, 256, OptionalLong.of(Matrix4f.BYTES))))
+                    .build())
+                .build());
+        }
 
-        pipeline = createPrimitiveRenderPipeline(device, module, uniformBindGroupLayout, TextureFormat.RGBA8_UNORM);
-
-        viewport.getScene().accept((node, transform) -> {
-            node.mesh().ifPresent(_ -> {
-                nodes.add(uploadNode(device, queue, node, transform));
-            });
-            return true;
-        });
+        pipeline = createPrimitiveRenderPipeline(
+            device,
+            module,
+            List.of(uniformBindGroupLayout));
     }
 
     @Override
-    public void onRender(Viewport2 viewport, Queue queue, RenderPass pass, float delta) {
+    public void onRender(WgpuViewport viewport, Queue queue, RenderPass pass, float delta) {
         var buffer = uniformsCpu.asFloatBuffer();
-        var view = buffer.slice(16, 16);
-        var proj = buffer.slice(32, 16);
-        var pos = buffer.slice(48, 3);
 
+        // Shared uniforms
         var camera = viewport.getCamera();
-        camera.view().get(view);
-        camera.projection().get(proj);
-        camera.position().get(pos);
+        camera.view().get(buffer.slice(0, 16));
+        camera.projection().get(buffer.slice(16, 16));
+        camera.position().get(buffer.slice(32, 3));
+
+        // Per-mesh uniforms
+        for (int i = 0; i < meshes.size(); i++) {
+            var node = meshes.get(i);
+            node.transform().get(buffer.slice(64 * (i + 1), 16));
+        }
+
+        queue.writeBuffer(uniformsGpu, 0, uniformsCpu);
 
         pass.setPipeline(pipeline);
-        pass.setBindGroup(0, Optional.of(uniformBindGroup));
-
-        for (GpuNode node : nodes) {
-            node.transform().get(buffer.slice(0, 16));
-            queue.writeBuffer(uniformsGpu, 0, uniformsCpu);
-
-            for (GpuPrimitive primitive : node.primitives()) {
+        for (int i = 0; i < meshes.size(); i++) {
+            pass.setBindGroup(0, Optional.of(uniformBindGroup), new int[]{256 * i});
+            for (GpuPrimitive primitive : meshes.get(i).primitives()) {
                 pass.setIndexBuffer(primitive.indices(), IndexFormat.UINT16, 0, primitive.indices().getSize());
                 pass.setVertexBuffer(0, Optional.of(primitive.positions()), 0, primitive.positions().getSize());
                 pass.setVertexBuffer(1, Optional.of(primitive.normals()), 0, primitive.normals().getSize());
                 pass.drawIndexed(primitive.count(), 1, 0, 0, 0);
-                break;
             }
-
-            break;
         }
     }
 
     @Override
     public void onDetach() {
+        meshes.forEach(GpuMesh::dispose);
+        meshes.clear();
+
         uniformBindGroup.close();
         uniformBindGroupLayout.close();
         uniformsGpu.close();
+
         pipeline.close();
         module.close();
     }
@@ -155,12 +184,11 @@ public final class MeshLayer implements Layer {
     private static RenderPipeline createPrimitiveRenderPipeline(
         Device device,
         ShaderModule shaderModule,
-        BindGroupLayout uniformBindGroup,
-        TextureFormat fragmentFormat
+        List<BindGroupLayout> bindGroupLayouts
     ) {
         var layoutDescriptor = PipelineLayoutDescriptor.builder()
             .label("model layer pipeline layout")
-            .addBindGroupLayouts(uniformBindGroup)
+            .bindGroupLayouts(bindGroupLayouts)
             .build();
 
         try (var layout = device.createPipelineLayout(layoutDescriptor)) {
@@ -186,7 +214,7 @@ public final class MeshLayer implements Layer {
                     .frontFace(FrontFace.CCW)
                     .build())
                 .depthStencil(DepthStencilState.builder()
-                    .format(TextureFormat.DEPTH24_PLUS)
+                    .format(WgpuPanel.DEPTH_ATTACHMENT_FORMAT)
                     .depthCompare(CompareFunction.LESS)
                     .depthWriteEnabled(true)
                     .stencil(StencilState.builder()
@@ -203,7 +231,7 @@ public final class MeshLayer implements Layer {
                     .module(shaderModule)
                     .entryPoint("fs_main")
                     .addTargets(ColorTargetState.builder()
-                        .format(fragmentFormat)
+                        .format(WgpuPanel.COLOR_ATTACHMENT_FORMAT)
                         .addWriteMask(ColorWrites.ALL)
                         .build())
                     .build())
@@ -213,13 +241,13 @@ public final class MeshLayer implements Layer {
         }
     }
 
-    private static GpuNode uploadNode(Device device, Queue queue, Node node, Matrix4f transform) {
+    private static GpuMesh uploadNode(Device device, Queue queue, Node node, Matrix4f transform) {
         var primitives = node.mesh().stream()
             .flatMap(mesh -> mesh.primitives().stream())
             .map(p -> uploadPrimitive(device, queue, p))
             .toList();
 
-        return new GpuNode(primitives, node, transform);
+        return new GpuMesh(primitives, node, transform);
     }
 
     private static GpuPrimitive uploadPrimitive(Device device, Queue queue, Primitive primitive) {
@@ -279,12 +307,23 @@ public final class MeshLayer implements Layer {
         return bufferGpu;
     }
 
-    private record GpuNode(List<GpuPrimitive> primitives, Node node, Matrix4f transform) {
-        private GpuNode {
+    private record GpuMesh(List<GpuPrimitive> primitives, Node node, Matrix4f transform) {
+        private GpuMesh {
             primitives = List.copyOf(primitives);
+        }
+
+        void dispose() {
+            for (GpuPrimitive primitive : primitives) {
+                primitive.dispose();
+            }
         }
     }
 
     private record GpuPrimitive(int count, Buffer positions, Buffer normals, Buffer indices) {
+        void dispose() {
+            positions.close();
+            normals.close();
+            indices.close();
+        }
     }
 }
