@@ -13,6 +13,7 @@ import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderMeshesPass;
 import sh.adelessfox.odradek.viewer.model.viewport2.CameraDescriptor;
 import sh.adelessfox.odradek.viewer.model.viewport2.ViewportDescriptor;
 import sh.adelessfox.odradek.viewer.model.viewport2.WgpuViewport;
+import sh.adelessfox.odradek.viewer.model.viewport2.layers.GridLayer;
 import sh.adelessfox.odradek.viewer.model.viewport2.layers.MeshLayer;
 
 import javax.swing.*;
@@ -74,6 +75,7 @@ public final class SceneViewer implements Viewer {
                 .target(center)
                 .build())
             .scene(scene)
+            .addLayers(new GridLayer())
             .addLayers(new MeshLayer())
             .build();
 
