@@ -13,24 +13,68 @@ import java.util.Optional;
 
 public final class GridLayer implements Layer {
     private static final String SHADER = """
+        var<private> pos : array<vec3f, 6> = array<vec3f, 6>(
+            vec3( 1,  1, 0), vec3(-1, -1, 0), vec3(-1,  1, 0),
+            vec3(-1, -1, 0), vec3( 1,  1, 0), vec3( 1, -1, 0));
+
         struct UniformsPerFrame {
-            view:  mat4x4<f32>,
-            proj:  mat4x4<f32>,
-            pos:   vec3<f32>,
+            view:     mat4x4<f32>,
+            view_inv: mat4x4<f32>,
+            proj:     mat4x4<f32>,
+            proj_inv: mat4x4<f32>,
+            pos:      vec3<f32>,
+        }
+        
+        struct VertexOutput {
+            @builtin(position) position: vec4f,
+            @location(0) near_point: vec3f,
+            @location(1) far_point: vec3f
         }
         
         @group(0) @binding(0) var<uniform> u_frame: UniformsPerFrame;
         
+        fn unproject_point(in: vec3f) -> vec3f {
+            var out = u_frame.view_inv * u_frame.proj_inv * vec4(in, 1.0);
+            return out.xyz / out.w;
+        }
+        
         @vertex
-        fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4f {
-            let x = f32(i32(in_vertex_index) - 1);
-            let y = f32(i32(in_vertex_index & 1u) * 2 - 1);
-            return vec4<f32>(x, y, 0.0, 1.0);
+        fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> VertexOutput {
+            var out: VertexOutput;
+            out.position = vec4<f32>(pos[in_vertex_index], 1.0);
+            out.near_point = unproject_point(vec3(out.position.xy, 0.0));
+            out.far_point = unproject_point(vec3(out.position.xy, 1.0));
+            return out;
+        }
+        
+        fn grid(pos: vec3f, scale: f32, is_axis: bool) -> vec4f {
+            var coord = pos.xy * scale;
+            var derivative = fwidth(coord);
+            var grid = abs(fract(coord - 0.5) - 0.5) / derivative;
+            var min_x = min(derivative.x, 1.0);
+            var min_y = min(derivative.y, 1.0);
+        
+            var color: vec3f;
+            if (-min_x < pos.x && pos.x < 0.1 * min_x && is_axis) {
+                color = vec3(0.2, 0.8, 0.2);
+            } else if (-min_y < pos.y && pos.y < 0.1 * min_y && is_axis) {
+                color = vec3(0.9, 0.2, 0.2);
+            } else {
+                color = vec3(0.2);
+            }
+        
+            var axis = min(grid.x, grid.y);
+            var alpha = 1.0 - min(axis, 1.0);
+        
+            return vec4(color, alpha);
         }
         
         @fragment
-        fn fs_main() -> @location(0) vec4f {
-            return vec4f(1.0);
+        fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+            var t = -in.near_point.z / (in.far_point.z - in.near_point.z);
+            var pos = in.near_point + t * (in.far_point - in.near_point);
+            var col = grid(pos, 1, true) + grid(pos, 10, false); 
+            return col * f32(t > 0);
         }
         """;
 
@@ -54,13 +98,15 @@ public final class GridLayer implements Layer {
         // Shared uniforms
         var camera = viewport.getCamera();
         camera.view().get(buffer.slice(0, 16));
-        camera.projection().get(buffer.slice(16, 16));
-        camera.position().get(buffer.slice(32, 3));
+        camera.view().invert().get(buffer.slice(16, 16));
+        camera.projection().get(buffer.slice(32, 16));
+        camera.projection().invert().get(buffer.slice(48, 16));
+        camera.position().get(buffer.slice(64, 3));
         queue.writeBuffer(uniformsGpu, 0, uniformsCpu);
 
         pass.setPipeline(pipeline);
         pass.setBindGroup(0, Optional.of(uniformBindGroup));
-        pass.draw(3, 1, 0, 0);
+        pass.draw(6, 1, 0, 0);
     }
 
     @Override
@@ -74,12 +120,7 @@ public final class GridLayer implements Layer {
     }
 
     private void createResources(Device device) {
-        // 0x0000: mat4f view
-        // 0x0040: mat4f proj
-        // 0x0080: vec3f pos
-        // 0x00c0: <0x40 padding>
-
-        int size = 256;
+        int size = Matrix4f.BYTES * 4 + Vector4f.BYTES;
         uniformsGpu = device.createBuffer(BufferDescriptor.builder()
             .size(size)
             .addUsages(BufferUsage.COPY_DST, BufferUsage.UNIFORM)
@@ -105,7 +146,7 @@ public final class GridLayer implements Layer {
             .layout(uniformBindGroupLayout)
             .addEntries(BindGroupEntry.builder()
                 .binding(0)
-                .resource(new BindingResource.Buffer(uniformsGpu, 0, Matrix4f.BYTES * 2 + Vector4f.BYTES))
+                .resource(new BindingResource.Buffer(uniformsGpu, 0, Matrix4f.BYTES * 4 + Vector4f.BYTES))
                 .build())
             .build());
 
@@ -145,7 +186,7 @@ public final class GridLayer implements Layer {
                 .depthStencil(DepthStencilState.builder()
                     .format(WgpuPanel.DEPTH_ATTACHMENT_FORMAT)
                     .depthCompare(CompareFunction.LESS)
-                    .depthWriteEnabled(true)
+                    .depthWriteEnabled(false)
                     .stencil(StencilState.builder()
                         .front(StencilFaceState.IGNORE)
                         .back(StencilFaceState.IGNORE)

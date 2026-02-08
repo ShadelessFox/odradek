@@ -57,22 +57,23 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             recreateImage(bufferWidth, bufferHeight);
         }
 
+        var clear = getBackground();
+
         try (
             var colorTextureView = colorTexture.createView();
             var depthTextureView = depthTexture.createView();
             var encoder = device.createCommandEncoder(CommandEncoderDescriptor.builder().build())
         ) {
-            var color = getBackground();
             var descriptor = RenderPassDescriptor.builder()
                 .label("panel render pass")
                 .addColorAttachments(RenderPassColorAttachment.builder()
                     .view(colorTextureView)
                     .ops(new Operations<>(
                         new LoadOp.Clear<>(new Color(
-                            color.getRed() / 255.0f,
-                            color.getGreen() / 255.0f,
-                            color.getBlue() / 255.0f,
-                            color.getAlpha() / 255.0f)),
+                            clear.getRed() / 255.0f,
+                            clear.getGreen() / 255.0f,
+                            clear.getBlue() / 255.0f,
+                            clear.getAlpha() / 255.0f)),
                         StoreOp.STORE
                     ))
                     .build())
@@ -129,6 +130,8 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             }
         }
 
+        g.setColor(clear);
+        g.fillRect(0, 0, clipWidth, clipHeight);
         g.drawImage(
             image,
             0, 0, clipWidth, clipHeight,
