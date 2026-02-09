@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.math.Vector4f;
 import sh.adelessfox.odradek.viewer.model.viewport2.WgpuPanel;
 import sh.adelessfox.odradek.viewer.model.viewport2.WgpuViewport;
 import sh.adelessfox.wgpuj.*;
+import sh.adelessfox.wgpuj.objects.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -148,38 +149,37 @@ public final class GridLayer implements Layer {
 
     private void createResources(Device device) {
         int size = Matrix4f.BYTES * 4 + Vector4f.BYTES;
-        uniformsGpu = device.createBuffer(BufferDescriptor.builder()
+        uniformsGpu = device.createBuffer(ImmutableBufferDescriptor.builder()
             .size(size)
             .addUsages(BufferUsage.COPY_DST, BufferUsage.UNIFORM)
-            .mappedAtCreation(false)
             .build());
         uniformsCpu = ByteBuffer.allocateDirect(size)
             .order(ByteOrder.LITTLE_ENDIAN);
 
-        uniformBindGroupLayout = device.createBindGroupLayout(BindGroupLayoutDescriptor.builder()
-            .label("uniform bind group layout")
-            .addEntries(BindGroupLayoutEntry.builder()
+        uniformBindGroupLayout = device.createBindGroupLayout(ImmutableBindGroupLayoutDescriptor.builder()
+            .addEntries(ImmutableBindGroupLayoutEntry.builder()
                 .binding(0)
                 .addVisibility(ShaderStage.FRAGMENT, ShaderStage.VERTEX)
-                .type(BindingType.Buffer.builder()
+                .type(ImmutableBindingType.Buffer.builder()
                     .type(new BufferBindingType.Uniform())
                     .hasDynamicOffset(false)
                     .build())
                 .build())
             .build());
 
-        uniformBindGroup = device.createBindGroup(BindGroupDescriptor.builder()
-            .label("uniform bind group")
+        uniformBindGroup = device.createBindGroup(ImmutableBindGroupDescriptor.builder()
             .layout(uniformBindGroupLayout)
-            .addEntries(BindGroupEntry.builder()
+            .addEntries(ImmutableBindGroupEntry.builder()
                 .binding(0)
-                .resource(new BindingResource.Buffer(uniformsGpu, 0, Matrix4f.BYTES * 4 + Vector4f.BYTES))
+                .resource(ImmutableBindingResource.Buffer.builder()
+                    .buffer(uniformsGpu)
+                    .size(Matrix4f.BYTES * 4 + Vector4f.BYTES)
+                    .build())
                 .build())
             .build());
 
-        module = device.createShaderModule(ShaderModuleDescriptor.builder()
-            .label("model layer shader module")
-            .source(new ShaderSource.Wgsl(SHADER))
+        module = device.createShaderModule(ImmutableShaderModuleDescriptor.builder()
+            .source(ImmutableShaderSource.Wgsl.of(SHADER))
             .build());
 
         pipeline = createPrimitiveRenderPipeline(
@@ -193,45 +193,36 @@ public final class GridLayer implements Layer {
         ShaderModule shaderModule,
         List<BindGroupLayout> bindGroupLayouts
     ) {
-        var layoutDescriptor = PipelineLayoutDescriptor.builder()
-            .label("model layer pipeline layout")
+        var layoutDescriptor = ImmutablePipelineLayoutDescriptor.builder()
             .bindGroupLayouts(bindGroupLayouts)
             .build();
 
         try (var layout = device.createPipelineLayout(layoutDescriptor)) {
-            var pipelineDescriptor = RenderPipelineDescriptor.builder()
-                .label("model layer render pipeline")
+            var pipelineDescriptor = ImmutableRenderPipelineDescriptor.builder()
                 .layout(layout)
-                .vertex(VertexState.builder()
+                .vertex(ImmutableVertexState.builder()
                     .module(shaderModule)
                     .entryPoint("vs_main")
                     .build())
-                .primitive(PrimitiveState.builder()
-                    .topology(PrimitiveTopology.TRIANGLE_LIST)
-                    .frontFace(FrontFace.CCW)
-                    .build())
-                .depthStencil(DepthStencilState.builder()
+                .depthStencil(ImmutableDepthStencilState.builder()
                     .format(WgpuPanel.DEPTH_ATTACHMENT_FORMAT)
                     .depthCompare(CompareFunction.LESS)
                     .depthWriteEnabled(true)
-                    .stencil(StencilState.builder()
-                        .front(StencilFaceState.IGNORE)
-                        .back(StencilFaceState.IGNORE)
-                        .build())
                     .build())
-                .multisample(MultisampleState.builder()
-                    .count(1)
-                    .mask(0xFFFFFFFF)
-                    .alphaToCoverageEnabled(false)
-                    .build())
-                .fragment(FragmentState.builder()
+                .fragment(ImmutableFragmentState.builder()
                     .module(shaderModule)
                     .entryPoint("fs_main")
-                    .addTargets(ColorTargetState.builder()
+                    .addTargets(ImmutableColorTargetState.builder()
                         .format(WgpuPanel.COLOR_ATTACHMENT_FORMAT)
-                        .blend(BlendState.builder()
-                            .color(new BlendComponent(BlendOperation.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA))
-                            .alpha(new BlendComponent(BlendOperation.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA))
+                        .blend(ImmutableBlendState.builder()
+                            .color(ImmutableBlendComponent.builder()
+                                .srcFactor(BlendFactor.SRC_ALPHA)
+                                .dstFactor(BlendFactor.ONE_MINUS_SRC_ALPHA)
+                                .build())
+                            .alpha(ImmutableBlendComponent.builder()
+                                .srcFactor(BlendFactor.SRC_ALPHA)
+                                .dstFactor(BlendFactor.ONE_MINUS_SRC_ALPHA)
+                                .build())
                             .build())
                         .addWriteMask(ColorWrites.ALL)
                         .build())

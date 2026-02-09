@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.viewer.model.viewport2;
 
 import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.wgpuj.*;
-import sh.adelessfox.wgpuj.Color;
-import sh.adelessfox.wgpuj.Queue;
+import sh.adelessfox.wgpuj.objects.*;
+import sh.adelessfox.wgpuj.objects.Queue;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,10 +26,10 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
     private BufferedImage image;
 
     public WgpuPanel() {
-        var instanceDescriptor = InstanceDescriptor.builder()
+        var instanceDescriptor = ImmutableInstanceDescriptor.builder()
             .addFlags(InstanceFlag.DEBUG, InstanceFlag.VALIDATION)
             .build();
-        var deviceDescriptor = DeviceDescriptor.builder()
+        var deviceDescriptor = ImmutableDeviceDescriptor.builder()
             .build();
 
         instance = Instance.create(instanceDescriptor);
@@ -62,27 +62,25 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         try (
             var colorTextureView = colorTexture.createView();
             var depthTextureView = depthTexture.createView();
-            var encoder = device.createCommandEncoder(CommandEncoderDescriptor.builder().build())
+            var encoder = device.createCommandEncoder(ImmutableCommandEncoderDescriptor.builder().build())
         ) {
-            var descriptor = RenderPassDescriptor.builder()
+            var descriptor = ImmutableRenderPassDescriptor.builder()
                 .label("panel render pass")
-                .addColorAttachments(RenderPassColorAttachment.builder()
+                .addColorAttachments(ImmutableRenderPassColorAttachment.builder()
                     .view(colorTextureView)
-                    .ops(new Operations<>(
-                        new LoadOp.Clear<>(new Color(
+                    .ops(ImmutableOperations.of(
+                        ImmutableOperations.Clear.of(ImmutableColor.of(
                             clear.getRed() / 255.0f,
                             clear.getGreen() / 255.0f,
                             clear.getBlue() / 255.0f,
                             clear.getAlpha() / 255.0f)),
-                        StoreOp.STORE
-                    ))
+                        Operations.StoreOp.STORE))
                     .build())
-                .depthStencilAttachment(RenderPassDepthStencilAttachment.builder()
+                .depthStencilAttachment(ImmutableRenderPassDepthStencilAttachment.builder()
                     .view(depthTextureView)
-                    .depthOps(new Operations<>(
-                        new LoadOp.Clear<>(1.0f),
-                        StoreOp.STORE
-                    ))
+                    .depthOps(ImmutableOperations.of(
+                        ImmutableOperations.Clear.of(1.0f),
+                        Operations.StoreOp.STORE))
                     .build())
                 .build();
 
@@ -94,22 +92,18 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
 
             // Copy the rendered texture to the buffer
             encoder.copyTextureToBuffer(
-                TexelCopyTextureInfo.builder()
-                    .texture(colorTexture)
-                    .mipLevel(0)
-                    .origin(new Origin3D(0, 0, 0))
-                    .aspect(TextureAspect.ALL)
-                    .build(),
-                TexelCopyBufferInfo.builder()
+                ImmutableTexelCopyTextureInfo.of(colorTexture),
+                ImmutableTexelCopyBufferInfo.builder()
                     .buffer(colorBuffer)
-                    .layout(TexelCopyBufferLayout.builder()
-                        .offset(0)
+                    .layout(ImmutableTexelCopyBufferLayout.builder()
                         .bytesPerRow(bufferWidth * 4)
                         .rowsPerImage(bufferHeight * 4)
                         .build())
                     .build(),
-                new Extent3D(bufferWidth, bufferHeight, 1)
-            );
+                ImmutableExtent3D.builder()
+                    .width(bufferWidth)
+                    .height(bufferHeight)
+                    .build());
 
             try (var encoded = encoder.finish()) {
                 queue.submit(encoded);
@@ -145,11 +139,11 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         if (colorTexture != null) {
             colorTexture.close();
         }
-        var descriptor = TextureDescriptor.builder()
-            .size(new Extent3D(width, height, 1))
-            .mipLevelCount(1)
-            .sampleCount(1)
-            .dimension(TextureDimension.D2)
+        var descriptor = ImmutableTextureDescriptor.builder()
+            .size(ImmutableExtent3D.builder()
+                .width(width)
+                .height(height)
+                .build())
             .format(COLOR_ATTACHMENT_FORMAT)
             .addUsages(TextureUsage.COPY_SRC, TextureUsage.RENDER_ATTACHMENT)
             .build();
@@ -160,11 +154,11 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         if (depthTexture != null) {
             depthTexture.close();
         }
-        var descriptor = TextureDescriptor.builder()
-            .size(new Extent3D(width, height, 1))
-            .mipLevelCount(1)
-            .sampleCount(1)
-            .dimension(TextureDimension.D2)
+        var descriptor = ImmutableTextureDescriptor.builder()
+            .size(ImmutableExtent3D.builder()
+                .width(width)
+                .height(height)
+                .build())
             .format(DEPTH_ATTACHMENT_FORMAT)
             .addUsages(TextureUsage.RENDER_ATTACHMENT)
             .build();
@@ -175,7 +169,7 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         if (colorBuffer != null) {
             colorBuffer.close();
         }
-        var descriptor = BufferDescriptor.builder()
+        var descriptor = ImmutableBufferDescriptor.builder()
             .size(width * height * 4L)
             .addUsages(BufferUsage.COPY_DST, BufferUsage.MAP_READ)
             .mappedAtCreation(false)

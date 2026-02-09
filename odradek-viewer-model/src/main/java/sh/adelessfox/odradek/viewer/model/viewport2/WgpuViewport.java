@@ -6,8 +6,8 @@ import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
 import sh.adelessfox.odradek.viewer.model.viewport2.layers.Layer;
-import sh.adelessfox.wgpuj.Queue;
-import sh.adelessfox.wgpuj.RenderPass;
+import sh.adelessfox.wgpuj.objects.Queue;
+import sh.adelessfox.wgpuj.objects.RenderPass;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;

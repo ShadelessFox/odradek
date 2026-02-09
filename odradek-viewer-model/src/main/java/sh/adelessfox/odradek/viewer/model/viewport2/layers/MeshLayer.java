@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport2.WgpuPanel;
 import sh.adelessfox.odradek.viewer.model.viewport2.WgpuViewport;
 import sh.adelessfox.wgpuj.*;
+import sh.adelessfox.wgpuj.objects.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class MeshLayer implements Layer {
-    //language=WGSL
+    // language=WGSL
     private static final String SHADER = """
         struct UniformsPerFrame {
             view:  mat4x4<f32>,
@@ -138,50 +139,56 @@ public final class MeshLayer implements Layer {
         // 0x0200: mat4f model[1]
 
         int size = 256 + 256 * meshes.size();
-        uniformsGpu = device.createBuffer(BufferDescriptor.builder()
+        uniformsGpu = device.createBuffer(ImmutableBufferDescriptor.builder()
             .size(size)
             .addUsages(BufferUsage.COPY_DST, BufferUsage.UNIFORM)
-            .mappedAtCreation(false)
             .build());
         uniformsCpu = ByteBuffer.allocateDirect(size)
             .order(ByteOrder.LITTLE_ENDIAN);
 
-        uniformBindGroupLayout = device.createBindGroupLayout(BindGroupLayoutDescriptor.builder()
+        uniformBindGroupLayout = device.createBindGroupLayout(ImmutableBindGroupLayoutDescriptor.builder()
             .label("uniform bind group layout")
-            .addEntries(BindGroupLayoutEntry.builder()
+            .addEntries(ImmutableBindGroupLayoutEntry.builder()
                 .binding(0)
                 .addVisibility(ShaderStage.FRAGMENT, ShaderStage.VERTEX)
-                .type(BindingType.Buffer.builder()
+                .type(ImmutableBindingType.Buffer.builder()
                     .type(new BufferBindingType.Uniform())
                     .hasDynamicOffset(false)
                     .build())
                 .build())
-            .addEntries(BindGroupLayoutEntry.builder()
+            .addEntries(ImmutableBindGroupLayoutEntry.builder()
                 .binding(1)
                 .addVisibility(ShaderStage.FRAGMENT, ShaderStage.VERTEX)
-                .type(BindingType.Buffer.builder()
+                .type(ImmutableBindingType.Buffer.builder()
                     .type(new BufferBindingType.Uniform())
                     .hasDynamicOffset(true)
                     .build())
                 .build())
             .build());
 
-        uniformBindGroup = device.createBindGroup(BindGroupDescriptor.builder()
+        uniformBindGroup = device.createBindGroup(ImmutableBindGroupDescriptor.builder()
             .label("uniform bind group")
             .layout(uniformBindGroupLayout)
-            .addEntries(BindGroupEntry.builder()
+            .addEntries(ImmutableBindGroupEntry.builder()
                 .binding(0)
-                .resource(new BindingResource.Buffer(uniformsGpu, 0, Matrix4f.BYTES * 2 + Vector4f.BYTES))
+                .resource(ImmutableBindingResource.Buffer.builder()
+                    .buffer(uniformsGpu)
+                    .size(Matrix4f.BYTES * 2 + Vector4f.BYTES)
+                    .build())
                 .build())
-            .addEntries(BindGroupEntry.builder()
+            .addEntries(ImmutableBindGroupEntry.builder()
                 .binding(1)
-                .resource(new BindingResource.Buffer(uniformsGpu, 256, Matrix4f.BYTES))
+                .resource(ImmutableBindingResource.Buffer.builder()
+                    .buffer(uniformsGpu)
+                    .offset(256)
+                    .size(Matrix4f.BYTES)
+                    .build())
                 .build())
             .build());
 
-        module = device.createShaderModule(ShaderModuleDescriptor.builder()
+        module = device.createShaderModule(ImmutableShaderModuleDescriptor.builder()
             .label("model layer shader module")
-            .source(new ShaderSource.Wgsl(SHADER))
+            .source(ImmutableShaderSource.Wgsl.of(SHADER))
             .build());
 
         pipeline = createPrimitiveRenderPipeline(
@@ -195,51 +202,36 @@ public final class MeshLayer implements Layer {
         ShaderModule shaderModule,
         List<BindGroupLayout> bindGroupLayouts
     ) {
-        var layoutDescriptor = PipelineLayoutDescriptor.builder()
-            .label("model layer pipeline layout")
+        var layoutDescriptor = ImmutablePipelineLayoutDescriptor.builder()
             .bindGroupLayouts(bindGroupLayouts)
             .build();
 
         try (var layout = device.createPipelineLayout(layoutDescriptor)) {
-            var pipelineDescriptor = RenderPipelineDescriptor.builder()
-                .label("model layer render pipeline")
+            var pipelineDescriptor = ImmutableRenderPipelineDescriptor.builder()
                 .layout(layout)
-                .vertex(VertexState.builder()
+                .vertex(ImmutableVertexState.builder()
                     .module(shaderModule)
                     .entryPoint("vs_main")
-                    .addBuffers(VertexBufferLayout.builder()
+                    .addBuffers(ImmutableVertexBufferLayout.builder()
                         .stepMode(VertexStepMode.VERTEX)
                         .arrayStride(12)
-                        .addAttributes(new VertexAttribute(VertexFormat.FLOAT_32x3, 0, 0))  // position
+                        .addAttributes(ImmutableVertexAttribute.of(VertexFormat.FLOAT_32x3, 0, 0)) // position
                         .build())
-                    .addBuffers(VertexBufferLayout.builder()
+                    .addBuffers(ImmutableVertexBufferLayout.builder()
                         .stepMode(VertexStepMode.VERTEX)
                         .arrayStride(12)
-                        .addAttributes(new VertexAttribute(VertexFormat.FLOAT_32x3, 0, 1))  // normals
+                        .addAttributes(ImmutableVertexAttribute.of(VertexFormat.FLOAT_32x3, 0, 1)) // normals
                         .build())
                     .build())
-                .primitive(PrimitiveState.builder()
-                    .topology(PrimitiveTopology.TRIANGLE_LIST)
-                    .frontFace(FrontFace.CCW)
-                    .build())
-                .depthStencil(DepthStencilState.builder()
+                .depthStencil(ImmutableDepthStencilState.builder()
                     .format(WgpuPanel.DEPTH_ATTACHMENT_FORMAT)
                     .depthCompare(CompareFunction.LESS)
                     .depthWriteEnabled(true)
-                    .stencil(StencilState.builder()
-                        .front(StencilFaceState.IGNORE)
-                        .back(StencilFaceState.IGNORE)
-                        .build())
                     .build())
-                .multisample(MultisampleState.builder()
-                    .count(1)
-                    .mask(0xFFFFFFFF)
-                    .alphaToCoverageEnabled(false)
-                    .build())
-                .fragment(FragmentState.builder()
+                .fragment(ImmutableFragmentState.builder()
                     .module(shaderModule)
                     .entryPoint("fs_main")
-                    .addTargets(ColorTargetState.builder()
+                    .addTargets(ImmutableColorTargetState.builder()
                         .format(WgpuPanel.COLOR_ATTACHMENT_FORMAT)
                         .addWriteMask(ColorWrites.ALL)
                         .build())
@@ -281,7 +273,7 @@ public final class MeshLayer implements Layer {
 
         bufferCpu.position(0);
 
-        var bufferGpu = device.createBuffer(BufferDescriptor.builder()
+        var bufferGpu = device.createBuffer(ImmutableBufferDescriptor.builder()
             .size(bufferCpu.remaining())
             .addUsages(BufferUsage.COPY_DST, BufferUsage.VERTEX)
             .mappedAtCreation(false)
@@ -304,7 +296,7 @@ public final class MeshLayer implements Layer {
 
         bufferCpu.position(0);
 
-        var bufferGpu = device.createBuffer(BufferDescriptor.builder()
+        var bufferGpu = device.createBuffer(ImmutableBufferDescriptor.builder()
             .size(bufferCpu.remaining())
             .addUsages(BufferUsage.COPY_DST, BufferUsage.INDEX)
             .mappedAtCreation(false)
