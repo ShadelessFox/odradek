@@ -12,11 +12,13 @@ import java.util.List;
 import java.util.Optional;
 
 public final class GridLayer implements Layer {
+    // language=WGSL
+    // language=WGSL
     private static final String SHADER = """
         var<private> pos : array<vec3f, 6> = array<vec3f, 6>(
             vec3( 1,  1, 0), vec3(-1, -1, 0), vec3(-1,  1, 0),
             vec3(-1, -1, 0), vec3( 1,  1, 0), vec3( 1, -1, 0));
-
+        
         struct UniformsPerFrame {
             view:     mat4x4<f32>,
             view_inv: mat4x4<f32>,
@@ -29,6 +31,11 @@ public final class GridLayer implements Layer {
             @builtin(position) position: vec4f,
             @location(0) near_point: vec3f,
             @location(1) far_point: vec3f
+        }
+        
+        struct FragmentOutput {
+            @builtin(frag_depth) depth: f32,
+            @location(0) color: vec4f
         }
         
         @group(0) @binding(0) var<uniform> u_frame: UniformsPerFrame;
@@ -45,6 +52,19 @@ public final class GridLayer implements Layer {
             out.near_point = unproject_point(vec3(out.position.xy, 0.0));
             out.far_point = unproject_point(vec3(out.position.xy, 1.0));
             return out;
+        }
+        
+        fn depth(clip_space_pos: vec4f) -> f32 {
+            return clip_space_pos.z / clip_space_pos.w;
+        }
+        
+        fn fade(clip_space_pos: vec4f) -> f32 {
+            const near = 0.01;
+            const far = 100.0;
+        
+            var clip_depth = (clip_space_pos.z / clip_space_pos.w) * 2.0 - 1.0;
+            var linear_depth = (2.0 * near * far) / (far + near - clip_depth * (far - near));
+            return linear_depth / far;
         }
         
         fn grid(pos: vec3f, scale: f32, is_axis: bool) -> vec4f {
@@ -65,16 +85,23 @@ public final class GridLayer implements Layer {
         
             var axis = min(grid.x, grid.y);
             var alpha = 1.0 - min(axis, 1.0);
-        
             return vec4(color, alpha);
         }
         
         @fragment
-        fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+        fn fs_main(in: VertexOutput) -> FragmentOutput {
             var t = -in.near_point.z / (in.far_point.z - in.near_point.z);
-            var pos = in.near_point + t * (in.far_point - in.near_point);
-            var col = grid(pos, 1, true) + grid(pos, 10, false); 
-            return col * f32(t > 0);
+            var frag_pos = in.near_point + t * (in.far_point - in.near_point);
+            var clip_pos = u_frame.proj * u_frame.view * vec4(frag_pos, 1.0);
+        
+            var color = grid(frag_pos, 1, true) + grid(frag_pos, 10, false) * 0.25;
+            color *= max(0.0, 1.0 - fade(clip_pos)); // fade
+            color *= f32(t > 0); // discard what's behind the camera
+        
+            var out: FragmentOutput;
+            out.color = color;
+            out.depth = depth(clip_pos);
+            return out;
         }
         """;
 
@@ -186,7 +213,7 @@ public final class GridLayer implements Layer {
                 .depthStencil(DepthStencilState.builder()
                     .format(WgpuPanel.DEPTH_ATTACHMENT_FORMAT)
                     .depthCompare(CompareFunction.LESS)
-                    .depthWriteEnabled(false)
+                    .depthWriteEnabled(true)
                     .stencil(StencilState.builder()
                         .front(StencilFaceState.IGNORE)
                         .back(StencilFaceState.IGNORE)
@@ -202,6 +229,10 @@ public final class GridLayer implements Layer {
                     .entryPoint("fs_main")
                     .addTargets(ColorTargetState.builder()
                         .format(WgpuPanel.COLOR_ATTACHMENT_FORMAT)
+                        .blend(BlendState.builder()
+                            .color(new BlendComponent(BlendOperation.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA))
+                            .alpha(new BlendComponent(BlendOperation.ADD, BlendFactor.SRC_ALPHA, BlendFactor.ONE_MINUS_SRC_ALPHA))
+                            .build())
                         .addWriteMask(ColorWrites.ALL)
                         .build())
                     .build())

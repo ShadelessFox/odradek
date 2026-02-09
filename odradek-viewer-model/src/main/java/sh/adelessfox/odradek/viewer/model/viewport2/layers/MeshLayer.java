@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class MeshLayer implements Layer {
+    //language=WGSL
     private static final String SHADER = """
         struct UniformsPerFrame {
             view:  mat4x4<f32>,
@@ -55,7 +56,6 @@ public final class MeshLayer implements Layer {
             var normal = normalize(cross(dpdx(in.model_position), dpdy(in.model_position)));
             var view = normalize(u_frame.pos - in.model_position);
             var color = vec3f(abs(dot(view, normal)));
-        
             return vec4f(color, 1.0);
         }
         """;

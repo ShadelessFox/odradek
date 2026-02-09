@@ -75,11 +75,14 @@ public final class SceneViewer implements Viewer {
                 .target(center)
                 .build())
             .scene(scene)
-            .addLayers(new GridLayer())
             .addLayers(new MeshLayer())
+            .addLayers(new GridLayer())
             .build();
 
-        return viewport = new WgpuViewport(descriptor);
+        viewport = new WgpuViewport(descriptor);
+        viewport.setBackground(Color.BLACK);
+
+        return viewport;
     }
 
     @Override
