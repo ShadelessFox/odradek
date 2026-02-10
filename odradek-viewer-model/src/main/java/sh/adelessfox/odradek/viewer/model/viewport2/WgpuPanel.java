@@ -7,8 +7,10 @@ import sh.adelessfox.wgpuj.objects.Queue;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
+import java.nio.ByteOrder;
 
 public abstract class WgpuPanel extends JPanel implements Disposable {
     public static final TextureFormat COLOR_ATTACHMENT_FORMAT = TextureFormat.RGBA8_UNORM;
@@ -36,6 +38,9 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         adapter = instance.requestAdapter();
         device = adapter.requestDevice(deviceDescriptor);
         queue = device.getQueue();
+
+        setDoubleBuffered(false);
+        setOpaque(true);
     }
 
     @Override
@@ -58,11 +63,18 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
         }
 
         var clear = getBackground();
+        submit(clear, clipWidth, clipHeight, bufferWidth, bufferHeight);
+        copyTexture();
+        blitTexture(g, clear, clipWidth, clipHeight);
+    }
 
+    private void submit(Color clear, int clipWidth, int clipHeight, int bufferWidth, int bufferHeight) {
         try (
             var colorTextureView = colorTexture.createView();
             var depthTextureView = depthTexture.createView();
-            var encoder = device.createCommandEncoder(ImmutableCommandEncoderDescriptor.builder().build())
+            var commandEncoder = device.createCommandEncoder(ImmutableCommandEncoderDescriptor.builder()
+                .label("offscreen command encoder")
+                .build())
         ) {
             var descriptor = ImmutableRenderPassDescriptor.builder()
                 .label("panel render pass")
@@ -84,14 +96,14 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
                     .build())
                 .build();
 
-            try (var pass = encoder.beginRenderPass(descriptor)) {
+            try (var pass = commandEncoder.beginRenderPass(descriptor)) {
                 pass.setViewport(0, 0, clipWidth, clipHeight, 0, 1);
                 render(pass);
                 pass.end();
             }
 
             // Copy the rendered texture to the buffer
-            encoder.copyTextureToBuffer(
+            commandEncoder.copyTextureToBuffer(
                 ImmutableTexelCopyTextureInfo.of(colorTexture),
                 ImmutableTexelCopyBufferInfo.builder()
                     .buffer(colorBuffer)
@@ -105,25 +117,13 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
                     .height(bufferHeight)
                     .build());
 
-            try (var encoded = encoder.finish()) {
+            try (var encoded = commandEncoder.finish()) {
                 queue.submit(encoded);
             }
         }
+    }
 
-        long size = colorBuffer.getSize();
-        try (var mapped = colorBuffer.map(0, size, MapMode.READ)) {
-            var buffer = (DataBufferByte) image.getRaster().getDataBuffer();
-            var dst = buffer.getData();
-            var src = mapped.asBuffer(0, size);
-
-            for (int i = 0; i < size; i += 4) {
-                dst[i/**/] = src.get(i + 3); // A
-                dst[i + 1] = src.get(i + 2); // B
-                dst[i + 2] = src.get(i + 1); // G
-                dst[i + 3] = src.get(i/**/); // R
-            }
-        }
-
+    private void blitTexture(Graphics g, Color clear, int clipWidth, int clipHeight) {
         g.setColor(clear);
         g.fillRect(0, 0, clipWidth, clipHeight);
         g.drawImage(
@@ -131,6 +131,21 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
             0, 0, clipWidth, clipHeight,
             0, 0, clipWidth, clipHeight,
             null);
+    }
+
+    private void copyTexture() {
+        long size = colorBuffer.getSize();
+        try (var mapped = colorBuffer.map(0, size, MapMode.READ)) {
+            var dst = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+            var src = mapped.asBuffer(0, size).order(ByteOrder.LITTLE_ENDIAN);
+            for (int i = 0; i < dst.length; i++) {
+                int rgba = src.getInt(i << 2);
+                int bgra = rgba & 0xFF00FF00 | (rgba & 0x00FF0000) >> 16 | (rgba & 0x000000FF) << 16;
+                dst[i] = bgra;
+            }
+        } catch (InterruptedException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     protected abstract void render(RenderPass pass);
@@ -178,7 +193,7 @@ public abstract class WgpuPanel extends JPanel implements Disposable {
     }
 
     private void recreateImage(int width, int height) {
-        image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
     }
 
     @Override
