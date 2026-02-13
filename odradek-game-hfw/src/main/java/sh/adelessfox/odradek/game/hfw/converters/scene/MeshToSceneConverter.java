@@ -206,26 +206,20 @@ public final class MeshToSceneConverter
         }
 
         var joints = skeleton.general().joints();
-        var unlinked = joints.stream().map(joint -> Node.builder().name(joint.name())).toList();
+        var nodes = new Node.Builder[joints.size()];
 
-        for (int i = 0; i < joints.size(); i++) {
-            unlinked.get(i).matrix(transforms.get(i).toMatrix());
-        }
-
-        var linked = new Node[joints.size()];
-
-        for (int i = joints.size() - 1; i >= 0; i--) {
+        for (int i = 0; i < nodes.length; i++) {
             var joint = joints.get(i);
-            var node = unlinked.get(i).build();
-
+            var bone = Node.builder()
+                .name(joint.name())
+                .matrix(transforms.get(i).toMatrix());
+            nodes[i] = bone;
             if (joint.parentIndex() != -1) {
-                unlinked.get(joint.parentIndex()).add(node);
+                nodes[joint.parentIndex()].add(bone);
             }
-
-            linked[i] = node;
         }
 
-        return Optional.of(linked[0]);
+        return Optional.of(nodes[0].build());
     }
 
     private static Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {

@@ -4,10 +4,7 @@ import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.math.BoundingBox;
 import sh.adelessfox.odradek.math.Matrix4f;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public record Node(
@@ -57,10 +54,26 @@ public record Node(
     }
 
     public static final class Builder {
-        private final List<Node> children = new ArrayList<>();
+        record NodeOrBuilder(Node node, Builder builder) {
+            static NodeOrBuilder of(Node node) {
+                Objects.requireNonNull(node, "node");
+                return new NodeOrBuilder(node, null);
+            }
+
+            static NodeOrBuilder of(Builder builder) {
+                Objects.requireNonNull(builder, "builder");
+                return new NodeOrBuilder(null, builder);
+            }
+
+            Node toNode() {
+                return node != null ? node : builder.build();
+            }
+        }
+
+        private final List<NodeOrBuilder> children = new ArrayList<>();
         private String name;
         private Mesh mesh;
-        private Node skin;
+        private NodeOrBuilder skin;
         private Matrix4f matrix = Matrix4f.identity();
 
         private Builder() {
@@ -77,7 +90,12 @@ public record Node(
         }
 
         public Builder skin(Node skin) {
-            this.skin = skin;
+            this.skin = skin != null ? NodeOrBuilder.of(skin) : null;
+            return this;
+        }
+
+        public Builder skin(Builder skin) {
+            this.skin = skin != null ? NodeOrBuilder.of(skin) : null;
             return this;
         }
 
@@ -92,17 +110,29 @@ public record Node(
 
         public Builder children(Collection<Node> children) {
             this.children.clear();
-            this.children.addAll(children);
+            for (Node child : children) {
+                this.children.add(NodeOrBuilder.of(child));
+            }
             return this;
         }
 
         public Builder add(Node child) {
-            children.add(child);
+            children.add(NodeOrBuilder.of(child));
+            return this;
+        }
+
+        public Builder add(Builder child) {
+            children.add(NodeOrBuilder.of(child));
             return this;
         }
 
         public Node build() {
-            return new Node(Optional.ofNullable(name), Optional.ofNullable(mesh), Optional.ofNullable(skin), children, matrix);
+            return new Node(
+                Optional.ofNullable(name),
+                Optional.ofNullable(mesh),
+                Optional.ofNullable(skin).map(NodeOrBuilder::toNode),
+                children.stream().map(NodeOrBuilder::toNode).toList(),
+                matrix);
         }
 
         @Override

@@ -67,10 +67,12 @@ public record Accessor(
 
     public FloatView asFloatView() {
         return switch (componentType) {
-            case FLOAT -> FloatView.ofFloat(this, buffer);
-            case HALF_FLOAT -> FloatView.ofHalfFloat(this, buffer);
+            case UNSIGNED_BYTE -> FloatView.ofUnsignedByte(this, buffer);
+            case BYTE -> FloatView.ofByte(this, buffer);
             case UNSIGNED_SHORT -> FloatView.ofUnsignedShort(this, buffer);
             case SHORT -> FloatView.ofShort(this, buffer);
+            case FLOAT -> FloatView.ofFloat(this, buffer);
+            case HALF_FLOAT -> FloatView.ofHalfFloat(this, buffer);
             case INT_10_10_10_2 -> FloatView.ofX10Y10Z10W2(this, buffer);
             default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
         };
@@ -112,12 +114,12 @@ public record Accessor(
     }
 
     public interface FloatView {
-        static FloatView ofFloat(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getFloat(accessor.getPositionFor(e, c));
+        static FloatView ofByte(Accessor accessor, ByteBuffer buffer) {
+            return (e, c) -> buffer.get(accessor.getPositionFor(e, c)) / 127f;
         }
 
-        static FloatView ofHalfFloat(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> Float.float16ToFloat(buffer.getShort(accessor.getPositionFor(e, c)));
+        static FloatView ofUnsignedByte(Accessor accessor, ByteBuffer buffer) {
+            return (e, c) -> Byte.toUnsignedInt(buffer.get(accessor.getPositionFor(e, c))) / 255f;
         }
 
         static FloatView ofShort(Accessor accessor, ByteBuffer buffer) {
@@ -126,6 +128,14 @@ public record Accessor(
 
         static FloatView ofUnsignedShort(Accessor accessor, ByteBuffer buffer) {
             return (e, c) -> Short.toUnsignedInt(buffer.getShort(accessor.getPositionFor(e, c))) / 65535f;
+        }
+
+        static FloatView ofFloat(Accessor accessor, ByteBuffer buffer) {
+            return (e, c) -> buffer.getFloat(accessor.getPositionFor(e, c));
+        }
+
+        static FloatView ofHalfFloat(Accessor accessor, ByteBuffer buffer) {
+            return (e, c) -> Float.float16ToFloat(buffer.getShort(accessor.getPositionFor(e, c)));
         }
 
         static FloatView ofX10Y10Z10W2(Accessor accessor, ByteBuffer buffer) {

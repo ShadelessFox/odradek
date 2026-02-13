@@ -10,12 +10,14 @@ import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public class CastExporter implements Exporter<Scene> {
     private static final Logger log = LoggerFactory.getLogger(CastExporter.class);
@@ -69,6 +71,7 @@ public class CastExporter implements Exporter<Scene> {
             node.name().ifPresent(model::setName);
 
             exportMesh(model, mesh);
+            node.skin().ifPresent(skin -> exportSkeleton(model, skin));
         });
 
         for (Node child : node.children()) {
@@ -85,6 +88,14 @@ public class CastExporter implements Exporter<Scene> {
                 switch (semantic) {
                     case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
                     case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
+                    case Semantic.Joints(int n) when n == 0 -> {
+                        result.setVertexWeightBoneBuffer(toByteBuffer(accessor));
+                        result.setMaximumWeightInfluence(4);
+                    }
+                    case Semantic.Weights(int n) when n == 0 -> {
+                        result.setVertexWeightValueBuffer(toFloatBuffer(accessor));
+                        result.setMaximumWeightInfluence(4);
+                    }
                     case Semantic.Texture _ -> {
                         result.addVertexUVBuffer(toFloatBuffer(accessor));
                         result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
@@ -114,6 +125,44 @@ public class CastExporter implements Exporter<Scene> {
                 result.setFaceBuffer(toIntBuffer(indices));
             }
         }
+    }
+
+    private static void exportSkeleton(CastNodes.Model model, Node nodeSkin) {
+        var skeleton = model.createSkeleton();
+        exportBone(skeleton, OptionalInt.empty(), nodeSkin);
+    }
+
+    private static void exportBone(CastNodes.Skeleton skeleton, OptionalInt parent, Node node) {
+        var bone = skeleton.createBone();
+        node.name().ifPresent(bone::setName);
+        parent.ifPresent(bone::setParentIndex);
+
+        var transform = node.matrix();
+        var pos = transform.toTranslation();
+        var rot = transform.toRotation();
+        var scl = transform.toScale();
+
+        bone.setLocalPosition(new Vec3(pos.x(), pos.y(), pos.z()));
+        bone.setLocalRotation(new Vec4(rot.x(), rot.y(), rot.z(), rot.w()));
+        bone.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
+
+        int index = skeleton.getBones().size() - 1;
+        System.out.println(parent + " -> " + bone.getName() + " (" + index + ")");
+
+        for (Node child : node.children()) {
+            exportBone(skeleton, OptionalInt.of(index), child);
+        }
+    }
+
+    private static ByteBuffer toByteBuffer(Accessor accessor) {
+        var buffer = ByteBuffer.allocate(accessor.count() * accessor.componentCount());
+        var view = accessor.asByteView();
+        for (int i = 0; i < accessor.count(); i++) {
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                buffer.put(view.get(i, j));
+            }
+        }
+        return buffer.flip();
     }
 
     private static ShortBuffer toShortBuffer(Accessor accessor) {
