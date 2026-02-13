@@ -7,6 +7,7 @@ module odradek.game.hfw.ui {
 
     provides sh.adelessfox.odradek.ui.Renderer with
         sh.adelessfox.odradek.game.hfw.ui.renderers.EnumFactEntryRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.JointRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.GGUUIDRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.LocalizedTextResourceRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.MurmurHashValueRenderer,
