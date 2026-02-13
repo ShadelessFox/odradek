@@ -89,7 +89,11 @@ public class CastExporter implements Exporter<Scene> {
                     case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
                     case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
                     case Semantic.Joints(int n) when n == 0 -> {
-                        result.setVertexWeightBoneBuffer(toByteBuffer(accessor));
+                        result.setVertexWeightBoneBuffer(switch (accessor.componentType()) {
+                            case UNSIGNED_BYTE, BYTE -> toByteBuffer(accessor);
+                            case UNSIGNED_SHORT, SHORT -> toShortBuffer(accessor);
+                            default -> toIntBuffer(accessor);
+                        });
                         result.setMaximumWeightInfluence(4);
                     }
                     case Semantic.Weights(int n) when n == 0 -> {
@@ -147,8 +151,6 @@ public class CastExporter implements Exporter<Scene> {
         bone.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
 
         int index = skeleton.getBones().size() - 1;
-        System.out.println(parent + " -> " + bone.getName() + " (" + index + ")");
-
         for (Node child : node.children()) {
             exportBone(skeleton, OptionalInt.of(index), child);
         }
