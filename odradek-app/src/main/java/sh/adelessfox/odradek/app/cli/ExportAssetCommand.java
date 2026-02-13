@@ -72,6 +72,12 @@ public class ExportAssetCommand extends AbstractCommand {
             var name = formatFileName(id, object, exporter);
             var target = path.resolve(name);
 
+            try {
+                Files.createDirectories(target.getParent());
+            } catch (IOException e) {
+                log.error("  Unable to create output directory; skipping", e);
+            }
+
             try (var channel = Files.newByteChannel(target, WRITE, CREATE, TRUNCATE_EXISTING)) {
                 exporter.export(converted, channel);
             } catch (Exception e) {
