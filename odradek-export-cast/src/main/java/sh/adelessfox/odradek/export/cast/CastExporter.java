@@ -16,6 +16,8 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -82,23 +84,25 @@ public class CastExporter implements Exporter<Scene> {
     private static void exportMesh(CastNodes.Model model, Mesh nodeMesh) {
         for (Primitive primitive : nodeMesh.primitives()) {
             var result = model.createMesh();
+            var joints = new ArrayList<Accessor>(4);
+            var weights = new ArrayList<Accessor>(4);
 
             // Vertices
             primitive.vertices().forEach((semantic, accessor) -> {
                 switch (semantic) {
                     case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
                     case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
-                    case Semantic.Joints(int n) when n == 0 -> {
-                        result.setVertexWeightBoneBuffer(switch (accessor.componentType()) {
-                            case UNSIGNED_BYTE, BYTE -> toByteBuffer(accessor);
-                            case UNSIGNED_SHORT, SHORT -> toShortBuffer(accessor);
-                            default -> toIntBuffer(accessor);
-                        });
-                        result.setMaximumWeightInfluence(4);
+                    case Semantic.Joints(int n) -> {
+                        while (joints.size() <= n) {
+                            joints.add(null);
+                        }
+                        joints.set(n, accessor);
                     }
-                    case Semantic.Weights(int n) when n == 0 -> {
-                        result.setVertexWeightValueBuffer(toFloatBuffer(accessor));
-                        result.setMaximumWeightInfluence(4);
+                    case Semantic.Weights(int n) -> {
+                        while (weights.size() <= n) {
+                            weights.add(null);
+                        }
+                        weights.set(n, accessor);
                     }
                     case Semantic.Texture _ -> {
                         result.addVertexUVBuffer(toFloatBuffer(accessor));
@@ -119,6 +123,22 @@ public class CastExporter implements Exporter<Scene> {
                     }
                     default -> log.debug("Skipping unsupported vertex {}", semantic);
                 }
+            });
+
+            var jointsInfo = InterleavedBufferInfo.validate(joints);
+            var weightsInfo = InterleavedBufferInfo.validate(weights);
+            if (jointsInfo.count() != weightsInfo.count() || jointsInfo.componentCount() != weightsInfo.componentCount()) {
+                log.error("Joints and weights accessors do not match! Skipping skinning data");
+                continue;
+            }
+
+            result.setMaximumWeightInfluence(jointsInfo.componentCount());
+            result.setVertexWeightValueBuffer(toFloatBufferInterleaved(weights, weightsInfo));
+            result.setVertexWeightBoneBuffer(switch (joints.getFirst().componentType()) {
+                case BYTE, UNSIGNED_BYTE -> toByteBufferInterleaved(joints, jointsInfo);
+                case SHORT, UNSIGNED_SHORT -> toShortBufferInterleaved(joints, jointsInfo);
+                case INT, UNSIGNED_INT -> toIntBufferInterleaved(joints, jointsInfo);
+                default -> throw new IllegalArgumentException("Unsupported component type: " + joints.getFirst().componentType());
             });
 
             // Indices
@@ -156,17 +176,7 @@ public class CastExporter implements Exporter<Scene> {
         }
     }
 
-    private static ByteBuffer toByteBuffer(Accessor accessor) {
-        var buffer = ByteBuffer.allocate(accessor.count() * accessor.componentCount());
-        var view = accessor.asByteView();
-        for (int i = 0; i < accessor.count(); i++) {
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.put(view.get(i, j));
-            }
-        }
-        return buffer.flip();
-    }
-
+    //region Buffers
     private static ShortBuffer toShortBuffer(Accessor accessor) {
         var buffer = ShortBuffer.allocate(accessor.count() * accessor.componentCount());
         var view = accessor.asShortView();
@@ -199,4 +209,76 @@ public class CastExporter implements Exporter<Scene> {
         }
         return buffer.flip();
     }
+    //endregion
+
+    //region Interleaved Buffers
+    private static ByteBuffer toByteBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
+        var buffer = ByteBuffer.allocate(accessors.size() * info.count() * info.componentCount());
+        for (int i = 0; i < info.count(); i++) {
+            for (Accessor accessor : accessors) {
+                var view = accessor.asByteView();
+                for (int j = 0; j < accessor.componentCount(); j++) {
+                    buffer.put(view.get(i, j));
+                }
+            }
+        }
+        return buffer.flip();
+    }
+
+    private static ShortBuffer toShortBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
+        var buffer = ShortBuffer.allocate(accessors.size() * info.count() * info.componentCount());
+        for (int i = 0; i < info.count(); i++) {
+            for (Accessor accessor : accessors) {
+                var view = accessor.asShortView();
+                for (int j = 0; j < accessor.componentCount(); j++) {
+                    buffer.put(view.get(i, j));
+                }
+            }
+        }
+        return buffer.flip();
+    }
+
+    private static IntBuffer toIntBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
+        var buffer = IntBuffer.allocate(accessors.size() * info.count() * info.componentCount());
+        for (int i = 0; i < info.count(); i++) {
+            for (Accessor accessor : accessors) {
+                var view = accessor.asIntView();
+                for (int j = 0; j < accessor.componentCount(); j++) {
+                    buffer.put(view.get(i, j));
+                }
+            }
+        }
+        return buffer.flip();
+    }
+
+    private static FloatBuffer toFloatBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
+        var buffer = FloatBuffer.allocate(accessors.size() * info.count() * info.componentCount());
+        for (int i = 0; i < info.count(); i++) {
+            for (Accessor accessor : accessors) {
+                var view = accessor.asFloatView();
+                for (int j = 0; j < accessor.componentCount(); j++) {
+                    buffer.put(view.get(i, j));
+                }
+            }
+        }
+        return buffer.flip();
+    }
+
+    private record InterleavedBufferInfo(ComponentType componentType, int count, int componentCount) {
+        static InterleavedBufferInfo validate(List<Accessor> accessors) {
+            if (accessors.isEmpty()) {
+                throw new IllegalArgumentException("At least one accessor is required");
+            }
+            var first = accessors.getFirst();
+            int componentCount = 0;
+            for (Accessor accessor : accessors) {
+                if (accessor.componentType() != first.componentType() || accessor.count() != first.count()) {
+                    throw new IllegalArgumentException("All accessors must have the same component type, count, and component count");
+                }
+                componentCount += accessor.componentCount();
+            }
+            return new InterleavedBufferInfo(first.componentType(), first.count(), componentCount);
+        }
+    }
+    //endregion
 }
