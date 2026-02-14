@@ -124,6 +124,10 @@ public class CastExporter implements Exporter<Scene> {
             // Weights
             var jointsAccessor = Accessor.ofInterleaved(joints);
             var weightsAccessor = Accessor.ofInterleaved(weights);
+            if (jointsAccessor.count() != weightsAccessor.count() || jointsAccessor.componentCount() != weightsAccessor.componentCount()) {
+                log.error("Joints and weights accessors do not match! Skipping skinning data");
+                continue;
+            }
 
             result.setMaximumWeightInfluence(jointsAccessor.componentCount());
             result.setVertexWeightBoneBuffer(toBuffer(jointsAccessor));
