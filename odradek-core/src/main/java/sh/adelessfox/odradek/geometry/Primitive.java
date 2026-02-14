@@ -6,18 +6,10 @@ import java.util.Map;
 
 public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int hash) {
     public Primitive {
-        if (indices.componentType() != ComponentType.UNSIGNED_SHORT && indices.componentType() != ComponentType.UNSIGNED_INT) {
-            throw new IllegalArgumentException("indices must be of type UNSIGNED_SHORT or UNSIGNED_INT");
-        }
-        if (indices.elementType() != ElementType.SCALAR) {
-            throw new IllegalArgumentException("indices must be of element type SCALAR");
-        }
-        if (indices.normalized()) {
-            throw new IllegalArgumentException("indices cannot be normalized");
-        }
-        if (!vertices.containsKey(Semantic.POSITION)) {
-            throw new IllegalArgumentException("vertices must contain POSITION semantic");
-        }
+        validateIndices(indices);
+        validatePositions(vertices);
+        validateWeights(vertices);
+
         vertices = Map.copyOf(vertices);
     }
 
@@ -40,5 +32,42 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int 
         }
 
         return bbox;
+    }
+
+    private static void validateIndices(Accessor indices) {
+        if (indices.type().normalized()) {
+            throw new IllegalArgumentException("indices must not be normalized");
+        }
+        if (!indices.type().unsigned()) {
+            throw new IllegalArgumentException("indices must be unsigned");
+        }
+        if (!(indices.type() instanceof Type.I8) &&
+            !(indices.type() instanceof Type.I16) &&
+            !(indices.type() instanceof Type.I32)
+        ) {
+            throw new IllegalArgumentException("indices must be of type I8, I16, or I32");
+        }
+    }
+
+    private static void validatePositions(Map<Semantic, Accessor> vertices) {
+        if (!vertices.containsKey(Semantic.POSITION)) {
+            throw new IllegalArgumentException("vertices must contain POSITION semantic");
+        }
+    }
+
+    private static void validateWeights(Map<Semantic, Accessor> vertices) {
+        var weights = vertices.get(Semantic.WEIGHTS);
+        var joints = vertices.get(Semantic.JOINTS);
+        if (weights != null || joints != null) {
+            if (weights == null || joints == null) {
+                throw new IllegalArgumentException("vertices must contain both WEIGHTS and JOINTS semantics if either is present");
+            }
+            if (weights.count() != joints.count()) {
+                throw new IllegalArgumentException("WEIGHTS and JOINTS accessors must have the same count");
+            }
+            if (weights.componentCount() != joints.componentCount()) {
+                throw new IllegalArgumentException("WEIGHTS and JOINTS accessors must have the same component count");
+            }
+        }
     }
 }

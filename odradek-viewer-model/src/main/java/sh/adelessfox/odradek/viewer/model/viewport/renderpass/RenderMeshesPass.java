@@ -2,8 +2,10 @@ package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.geometry.Accessor;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
+import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.math.BoundingBox;
 import sh.adelessfox.odradek.math.Frustum;
 import sh.adelessfox.odradek.math.Matrix4f;
@@ -154,15 +156,12 @@ public final class RenderMeshesPass implements RenderPass {
             if (accessor == null) {
                 continue;
             }
-            var attributes = buffers.computeIfAbsent(accessor.buffer(), _ -> new ArrayList<>());
-            attributes.add(new VertexAttribute(
-                location1,
-                accessor.elementType(),
-                accessor.componentType(),
-                accessor.offset(),
-                accessor.stride(),
-                accessor.normalized()
-            ));
+            if (!(accessor instanceof Accessor.OfBuffer buffer)) {
+                log.error("Unsupported accessor type for semantic {}: {}", semantic, accessor.getClass().getName());
+                return Optional.empty();
+            }
+            var attributes = buffers.computeIfAbsent(buffer.buffer(), _ -> new ArrayList<>());
+            attributes.add(new VertexAttribute(location1, buffer.type(), 0, buffer.stride()));
             semantics.add(semantic);
         }
 
@@ -179,14 +178,19 @@ public final class RenderMeshesPass implements RenderPass {
                 slot++;
             }
 
+            if (!(indices instanceof Accessor.OfBuffer buffer)) {
+                log.error("Unsupported index accessor type: {}", indices.getClass().getName());
+                return Optional.empty();
+            }
+
             var ibo = vao.createElementBuffer();
-            ibo.put(indices.buffer(), 0);
+            ibo.put(buffer.buffer(), 0);
 
             var count = indices.count();
-            var type = switch (indices.componentType()) {
-                case UNSIGNED_BYTE -> GL_UNSIGNED_BYTE;
-                case UNSIGNED_SHORT -> GL_UNSIGNED_SHORT;
-                case UNSIGNED_INT -> GL_UNSIGNED_INT;
+            var type = switch (indices.type()) {
+                case Type.I8 _ -> GL_UNSIGNED_BYTE;
+                case Type.I16 _ -> GL_UNSIGNED_SHORT;
+                case Type.I32 _ -> GL_UNSIGNED_INT;
                 default -> throw new IllegalArgumentException("unsupported index type");
             };
 

@@ -80,6 +80,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         ByteBuffer buffer
     ) {
         var accessors = new HashMap<Semantic, Accessor>();
+        var interleaved = new HashMap<Semantic, List<Accessor>>();
+
         var count = object.count();
 
         for (var stream : object.streams()) {
@@ -95,8 +97,31 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             }
 
             for (var element : stream.elements()) {
-                var offset = Byte.toUnsignedInt(element.offset());
+                int offset = Byte.toUnsignedInt(element.offset());
+                int components = element.slotsUsed();
 
+                var type = switch (element.storageType().unwrap()) {
+                    case UnsignedByte -> new Type.I8(components, true, false);
+                    case UnsignedByteNormalized -> new Type.I8(components, true, true);
+                    case SignedShort -> new Type.I16(components, false, false);
+                    case SignedShortNormalized -> new Type.I16(components, false, true);
+                    case UnsignedShort -> new Type.I16(components, true, false);
+                    case UnsignedShortNormalized -> new Type.I16(components, true, true);
+                    case HalfFloat -> new Type.F16(components);
+                    case Float -> new Type.F32(components);
+                    case X10Y10Z10W2Normalized -> new Type.X10Y10Z10W2(components, false, true);
+                    case X10Y10Z10W2UNorm -> new Type.X10Y10Z10W2(components, true, true);
+                    default -> {
+                        log.warn("Skipping unsupported element (semantic: {}, format: {})", element.element(), element.storageType());
+                        yield null;
+                    }
+                };
+
+                if (type == null) {
+                    continue;
+                }
+
+                var accessor = Accessor.of(view, offset, stride, type, count);
                 var semantic = switch (element.element().unwrap()) {
                     case Pos -> Semantic.POSITION;
                     case TangentBFlip -> Semantic.TANGENT_BFLIP;
@@ -107,71 +132,33 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                     case UV0 -> Semantic.TEXTURE_0;
                     case UV1 -> Semantic.TEXTURE_1;
                     case UV2 -> Semantic.TEXTURE_2;
-                    case BlendWeights -> Semantic.WEIGHTS_0;
-                    case BlendWeights2 -> Semantic.WEIGHTS_1;
-                    case BlendWeights3 -> Semantic.WEIGHTS_2;
-                    case BlendIndices -> Semantic.JOINTS_0;
-                    case BlendIndices2 -> Semantic.JOINTS_1;
-                    case BlendIndices3 -> Semantic.JOINTS_2;
+                    case BlendWeights, BlendWeights2, BlendWeights3 -> {
+                        // NOTE elements are expected to be ordered
+                        interleaved.computeIfAbsent(Semantic.WEIGHTS, _ -> new ArrayList<>()).add(accessor);
+                        yield null;
+                    }
+                    case BlendIndices, BlendIndices2, BlendIndices3 -> {
+                        // NOTE elements are expected to be ordered
+                        interleaved.computeIfAbsent(Semantic.JOINTS, _ -> new ArrayList<>()).add(accessor);
+                        yield null;
+                    }
                     default -> {
                         log.warn("Skipping unsupported element (semantic: {})", element.element());
                         yield null;
                     }
                 };
 
-                if (semantic == null) {
-                    continue;
-                }
-
-                var elementType = switch (element.slotsUsed()) {
-                    case 1 -> ElementType.SCALAR;
-                    case 2 -> ElementType.VEC2;
-                    case 3 -> ElementType.VEC3;
-                    case 4 -> ElementType.VEC4;
-                    default -> {
-                        log.warn("Skipping unsupported element (semantic: {}, size: {})", element.element(), element.slotsUsed());
-                        yield null;
-                    }
-                };
-
-                if (elementType == null) {
-                    continue;
-                }
-
-                var accessor = switch (element.storageType().unwrap()) {
-                    // @formatter:off
-                    case UnsignedByte ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_BYTE, offset, count, stride, false);
-                    case UnsignedByteNormalized ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_BYTE, offset, count, stride, true);
-                    case UnsignedShort ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_SHORT, offset, count, stride, false);
-                    case UnsignedShortNormalized ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_SHORT, offset, count, stride, true);
-                    case SignedShort ->
-                        new Accessor(view, elementType, ComponentType.SHORT, offset, count, stride, false);
-                    case SignedShortNormalized ->
-                        new Accessor(view, elementType, ComponentType.SHORT, offset, count, stride, true);
-                    case HalfFloat ->
-                        new Accessor(view, elementType, ComponentType.HALF_FLOAT, offset, count, stride, false);
-                    case Float ->
-                        new Accessor(view, elementType, ComponentType.FLOAT, offset, count, stride, false);
-                    case X10Y10Z10W2Normalized ->
-                        new Accessor(view, elementType, ComponentType.INT_10_10_10_2, offset, count, stride, true);
-                    case X10Y10Z10W2UNorm ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_INT_10_10_10_2, offset, count, stride, true);
-                    default -> {
-                        log.warn("Skipping unsupported element (semantic: {}, format: {})", element.element(), element.storageType());
-                        yield null;
-                    }
-                    // @formatter:on
-                };
-
-                if (accessor != null) {
+                if (semantic != null) {
                     accessors.put(semantic, accessor);
                 }
             }
         }
+
+        interleaved.forEach(((semantic, value) -> {
+            if (!value.isEmpty()) {
+                accessors.put(semantic, Accessor.ofInterleaved(value));
+            }
+        }));
 
         return accessors;
     }
@@ -182,9 +169,9 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         int startIndex,
         int endIndex
     ) {
-        var component = switch (object.format().unwrap()) {
-            case Index16 -> ComponentType.UNSIGNED_SHORT;
-            case Index32 -> ComponentType.UNSIGNED_INT;
+        var type = switch (object.format().unwrap()) {
+            case Index16 -> new Type.I16(1, true, false);
+            case Index32 -> new Type.I32(1, true, false);
         };
 
         var count = object.count();
@@ -199,7 +186,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                 .order(ByteOrder.LITTLE_ENDIAN);
         }
 
-        return new Accessor(view, ElementType.SCALAR, component, startIndex * stride, endIndex - startIndex, stride);
+        return Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
     }
 
     private static ByteBuffer readBufferAligned(ByteBuffer buffer, int count, int stride) {

@@ -4,8 +4,7 @@ import com.google.gson.Gson;
 import org.lwjgl.BufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.geometry.ComponentType;
-import sh.adelessfox.odradek.geometry.ElementType;
+import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.math.*;
 import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.rhi.AddressMode;
@@ -78,8 +77,8 @@ final class DebugRenderer {
 
         try (var _ = vao = new VertexArray().bind()) {
             var attributes = List.of(
-                new VertexAttribute(0, ElementType.VEC4, ComponentType.FLOAT, 0, 28, false),
-                new VertexAttribute(1, ElementType.VEC3, ComponentType.FLOAT, 16, 28, false)
+                new VertexAttribute(0, new Type.F32(4), 0, 28),
+                new VertexAttribute(1, new Type.F32(3), 16, 28)
             );
 
             vbo = vao.createVertexBuffer(attributes, 0);
