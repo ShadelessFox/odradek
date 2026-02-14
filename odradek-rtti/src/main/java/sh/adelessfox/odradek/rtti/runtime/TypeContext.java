@@ -101,7 +101,7 @@ public class TypeContext {
         var bases = new ArrayList<ClassBaseInfo>();
         var attrs = new ArrayList<ClassAttrInfo>();
         var version = object.get("version").getAsInt();
-        var flags = object.get("flags").getAsInt();
+        var flags = object.has("flags") ? object.get("flags").getAsInt() : 0;
 
         if (object.has("messages")) {
             for (JsonElement element : object.getAsJsonArray("messages")) {

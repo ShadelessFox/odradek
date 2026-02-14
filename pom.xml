@@ -22,8 +22,9 @@
         <module>odradek-export-json</module>
         <module>odradek-export-wave</module>
         <module>odradek-game</module>
-        <module>odradek-game-hfw-ui</module>
         <module>odradek-game-hfw</module>
+        <module>odradek-game-hfw-ui</module>
+        <module>odradek-game-until-dawn-beta</module>
         <module>odradek-opengl-awt</module>
         <module>odradek-opengl</module>
         <module>odradek-rtti-generator</module>
@@ -92,6 +93,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game-hfw-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-until-dawn-beta</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

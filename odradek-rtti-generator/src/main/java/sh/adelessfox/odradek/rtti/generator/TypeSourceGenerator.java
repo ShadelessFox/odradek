@@ -253,7 +253,8 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
     }
 
     static String toJavaConstant(EnumTypeInfo info, EnumValueInfo value) {
-        String name = value.name();
+        String name = value.name()
+            .replace('.', '_');
         if (!SourceVersion.isName(name)) {
             name = "_" + name;
         }

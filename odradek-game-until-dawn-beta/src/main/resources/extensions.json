@@ -1,0 +1,119 @@
+{
+	"extends": {
+		"IndexArrayResource": [
+			"IndexArrayResourceExtension"
+		],
+		"PhysicsRagdollResource": [
+			"PhysicsRagdollResourceExtension"
+		],
+		"PhysicsSkeleton": [
+			"PhysicsSkeletonExtension"
+		],
+		"Pose": [
+			"PoseExtension"
+		],
+		"ShaderResource": [
+			"ShaderResourceExtension"
+		],
+		"VertexArrayResource": [
+			"VertexArrayResourceExtension"
+		],
+		"WWiseSoundBankResource": [
+			"WWiseSoundBankResourceExtension"
+		]
+	},
+	"types": {
+		"IndexArrayResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Count", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Format", "type": "EIndexFormat", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"PhysicsRagdollResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"PhysicsSkeletonExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"PoseExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Unk01", "type": "Array_TransMatrix", "offset": 0, "flags": 0},
+				{"name": "Unk02", "type": "Array_ProjMatrix", "offset": 0, "flags": 0},
+				{"name": "Unk03", "type": "Array_float", "offset": 0, "flags": 0}
+			]
+		},
+		"ShaderResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"VertexArrayResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Count", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Streams", "type": "Array_VertexArrayStreamInfo", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"VertexArrayStreamInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Elements", "type": "Array_VertexArrayStreamElementInfo", "offset": 0, "flags": 0}
+			]
+		},
+		"VertexArrayStreamElementInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Unk01", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Offset", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "StorageType", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "SlotsUsed", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Element", "type": "uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"WWiseSoundBankResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"EIndexFormat": {
+			"kind": "enum", "size": 4, "values": [
+				{"value": 1, "name": "Index8"},
+				{"value": 2, "name": "Index16"},
+				{"value": 3, "name": "Index32"}
+			]
+		},
+		"ETextureType": {
+			"kind": "enum", "size": 4, "values": [
+				{"value": 0, "name": "2D"},
+				{"value": 1, "name": "3D"},
+				{"value": 2, "name": "CubeMap"}
+			]
+		},
+		"Array_TransMatrix": {
+			"kind": "container",
+			"type": "Array",
+			"item_type": "TransMatrix"
+		},
+		"Array_ProjMatrix": {
+			"kind": "container",
+			"type": "Array",
+			"item_type": "ProjMatrix"
+		},
+		"Array_VertexArrayStreamElementInfo": {
+			"kind": "container",
+			"type": "Array",
+			"item_type": "VertexArrayStreamElementInfo"
+		},
+		"Array_VertexArrayStreamInfo": {
+			"kind": "container",
+			"type": "Array",
+			"item_type": "VertexArrayStreamInfo"
+		}
+	}
+}
