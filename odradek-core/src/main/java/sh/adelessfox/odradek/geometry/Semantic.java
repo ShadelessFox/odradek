@@ -10,12 +10,8 @@ public sealed interface Semantic {
     Semantic TEXTURE_1 = new Texture(1);
     Semantic TEXTURE_2 = new Texture(2);
     Semantic COLOR = new Color();
-    Semantic JOINTS_0 = new Joints(0);
-    Semantic JOINTS_1 = new Joints(1);
-    Semantic JOINTS_2 = new Joints(2);
-    Semantic WEIGHTS_0 = new Weights(0);
-    Semantic WEIGHTS_1 = new Weights(1);
-    Semantic WEIGHTS_2 = new Weights(2);
+    Semantic JOINTS = new Joints();
+    Semantic WEIGHTS = new Weights();
 
     record Position() implements Semantic {
     }
@@ -43,19 +39,9 @@ public sealed interface Semantic {
     record Color() implements Semantic {
     }
 
-    record Joints(int n) implements Semantic {
-        public Joints {
-            if (n < 0) {
-                throw new IllegalArgumentException("n must be positive");
-            }
-        }
+    record Joints() implements Semantic {
     }
 
-    record Weights(int n) implements Semantic {
-        public Weights {
-            if (n < 0) {
-                throw new IllegalArgumentException("n must be positive");
-            }
-        }
+    record Weights() implements Semantic {
     }
 }

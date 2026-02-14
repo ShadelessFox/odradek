@@ -80,6 +80,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         ByteBuffer buffer
     ) {
         var accessors = new HashMap<Semantic, Accessor>();
+        var interleaved = new HashMap<Semantic, List<Accessor>>();
+
         var count = object.count();
 
         for (var stream : object.streams()) {
@@ -95,35 +97,9 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             }
 
             for (var element : stream.elements()) {
-                var offset = Byte.toUnsignedInt(element.offset());
-
-                var semantic = switch (element.element().unwrap()) {
-                    case Pos -> Semantic.POSITION;
-                    case TangentBFlip -> Semantic.TANGENT_BFLIP;
-                    case Tangent -> Semantic.TANGENT;
-                    case Binormal -> Semantic.BINORMAL;
-                    case Normal -> Semantic.NORMAL;
-                    case Color -> Semantic.COLOR;
-                    case UV0 -> Semantic.TEXTURE_0;
-                    case UV1 -> Semantic.TEXTURE_1;
-                    case UV2 -> Semantic.TEXTURE_2;
-                    case BlendWeights -> Semantic.WEIGHTS_0;
-                    case BlendWeights2 -> Semantic.WEIGHTS_1;
-                    case BlendWeights3 -> Semantic.WEIGHTS_2;
-                    case BlendIndices -> Semantic.JOINTS_0;
-                    case BlendIndices2 -> Semantic.JOINTS_1;
-                    case BlendIndices3 -> Semantic.JOINTS_2;
-                    default -> {
-                        log.warn("Skipping unsupported element (semantic: {})", element.element());
-                        yield null;
-                    }
-                };
-
-                if (semantic == null) {
-                    continue;
-                }
-
+                int offset = Byte.toUnsignedInt(element.offset());
                 int components = element.slotsUsed();
+
                 var type = switch (element.storageType().unwrap()) {
                     case UnsignedByte -> new Type.I8(components, true, false);
                     case UnsignedByteNormalized -> new Type.I8(components, true, true);
@@ -145,9 +121,44 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                     continue;
                 }
 
-                accessors.put(semantic, Accessor.of(view, offset, stride, type, count));
+                var accessor = Accessor.of(view, offset, stride, type, count);
+                var semantic = switch (element.element().unwrap()) {
+                    case Pos -> Semantic.POSITION;
+                    case TangentBFlip -> Semantic.TANGENT_BFLIP;
+                    case Tangent -> Semantic.TANGENT;
+                    case Binormal -> Semantic.BINORMAL;
+                    case Normal -> Semantic.NORMAL;
+                    case Color -> Semantic.COLOR;
+                    case UV0 -> Semantic.TEXTURE_0;
+                    case UV1 -> Semantic.TEXTURE_1;
+                    case UV2 -> Semantic.TEXTURE_2;
+                    case BlendWeights, BlendWeights2, BlendWeights3 -> {
+                        // NOTE elements are expected to be ordered
+                        interleaved.computeIfAbsent(Semantic.WEIGHTS, _ -> new ArrayList<>()).add(accessor);
+                        yield null;
+                    }
+                    case BlendIndices, BlendIndices2, BlendIndices3 -> {
+                        // NOTE elements are expected to be ordered
+                        interleaved.computeIfAbsent(Semantic.JOINTS, _ -> new ArrayList<>()).add(accessor);
+                        yield null;
+                    }
+                    default -> {
+                        log.warn("Skipping unsupported element (semantic: {})", element.element());
+                        yield null;
+                    }
+                };
+
+                if (semantic != null) {
+                    accessors.put(semantic, accessor);
+                }
             }
         }
+
+        interleaved.forEach(((semantic, value) -> {
+            if (!value.isEmpty()) {
+                accessors.put(semantic, Accessor.ofInterleaved(value));
+            }
+        }));
 
         return accessors;
     }

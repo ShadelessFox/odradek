@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.*;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -79,62 +78,49 @@ public class CastExporter implements Exporter<Scene> {
 
     private static void exportMesh(CastNodes.Model model, Mesh nodeMesh) {
         for (Primitive primitive : nodeMesh.primitives()) {
+            var vertices = primitive.vertices();
+            var indices = primitive.indices();
             var result = model.createMesh();
-            var joints = new ArrayList<Accessor>(4);
-            var weights = new ArrayList<Accessor>(4);
 
             // Vertices
-            primitive.vertices().forEach((semantic, accessor) -> {
+            vertices.forEach((semantic, accessor) -> {
                 switch (semantic) {
                     case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
                     case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
-                    case Semantic.Joints(int n) -> {
-                        while (joints.size() <= n) {
-                            joints.add(null);
-                        }
-                        joints.set(n, accessor);
-                    }
-                    case Semantic.Weights(int n) -> {
-                        while (weights.size() <= n) {
-                            weights.add(null);
-                        }
-                        weights.set(n, accessor);
-                    }
                     case Semantic.Texture _ -> {
                         result.addVertexUVBuffer(toFloatBuffer(accessor));
                         result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
                     }
                     case Semantic.Color _ -> {
-                        var buffer = IntBuffer.allocate(accessor.count());
-                        var view = accessor.asByteView();
-                        for (int i = 0; i < accessor.count(); i++) {
-                            int r = Byte.toUnsignedInt(view.get(i, 0));
-                            int g = Byte.toUnsignedInt(view.get(i, 1));
-                            int b = Byte.toUnsignedInt(view.get(i, 2));
-                            int a = Byte.toUnsignedInt(view.get(i, 3));
-                            buffer.put((a << 24) | (b << 16) | (g << 8) | r);
-                        }
-                        result.addVertexColorBufferI32(buffer.flip());
+                        result.addVertexColorBufferI32(toIntColorBuffer(accessor));
                         result.setColorLayerCount(result.getColorLayerCount().orElse(0) + 1);
+                    }
+                    case Semantic.Joints _, Semantic.Weights _ -> {
+                        // handled separately
                     }
                     default -> log.debug("Skipping unsupported vertex {}", semantic);
                 }
             });
 
             // Weights
-            var jointsAccessor = Accessor.ofInterleaved(joints);
-            var weightsAccessor = Accessor.ofInterleaved(weights);
-            if (jointsAccessor.count() != weightsAccessor.count() || jointsAccessor.componentCount() != weightsAccessor.componentCount()) {
-                log.error("Joints and weights accessors do not match! Skipping skinning data");
-                continue;
+            var joints = vertices.get(Semantic.JOINTS);
+            var weights = vertices.get(Semantic.WEIGHTS);
+            if (joints != null || weights != null) {
+                if (joints == null || weights == null) {
+                    log.error("Mesh has joints or weights, but not both! Skipping skinning data");
+                    continue;
+                }
+                if (joints.count() != weights.count() || joints.componentCount() != weights.componentCount()) {
+                    log.error("Joints and weights accessors do not match! Skipping skinning data");
+                    continue;
+                }
+                result.setMaximumWeightInfluence(joints.componentCount());
+                result.setVertexWeightBoneBuffer(toBuffer(joints));
+                result.setVertexWeightValueBuffer(toFloatBuffer(weights));
             }
 
-            result.setMaximumWeightInfluence(jointsAccessor.componentCount());
-            result.setVertexWeightBoneBuffer(toBuffer(jointsAccessor));
-            result.setVertexWeightValueBuffer(toFloatBuffer(weightsAccessor));
-
             // Indices
-            result.setFaceBuffer(toBuffer(primitive.indices()));
+            result.setFaceBuffer(toBuffer(indices));
         }
     }
 
@@ -213,6 +199,19 @@ public class CastExporter implements Exporter<Scene> {
             for (int j = 0; j < accessor.componentCount(); j++) {
                 buffer.put(view.get(i, j));
             }
+        }
+        return buffer.flip();
+    }
+
+    private static IntBuffer toIntColorBuffer(Accessor accessor) {
+        var buffer = IntBuffer.allocate(accessor.count());
+        var view = accessor.asByteView();
+        for (int i = 0; i < accessor.count(); i++) {
+            int r = Byte.toUnsignedInt(view.get(i, 0));
+            int g = Byte.toUnsignedInt(view.get(i, 1));
+            int b = Byte.toUnsignedInt(view.get(i, 2));
+            int a = Byte.toUnsignedInt(view.get(i, 3));
+            buffer.put((a << 24) | (b << 16) | (g << 8) | r);
         }
         return buffer.flip();
     }
