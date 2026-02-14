@@ -105,15 +105,7 @@ public class CastExporter implements Exporter<Scene> {
             // Weights
             var joints = vertices.get(Semantic.JOINTS);
             var weights = vertices.get(Semantic.WEIGHTS);
-            if (joints != null || weights != null) {
-                if (joints == null || weights == null) {
-                    log.error("Mesh has joints or weights, but not both! Skipping skinning data");
-                    continue;
-                }
-                if (joints.count() != weights.count() || joints.componentCount() != weights.componentCount()) {
-                    log.error("Joints and weights accessors do not match! Skipping skinning data");
-                    continue;
-                }
+            if (joints != null && weights != null) {
                 result.setMaximumWeightInfluence(joints.componentCount());
                 result.setVertexWeightBoneBuffer(toBuffer(joints));
                 result.setVertexWeightValueBuffer(toFloatBuffer(weights));
