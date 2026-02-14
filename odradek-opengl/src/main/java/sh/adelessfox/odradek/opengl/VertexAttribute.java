@@ -1,15 +1,12 @@
 package sh.adelessfox.odradek.opengl;
 
-import sh.adelessfox.odradek.geometry.ComponentType;
-import sh.adelessfox.odradek.geometry.ElementType;
+import sh.adelessfox.odradek.geometry.Type;
 
 public record VertexAttribute(
     int location,
-    ElementType elementType,
-    ComponentType componentType,
+    Type type,
     int offset,
-    int stride,
-    boolean normalized
+    int stride
 ) {
     public VertexAttribute {
         if (offset < 0) {
@@ -17,9 +14,6 @@ public record VertexAttribute(
         }
         if (stride <= 0) {
             throw new IllegalArgumentException("stride must be positive");
-        }
-        if (normalized && (componentType == ComponentType.FLOAT || componentType == ComponentType.HALF_FLOAT)) {
-            throw new IllegalArgumentException("normalized can only be used with integer component types");
         }
     }
 }

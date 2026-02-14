@@ -6,14 +6,17 @@ import java.util.Map;
 
 public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int hash) {
     public Primitive {
-        if (indices.componentType() != ComponentType.UNSIGNED_SHORT && indices.componentType() != ComponentType.UNSIGNED_INT) {
-            throw new IllegalArgumentException("indices must be of type UNSIGNED_SHORT or UNSIGNED_INT");
+        if (indices.type().normalized()) {
+            throw new IllegalArgumentException("indices must not be normalized");
         }
-        if (indices.elementType() != ElementType.SCALAR) {
-            throw new IllegalArgumentException("indices must be of element type SCALAR");
+        if (!indices.type().unsigned()) {
+            throw new IllegalArgumentException("indices must be unsigned");
         }
-        if (indices.normalized()) {
-            throw new IllegalArgumentException("indices cannot be normalized");
+        if (!(indices.type() instanceof Type.I8) &&
+            !(indices.type() instanceof Type.I16) &&
+            !(indices.type() instanceof Type.I32)
+        ) {
+            throw new IllegalArgumentException("indices must be of type I8, I16, or I32");
         }
         if (!vertices.containsKey(Semantic.POSITION)) {
             throw new IllegalArgumentException("vertices must contain POSITION semantic");

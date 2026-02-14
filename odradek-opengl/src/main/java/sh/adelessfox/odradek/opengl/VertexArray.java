@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.opengl;
 
-import sh.adelessfox.odradek.geometry.ComponentType;
-import sh.adelessfox.odradek.geometry.ElementType;
+import sh.adelessfox.odradek.geometry.Type;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -32,7 +31,7 @@ public final class VertexArray implements GLObject.Bindable<VertexArray> {
     public static VertexArray createPlane(float width, float height) {
         try (var vao = new VertexArray().bind()) {
             var attributes = List.of(
-                new VertexAttribute(0, ElementType.VEC2, ComponentType.FLOAT, 0, 8, false)
+                new VertexAttribute(0, new Type.F32(2), 0, 8)
             );
 
             var vertices = new float[]{
@@ -66,7 +65,7 @@ public final class VertexArray implements GLObject.Bindable<VertexArray> {
 
         for (VertexAttribute attr : attributes) {
             glEnableVertexArrayAttrib(name, attr.location());
-            glVertexArrayAttribFormat(name, attr.location(), glSize(attr), glType(attr), attr.normalized(), attr.offset());
+            glVertexArrayAttribFormat(name, attr.location(), glSize(attr), glType(attr), attr.type().normalized(), attr.offset());
             glVertexArrayAttribBinding(name, attr.location(), slot);
         }
 
@@ -116,24 +115,24 @@ public final class VertexArray implements GLObject.Bindable<VertexArray> {
     }
 
     private static int glType(VertexAttribute attribute) {
-        return switch (attribute.componentType()) {
-            case ComponentType.BYTE -> GL_BYTE;
-            case ComponentType.UNSIGNED_BYTE -> GL_UNSIGNED_BYTE;
-            case ComponentType.SHORT -> GL_SHORT;
-            case ComponentType.UNSIGNED_SHORT -> GL_UNSIGNED_SHORT;
-            case ComponentType.INT -> GL_INT;
-            case ComponentType.UNSIGNED_INT -> GL_UNSIGNED_INT;
-            case ComponentType.HALF_FLOAT -> GL_HALF_FLOAT;
-            case ComponentType.FLOAT -> GL_FLOAT;
-            case ComponentType.INT_10_10_10_2 -> GL_INT_2_10_10_10_REV;
-            case ComponentType.UNSIGNED_INT_10_10_10_2 -> GL_UNSIGNED_INT_2_10_10_10_REV;
+        return switch (attribute.type()) {
+            case Type.I8 x -> x.unsigned() ? GL_UNSIGNED_BYTE : GL_BYTE;
+            case Type.I16 x -> x.unsigned() ? GL_UNSIGNED_SHORT : GL_SHORT;
+            case Type.I32 x -> x.unsigned() ? GL_UNSIGNED_INT : GL_INT;
+            case Type.F16 _ -> GL_HALF_FLOAT;
+            case Type.F32 _ -> GL_FLOAT;
+            case Type.X10Y10Z10W2 x -> x.unsigned() ? GL_UNSIGNED_INT_2_10_10_10_REV : GL_INT_2_10_10_10_REV;
         };
     }
 
     private static int glSize(VertexAttribute attribute) {
-        return switch (attribute.componentType()) {
-            case ComponentType.INT_10_10_10_2, ComponentType.UNSIGNED_INT_10_10_10_2 -> 4;
-            default -> attribute.elementType().size();
+        if (attribute.type() instanceof Type.X10Y10Z10W2) {
+            return 4;
+        }
+        int components = attribute.type().components();
+        return switch (components) {
+            case 1, 2, 3, 4 -> components;
+            default -> throw new IllegalArgumentException("Unsupported number of components: " + components);
         };
     }
 }

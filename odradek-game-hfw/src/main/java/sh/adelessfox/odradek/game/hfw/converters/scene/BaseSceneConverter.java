@@ -123,53 +123,29 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                     continue;
                 }
 
-                var elementType = switch (element.slotsUsed()) {
-                    case 1 -> ElementType.SCALAR;
-                    case 2 -> ElementType.VEC2;
-                    case 3 -> ElementType.VEC3;
-                    case 4 -> ElementType.VEC4;
-                    default -> {
-                        log.warn("Skipping unsupported element (semantic: {}, size: {})", element.element(), element.slotsUsed());
-                        yield null;
-                    }
-                };
-
-                if (elementType == null) {
-                    continue;
-                }
-
-                var accessor = switch (element.storageType().unwrap()) {
-                    // @formatter:off
-                    case UnsignedByte ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_BYTE, offset, count, stride, false);
-                    case UnsignedByteNormalized ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_BYTE, offset, count, stride, true);
-                    case UnsignedShort ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_SHORT, offset, count, stride, false);
-                    case UnsignedShortNormalized ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_SHORT, offset, count, stride, true);
-                    case SignedShort ->
-                        new Accessor(view, elementType, ComponentType.SHORT, offset, count, stride, false);
-                    case SignedShortNormalized ->
-                        new Accessor(view, elementType, ComponentType.SHORT, offset, count, stride, true);
-                    case HalfFloat ->
-                        new Accessor(view, elementType, ComponentType.HALF_FLOAT, offset, count, stride, false);
-                    case Float ->
-                        new Accessor(view, elementType, ComponentType.FLOAT, offset, count, stride, false);
-                    case X10Y10Z10W2Normalized ->
-                        new Accessor(view, elementType, ComponentType.INT_10_10_10_2, offset, count, stride, true);
-                    case X10Y10Z10W2UNorm ->
-                        new Accessor(view, elementType, ComponentType.UNSIGNED_INT_10_10_10_2, offset, count, stride, true);
+                int components = element.slotsUsed();
+                var type = switch (element.storageType().unwrap()) {
+                    case UnsignedByte -> new Type.I8(components, true, false);
+                    case UnsignedByteNormalized -> new Type.I8(components, true, true);
+                    case SignedShort -> new Type.I16(components, false, false);
+                    case SignedShortNormalized -> new Type.I16(components, false, true);
+                    case UnsignedShort -> new Type.I16(components, true, false);
+                    case UnsignedShortNormalized -> new Type.I16(components, true, true);
+                    case HalfFloat -> new Type.F16(components);
+                    case Float -> new Type.F32(components);
+                    case X10Y10Z10W2Normalized -> new Type.X10Y10Z10W2(components, false, true);
+                    case X10Y10Z10W2UNorm -> new Type.X10Y10Z10W2(components, true, true);
                     default -> {
                         log.warn("Skipping unsupported element (semantic: {}, format: {})", element.element(), element.storageType());
                         yield null;
                     }
-                    // @formatter:on
                 };
 
-                if (accessor != null) {
-                    accessors.put(semantic, accessor);
+                if (type == null) {
+                    continue;
                 }
+
+                accessors.put(semantic, Accessor.of(view, offset, stride, type, count));
             }
         }
 
@@ -182,9 +158,9 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         int startIndex,
         int endIndex
     ) {
-        var component = switch (object.format().unwrap()) {
-            case Index16 -> ComponentType.UNSIGNED_SHORT;
-            case Index32 -> ComponentType.UNSIGNED_INT;
+        var type = switch (object.format().unwrap()) {
+            case Index16 -> new Type.I16(1, true, false);
+            case Index32 -> new Type.I32(1, true, false);
         };
 
         var count = object.count();
@@ -199,7 +175,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                 .order(ByteOrder.LITTLE_ENDIAN);
         }
 
-        return new Accessor(view, ElementType.SCALAR, component, startIndex * stride, endIndex - startIndex, stride);
+        return Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
     }
 
     private static ByteBuffer readBufferAligned(ByteBuffer buffer, int count, int stride) {

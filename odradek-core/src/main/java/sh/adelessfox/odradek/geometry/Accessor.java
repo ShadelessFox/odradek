@@ -2,145 +2,290 @@ package sh.adelessfox.odradek.geometry;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 import java.util.Objects;
 
-public record Accessor(
-    ByteBuffer buffer,
-    ElementType elementType,
-    ComponentType componentType,
-    int offset,
-    int count,
-    int stride,
-    boolean normalized
-) {
-    public Accessor {
-        if (count <= 0) {
-            throw new IllegalArgumentException("count must be positive");
-        }
-        if (offset < 0) {
-            throw new IllegalArgumentException("offset must be positive");
-        }
-        if (stride <= 0) {
-            throw new IllegalArgumentException("stride must be positive");
-        }
-        if (normalized && (componentType == ComponentType.FLOAT || componentType == ComponentType.HALF_FLOAT)) {
-            throw new IllegalArgumentException("normalized can only be used with integer component types");
-        }
+public sealed interface Accessor {
+    /**
+     * Creates a new accessor backed by the given buffer.
+     *
+     * @param buffer the buffer to read from
+     * @param offset the offset in bytes from the start of the buffer to the first element
+     * @param stride the stride in bytes between elements. Can be {@code 0} for tightly packed data
+     * @param type   the type of the elements in the buffer
+     * @param count  the number of elements in the buffer
+     * @return a new accessor backed by the given buffer
+     */
+    static Accessor of(ByteBuffer buffer, int offset, int stride, Type type, int count) {
+        Objects.checkIndex(offset, buffer.remaining());
         if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
             throw new IllegalArgumentException("buffer must be LITTLE_ENDIAN");
         }
+        var slice = buffer.slice(buffer.position() + offset, count * stride - offset);
+        return new OfBuffer(slice, stride, type, count);
     }
 
-    public Accessor(ByteBuffer buffer, ElementType elementType, ComponentType componentType, int offset, int count, int stride) {
-        this(buffer, elementType, componentType, offset, count, stride, false);
+    /**
+     * Creates a new accessor by interleaving the given accessors.
+     * <p>
+     * The accessors must have the same type and count.
+     * <p>
+     * Consider a case with two accessors of type {@code I32[4]} and {@code I32[2]}, respectively.
+     * By interleaving them, a new accessor of type {@code I32[6]} will be created, where
+     * the first {@code 4} components come from the first accessor and the last {@code 2} components
+     * come from the second accessor.
+     *
+     * @param accessors the accessors to interleave; must not be empty
+     * @return a new accessor that interleaves the given accessors
+     */
+    static Accessor ofInterleaved(List<? extends Accessor> accessors) {
+        if (accessors.isEmpty()) {
+            throw new IllegalArgumentException("accessors cannot be empty");
+        }
+        var type = accessors.getFirst().type();
+        var count = accessors.getFirst().count();
+        return new OfInterleaved(accessors, type, count);
     }
 
-    public Accessor(ByteBuffer buffer, ElementType elementType, ComponentType componentType, int offset, int count) {
-        this(buffer, elementType, componentType, offset, count, elementType.size() * componentType.size());
-    }
+    Type type();
 
-    public int componentCount() {
-        return elementType().size();
-    }
+    int count();
 
-    public ByteView asByteView() {
-        return switch (componentType) {
-            case BYTE, UNSIGNED_BYTE -> ByteView.ofByte(this, buffer);
-            default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+    default ByteView asByteView() {
+        return switch (type()) {
+            case Type.I8 x -> ByteView.of(this, x);
+            default -> throw new UnsupportedOperationException("Unsupported type for byte view: " + type());
         };
     }
 
-    public ShortView asShortView() {
-        return switch (componentType) {
-            case SHORT, UNSIGNED_SHORT -> ShortView.ofShort(this, buffer);
-            default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+    default ShortView asShortView() {
+        return switch (type()) {
+            case Type.I8 x -> ShortView.of(this, x);
+            case Type.I16 x -> ShortView.of(this, x);
+            default -> throw new UnsupportedOperationException("Unsupported type for short view: " + type());
         };
     }
 
-    public IntView asIntView() {
-        return switch (componentType) {
-            case SHORT, UNSIGNED_SHORT -> IntView.ofShort(this, buffer);
-            case INT, UNSIGNED_INT -> IntView.ofInt(this, buffer);
-            default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+    default IntView asIntView() {
+        return switch (type()) {
+            case Type.I8 x -> IntView.of(this, x);
+            case Type.I16 x -> IntView.of(this, x);
+            case Type.I32 x -> IntView.of(this, x);
+            default -> throw new UnsupportedOperationException("Unsupported type for int view: " + type());
         };
     }
 
-    public FloatView asFloatView() {
-        return switch (componentType) {
-            case UNSIGNED_BYTE -> FloatView.ofUnsignedByte(this, buffer);
-            case BYTE -> FloatView.ofByte(this, buffer);
-            case UNSIGNED_SHORT -> FloatView.ofUnsignedShort(this, buffer);
-            case SHORT -> FloatView.ofShort(this, buffer);
-            case FLOAT -> FloatView.ofFloat(this, buffer);
-            case HALF_FLOAT -> FloatView.ofHalfFloat(this, buffer);
-            case INT_10_10_10_2 -> FloatView.ofX10Y10Z10W2(this, buffer);
-            default -> throw new UnsupportedOperationException("Unsupported component type: " + componentType);
+    default FloatView asFloatView() {
+        return switch (type()) {
+            case Type.I8 x -> FloatView.of(this, x);
+            case Type.I16 x -> FloatView.of(this, x);
+            case Type.I32 x -> FloatView.of(this, x);
+            case Type.F16 x -> FloatView.of(this, x);
+            case Type.F32 x -> FloatView.of(this, x);
+            case Type.X10Y10Z10W2 x -> FloatView.of(this, x);
         };
     }
 
-    private int getPositionFor(int elementIndex, int componentIndex) {
-        Objects.checkIndex(elementIndex, count);
-        Objects.checkIndex(componentIndex, elementType.size());
+    byte getByte(int elementIndex, int componentIndex);
 
-        return offset + (elementIndex * stride) + (componentIndex * componentType.size());
+    short getShort(int elementIndex, int componentIndex);
+
+    int getInt(int elementIndex, int componentIndex);
+
+    float getFloat(int elementIndex, int componentIndex);
+
+    default int componentCount() {
+        return type().components();
     }
 
-    public interface ByteView {
-        static ByteView ofByte(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.get(accessor.getPositionFor(e, c));
+    record OfBuffer(ByteBuffer buffer, int stride, Type type, int count) implements Accessor {
+        public OfBuffer {
+            buffer = buffer
+                .asReadOnlyBuffer()
+                .order(ByteOrder.LITTLE_ENDIAN);
+        }
+
+        @Override
+        public byte getByte(int elementIndex, int componentIndex) {
+            return buffer.get(positionFor(elementIndex, componentIndex));
+        }
+
+        @Override
+        public short getShort(int elementIndex, int componentIndex) {
+            return buffer.getShort(positionFor(elementIndex, componentIndex));
+        }
+
+        @Override
+        public int getInt(int elementIndex, int componentIndex) {
+            return buffer.getInt(positionFor(elementIndex, componentIndex));
+        }
+
+        @Override
+        public float getFloat(int elementIndex, int componentIndex) {
+            return buffer.getFloat(positionFor(elementIndex, componentIndex));
+        }
+
+        private int positionFor(int elementIndex, int componentIndex) {
+            Objects.checkIndex(elementIndex, count);
+            Objects.checkIndex(componentIndex, type.components());
+
+            return (elementIndex * stride) + (componentIndex * type.byteSize());
+        }
+    }
+
+    record OfInterleaved(List<? extends Accessor> accessors, Type type, int count) implements Accessor {
+        public OfInterleaved {
+            if (accessors.isEmpty()) {
+                throw new IllegalArgumentException("accessors cannot be empty");
+            }
+            var first = accessors.getFirst();
+            if (first.type() != type) {
+                throw new IllegalArgumentException("type must match the type of the accessors");
+            }
+            if (first.count() != count) {
+                throw new IllegalArgumentException("count must match the count of the accessors");
+            }
+            int components = 0;
+            for (var accessor : accessors) {
+                if (accessor.type().getClass() != first.type().getClass()
+                    || accessor.type().normalized() != first.type().normalized()
+                    || accessor.type().unsigned() != first.type().unsigned()
+                ) {
+                    throw new IllegalArgumentException("all accessors must have the same type");
+                }
+                if (accessor.count() != first.count()) {
+                    throw new IllegalArgumentException("all accessors must have the same count");
+                }
+                components += accessor.type().components();
+            }
+            accessors = List.copyOf(accessors);
+            type = type.withComponents(components);
+        }
+
+        @Override
+        public byte getByte(int elementIndex, int componentIndex) {
+            return accessorFor(componentIndex).getByte(elementIndex, componentIndex % 4);
+        }
+
+        @Override
+        public short getShort(int elementIndex, int componentIndex) {
+            return accessorFor(componentIndex).getShort(elementIndex, componentIndex % 4);
+        }
+
+        @Override
+        public int getInt(int elementIndex, int componentIndex) {
+            return accessorFor(componentIndex).getInt(elementIndex, componentIndex % 4);
+        }
+
+        @Override
+        public float getFloat(int elementIndex, int componentIndex) {
+            return accessorFor(componentIndex).getFloat(elementIndex, componentIndex % 4);
+        }
+
+        private Accessor accessorFor(int componentIndex) {
+            return accessors.get(componentIndex / 4);
+        }
+    }
+
+    @FunctionalInterface
+    interface ByteView {
+        @SuppressWarnings("unused")
+        static ByteView of(Accessor accessor, Type.I8 type) {
+            return accessor::getByte;
         }
 
         byte get(int elementIndex, int componentIndex);
     }
 
-    public interface ShortView {
-        static ShortView ofShort(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getShort(accessor.getPositionFor(e, c));
+    @FunctionalInterface
+    interface ShortView {
+        static ShortView of(Accessor accessor, Type.I8 type) {
+            if (type.unsigned()) {
+                return (e, c) -> (short) Byte.toUnsignedInt(accessor.getByte(e, c));
+            } else {
+                return accessor::getByte;
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static ShortView of(Accessor accessor, Type.I16 type) {
+            return accessor::getShort;
         }
 
         short get(int elementIndex, int componentIndex);
     }
 
-    public interface IntView {
-        static IntView ofShort(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> Short.toUnsignedInt(buffer.getShort(accessor.getPositionFor(e, c)));
+    @FunctionalInterface
+    interface IntView {
+        static IntView of(Accessor accessor, Type.I8 type) {
+            if (type.unsigned()) {
+                return (e, c) -> Byte.toUnsignedInt(accessor.getByte(e, c));
+            } else {
+                return accessor::getByte;
+            }
         }
 
-        static IntView ofInt(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getInt(accessor.getPositionFor(e, c));
+        static IntView of(Accessor accessor, Type.I16 type) {
+            if (type.unsigned()) {
+                return (e, c) -> Short.toUnsignedInt(accessor.getShort(e, c));
+            } else {
+                return accessor::getShort;
+            }
+        }
+
+        @SuppressWarnings("unused")
+        static IntView of(Accessor accessor, Type.I32 type) {
+            return accessor::getInt;
         }
 
         int get(int elementIndex, int componentIndex);
     }
 
-    public interface FloatView {
-        static FloatView ofByte(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.get(accessor.getPositionFor(e, c)) / 127f;
+    @FunctionalInterface
+    interface FloatView {
+        static FloatView of(Accessor accessor, Type.I8 type) {
+            if (type.unsigned()) {
+                return (e, c) -> Byte.toUnsignedInt(accessor.getByte(e, c)) / 255f;
+            } else {
+                return (e, c) -> accessor.getByte(e, c) / 127f;
+            }
         }
 
-        static FloatView ofUnsignedByte(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> Byte.toUnsignedInt(buffer.get(accessor.getPositionFor(e, c))) / 255f;
+        static FloatView of(Accessor accessor, Type.I16 type) {
+            if (type.unsigned()) {
+                return (e, c) -> Short.toUnsignedInt(accessor.getShort(e, c)) / 65535f;
+            } else {
+                return (e, c) -> accessor.getShort(e, c) / 32767f;
+            }
         }
 
-        static FloatView ofShort(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getShort(accessor.getPositionFor(e, c)) / 32767f;
+        static FloatView of(Accessor accessor, Type.I32 type) {
+            if (type.unsigned()) {
+                return (e, c) -> Integer.toUnsignedLong(accessor.getInt(e, c)) / 4294967295f;
+            } else {
+                return (e, c) -> accessor.getInt(e, c) / 2147483647f;
+            }
         }
 
-        static FloatView ofUnsignedShort(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> Short.toUnsignedInt(buffer.getShort(accessor.getPositionFor(e, c))) / 65535f;
+        @SuppressWarnings("unused")
+        static FloatView of(Accessor accessor, Type.F16 type) {
+            return (e, c) -> Float.float16ToFloat(accessor.getShort(e, c));
         }
 
-        static FloatView ofFloat(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> buffer.getFloat(accessor.getPositionFor(e, c));
+        @SuppressWarnings("unused")
+        static FloatView of(Accessor accessor, Type.F32 type) {
+            return accessor::getFloat;
         }
 
-        static FloatView ofHalfFloat(Accessor accessor, ByteBuffer buffer) {
-            return (e, c) -> Float.float16ToFloat(buffer.getShort(accessor.getPositionFor(e, c)));
-        }
-
-        static FloatView ofX10Y10Z10W2(Accessor accessor, ByteBuffer buffer) {
+        static FloatView of(Accessor accessor, Type.X10Y10Z10W2 type) {
+            if (!type.normalized()) {
+                throw new UnsupportedOperationException("X10Y10Z10W2 type must be normalized for float view");
+            }
+            if (type.unsigned()) {
+                throw new UnsupportedOperationException("X10Y10Z10W2 type must be signed for float view");
+            }
             return (e, c) -> {
-                var value = buffer.getInt(accessor.getPositionFor(e, 0));
+                var value = accessor.getInt(e, 0);
 
                 // Division by 510 gives a smaller error than by 511. How come?
                 var x = (value << 22 >> 22) / 510f;

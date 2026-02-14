@@ -10,14 +10,10 @@ import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
+import java.nio.*;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
 
@@ -125,29 +121,16 @@ public class CastExporter implements Exporter<Scene> {
                 }
             });
 
-            var jointsInfo = InterleavedBufferInfo.validate(joints);
-            var weightsInfo = InterleavedBufferInfo.validate(weights);
-            if (jointsInfo.count() != weightsInfo.count() || jointsInfo.componentCount() != weightsInfo.componentCount()) {
-                log.error("Joints and weights accessors do not match! Skipping skinning data");
-                continue;
-            }
+            // Weights
+            var jointsAccessor = Accessor.ofInterleaved(joints);
+            var weightsAccessor = Accessor.ofInterleaved(weights);
 
-            result.setMaximumWeightInfluence(jointsInfo.componentCount());
-            result.setVertexWeightValueBuffer(toFloatBufferInterleaved(weights, weightsInfo));
-            result.setVertexWeightBoneBuffer(switch (joints.getFirst().componentType()) {
-                case BYTE, UNSIGNED_BYTE -> toByteBufferInterleaved(joints, jointsInfo);
-                case SHORT, UNSIGNED_SHORT -> toShortBufferInterleaved(joints, jointsInfo);
-                case INT, UNSIGNED_INT -> toIntBufferInterleaved(joints, jointsInfo);
-                default -> throw new IllegalArgumentException("Unsupported component type: " + joints.getFirst().componentType());
-            });
+            result.setMaximumWeightInfluence(jointsAccessor.componentCount());
+            result.setVertexWeightBoneBuffer(toBuffer(jointsAccessor));
+            result.setVertexWeightValueBuffer(toFloatBuffer(weightsAccessor));
 
             // Indices
-            var indices = primitive.indices();
-            if (indices.componentType() == ComponentType.UNSIGNED_SHORT) {
-                result.setFaceBuffer(toShortBuffer(indices));
-            } else {
-                result.setFaceBuffer(toIntBuffer(indices));
-            }
+            result.setFaceBuffer(toBuffer(primitive.indices()));
         }
     }
 
@@ -176,7 +159,27 @@ public class CastExporter implements Exporter<Scene> {
         }
     }
 
-    //region Buffers
+    // region Buffers
+    private static Buffer toBuffer(Accessor accessor) {
+        return switch (accessor.type()) {
+            case Type.I8 _ -> toByteBuffer(accessor);
+            case Type.I16 _ -> toShortBuffer(accessor);
+            case Type.I32 _ -> toIntBuffer(accessor);
+            default -> throw new IllegalArgumentException("Unsupported component type: " + accessor.type());
+        };
+    }
+
+    private static ByteBuffer toByteBuffer(Accessor accessor) {
+        var buffer = ByteBuffer.allocate(accessor.count() * accessor.componentCount());
+        var view = accessor.asByteView();
+        for (int i = 0; i < accessor.count(); i++) {
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                buffer.put(view.get(i, j));
+            }
+        }
+        return buffer.flip();
+    }
+
     private static ShortBuffer toShortBuffer(Accessor accessor) {
         var buffer = ShortBuffer.allocate(accessor.count() * accessor.componentCount());
         var view = accessor.asShortView();
@@ -209,76 +212,5 @@ public class CastExporter implements Exporter<Scene> {
         }
         return buffer.flip();
     }
-    //endregion
-
-    //region Interleaved Buffers
-    private static ByteBuffer toByteBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
-        var buffer = ByteBuffer.allocate(accessors.size() * info.count() * info.componentCount());
-        for (int i = 0; i < info.count(); i++) {
-            for (Accessor accessor : accessors) {
-                var view = accessor.asByteView();
-                for (int j = 0; j < accessor.componentCount(); j++) {
-                    buffer.put(view.get(i, j));
-                }
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static ShortBuffer toShortBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
-        var buffer = ShortBuffer.allocate(accessors.size() * info.count() * info.componentCount());
-        for (int i = 0; i < info.count(); i++) {
-            for (Accessor accessor : accessors) {
-                var view = accessor.asShortView();
-                for (int j = 0; j < accessor.componentCount(); j++) {
-                    buffer.put(view.get(i, j));
-                }
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static IntBuffer toIntBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
-        var buffer = IntBuffer.allocate(accessors.size() * info.count() * info.componentCount());
-        for (int i = 0; i < info.count(); i++) {
-            for (Accessor accessor : accessors) {
-                var view = accessor.asIntView();
-                for (int j = 0; j < accessor.componentCount(); j++) {
-                    buffer.put(view.get(i, j));
-                }
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static FloatBuffer toFloatBufferInterleaved(List<Accessor> accessors, InterleavedBufferInfo info) {
-        var buffer = FloatBuffer.allocate(accessors.size() * info.count() * info.componentCount());
-        for (int i = 0; i < info.count(); i++) {
-            for (Accessor accessor : accessors) {
-                var view = accessor.asFloatView();
-                for (int j = 0; j < accessor.componentCount(); j++) {
-                    buffer.put(view.get(i, j));
-                }
-            }
-        }
-        return buffer.flip();
-    }
-
-    private record InterleavedBufferInfo(ComponentType componentType, int count, int componentCount) {
-        static InterleavedBufferInfo validate(List<Accessor> accessors) {
-            if (accessors.isEmpty()) {
-                throw new IllegalArgumentException("At least one accessor is required");
-            }
-            var first = accessors.getFirst();
-            int componentCount = 0;
-            for (Accessor accessor : accessors) {
-                if (accessor.componentType() != first.componentType() || accessor.count() != first.count()) {
-                    throw new IllegalArgumentException("All accessors must have the same component type, count, and component count");
-                }
-                componentCount += accessor.componentCount();
-            }
-            return new InterleavedBufferInfo(first.componentType(), first.count(), componentCount);
-        }
-    }
-    //endregion
+    // endregion
 }
