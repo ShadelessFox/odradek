@@ -26,7 +26,8 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     private static final ClassDesc CD_StableValue = StableValue.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_TypeDescriptor = TypeDescriptor.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_UnsupportedOperationException = UnsupportedOperationException.class.describeConstable().orElseThrow();
-    private static final ClassDesc CD_Value = Value.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_Value_OfEnum = Value.OfEnum.class.describeConstable().orElseThrow();
+    private static final ClassDesc CD_Value_OfEnumSet = Value.OfEnumSet.class.describeConstable().orElseThrow();
 
     private static final DirectMethodHandleDesc BSM_ObjectMethods_boostrap = MethodHandleDesc.ofMethod(
         DirectMethodHandleDesc.Kind.STATIC,
@@ -435,7 +436,8 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     private ClassDesc toClassDesc(TypeInfo info, boolean useWrapperType) {
         return switch (info) {
             case ClassTypeInfo i -> toClassDesc(i);
-            case EnumTypeInfo i -> useWrapperType ? CD_Value : toClassDesc(i);
+            case EnumSetTypeInfo i -> useWrapperType ? CD_Value_OfEnumSet : toClassDesc(i);
+            case EnumTypeInfo i -> useWrapperType ? CD_Value_OfEnum : toClassDesc(i);
             case AtomTypeInfo i -> getBuiltin(i.base().name()).flatMap(Class::describeConstable).orElseThrow();
             case ContainerTypeInfo i -> {
                 var itemType = toClassDesc(i.itemType(), useWrapperType);

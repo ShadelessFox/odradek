@@ -24,7 +24,8 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
 
     private static final ClassName NAME_List = ClassName.get(List.class);
     private static final ClassName NAME_Ref = ClassName.get(Ref.class);
-    private static final ClassName NAME_Value = ClassName.get(Value.class);
+    private static final ClassName NAME_Value_OfEnum = ClassName.get(Value.OfEnum.class);
+    private static final ClassName NAME_Value_OfEnumSet = ClassName.get(Value.OfEnumSet.class);
 
     private final Set<TypeInfo> types = new TreeSet<>(Comparator.comparing(TypeInfo::name));
     private final String packageName;
@@ -232,10 +233,8 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
     private TypeName toJavaType(TypeInfo info) {
         return switch (info) {
             case ClassTypeInfo i -> toTypeName(i);
-            case EnumTypeInfo i -> {
-                var name = toTypeName(i);
-                yield ParameterizedTypeName.get(NAME_Value, name);
-            }
+            case EnumSetTypeInfo i -> ParameterizedTypeName.get(NAME_Value_OfEnumSet, toTypeName(i));
+            case EnumTypeInfo i -> ParameterizedTypeName.get(NAME_Value_OfEnum, toTypeName(i));
             case AtomTypeInfo i -> getBuiltin(i.base().name()).map(TypeName::get).orElseThrow();
             case ContainerTypeInfo i -> {
                 var itemType = toJavaType(i.itemType());
