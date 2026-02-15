@@ -2,12 +2,22 @@ package sh.adelessfox.odradek.rtti.data;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public sealed interface Value<T>
     permits Value.OfEnum, Value.OfEnumSet {
 
     non-sealed interface OfEnum<T extends Enum<T>> extends Value<T> {
+        @SuppressWarnings("unchecked")
+        default T unwrap() {
+            return (T) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        default Optional<T> tryUnwrap() {
+            return Optional.of((T) this);
+        }
     }
 
     non-sealed interface OfEnumSet<T extends Enum<T> & Value<T>> extends Value<T> {
@@ -40,9 +50,4 @@ public sealed interface Value<T>
     }
 
     int value();
-
-    @SuppressWarnings("unchecked")
-    default T unwrap() {
-        return (T) this;
-    }
 }

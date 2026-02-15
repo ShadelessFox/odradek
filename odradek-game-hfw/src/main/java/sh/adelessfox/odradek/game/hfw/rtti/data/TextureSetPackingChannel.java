@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw.rtti.data;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetChannel;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetType;
+import sh.adelessfox.odradek.rtti.data.Value;
 
 import java.util.Optional;
 
@@ -14,7 +15,7 @@ public record TextureSetPackingChannel(Optional<ETextureSetChannel> channel, ETe
 
         Optional<ETextureSetChannel> channel;
         if ((packingInfo & 0x80) == 0) {
-            channel = Optional.of(ETextureSetChannel.valueOf(packingInfo >>> 4));
+            channel = Value.valueOf(ETextureSetChannel.class, packingInfo >>> 4).tryUnwrap();
         } else {
             channel = Optional.empty();
         }
