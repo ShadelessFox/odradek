@@ -14,9 +14,7 @@ import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
@@ -29,28 +27,9 @@ public final class MeshToSceneConverter
 
     @Override
     public Optional<Scene> convert(Object object, ForbiddenWestGame game) {
-        return convertNode(object, game).map(Scene::of);
-    }
-
-    private static Optional<Node> convertNode(Object object, ForbiddenWestGame game) {
-        return switch (object) {
-            case StaticMeshResource r -> convertStaticMeshResource(r, game);
-            case StaticMeshInstance r -> convertStaticMeshInstance(r, game);
-            case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(r, game);
-            case LodMeshResource r -> convertLodMeshResource(r, game);
-            case MultiMeshResource r -> convertMultiMeshResource(r, game);
-            case BodyVariant r -> convertBodyVariant(r, game);
-            case SkinnedModelResource r -> convertSkinnedModelResource(r, game);
-            case DestructibilityPart r -> convertDestructibilityPart(r, game);
-            case ControlledEntityResource r -> convertControlledEntityResource(r, game);
-            case PrefabResource r -> convertPrefabResource(r, game);
-            case PrefabInstance r -> convertPrefabInstance(r, game);
-            case MockupGeometry r -> convertMockupGeometry(r, game);
-            default -> {
-                log.debug("Unsupported resource type: {}", object);
-                yield Optional.empty();
-            }
-        };
+        var context = new Context();
+        var node = convertNodeIfAbsent(context, (RTTIRefObject) object, game);
+        return node.map(Scene::of);
     }
 
     @Override
@@ -69,18 +48,57 @@ public final class MeshToSceneConverter
             || PrefabInstance.class.isAssignableFrom(cls);
     }
 
-    private static Optional<Node> convertMockupGeometry(MockupGeometry geometry, ForbiddenWestGame game) {
-        var node = convertNode(geometry.staticMeshInstance().get(), game);
+    private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, ForbiddenWestGame game) {
+        var key = object.general().objectUUID();
+        var node = Optional.ofNullable(context.resources.get(key));
+        if (node.isEmpty()) {
+            node = convertNode(context, object, game);
+        }
+        node.ifPresent(n -> context.resources.put(key, n));
+        return node;
+    }
+
+    private static Optional<Node> convertNode(Context context, RTTIRefObject object, ForbiddenWestGame game) {
+        return switch (object) {
+            case StaticMeshResource r -> convertStaticMeshResource(context, r, game);
+            case StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
+            case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, game);
+            case LodMeshResource r -> convertLodMeshResource(context, r, game);
+            case MultiMeshResource r -> convertMultiMeshResource(context, r, game);
+            case BodyVariant r -> convertBodyVariant(context, r, game);
+            case SkinnedModelResource r -> convertSkinnedModelResource(context, r, game);
+            case DestructibilityPart r -> convertDestructibilityPart(context, r, game);
+            case ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
+            case PrefabResource r -> convertPrefabResource(context, r, game);
+            case PrefabInstance r -> convertPrefabInstance(context, r, game);
+            case MockupGeometry r -> convertMockupGeometry(context, r, game);
+            default -> {
+                log.debug("Unsupported resource type: {}", object.getType());
+                yield Optional.empty();
+            }
+        };
+    }
+
+    private static Optional<Node> convertMockupGeometry(
+        Context context,
+        MockupGeometry geometry,
+        ForbiddenWestGame game
+    ) {
+        var node = convertNodeIfAbsent(context, geometry.staticMeshInstance().get(), game);
         var transform = geometry.general().orientation();
         return node.map(n -> n.transform(toMat4(transform)));
     }
 
-    private static Optional<Node> convertPrefabResource(PrefabResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertPrefabResource(
+        Context context,
+        PrefabResource resource,
+        ForbiddenWestGame game
+    ) {
         var collection = resource.general().objectCollection().get();
         var children = new ArrayList<Node>();
 
         for (var object : Ref.unwrap(collection.general().objects())) {
-            convertNode(object, game).ifPresent(children::add);
+            convertNodeIfAbsent(context, object, game).ifPresent(children::add);
         }
 
         if (children.isEmpty()) {
@@ -90,29 +108,37 @@ public final class MeshToSceneConverter
         return Optional.of(Node.of(children));
     }
 
-    private static Optional<Node> convertPrefabInstance(PrefabInstance instance, ForbiddenWestGame game) {
+    private static Optional<Node> convertPrefabInstance(
+        Context context,
+        PrefabInstance instance,
+        ForbiddenWestGame game
+    ) {
         for (PrefabObjectOverrides override : instance.general().overrides()) {
             assert !override.isRemoved();
             assert !override.isTransformOverridden();
         }
-        var node = convertNode(instance.general().prefab().get(), game);
+        var node = convertNodeIfAbsent(context, instance.general().prefab().get(), game);
         var transform = instance.general().orientation();
         return node.map(n -> n.transform(toMat4(transform)));
     }
 
-    private static Optional<Node> convertControlledEntityResource(ControlledEntityResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertControlledEntityResource(
+        Context context,
+        ControlledEntityResource resource,
+        ForbiddenWestGame game
+    ) {
         List<Node> children = new ArrayList<>();
 
         for (EntityComponentResource component : Ref.unwrap(resource.logic().entityComponentResources())) {
             switch (component) {
                 case DestructibilityResource destructibility -> {
                     for (DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
-                        convertDestructibilityPart(part, game).ifPresent(children::add);
+                        convertDestructibilityPart(context, part, game).ifPresent(children::add);
                         // TODO: Handle attachment joints
                     }
                 }
                 case SkinnedModelResource model -> {
-                    convertSkinnedModelResource(model, game).ifPresent(children::add);
+                    convertSkinnedModelResource(context, model, game).ifPresent(children::add);
                 }
                 default -> log.debug("Skipping unsupported component: {}", component.getType());
             }
@@ -121,10 +147,14 @@ public final class MeshToSceneConverter
         return Optional.of(Node.of(children));
     }
 
-    private static Optional<Node> convertSkinnedModelResource(SkinnedModelResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertSkinnedModelResource(
+        Context context,
+        SkinnedModelResource resource,
+        ForbiddenWestGame game
+    ) {
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
-            .flatMap(part -> convertModelPartResource(part.get(), game).stream())
+            .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
             .toList();
 
         var node = Node.builder()
@@ -135,29 +165,46 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    private static Optional<Node> convertDestructibilityPart(DestructibilityPart part, ForbiddenWestGame game) {
+    private static Optional<Node> convertDestructibilityPart(
+        Context context,
+        DestructibilityPart part,
+        ForbiddenWestGame game
+    ) {
         var initialState = part.initialState().get();
         var modelPartResource = initialState.state().modelPartResource();
         if (modelPartResource != null) {
-            return convertModelPartResource(modelPartResource.get(), game);
+            return convertModelPartResource(context, modelPartResource.get(), game);
         }
         return Optional.empty();
     }
 
-    private static Optional<Node> convertModelPartResource(ModelPartResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertModelPartResource(
+        Context context,
+        ModelPartResource resource,
+        ForbiddenWestGame game
+    ) {
         if (resource.general().meshResource() == null) {
             return Optional.empty();
         }
-        return convertNode(resource.general().meshResource().get(), game);
+        return convertNodeIfAbsent(context, resource.general().meshResource().get(), game);
     }
 
-    private static Optional<Node> convertStaticMeshInstance(StaticMeshInstance instance, ForbiddenWestGame game) {
-        var node = convertNode(instance.general().resource().get(), game);
+    private static Optional<Node> convertStaticMeshInstance(
+        Context context,
+        StaticMeshInstance instance,
+        ForbiddenWestGame game
+    ) {
+        var node = convertNodeIfAbsent(context, instance.general().resource().get(), game);
         var transform = instance.general().orientation();
         return node.map(n -> n.transform(toMat4(transform)));
     }
 
-    private static Optional<Node> convertStaticMeshResource(StaticMeshResource resource, ForbiddenWestGame game) {
+    @SuppressWarnings("unused")
+    private static Optional<Node> convertStaticMeshResource(
+        Context context,
+        StaticMeshResource resource,
+        ForbiddenWestGame game
+    ) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
@@ -171,7 +218,12 @@ public final class MeshToSceneConverter
         return Optional.of(Node.of(mesh));
     }
 
-    private static Optional<Node> convertRegularSkinnedMeshResource(RegularSkinnedMeshResource resource, ForbiddenWestGame game) {
+    @SuppressWarnings("unused")
+    private static Optional<Node> convertRegularSkinnedMeshResource(
+        Context context,
+        RegularSkinnedMeshResource resource,
+        ForbiddenWestGame game
+    ) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
@@ -222,36 +274,59 @@ public final class MeshToSceneConverter
         return Optional.of(nodes[0].build());
     }
 
-    private static Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertLodMeshResource(
+        Context context,
+        LodMeshResource resource,
+        ForbiddenWestGame game
+    ) {
         var part = resource.runtimeMeshes().getFirst();
-        return convertNode(part.mesh().get(), game);
+        return convertNodeIfAbsent(context, part.mesh().get(), game);
     }
 
-    private static Optional<Node> convertMultiMeshResource(MultiMeshResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertMultiMeshResource(
+        Context context,
+        MultiMeshResource resource,
+        ForbiddenWestGame game
+    ) {
         var meshes = resource.meshes();
         var transforms = resource.transforms();
         var children = IntStream.range(0, meshes.size())
-            .mapToObj(i -> convertMultiMeshResourcePart(meshes.get(i).get(), transforms.isEmpty() ? null : transforms.get(i), game))
+            .mapToObj(i -> convertMultiMeshResourcePart(context,
+                meshes.get(i).get(),
+                transforms.isEmpty() ? null : transforms.get(i),
+                game))
             .flatMap(Optional::stream)
             .toList();
 
         return Optional.of(Node.of(children));
     }
 
-    private static Optional<Node> convertMultiMeshResourcePart(MeshResourceBase resource, Mat34 transform, ForbiddenWestGame game) {
-        var child = convertNode(resource, game);
+    private static Optional<Node> convertMultiMeshResourcePart(
+        Context context,
+        MeshResourceBase resource,
+        Mat34 transform,
+        ForbiddenWestGame game
+    ) {
+        var child = convertNodeIfAbsent(context, resource, game);
         var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
 
         return child.map(c -> c.transform(matrix));
     }
 
-    private static Optional<Node> convertBodyVariant(BodyVariant resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertBodyVariant(
+        Context context,
+        BodyVariant resource,
+        ForbiddenWestGame game
+    ) {
         List<Node> children = resource.logic().modelPartResources().stream()
-            .map(part -> convertNode(part.get().general().meshResource().get(), game))
+            .map(part -> convertNodeIfAbsent(context, part.get().general().meshResource().get(), game))
             .flatMap(Optional::stream)
             .toList();
 
         return Optional.of(Node.of(children));
     }
 
+    private static final class Context {
+        private final Map<GGUUID, Node> resources = new HashMap<>();
+    }
 }
