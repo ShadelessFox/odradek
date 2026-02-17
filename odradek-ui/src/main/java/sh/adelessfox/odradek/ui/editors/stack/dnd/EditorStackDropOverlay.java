@@ -108,13 +108,15 @@ public final class EditorStackDropOverlay extends JComponent {
                 origin.y + bounds.y,
                 TAB_OVERLAY_WIDTH,
                 bounds.height);
-        } else {
+        } else if (index <= stack.getTabCount()) {
             var bounds = stack.getBoundsAt(index);
             rect = new Rectangle(
                 origin.x + bounds.x - TAB_OVERLAY_WIDTH / 2,
                 origin.y + bounds.y,
                 50,
                 bounds.height);
+        } else {
+            return;
         }
 
         g2.setColor(overlayBackgroundColor);

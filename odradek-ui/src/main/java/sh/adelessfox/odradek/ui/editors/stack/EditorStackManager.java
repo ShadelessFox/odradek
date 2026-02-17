@@ -311,7 +311,7 @@ public final class EditorStackManager implements EditorManager {
 
         @Override
         public void mouseDragged(MouseEvent e) {
-            if (index < 0) {
+            if (index < 0 || !SwingUtilities.isLeftMouseButton(e)) {
                 return;
             }
 
