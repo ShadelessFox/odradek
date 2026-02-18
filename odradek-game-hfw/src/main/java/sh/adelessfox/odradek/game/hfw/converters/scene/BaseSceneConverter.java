@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.game.hfw.converters.scene;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
@@ -34,7 +33,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             var primitive = primitiveResources.get(i).get();
 
             if (primitive.startIndex() > 0) {
-                throw new NotImplementedException();
+                throw new UnsupportedOperationException("startIndex > 0 is not supported");
             }
 
             var vertexArray = primitive.vertexArray().get();
