@@ -198,10 +198,12 @@
                         <javaOption>--enable-native-access=org.lz4.java</javaOption>
                         <!-- Allows usage of java.lang.StableValue -->
                         <javaOption>--enable-preview</javaOption>
+                        <!-- To make ChannelBinaryReader not close the underlying channel on interrupt -->
+                        <javaOption>--add-opens java.base/sun.nio.ch=odradek.core</javaOption>
                         <!-- Fixes canvas flickering on resize -->
                         <javaOption>-Dsun.awt.noerasebackground=true</javaOption>
-                        <!-- Fixes repaint issues; only seen on Windows -->
-                        <javaOption>-Dsun.java2d.opengl=true</javaOption>
+                        <!-- Fixes OpenGL context creation on Wayland -->
+                        <javaOption>-Dorg.lwjgl.opengl.contextAPI=native</javaOption>
                     </javaOptions>
                     <module>odradek.app/sh.adelessfox.odradek.app.Main</module>
                 </configuration>

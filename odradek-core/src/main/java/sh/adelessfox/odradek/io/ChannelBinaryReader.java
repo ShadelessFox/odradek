@@ -4,7 +4,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 
 final class ChannelBinaryReader implements BinaryReader {
@@ -12,14 +14,19 @@ final class ChannelBinaryReader implements BinaryReader {
         .order(ByteOrder.LITTLE_ENDIAN)
         .limit(0);
 
-    private final SeekableByteChannel channel;
+    private final FileChannel channel;
     private final long length;
     private long position;
 
-    ChannelBinaryReader(SeekableByteChannel channel) throws IOException {
+    private ChannelBinaryReader(FileChannel channel) throws IOException {
+        trySetUninterruptible(channel);
         this.channel = channel;
         this.length = channel.size();
         this.position = channel.position();
+    }
+
+    static ChannelBinaryReader open(Path path) throws IOException {
+        return new ChannelBinaryReader(FileChannel.open(path, StandardOpenOption.READ));
     }
 
     @Override
@@ -183,6 +190,19 @@ final class ChannelBinaryReader implements BinaryReader {
             if (channel.read(dst) < 0) {
                 throw new EOFException();
             }
+        }
+    }
+
+    @SuppressWarnings("Java9ReflectionClassVisibility")
+    private static void trySetUninterruptible(FileChannel channel) {
+        try {
+            var fileChannelImpl = Class.forName("sun.nio.ch.FileChannelImpl");
+            var setUninterruptible = fileChannelImpl.getDeclaredMethod("setUninterruptible");
+            if (!setUninterruptible.canAccess(channel)) {
+                setUninterruptible.setAccessible(true);
+            }
+            setUninterruptible.invoke(channel);
+        } catch (Exception ignored) {
         }
     }
 }
