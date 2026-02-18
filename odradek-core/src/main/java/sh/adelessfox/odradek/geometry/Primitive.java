@@ -1,10 +1,11 @@
 package sh.adelessfox.odradek.geometry;
 
 import sh.adelessfox.odradek.math.BoundingBox;
+import sh.adelessfox.odradek.math.Vector3f;
 
 import java.util.Map;
 
-public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, int hash) {
+public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vector3f color) {
     public Primitive {
         validateIndices(indices);
         validatePositions(vertices);

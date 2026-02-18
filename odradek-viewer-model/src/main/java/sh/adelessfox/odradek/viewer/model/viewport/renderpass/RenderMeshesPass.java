@@ -209,14 +209,7 @@ public final class RenderMeshesPass implements RenderPass {
                 default -> throw new IllegalArgumentException("unsupported index type");
             };
 
-            var random = new Random(primitive.hash());
-            var color = new Vector3f(
-                random.nextFloat(0.5f, 1.0f),
-                random.nextFloat(0.5f, 1.0f),
-                random.nextFloat(0.5f, 1.0f)
-            );
-
-            return Optional.of(new GpuPrimitive(count, type, vao, color, semantics));
+            return Optional.of(new GpuPrimitive(count, type, vao, primitive.color(), semantics));
         }
     }
 

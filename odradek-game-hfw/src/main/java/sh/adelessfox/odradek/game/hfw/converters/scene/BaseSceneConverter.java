@@ -8,15 +8,13 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.math.Matrix4f;
+import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Scene;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWestGame> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
@@ -45,7 +43,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             var indexArray = primitive.indexArray().get();
             var indexAccessor = buildIndexAccessor(indexArray, buffer, primitive.startIndex(), primitive.endIndex());
 
-            primitives.add(new Primitive(indexAccessor, vertexAccessors, primitive.hashCode()));
+            primitives.add(new Primitive(
+                indexAccessor,
+                vertexAccessors,
+                computePrimitiveColor(primitive.hash() ^ primitive.hashCode())));
         }
 
         if (buffer.hasRemaining()) {
@@ -187,6 +188,15 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         }
 
         return Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
+    }
+
+    private static Vector3f computePrimitiveColor(int hash) {
+        var random = new Random(hash);
+        return new Vector3f(
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f)
+        );
     }
 
     private static ByteBuffer readBufferAligned(ByteBuffer buffer, int count, int stride) {

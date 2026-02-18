@@ -124,7 +124,9 @@ public class OverlayRenderPass implements RenderPass {
     }
 
     private void renderBoundingBox(Mesh mesh, Matrix4f transform) {
-        debug.aabb(mesh.computeBoundingBox().transform(transform), Vector3f.one());
+        for (Primitive primitive : mesh.primitives()) {
+            debug.aabb(primitive.computeBoundingBox().transform(transform), primitive.color());
+        }
     }
 
     private Vector3f renderSkin(Node node, Matrix4f transform, Camera camera) {
