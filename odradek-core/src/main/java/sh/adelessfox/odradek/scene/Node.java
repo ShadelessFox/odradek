@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public record Node(
     Optional<String> name,
     Optional<Mesh> mesh,
-    Optional<Node> skin,
+    Optional<Skin> skin,
     List<Node> children,
     Matrix4f matrix
 ) {
@@ -73,7 +73,7 @@ public record Node(
         private final List<NodeOrBuilder> children = new ArrayList<>();
         private String name;
         private Mesh mesh;
-        private NodeOrBuilder skin;
+        private Skin skin;
         private Matrix4f matrix = Matrix4f.identity();
 
         private Builder() {
@@ -89,13 +89,8 @@ public record Node(
             return this;
         }
 
-        public Builder skin(Node skin) {
-            this.skin = skin != null ? NodeOrBuilder.of(skin) : null;
-            return this;
-        }
-
-        public Builder skin(Builder skin) {
-            this.skin = skin != null ? NodeOrBuilder.of(skin) : null;
+        public Builder skin(Skin skin) {
+            this.skin = skin;
             return this;
         }
 
@@ -130,7 +125,7 @@ public record Node(
             return new Node(
                 Optional.ofNullable(name),
                 Optional.ofNullable(mesh),
-                Optional.ofNullable(skin).map(NodeOrBuilder::toNode),
+                Optional.ofNullable(skin),
                 children.stream().map(NodeOrBuilder::toNode).toList(),
                 matrix);
         }

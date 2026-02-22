@@ -10,13 +10,16 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.Ref;
+import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.scene.Skin;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
@@ -190,7 +193,7 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    private static Optional<Node> convertSkeleton(Skeleton skeleton) {
+    private static Optional<Skin> convertSkeleton(Skeleton skeleton) {
         if (!skeleton.general().hasBindPose()) {
             log.warn("Skipping skeleton {} without a bind pose", skeleton.general().objectUUID().toDisplayString());
             return Optional.empty();
@@ -206,20 +209,17 @@ public final class MeshToSceneConverter
         }
 
         var joints = skeleton.general().joints();
-        var nodes = new Node.Builder[joints.size()];
+        var converted = new ArrayList<Joint>();
 
-        for (int i = 0; i < nodes.length; i++) {
+        for (int i = 0; i < joints.size(); i++) {
             var joint = joints.get(i);
-            var bone = Node.builder()
-                .name(joint.name())
-                .matrix(transforms.get(i).toMatrix());
-            nodes[i] = bone;
-            if (joint.parentIndex() != -1) {
-                nodes[joint.parentIndex()].add(bone);
-            }
+            converted.add(new Joint(
+                joint.parentIndex() != -1 ? OptionalInt.of(joint.parentIndex()) : OptionalInt.empty(),
+                joint.name(),
+                transforms.get(i).toMatrix()));
         }
 
-        return Optional.of(nodes[0].build());
+        return Optional.of(new Skin(converted));
     }
 
     private static Optional<Node> convertLodMeshResource(LodMeshResource resource, ForbiddenWestGame game) {

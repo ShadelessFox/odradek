@@ -3,14 +3,17 @@ package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
+import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.scene.Skin;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class OverlayRenderPass implements RenderPass {
     private static final String STATISTICS_FORMAT = """
@@ -100,30 +103,42 @@ public class OverlayRenderPass implements RenderPass {
             renderNode(child, transform.mul(child.matrix()), camera);
         }
         if (showSkins) {
-            node.skin().ifPresent(skin -> renderSkin(skin, transform.mul(skin.matrix()), camera));
+            node.skin().ifPresent(skin -> renderSkin(skin, transform, camera));
         }
         if (showBoundingBoxes) {
             node.mesh().ifPresent(mesh -> debug.aabb(mesh.computeBoundingBox().transform(transform), Vector3f.one()));
         }
     }
 
-    private Vector3f renderSkin(Node node, Matrix4f transform, Camera camera) {
-        var source = transform.toTranslation();
+    private void renderSkin(Skin skin, Matrix4f transform, Camera camera) {
+        var matrices = new ArrayList<Matrix4f>(skin.joints().size());
 
-        node.name().ifPresent(name -> {
-            var distance = source.distance(camera.position());
+        for (Joint joint : skin.joints()) {
+            Matrix4f jointMatrix;
+            Matrix4f parentMatrix;
+
+            if (joint.parent().isPresent()) {
+                parentMatrix = matrices.get(joint.parent().getAsInt());
+                jointMatrix = parentMatrix.mul(joint.matrix());
+            } else {
+                parentMatrix = null;
+                jointMatrix = transform.mul(joint.matrix());
+            }
+
+            var position = jointMatrix.toTranslation();
+
+            if (parentMatrix != null) {
+                debug.line(parentMatrix.toTranslation(), position, new Vector3f(0, 1, 0), false);
+            }
+
+            debug.point(position, new Vector3f(1, 0, 1), 10f, false);
+
+            var distance = position.distance(camera.position());
             var size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
-            debug.projectedText(name, source, camera, new Vector3f(1, 1, 1), size);
-        });
+            debug.projectedText(joint.name(), position, camera, new Vector3f(1, 1, 1), size);
 
-        for (Node child : node.children()) {
-            var target = renderSkin(child, transform.mul(child.matrix()), camera);
-            debug.line(target, source, new Vector3f(0, 1, 0), false);
+            matrices.add(jointMatrix);
         }
-
-        debug.point(source, new Vector3f(1, 0, 1), 10f, false);
-
-        return source;
     }
 
     private static SceneStatistics summarizeScene(Scene scene) {

@@ -6,8 +6,10 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.math.Matrix4f;
+import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.scene.Skin;
 
 import java.io.IOException;
 import java.nio.*;
@@ -116,17 +118,19 @@ public class CastExporter implements Exporter<Scene> {
         }
     }
 
-    private static void exportSkeleton(CastNodes.Model model, Node nodeSkin) {
+    private static void exportSkeleton(CastNodes.Model model, Skin nodeSkin) {
         var skeleton = model.createSkeleton();
-        exportBone(skeleton, OptionalInt.empty(), nodeSkin);
+        for (Joint joint : nodeSkin.joints()) {
+            exportBone(skeleton, joint.parent(), joint);
+        }
     }
 
-    private static void exportBone(CastNodes.Skeleton skeleton, OptionalInt parent, Node node) {
+    private static void exportBone(CastNodes.Skeleton skeleton, OptionalInt parent, Joint joint) {
         var bone = skeleton.createBone();
-        node.name().ifPresent(bone::setName);
+        bone.setName(joint.name());
         parent.ifPresent(bone::setParentIndex);
 
-        var transform = node.matrix();
+        var transform = joint.matrix();
         var pos = transform.toTranslation();
         var rot = transform.toRotation();
         var scl = transform.toScale();
@@ -134,11 +138,6 @@ public class CastExporter implements Exporter<Scene> {
         bone.setLocalPosition(new Vec3(pos.x(), pos.y(), pos.z()));
         bone.setLocalRotation(new Vec4(rot.x(), rot.y(), rot.z(), rot.w()));
         bone.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
-
-        int index = skeleton.getBones().size() - 1;
-        for (Node child : node.children()) {
-            exportBone(skeleton, OptionalInt.of(index), child);
-        }
     }
 
     // region Buffers
