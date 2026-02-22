@@ -1,17 +1,6 @@
 package sh.adelessfox.odradek.geometry;
 
 public sealed interface Type {
-    default int byteSize() {
-        return switch (this) {
-            case I8 _ -> Byte.BYTES;
-            case I16 _ -> Short.BYTES;
-            case I32 _ -> Integer.BYTES;
-            case F16 _ -> Short.BYTES;
-            case F32 _ -> Float.BYTES;
-            case X10Y10Z10W2 _ -> Integer.BYTES;
-        };
-    }
-
     int components();
 
     boolean unsigned();

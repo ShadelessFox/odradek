@@ -21,7 +21,11 @@ public sealed interface Accessor {
         if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
             throw new IllegalArgumentException("buffer must be LITTLE_ENDIAN");
         }
-        var slice = buffer.slice(buffer.position() + offset, count * stride - offset);
+        int sliceOffset = buffer.position() + offset;
+        int sliceLength = OfBuffer.requiredSize(stride, count, type);
+        var slice = buffer
+            .slice(sliceOffset, sliceLength)
+            .order(ByteOrder.LITTLE_ENDIAN);
         return new OfBuffer(slice, stride, type, count);
     }
 
@@ -100,7 +104,11 @@ public sealed interface Accessor {
 
     record OfBuffer(ByteBuffer buffer, int stride, Type type, int count) implements Accessor {
         public OfBuffer {
+            if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
+                throw new IllegalArgumentException("buffer must be LITTLE_ENDIAN");
+            }
             buffer = buffer
+                .slice(0, requiredSize(stride, count, type))
                 .asReadOnlyBuffer()
                 .order(ByteOrder.LITTLE_ENDIAN);
         }
@@ -129,7 +137,39 @@ public sealed interface Accessor {
             Objects.checkIndex(elementIndex, count);
             Objects.checkIndex(componentIndex, type.components());
 
-            return (elementIndex * stride) + (componentIndex * type.byteSize());
+            return (elementIndex * stride) + (componentIndex * componentByteSize(type));
+        }
+
+        private static int requiredSize(int stride, int count, Type type) {
+            if (stride < 0) {
+                throw new IllegalArgumentException("stride must be non-negative");
+            }
+            if (count < 1) {
+                throw new IllegalArgumentException("count must be at least 1");
+            }
+            return stride * (count - 1) + byteSize(type);
+        }
+
+        private static int componentByteSize(Type type) {
+            return switch (type) {
+                case Type.I8 _ -> Byte.BYTES;
+                case Type.I16 _ -> Short.BYTES;
+                case Type.I32 _ -> Integer.BYTES;
+                case Type.F16 _ -> Short.BYTES;
+                case Type.F32 _ -> Float.BYTES;
+                case Type.X10Y10Z10W2 _ -> Integer.BYTES;
+            };
+        }
+
+        private static int byteSize(Type type) {
+            return switch (type) {
+                case Type.I8 x -> Byte.BYTES * x.components();
+                case Type.I16 x -> Short.BYTES * x.components();
+                case Type.I32 x -> Integer.BYTES * x.components();
+                case Type.F16 x -> Short.BYTES * x.components();
+                case Type.F32 x -> Float.BYTES * x.components();
+                case Type.X10Y10Z10W2 _ -> Integer.BYTES;
+            };
         }
     }
 

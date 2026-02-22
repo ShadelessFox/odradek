@@ -112,7 +112,9 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                     case X10Y10Z10W2Normalized -> new Type.X10Y10Z10W2(components, false, true);
                     case X10Y10Z10W2UNorm -> new Type.X10Y10Z10W2(components, true, true);
                     default -> {
-                        log.warn("Skipping unsupported element (semantic: {}, format: {})", element.element(), element.storageType());
+                        log.warn("Skipping unsupported element (semantic: {}, format: {})",
+                            element.element(),
+                            element.storageType());
                         yield null;
                     }
                 };
@@ -159,6 +161,23 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                 accessors.put(semantic, Accessor.ofInterleaved(value));
             }
         }));
+
+        if (accessors.containsKey(Semantic.JOINTS) && !accessors.containsKey(Semantic.WEIGHTS)) {
+            // Weights MAY be absent in case there's only one bone per vertex.
+            var joints = accessors.get(Semantic.JOINTS);
+            if (joints.componentCount() != 1) {
+                throw new IllegalStateException("JOINTS accessor has " + joints.componentCount()
+                    + " components, but WEIGHTS accessor is missing");
+            }
+
+            // Build a dummy WEIGHTS accessor with all weights set to 1.0f
+            var weights = ByteBuffer.allocate(Float.BYTES)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .putFloat(1.0f)
+                .flip();
+            var accessor = Accessor.of(weights, 0, 0, new Type.F32(1), joints.count());
+            accessors.put(Semantic.WEIGHTS, accessor);
+        }
 
         return accessors;
     }
