@@ -6,6 +6,13 @@ for Horizon Zero Dawn and Death Stranding.
 Odradek, however, despite its name, targets exclusively
 Horizon Forbidden West in an attempt to come up with something that could be useful for modders.
 
+### Features
+- Preview for static and skinned models; export to `.cast`
+- Preview for regular and animated textures; export to `.dds`
+- Audio playback; export to `.wav`
+- Rich object inspector that utilizes type information
+- Command-line interface with the export functionality fully exposed
+
 ### Building
 
 #### Prerequisites
