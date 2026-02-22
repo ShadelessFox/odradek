@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
 
 public interface RenderPass {
@@ -27,10 +28,11 @@ public interface RenderPass {
      * Processes the input. Called before drawing.
      *
      * @param viewport the viewport to process input for
-     * @param dt       the delta time since the last frame
+     * @param context  the viewport context
      * @param input    the input state
+     * @param dt       the delta time since the last frame
      */
-    default void process(Viewport viewport, double dt, ViewportInput input) {
+    default void process(Viewport viewport, ViewportContext context, ViewportInput input, double dt) {
         // do nothing by default
     }
 
@@ -38,7 +40,8 @@ public interface RenderPass {
      * Draws the render pass.
      *
      * @param viewport the viewport to draw to
+     * @param context  the viewport context
      * @param dt       the delta time since the last frame
      */
-    void draw(Viewport viewport, double dt);
+    void draw(Viewport viewport, ViewportContext context, double dt);
 }
