@@ -112,7 +112,7 @@ final class ChannelBinaryReader implements BinaryReader {
     }
 
     @Override
-    public void position(long pos) throws IOException {
+    public BinaryReader position(long pos) throws IOException {
         Objects.checkIndex(pos, length + 1);
 
         if (pos >= position && pos < position + buffer.limit()) {
@@ -122,6 +122,8 @@ final class ChannelBinaryReader implements BinaryReader {
             buffer.limit(0);
             channel.position(pos);
         }
+
+        return this;
     }
 
     @Override

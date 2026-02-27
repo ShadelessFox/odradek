@@ -191,7 +191,7 @@ public interface BinaryReader extends Closeable {
 
     long position() throws IOException;
 
-    void position(long pos) throws IOException;
+    BinaryReader position(long pos) throws IOException;
 
     ByteOrder order();
 
