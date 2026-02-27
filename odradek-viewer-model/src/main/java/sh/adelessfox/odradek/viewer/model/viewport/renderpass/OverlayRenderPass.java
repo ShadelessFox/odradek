@@ -21,6 +21,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 public class OverlayRenderPass implements RenderPass {
+    private static final int MAX_JOINTS_TO_DISPLAY_NAMES_FOR = 128;
+
     private static final List<Toggle> toggles = List.of(
         new Toggle("Show wireframe", KeyEvent.VK_1,
             ViewportContext::isShowWireframe,
@@ -152,11 +154,12 @@ public class OverlayRenderPass implements RenderPass {
                 debug.line(parentMatrix.toTranslation(), position, new Vector3f(0, 1, 0), false);
             }
 
-            debug.point(position, new Vector3f(1, 0, 1), 10f, false);
-
             var distance = position.distance(camera.position());
-            var size = Math.clamp(16.0f / distance, 4.0f, 16.0f);
-            debug.projectedText(joint.name(), position, camera, new Vector3f(1, 1, 1), size);
+            debug.point(position, new Vector3f(1, 0, 1), 2.0f / distance, false);
+
+            if (skin.joints().size() <= MAX_JOINTS_TO_DISPLAY_NAMES_FOR) {
+                debug.projectedText(joint.name(), position, camera, new Vector3f(1, 1, 1), 4.0f / distance);
+            }
 
             matrices.add(jointMatrix);
         }
