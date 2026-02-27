@@ -27,7 +27,7 @@ public class CastExporter implements Exporter<Scene> {
         var root = cast.createRoot();
 
         for (Node node : object.nodes()) {
-            exportNode(root, node, Matrix4f.identity());
+            exportNode(node, Matrix4f.identity(), root);
         }
 
         try {
@@ -57,7 +57,7 @@ public class CastExporter implements Exporter<Scene> {
         return Optional.of("fugue:paint-can");
     }
 
-    private static void exportNode(CastNodes.Root root, Node node, Matrix4f transform) {
+    private static void exportNode(Node node, Matrix4f transform, CastNodes.Root root) {
         node.mesh().ifPresent(mesh -> {
             var pos = transform.toTranslation();
             var rot = transform.toRotation();
@@ -67,14 +67,15 @@ public class CastExporter implements Exporter<Scene> {
             model.setPosition(new Vec3(pos.x(), pos.y(), pos.z()));
             model.setRotation(new Vec4(rot.x(), rot.y(), rot.z(), rot.w()));
             model.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
+
             node.name().ifPresent(model::setName);
+            node.skin().ifPresent(skin -> exportSkeleton(model, skin));
 
             exportMesh(model, mesh);
-            node.skin().ifPresent(skin -> exportSkeleton(model, skin));
         });
 
         for (Node child : node.children()) {
-            exportNode(root, child, transform.mul(child.matrix()));
+            exportNode(child, transform.mul(child.matrix()), root);
         }
     }
 
@@ -118,11 +119,12 @@ public class CastExporter implements Exporter<Scene> {
         }
     }
 
-    private static void exportSkeleton(CastNodes.Model model, Skin nodeSkin) {
+    private static CastNodes.Skeleton exportSkeleton(CastNodes.Model model, Skin nodeSkin) {
         var skeleton = model.createSkeleton();
         for (Joint joint : nodeSkin.joints()) {
             exportBone(skeleton, joint.parent(), joint);
         }
+        return skeleton;
     }
 
     private static void exportBone(CastNodes.Skeleton skeleton, OptionalInt parent, Joint joint) {

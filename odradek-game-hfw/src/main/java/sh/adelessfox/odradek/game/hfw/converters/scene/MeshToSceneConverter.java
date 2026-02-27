@@ -86,12 +86,46 @@ public final class MeshToSceneConverter
 
     @SuppressWarnings("unused")
     private static Optional<Node> convertHairResource(Context context, HairResource resource, ForbiddenWestGame game) {
-        var lod = resource.geometry().meshLods().getFirst();
-        var nodes = lod.skinnedMeshes().stream()
-            .map(m -> convertHairMesh(m, game))
-            .map(Node::of)
+        var pose = resource.geometry().poses().getFirst();
+        var skin = convertHairPose(pose);
+
+        var mesh = resource.geometry().meshLods().getFirst();
+        var nodes = mesh.skinnedMeshes().stream()
+            .map(m -> Node.builder()
+                .mesh(convertHairMesh(m, game))
+                .skin(skin)
+                .build())
             .toList();
+
         return Node.of(nodes);
+    }
+
+    private static Skin convertHairPose(HairPose pose) {
+        var joints = new ArrayList<Joint>();
+        for (int i = 0; i < pose.bundles().size(); i++) {
+            var bundle = pose.bundles().get(i);
+            for (int j = 0; j < bundle.strands().size(); j++) {
+                var strand = bundle.strands().get(j);
+                for (int k = 0; k < strand.vertices().size(); k++) {
+                    var vertex = strand.vertices().get(k);
+                    if (k == 0) {
+                        joints.add(new Joint(
+                            OptionalInt.empty(),
+                            "strand%d_%d".formatted(i, j),
+                            Matrix4f.translation(vertex.x(), vertex.y(), vertex.z())
+                        ));
+                    } else {
+                        var prev = strand.vertices().get(k - 1);
+                        joints.add(new Joint(
+                            OptionalInt.of(joints.size() - 1),
+                            "strand%d_%d_%d".formatted(i, j, k),
+                            Matrix4f.translation(vertex.x() - prev.x(), vertex.y() - prev.y(), vertex.z() - prev.z())
+                        ));
+                    }
+                }
+            }
+        }
+        return new Skin(joints);
     }
 
     private static Optional<Node> convertMockupGeometry(
