@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.rtti.runtime;
+package sh.adelessfox.odradek.rtti.generator;
 
 import sh.adelessfox.odradek.rtti.ClassAttrInfo;
 import sh.adelessfox.odradek.rtti.ClassBaseInfo;

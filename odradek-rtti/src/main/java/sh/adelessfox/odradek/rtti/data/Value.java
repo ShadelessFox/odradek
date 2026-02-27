@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Optional;
 
 @SuppressWarnings("unused")
-public sealed interface Value<T>
+public sealed interface Value<T extends Enum<T>>
     permits Value.OfEnum, Value.OfEnumSet {
 
     non-sealed interface OfEnum<T extends Enum<T>> extends Value<T> {

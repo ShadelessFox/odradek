@@ -1,14 +1,14 @@
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.hfw.rtti.extensions.*;
-import sh.adelessfox.odradek.rtti.GenerateBindings;
-import sh.adelessfox.odradek.rtti.GenerateBindings.Builtin;
-import sh.adelessfox.odradek.rtti.GenerateBindings.Callback;
-import sh.adelessfox.odradek.rtti.GenerateBindings.Extension;
+import sh.adelessfox.odradek.rtti.generator.TypeBindings;
+import sh.adelessfox.odradek.rtti.generator.TypeBindings.Builtin;
+import sh.adelessfox.odradek.rtti.generator.TypeBindings.Callback;
+import sh.adelessfox.odradek.rtti.generator.TypeBindings.Extension;
 
 import java.math.BigInteger;
 
-@GenerateBindings(
-    input = @GenerateBindings.Input(
+@TypeBindings(
+    input = @TypeBindings.Input(
         types = "types.json",
         extensions = "extensions.json"
     ),

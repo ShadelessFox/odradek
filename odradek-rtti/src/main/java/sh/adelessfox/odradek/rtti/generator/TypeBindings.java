@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.rtti;
+package sh.adelessfox.odradek.rtti.generator;
 
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.MODULE)
-public @interface GenerateBindings {
+public @interface TypeBindings {
     @interface Input {
         /**
          * Path to the file containing type definitions ({@code .json})

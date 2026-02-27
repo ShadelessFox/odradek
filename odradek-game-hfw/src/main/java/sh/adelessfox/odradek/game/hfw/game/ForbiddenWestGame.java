@@ -13,8 +13,8 @@ import sh.adelessfox.odradek.game.hfw.storage.StorageReadDevice;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
 import sh.adelessfox.odradek.util.ProductVersion;
 
 import java.io.IOException;

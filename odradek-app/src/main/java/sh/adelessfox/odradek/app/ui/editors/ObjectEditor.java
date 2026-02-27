@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.editors;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.game.*;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;

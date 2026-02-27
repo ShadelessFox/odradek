@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.component;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Preview;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 

@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 import java.nio.file.Files;

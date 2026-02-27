@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.rtti.runtime;
+package sh.adelessfox.odradek.rtti.generator;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

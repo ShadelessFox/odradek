@@ -9,7 +9,7 @@ module odradek.rtti {
 
     exports sh.adelessfox.odradek.rtti.data;
     exports sh.adelessfox.odradek.rtti.factory;
+    exports sh.adelessfox.odradek.rtti.generator;
     exports sh.adelessfox.odradek.rtti.io;
-    exports sh.adelessfox.odradek.rtti.runtime;
     exports sh.adelessfox.odradek.rtti;
 }

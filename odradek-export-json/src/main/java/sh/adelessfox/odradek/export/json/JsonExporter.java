@@ -5,7 +5,7 @@ import com.google.gson.Strictness;
 import com.google.gson.stream.JsonWriter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 import java.nio.channels.Channels;

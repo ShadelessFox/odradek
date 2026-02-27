@@ -1,7 +1,7 @@
-package sh.adelessfox.odradek.rtti.generator;
+package sh.adelessfox.odradek.rtti.generator.source;
 
-import sh.adelessfox.odradek.rtti.GenerateBindings;
-import sh.adelessfox.odradek.rtti.runtime.TypeContext;
+import sh.adelessfox.odradek.rtti.generator.TypeBindings;
+import sh.adelessfox.odradek.rtti.generator.TypeContext;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -24,9 +24,9 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
         var filer = processingEnv.getFiler();
         var messager = processingEnv.getMessager();
 
-        for (Element element : roundEnv.getElementsAnnotatedWith(GenerateBindings.class)) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(TypeBindings.class)) {
             var module = (ModuleElement) element;
-            var annotation = module.getAnnotation(GenerateBindings.class);
+            var annotation = module.getAnnotation(TypeBindings.class);
 
             var context = new TypeContext();
             try {
@@ -40,14 +40,14 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
             var targetClass = targetDesc.displayName();
 
             var generator = new TypeSourceGenerator(targetPackage, targetClass);
-            for (GenerateBindings.Builtin builtin : annotation.builtins()) {
+            for (TypeBindings.Builtin builtin : annotation.builtins()) {
                 generator.addBuiltin(builtin.type(), asTypeMirror(builtin::repr));
             }
-            for (GenerateBindings.Callback callback : annotation.callbacks()) {
+            for (TypeBindings.Callback callback : annotation.callbacks()) {
                 var type = asTypeMirror(callback::handler);
                 generator.addCallback(callback.type(), type);
             }
-            for (GenerateBindings.Extension extension : annotation.extensions()) {
+            for (TypeBindings.Extension extension : annotation.extensions()) {
                 var type = asTypeMirror(extension::extension);
                 generator.addExtension(extension.type(), type);
             }
@@ -69,7 +69,7 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Set.of(GenerateBindings.class.getName());
+        return Set.of(TypeBindings.class.getName());
     }
 
     @Override

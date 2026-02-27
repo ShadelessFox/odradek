@@ -7,5 +7,5 @@ module odradek.rtti.generator {
     requires odradek.core;
     requires odradek.rtti;
 
-    exports sh.adelessfox.odradek.rtti.generator;
+    exports sh.adelessfox.odradek.rtti.generator.source;
 }

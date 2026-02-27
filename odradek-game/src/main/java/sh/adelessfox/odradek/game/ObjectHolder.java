@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game;
 
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 

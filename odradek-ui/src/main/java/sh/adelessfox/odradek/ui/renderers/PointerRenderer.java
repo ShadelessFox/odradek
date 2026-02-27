@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.ui.renderers;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.Ref;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.components.StyledText;
 

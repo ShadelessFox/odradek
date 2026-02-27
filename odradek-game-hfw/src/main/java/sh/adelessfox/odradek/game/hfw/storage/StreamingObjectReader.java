@@ -158,6 +158,16 @@ public class StreamingObjectReader extends HFWTypeReader {
 
     @Override
     protected Ref<?> readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        // FIXME:
+        //  An instance of Ref might be null if it's absent or it can't be resolved (StreamingRef)
+        //  Ref#get might also return null if it doesn't hold an immediate reference (UUIDRef, StreamingRef)
+        //
+        // Pretty sure the game always resolves all links, but it might be not possible in our case.
+        // Those null checks are nauseating; ideally, we should have separate types for resolved and
+        // unresolved references so that we don't have to deal with nullability at all.
+        //
+        // Alternatively, we could make Ref an Optional-like type with methods like isPresent(), orElseThrow(), etc.
+
         if (!reader.readByteBoolean()) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {

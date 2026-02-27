@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
 

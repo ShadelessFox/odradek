@@ -2,9 +2,13 @@ package sh.adelessfox.odradek.rtti.factory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.runtime.TypeContext;
-import sh.adelessfox.odradek.rtti.runtime.TypeRuntimeGenerator;
+import sh.adelessfox.odradek.rtti.ClassAttrInfo;
+import sh.adelessfox.odradek.rtti.ClassBaseInfo;
+import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.rtti.generator.TypeBindings;
+import sh.adelessfox.odradek.rtti.generator.TypeContext;
+import sh.adelessfox.odradek.rtti.generator.TypeRuntimeGenerator;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -108,11 +112,11 @@ public abstract class AbstractTypeFactory implements TypeFactory {
 
     protected Map<String, Class<?>> getBuiltins() {
         return Stream.of(getAnnotation().builtins())
-            .collect(Collectors.toMap(GenerateBindings.Builtin::type, GenerateBindings.Builtin::repr));
+            .collect(Collectors.toMap(TypeBindings.Builtin::type, TypeBindings.Builtin::repr));
     }
 
-    private GenerateBindings getAnnotation() {
-        return namespace.getModule().getDeclaredAnnotation(GenerateBindings.class);
+    private TypeBindings getAnnotation() {
+        return namespace.getModule().getDeclaredAnnotation(TypeBindings.class);
     }
 
     protected record OrderedAttr(ClassTypeInfo parent, ClassAttrInfo attr, int offset) {

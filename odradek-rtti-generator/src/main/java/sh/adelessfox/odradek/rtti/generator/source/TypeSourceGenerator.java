@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.rtti.generator;
+package sh.adelessfox.odradek.rtti.generator.source;
 
 import com.squareup.javapoet.*;
 import org.slf4j.Logger;
@@ -7,10 +7,10 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.Ref;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.rtti.runtime.TypeGenerator;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.generator.TypeGenerator;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
