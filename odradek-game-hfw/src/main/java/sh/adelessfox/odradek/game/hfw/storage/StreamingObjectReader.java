@@ -11,9 +11,7 @@ import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
 
@@ -24,7 +22,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     private final StreamingGraphResource graph;
     private final TypeFactory factory;
 
-    private final LruWeakCache<StreamingGroupData, GroupResult> cache = new LruWeakCache<>(5000);
+    private final LruWeakCache<Integer, GroupResult> cache = new LruWeakCache<>(5000);
 
     private GroupResult currentGroup;
     private List<GroupResult> currentSubGroups;
@@ -59,34 +57,32 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     public GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
-        var groups = new ArrayList<GroupResult>();
-        var result = readGroup(id, groups, readSubgroups);
-        assert result == groups.getLast();
-        return result;
+        return readGroup(id, new HashMap<>(), readSubgroups);
     }
 
-    private GroupResult readGroup(int id, List<GroupResult> groups, boolean readSubgroups) throws IOException {
+    private GroupResult readGroup(int id, Map<Integer, GroupResult> cache, boolean readSubgroups) throws IOException {
         var group = Objects.requireNonNull(graph.group(id), () -> "Group not found: " + id);
 
         if (log.isDebugEnabled()) {
             log.debug("{}Reading group {}", indent(), Colors.blue(id));
         }
 
-        for (GroupResult result : groups) {
-            if (result.group == group) {
-                return result;
-            }
+        var result = cache.get(group.groupID());
+        if (result == null) {
+            depth++;
+            result = readGroup(group, cache, readSubgroups);
+            cache.put(result.group.groupID(), result);
+            depth--;
         }
-
-        depth++;
-        var result = readGroup(group, groups, readSubgroups);
-        groups.add(result);
-        depth--;
 
         return result;
     }
 
-    private synchronized GroupResult readGroup(StreamingGroupData group, List<GroupResult> groups, boolean readSubgroups) throws IOException {
+    private synchronized GroupResult readGroup(
+        StreamingGroupData group,
+        Map<Integer, GroupResult> groups,
+        boolean readSubgroups
+    ) throws IOException {
         var subGroups = new ArrayList<GroupResult>(group.subGroupCount());
         if (readSubgroups) {
             for (int i = 0; i < group.subGroupCount(); i++) {
@@ -97,10 +93,10 @@ public class StreamingObjectReader extends HFWTypeReader {
         currentSubGroups = subGroups;
         resolveStreamingLinksAndLocators = readSubgroups;
 
-        GroupResult result = cache.get(group);
+        var result = cache.get(group.groupID());
         if (result == null) {
             result = readSingleGroup(group);
-            cache.put(group, result);
+            cache.put(group.groupID(), result);
         }
 
         return result;
