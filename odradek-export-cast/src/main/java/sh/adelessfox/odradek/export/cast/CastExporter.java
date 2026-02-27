@@ -26,6 +26,10 @@ public class CastExporter implements Exporter<Scene> {
         var cast = Cast.create();
         var root = cast.createRoot();
 
+        root.createMetadata()
+            .setSoftware("Odradek")
+            .setAuthor("ShadelessFox");
+
         for (Node node : object.nodes()) {
             exportNode(node, Matrix4f.identity(), root);
         }
