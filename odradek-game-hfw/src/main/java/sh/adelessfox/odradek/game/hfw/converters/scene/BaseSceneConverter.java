@@ -58,12 +58,19 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
     static Mesh convertHairMesh(HorizonForbiddenWest.HairSkinnedMesh mesh, ForbiddenWestGame game) {
         var vertexArray = mesh.skinnedVertexArray().get();
         var vertexAccessors = buildVertexAccessors(vertexArray, null);
-        vertexAccessors.put(Semantic.POSITION, buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()));
-        vertexAccessors.put(Semantic.JOINTS, buildBufferAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
-        vertexAccessors.put(Semantic.WEIGHTS, buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
 
         var indexArray = mesh.skinnedIndexArray().get();
         var indexAccessor = buildIndexAccessor(indexArray, null, 0, indexArray.count());
+
+        vertexAccessors.put(
+            Semantic.POSITION,
+            buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).reshape(3));
+        vertexAccessors.put(
+            Semantic.JOINTS,
+            buildBufferAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
+        vertexAccessors.put(
+            Semantic.WEIGHTS,
+            buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
 
         return Mesh.of(new Primitive(
             indexAccessor,

@@ -55,6 +55,20 @@ public sealed interface Accessor {
 
     int count();
 
+    default int componentCount() {
+        return type().components();
+    }
+
+    /**
+     * Reshapes this accessor to have the given number of components per element.
+     *
+     * @param componentCount the new number of components per element;
+     *                       must be less than or equal to the current component count
+     * @return a new accessor with the given number of components per element
+     * @throws UnsupportedOperationException if the new component count is greater than the current component count
+     */
+    Accessor reshape(int componentCount);
+
     default ByteView asByteView() {
         return switch (type()) {
             case Type.I8 x -> ByteView.of(this, x);
@@ -98,10 +112,6 @@ public sealed interface Accessor {
 
     float getFloat(int elementIndex, int componentIndex);
 
-    default int componentCount() {
-        return type().components();
-    }
-
     record OfBuffer(ByteBuffer buffer, int stride, Type type, int count) implements Accessor {
         public OfBuffer {
             if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
@@ -111,6 +121,17 @@ public sealed interface Accessor {
                 .slice(0, requiredSize(stride, count, type))
                 .asReadOnlyBuffer()
                 .order(ByteOrder.LITTLE_ENDIAN);
+        }
+
+        @Override
+        public Accessor reshape(int componentCount) {
+            if (componentCount() == componentCount) {
+                return this;
+            }
+            if (componentCount > componentCount()) {
+                throw new UnsupportedOperationException("can't reshape to a type with more components");
+            }
+            return new OfBuffer(buffer, stride, type.withComponents(componentCount), count);
         }
 
         @Override
@@ -200,6 +221,11 @@ public sealed interface Accessor {
             }
             accessors = List.copyOf(accessors);
             type = type.withComponents(components);
+        }
+
+        @Override
+        public Accessor reshape(int componentCount) {
+            throw new UnsupportedOperationException("reshape of interleaved accessors is not supported");
         }
 
         @Override

@@ -36,6 +36,9 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vect
     }
 
     private static void validateIndices(Accessor indices) {
+        if (indices.componentCount() != 1) {
+            throw new IllegalArgumentException("indices must have 1 component");
+        }
         if (indices.type().normalized()) {
             throw new IllegalArgumentException("indices must not be normalized");
         }
@@ -51,8 +54,12 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vect
     }
 
     private static void validatePositions(Map<Semantic, Accessor> vertices) {
-        if (!vertices.containsKey(Semantic.POSITION)) {
+        var positions = vertices.get(Semantic.POSITION);
+        if (positions == null) {
             throw new IllegalArgumentException("vertices must contain POSITION semantic");
+        }
+        if (positions.componentCount() != 3) {
+            throw new IllegalArgumentException("POSITION accessor must have 3 components");
         }
     }
 
