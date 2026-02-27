@@ -22,8 +22,16 @@ public record Node(
         return new Builder();
     }
 
-    public static Node of(List<Node> children) {
-        return new Node(Optional.empty(), Optional.empty(), Optional.empty(), children, Matrix4f.identity());
+    public static Optional<Node> of(List<Node> children) {
+        if (children.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(new Node(
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            children,
+            Matrix4f.identity()));
     }
 
     public static Node of(Mesh mesh) {

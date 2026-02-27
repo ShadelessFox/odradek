@@ -47,7 +47,9 @@ public final class MeshToSceneConverter
             || DestructibilityPart.class.isAssignableFrom(cls)
             || ControlledEntityResource.class.isAssignableFrom(cls)
             || PrefabResource.class.isAssignableFrom(cls)
-            || PrefabInstance.class.isAssignableFrom(cls);
+            || PrefabInstance.class.isAssignableFrom(cls)
+            || MockupGeometry.class.isAssignableFrom(cls)
+            || HairResource.class.isAssignableFrom(cls);
     }
 
     private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, ForbiddenWestGame game) {
@@ -74,11 +76,22 @@ public final class MeshToSceneConverter
             case PrefabResource r -> convertPrefabResource(context, r, game);
             case PrefabInstance r -> convertPrefabInstance(context, r, game);
             case MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case HairResource r -> convertHairResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
             }
         };
+    }
+
+    @SuppressWarnings("unused")
+    private static Optional<Node> convertHairResource(Context context, HairResource resource, ForbiddenWestGame game) {
+        var lod = resource.geometry().meshLods().getFirst();
+        var nodes = lod.skinnedMeshes().stream()
+            .map(m -> convertHairMesh(m, game))
+            .map(Node::of)
+            .toList();
+        return Node.of(nodes);
     }
 
     private static Optional<Node> convertMockupGeometry(
@@ -107,7 +120,7 @@ public final class MeshToSceneConverter
             return Optional.empty();
         }
 
-        return Optional.of(Node.of(children));
+        return Node.of(children);
     }
 
     private static Optional<Node> convertPrefabInstance(
@@ -146,7 +159,7 @@ public final class MeshToSceneConverter
             }
         }
 
-        return Optional.of(Node.of(children));
+        return Node.of(children);
     }
 
     private static Optional<Node> convertSkinnedModelResource(
@@ -297,7 +310,7 @@ public final class MeshToSceneConverter
             .flatMap(Optional::stream)
             .toList();
 
-        return Optional.of(Node.of(children));
+        return Node.of(children);
     }
 
     private static Optional<Node> convertMultiMeshResourcePart(
@@ -322,7 +335,7 @@ public final class MeshToSceneConverter
             .flatMap(Optional::stream)
             .toList();
 
-        return Optional.of(Node.of(children));
+        return Node.of(children);
     }
 
     private static final class Context {

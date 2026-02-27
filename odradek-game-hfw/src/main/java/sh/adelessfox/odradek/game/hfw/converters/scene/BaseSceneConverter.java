@@ -55,6 +55,42 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         return Mesh.of(primitives);
     }
 
+    static Mesh convertHairMesh(HorizonForbiddenWest.HairSkinnedMesh mesh, ForbiddenWestGame game) {
+        var vertexArray = mesh.skinnedVertexArray().get();
+        var vertexAccessors = buildVertexAccessors(vertexArray, null);
+        vertexAccessors.put(Semantic.POSITION, buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()));
+        vertexAccessors.put(Semantic.JOINTS, buildBufferAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
+        vertexAccessors.put(Semantic.WEIGHTS, buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
+
+        var indexArray = mesh.skinnedIndexArray().get();
+        var indexAccessor = buildIndexAccessor(indexArray, null, 0, indexArray.count());
+
+        return Mesh.of(new Primitive(
+            indexAccessor,
+            vertexAccessors,
+            computePrimitiveColor(mesh.hashCode())
+        ));
+    }
+
+    private static Accessor buildBufferAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
+        if (buffer.isStreaming()) {
+            throw new UnsupportedOperationException("Streaming buffers are not supported");
+        }
+
+        int count = buffer.count();
+        var data = ByteBuffer.wrap(buffer.data()).order(ByteOrder.LITTLE_ENDIAN);
+
+        return switch (buffer.format().unwrap()) {
+            case R_FLOAT_32 -> Accessor.of(data, 0, 4, new Type.F32(1), count);
+            case RG_FLOAT_32 -> Accessor.of(data, 0, 8, new Type.F32(2), count);
+            case RGB_FLOAT_32 -> Accessor.of(data, 0, 12, new Type.F32(3), count);
+            case RGBA_FLOAT_32 -> Accessor.of(data, 0, 16, new Type.F32(4), count);
+            case RGBA_UINT_16 -> Accessor.of(data, 0, 8, new Type.I16(4, true, false), count);
+            case RGBA_INT_8 -> Accessor.of(data, 0, 4, new Type.I8(4, false, false), count);
+            default -> throw new IllegalStateException("Unsupported buffer format: " + buffer.format());
+        };
+    }
+
     static Matrix4f toMat4(HorizonForbiddenWest.Mat34 matrix) {
         return new Matrix4f(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
@@ -79,16 +115,22 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         HorizonForbiddenWest.VertexArrayResource object,
         ByteBuffer buffer
     ) {
+        boolean streaming = object.isStreaming();
+        if (streaming == (buffer == null)) {
+            throw new IllegalArgumentException(
+                "Buffer must be provided for streaming vertex arrays, " +
+                    "and must be null for non-streaming vertex arrays");
+        }
+
         var accessors = new HashMap<Semantic, Accessor>();
         var interleaved = new HashMap<Semantic, List<Accessor>>();
-
         var count = object.count();
 
         for (var stream : object.streams()) {
             var stride = stream.stride();
 
             ByteBuffer view;
-            if (object.isStreaming()) {
+            if (streaming) {
                 view = readBufferAligned(buffer, count, stride);
             } else {
                 view = ByteBuffer

@@ -17,6 +17,10 @@ public record Mesh(Optional<String> name, List<Primitive> primitives) {
         return new Mesh(Optional.empty(), primitives);
     }
 
+    public static Mesh of(Primitive primitive) {
+        return of(List.of(primitive));
+    }
+
     public BoundingBox computeBoundingBox() {
         return primitives.stream()
             .map(Primitive::computeBoundingBox)

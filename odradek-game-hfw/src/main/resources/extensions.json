@@ -56,9 +56,9 @@
 		"DataBufferResourceExtension": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Count", "type": "uint32", "offset": 0, "flags": 0},
-				{"name": "Streaming", "type": "bool", "offset": 0, "flags": 0},
+				{"name": "IsStreaming", "type": "bool", "offset": 0, "flags": 0},
 				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
-				{"name": "Format", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Format", "type": "EDataBufferFormat", "offset": 0, "flags": 0},
 				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
 				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
 			]
@@ -225,6 +225,43 @@
 				{"name": "SmallTextures", "type": "Array_TextureInfo", "offset": 0, "flags": 0},
 				{"name": "LargeTextures", "type": "Array_TextureInfo", "offset": 0, "flags": 0},
 				{"name": "Mask", "type": "uint32", "offset": 0, "flags": 0}
+			]
+		},
+		"EDataBufferFormat": {
+			"kind": "enum", "size": 4, "values": [
+				{"value": 0, "name": "Invalid"},
+				{"value": 1, "name": "placeholder1_2"},
+				{"value": 2, "name": "placeholder2_4"},
+				{"value": 3, "name": "placeholder3_8"},
+				{"value": 4, "name": "R_FLOAT_32"},
+				{"value": 5, "name": "RG_FLOAT_32"},
+				{"value": 6, "name": "RGB_FLOAT_32"},
+				{"value": 7, "name": "RGBA_FLOAT_32"},
+				{"value": 8, "name": "placeholder8_8"},
+				{"value": 9, "name": "placeholder9_2"},
+				{"value": 10, "name": "R_UINT_32"},
+				{"value": 11, "name": "RG_UINT_32"},
+				{"value": 12, "name": "RGB_UINT_32"},
+				{"value": 13, "name": "RGBA_UINT_32"},
+				{"value": 14, "name": "R_INT_32"},
+				{"value": 15, "name": "RG_INT_32"},
+				{"value": 16, "name": "RGB_INT_32"},
+				{"value": 17, "name": "RGBA_INT_32"},
+				{"value": 18, "name": "placeholder18_8"},
+				{"value": 19, "name": "placeholder19_2"},
+				{"value": 20, "name": "placeholder20_4"},
+				{"value": 21, "name": "placeholder21_8"},
+				{"value": 22, "name": "placeholder22_4"},
+				{"value": 23, "name": "placeholder23_4"},
+				{"value": 24, "name": "placeholder24_8"},
+				{"value": 25, "name": "placeholder25_4"},
+				{"value": 26, "name": "placeholder26_4"},
+				{"value": 27, "name": "RGBA_UINT_16"},
+				{"value": 28, "name": "RGBA_INT_8"},
+				{"value": 29, "name": "placeholder29_4"},
+				{"value": 30, "name": "placeholder30_8"},
+				{"value": 31, "name": "placeholder31_4"},
+				{"value": 32, "name": "Structured"}
 			]
 		},
 		"EIndexFormat": {
