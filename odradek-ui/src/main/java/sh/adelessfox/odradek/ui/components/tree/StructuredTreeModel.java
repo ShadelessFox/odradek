@@ -11,6 +11,9 @@ import javax.swing.tree.TreePath;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Gatherer;
+import java.util.stream.IntStream;
 
 /**
  * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
@@ -65,7 +68,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     public int getIndexOfChild(Object parent, Object child) {
         Node<T> parentNode = cast(parent);
         Node<T> childNode = cast(child);
-        return parentNode.equals(childNode.parent) ? parentNode.children.indexOf(childNode) : -1;
+        return parentNode.equals(childNode.parent) ? parentNode.indexOf(childNode) : -1;
     }
 
     @Override
@@ -137,6 +140,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             }
 
             node.children = List.copyOf(nodes);
+            node.indices = null;
 
             if (added.isEmpty() && removed.size() == oldChildren.size() ||
                 removed.isEmpty() && added.size() == newChildren.size()
@@ -266,9 +270,12 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     }
 
     private static class Node<T extends TreeStructure<T>> implements TreeItem<TreeStructure<T>> {
+        private static final int CACHE_THRESHOLD = 1024;
+
         private final TreeStructure<T> structure;
         private final Node<T> parent;
         private List<Node<T>> children;
+        private Map<Node<T>, Integer> indices;
 
         Node(TreeStructure<T> structure, Node<T> parent) {
             this(structure, parent, null);
@@ -278,6 +285,28 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             this.structure = structure;
             this.parent = parent;
             this.children = children;
+        }
+
+        int indexOf(Node<T> child) {
+            int index;
+            if (children.size() > CACHE_THRESHOLD) {
+                if (indices == null) {
+                    indices = IntStream.range(0, children.size())
+                        .boxed()
+                        .collect(Collectors.toMap(
+                            children::get,
+                            Function.identity(),
+                            Gatherer.defaultCombiner(),
+                            IdentityHashMap::new));
+                }
+                index = indices.getOrDefault(child, -1);
+            } else {
+                index = children.indexOf(child);
+            }
+            if (index < 0) {
+                log.warn("Child {} not found in parent {}", child.structure, structure);
+            }
+            return index;
         }
 
         @Override

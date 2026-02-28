@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
+import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
@@ -172,11 +173,13 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
     final class GraphObjectSetGroup extends GroupableByType implements GraphStructure {
         private final StreamingGroupData group;
+        private final TypeInfo info;
         private final int[] indices;
 
-        GraphObjectSetGroup(StreamingGraphResource graph, StreamingGroupData group, int[] indices) {
+        GraphObjectSetGroup(StreamingGraphResource graph, StreamingGroupData group, TypeInfo info, int[] indices) {
             super(graph);
             this.group = group;
+            this.info = info;
             this.indices = indices;
         }
 
@@ -197,12 +200,14 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof GraphObjectSetGroup that && group.groupID() == that.group.groupID();
+            return object instanceof GraphObjectSetGroup that
+                && group.groupID() == that.group.groupID()
+                && info.equals(that.info);
         }
 
         @Override
         public int hashCode() {
-            return group.groupID();
+            return Objects.hash(group.groupID(), info);
         }
 
         @Override
@@ -376,7 +381,9 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof GroupObject that && group.groupID() == that.group.groupID() && index == that.index;
+            return object instanceof GroupObject that
+                && group.groupID() == that.group.groupID()
+                && index == that.index;
         }
 
         @Override
@@ -414,7 +421,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                     var indices = IntStream.range(0, group.typeCount())
                         .filter(index -> graph.types().get(group.typeStart() + index) == info)
                         .toArray();
-                    return new GraphObjectSetGroup(graph, group, indices);
+                    return new GraphObjectSetGroup(graph, group, info, indices);
                 })
                 .toList();
             case Group(var graph, var group, _) -> List.of(
