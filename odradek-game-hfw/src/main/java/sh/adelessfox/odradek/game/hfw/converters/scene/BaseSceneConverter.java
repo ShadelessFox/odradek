@@ -122,13 +122,6 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         HorizonForbiddenWest.VertexArrayResource object,
         ByteBuffer buffer
     ) {
-        boolean streaming = object.isStreaming();
-        if (streaming == (buffer == null)) {
-            throw new IllegalArgumentException(
-                "Buffer must be provided for streaming vertex arrays, " +
-                    "and must be null for non-streaming vertex arrays");
-        }
-
         var accessors = new HashMap<Semantic, Accessor>();
         var interleaved = new HashMap<Semantic, List<Accessor>>();
         var count = object.count();
@@ -137,7 +130,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             var stride = stream.stride();
 
             ByteBuffer view;
-            if (streaming) {
+            if (object.isStreaming()) {
                 view = readBufferAligned(buffer, count, stride);
             } else {
                 view = ByteBuffer
