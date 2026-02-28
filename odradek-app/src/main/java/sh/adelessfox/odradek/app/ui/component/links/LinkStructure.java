@@ -67,12 +67,31 @@ public sealed interface LinkStructure extends TreeStructure<LinkStructure> {
     }
 
     record Links(Type type, List<LinkProvider.Link> links) implements LinkStructure {
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return obj instanceof Links(var type1, _) && type == type1;
+        }
+
+        @Override
+        public int hashCode() {
+            return type.hashCode();
+        }
     }
 
     record Link(Type type, LinkProvider.Link link) implements LinkStructure, ObjectIdHolder {
         @Override
         public ObjectId objectId() {
             return new ObjectId(link.groupId(), link.objectIndex());
+        }
+
+        @Override
+        public boolean equals(java.lang.Object obj) {
+            return obj instanceof Link(Type type1, LinkProvider.Link link1) && type == type1 && link.equals(link1);
+        }
+
+        @Override
+        public int hashCode() {
+            return java.util.Objects.hash(type, link);
         }
     }
 }
