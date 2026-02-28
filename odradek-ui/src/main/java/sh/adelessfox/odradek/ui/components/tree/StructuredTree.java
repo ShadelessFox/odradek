@@ -30,9 +30,17 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     private int lastRowIndex = -1;
     private int lastRowCount = -1;
 
+    public StructuredTree() {
+        super((TreeModel) null);
+        setup();
+    }
+
     public StructuredTree(TreeStructure<T> structure) {
         super(new StructuredTreeModel<>(structure));
+        setup();
+    }
 
+    private void setup() {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {

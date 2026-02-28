@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.tools.refs.LinkProvider;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.io.IOException;
@@ -62,12 +63,16 @@ public sealed interface LinkStructure extends TreeStructure<LinkStructure> {
     record Objects(ObjectId object) implements LinkStructure {
     }
 
-    record Object(ObjectId object) implements LinkStructure {
+    record Object(ObjectId objectId) implements LinkStructure, ObjectIdHolder {
     }
 
     record Links(Type type, List<LinkProvider.Link> links) implements LinkStructure {
     }
 
-    record Link(Type type, LinkProvider.Link link) implements LinkStructure {
+    record Link(Type type, LinkProvider.Link link) implements LinkStructure, ObjectIdHolder {
+        @Override
+        public ObjectId objectId() {
+            return new ObjectId(link.groupId(), link.objectIndex());
+        }
     }
 }

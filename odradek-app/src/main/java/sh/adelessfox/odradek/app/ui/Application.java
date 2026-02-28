@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -124,6 +125,10 @@ public final class Application {
 
     public Bookmarks bookmarks() {
         return component.bookmarks();
+    }
+
+    public EventBus events() {
+        return component.events();
     }
 
     public boolean isDebugMode() {
