@@ -5,6 +5,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
+import sh.adelessfox.odradek.app.ui.component.links.LinksToolPanel;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanelContainer;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -19,11 +20,13 @@ public class MainView implements View<JComponent> {
     public MainView(
         GraphPresenter graphPresenter,
         BookmarkToolPanel bookmarkPanel,
+        LinksToolPanel linksPanel,
         EditorManager editorManager
     ) {
         root = new ToolPanelContainer(ToolPanelContainer.Placement.LEFT);
         root.addPrimaryPanel("Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
         root.addSecondaryPanel("Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
+        root.addSecondaryPanel("Links", Fugue.getIcon("chain"), linksPanel);
         root.setContent(editorManager.getRoot());
         root.showPanel(graphPresenter.getView());
     }
