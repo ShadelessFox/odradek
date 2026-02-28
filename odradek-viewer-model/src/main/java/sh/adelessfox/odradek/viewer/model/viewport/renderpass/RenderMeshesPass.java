@@ -110,9 +110,10 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void renderNode(GpuNode node, Frustum frustum, ViewportContext context) {
-        if (!frustum.test(node.bbox())) {
-            return;
-        }
+        // FIXME frustum test is incorrect! Is something wrong with bounding boxes?
+        // if (!frustum.test(node.bbox())) {
+        //     return;
+        // }
         for (GpuPrimitive primitive : node.primitives()) {
             program.set("u_model", node.transform());
             program.set("u_color", primitive.color());
