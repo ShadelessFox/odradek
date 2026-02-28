@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.util.Icons;
+import sh.adelessfox.odradek.util.OS;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -46,16 +47,20 @@ public final class Actions {
         component.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    selectionProvider.getSelection(component, e).ifPresent(selection -> {
-                        selectionProvider.setSelection(component, selection, e);
-                    });
+                if (!SwingUtilities.isRightMouseButton(e)) {
+                    return;
                 }
+                selectionProvider.getSelection(component, e).ifPresent(selection -> {
+                    selectionProvider.setSelection(component, selection, e);
+                    if (OS.name() == OS.Name.LINUX) {
+                        showPopupMenu(component, popupMenu, e, selectionProvider);
+                    }
+                });
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
+                if (SwingUtilities.isRightMouseButton(e) && OS.name() != OS.Name.LINUX) {
                     showPopupMenu(component, popupMenu, e, selectionProvider);
                 }
             }
