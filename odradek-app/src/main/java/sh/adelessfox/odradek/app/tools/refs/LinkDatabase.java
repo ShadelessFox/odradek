@@ -16,8 +16,9 @@ import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.io.ByteArrayBinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Ref;
-import sh.adelessfox.odradek.rtti.runtime.TypePath;
-import sh.adelessfox.odradek.rtti.runtime.TypedObject;
+import sh.adelessfox.odradek.rtti.data.TypePath;
+import sh.adelessfox.odradek.rtti.data.TypeVisitor;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -164,7 +165,7 @@ public final class LinkDatabase implements LinkProvider {
 
     private static ObjectInfo visitObject(TypedObject object) {
         var links = new ArrayList<Link>();
-        var visitor = new sh.adelessfox.odradek.rtti.runtime.TypeVisitor() {
+        var visitor = new TypeVisitor() {
             @Override
             protected void visitContainer(ContainerTypeInfo typeInfo, Object object, TypePath.Builder builder) {
                 if (typeInfo.itemType() instanceof AtomTypeInfo) {

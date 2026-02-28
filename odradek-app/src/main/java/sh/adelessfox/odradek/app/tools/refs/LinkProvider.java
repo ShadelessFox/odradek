@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.tools.refs;
 
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.rtti.runtime.TypePath;
+import sh.adelessfox.odradek.rtti.data.TypePath;
 
 import java.io.Closeable;
 import java.io.IOException;
