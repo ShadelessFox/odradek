@@ -183,10 +183,9 @@ public class StyledComponent extends JComponent {
 
         synchronized (fragments) {
             for (StyledFragment fragment : fragments) {
-                FontMetrics metrics = getFontMetrics(font);
-
-                var fragmentBaseline = area.y + area.height - metrics.getDescent();
-                var fragmentWidth = computeFragmentWidth(fragment, font);
+                var fragmentFont = computeFragmentFont(fragment, font);
+                var fragmentBaseline = area.y + area.height - getFontMetrics(fragmentFont).getDescent();
+                var fragmentWidth = computeFragmentWidth(fragment, fragmentFont);
                 var fragmentColor = computeFragmentForeground(fragment);
 
                 if (DEBUG_OVERLAY) {
@@ -194,7 +193,7 @@ public class StyledComponent extends JComponent {
                     g.drawRect((int) offset, area.y, (int) fragmentWidth - 1, area.height - 1);
                 }
 
-                g.setFont(font);
+                g.setFont(fragmentFont);
                 g.setColor(fragmentColor);
                 g.drawString(fragment.text(), offset, fragmentBaseline);
 
@@ -267,6 +266,20 @@ public class StyledComponent extends JComponent {
         }
     }
 
+    private Font computeFragmentFont(StyledFragment fragment, Font font) {
+        int style = Font.PLAIN;
+        if (fragment.flags().contains(StyledFlag.BOLD)) {
+            style |= Font.BOLD;
+        }
+        if (fragment.flags().contains(StyledFlag.ITALIC)) {
+            style |= Font.ITALIC;
+        }
+        if (font.getStyle() == style) {
+            return font;
+        }
+        return font.deriveFont(style);
+    }
+
     private float computeFragmentWidth(StyledFragment fragment, Font font) {
         var metrics = getFontMetrics(font);
         var bounds = font.getStringBounds(fragment.text(), metrics.getFontRenderContext());
@@ -284,7 +297,7 @@ public class StyledComponent extends JComponent {
 
         synchronized (fragments) {
             for (StyledFragment fragment : fragments) {
-                width += computeFragmentWidth(fragment, font);
+                width += computeFragmentWidth(fragment, computeFragmentFont(fragment, font));
             }
         }
 
