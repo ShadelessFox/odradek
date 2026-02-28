@@ -1,9 +1,9 @@
-package sh.adelessfox.odradek.app.tools.refs;
+package sh.adelessfox.odradek.game.hfw.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.game.LinkProvider;
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
 import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;

@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.ui.component.links;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.tools.refs.LinkProvider;
+import sh.adelessfox.odradek.game.LinkProvider;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
