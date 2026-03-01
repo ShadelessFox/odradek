@@ -1,4 +1,5 @@
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
+import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.game.hfw.rtti.extensions.*;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings.Builtin;
@@ -14,6 +15,7 @@ import java.math.BigInteger;
     ),
     target = "sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest",
     builtins = {
+        // atoms
         @Builtin(type = "bool", repr = boolean.class),
         @Builtin(type = "int", repr = int.class),
         @Builtin(type = "int8", repr = byte.class),
@@ -36,6 +38,13 @@ import java.math.BigInteger;
         @Builtin(type = "ucs4", repr = int.class),
         @Builtin(type = "String", repr = String.class),
         @Builtin(type = "WString", repr = String.class),
+
+        // pointers
+        @Builtin(type = "Ref", repr = Ref.class),
+        @Builtin(type = "StreamingRef", repr = StreamingRef.class),
+        @Builtin(type = "UUIDRef", repr = UUIDRef.class),
+        @Builtin(type = "WeakPtr", repr = WeakPtr.class),
+        @Builtin(type = "cptr", repr = CPtr.class),
     },
     callbacks = {
         @Callback(type = "DataBufferResource", handler = DataBufferResourceCallback.class),
@@ -83,6 +92,7 @@ module odradek.game.hfw {
 
     exports sh.adelessfox.odradek.game.hfw.game;
     exports sh.adelessfox.odradek.game.hfw.rtti.callbacks;
+    exports sh.adelessfox.odradek.game.hfw.rtti.data.ref;
     exports sh.adelessfox.odradek.game.hfw.rtti.data;
     exports sh.adelessfox.odradek.game.hfw.rtti.extensions;
     exports sh.adelessfox.odradek.game.hfw.rtti;

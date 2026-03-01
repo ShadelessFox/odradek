@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.rtti.io;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -49,5 +48,5 @@ public abstract class AbstractTypeReader {
 
     protected abstract Object readContainer(ContainerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException;
 
-    protected abstract Ref<?> readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException;
+    protected abstract Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException;
 }

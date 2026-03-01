@@ -2,51 +2,47 @@ package sh.adelessfox.odradek.app.ui.editors;
 
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.lazy.LazyEditorInput;
 
 public record ObjectEditorInputLazy(
-    int groupId,
-    int objectIndex,
+    ObjectId objectId,
     boolean canLoadImmediately
-) implements LazyEditorInput {
+) implements LazyEditorInput, ObjectIdHolder {
     public ObjectEditorInputLazy(ObjectId objectId) {
-        this(objectId.groupId(), objectId.objectIndex());
-    }
-
-    public ObjectEditorInputLazy(int groupId, int objectIndex) {
-        this(groupId, objectIndex, true);
+        this(objectId, true);
     }
 
     @Override
     public EditorInput loadRealInput() throws Exception {
         var game = Application.getInstance().game();
-        var object = game.readObject(groupId, objectIndex);
-        return new ObjectEditorInput(game, object, groupId, objectIndex);
+        var object = game.readObject(objectId.groupId(), objectId.objectIndex());
+        return new ObjectEditorInput(game, object, objectId);
     }
 
     @Override
     public LazyEditorInput canLoadImmediately(boolean value) {
-        return new ObjectEditorInputLazy(groupId, objectIndex, value);
+        return new ObjectEditorInputLazy(objectId, value);
     }
 
     @Override
     public String getName() {
-        return "%d:%d".formatted(groupId, objectIndex);
+        return objectId.toString();
     }
 
     @Override
     public String getDescription() {
-        return "Group: %d\nObject: %d".formatted(groupId, objectIndex);
+        return "Group: %d\nObject: %d".formatted(objectId.groupId(), objectId.objectIndex());
     }
 
     @Override
     public boolean representsSameInput(EditorInput other) {
         if (other instanceof ObjectEditorInputLazy o) {
-            return this.groupId == o.groupId && this.objectIndex == o.objectIndex;
+            return objectId.equals(o.objectId);
         }
         if (other instanceof ObjectEditorInput o) {
-            return this.groupId == o.groupId() && this.objectIndex == o.objectIndex();
+            return objectId.equals(o.objectId());
         }
         return false;
     }

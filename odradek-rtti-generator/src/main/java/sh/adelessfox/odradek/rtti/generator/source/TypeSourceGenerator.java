@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
@@ -23,7 +22,6 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
     private static final Logger log = LoggerFactory.getLogger(TypeSourceGenerator.class);
 
     private static final ClassName NAME_List = ClassName.get(List.class);
-    private static final ClassName NAME_Ref = ClassName.get(Ref.class);
     private static final ClassName NAME_Value_OfEnum = ClassName.get(Value.OfEnum.class);
     private static final ClassName NAME_Value_OfEnumSet = ClassName.get(Value.OfEnumSet.class);
 
@@ -246,7 +244,11 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
             }
             case PointerTypeInfo i -> {
                 var name = toJavaType(i.itemType()).box();
-                yield ParameterizedTypeName.get(NAME_Ref, name);
+                var type = getBuiltin(i.pointerType())
+                    .map(TypeName::get).map(ClassName.class::cast)
+                    .orElseThrow(() -> new IllegalStateException("Builtin for pointer type '" + i.pointerType() + "' not found"));
+
+                yield ParameterizedTypeName.get(type, name);
             }
         };
     }

@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.math.Vector3f;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.scene.Scene;
 
 import java.nio.ByteBuffer;

@@ -4,12 +4,12 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphViewEvent;
-import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
@@ -30,7 +30,7 @@ public class MainPresenter implements Presenter<MainView> {
         this.view = view;
         this.editorManager = editorManager;
 
-        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> openObject(event.groupId(), event.objectIndex()));
+        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> openObject(event.objectId()));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadEditors(settings);
@@ -44,8 +44,8 @@ public class MainPresenter implements Presenter<MainView> {
         return view;
     }
 
-    private void openObject(int groupId, int objectIndex) {
-        editorManager.openEditor(new ObjectEditorInputLazy(groupId, objectIndex));
+    private void openObject(ObjectId objectId) {
+        editorManager.openEditor(new ObjectEditorInputLazy(objectId));
     }
 
     private void loadEditors(Settings settings) {
@@ -95,10 +95,8 @@ public class MainPresenter implements Presenter<MainView> {
                 if (editor == selected) {
                     selection = objects.size();
                 }
-                switch (editor.getInput()) {
-                    case ObjectEditorInput i -> objects.add(new ObjectId(i.groupId(), i.objectIndex()));
-                    case ObjectEditorInputLazy i -> objects.add(new ObjectId(i.groupId(), i.objectIndex()));
-                    default -> { /* do nothing*/ }
+                if (editor.getInput() instanceof ObjectIdHolder holder) {
+                    objects.add(holder.objectId());
                 }
             }
 

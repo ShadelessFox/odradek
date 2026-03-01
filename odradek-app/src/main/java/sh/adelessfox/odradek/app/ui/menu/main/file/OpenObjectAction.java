@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.menu.main.file;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -32,11 +33,6 @@ public class OpenObjectAction extends Action {
         }
 
         lastInput = result;
-
-        int colon = result.indexOf(':');
-        int groupId = Integer.parseUnsignedInt(result.substring(0, colon).strip());
-        int objectIndex = Integer.parseUnsignedInt(result.substring(colon + 1).strip());
-
-        Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(groupId, objectIndex));
+        Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(ObjectId.valueOf(result)));
     }
 }

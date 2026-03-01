@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.game.ObjectSupplier;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -59,7 +59,7 @@ public class ExportObjectAction extends Action {
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
         var selection = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(ObjectHolder.class))
+            .gather(Gatherers.instanceOf(ObjectSupplier.class))
             .toList();
 
         if (selection.isEmpty()) {
@@ -67,7 +67,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(ObjectHolder::objectType)
+            .map(ObjectSupplier::objectType)
             .distinct()
             .toList();
 
@@ -105,7 +105,7 @@ public class ExportObjectAction extends Action {
         var directory = chooser.getSelectedFile().toPath();
         int exported = 0;
 
-        for (ObjectHolder selection : batch.objects()) {
+        for (ObjectSupplier selection : batch.objects()) {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
@@ -154,6 +154,6 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private record Batch<R>(List<ObjectHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
+    private record Batch<R>(List<ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
     }
 }
