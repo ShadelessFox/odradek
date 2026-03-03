@@ -27,7 +27,7 @@ public class TypeVisitor {
         // do nothing
     }
 
-    protected void visitPointer(PointerTypeInfo info, Ref<?> object, TypePath.Builder builder) {
+    protected void visitPointer(PointerTypeInfo info, Object object, TypePath.Builder builder) {
         // do nothing
     }
 
@@ -44,7 +44,7 @@ public class TypeVisitor {
             case ClassTypeInfo i -> visitClass(i, object, builder);
             case ContainerTypeInfo i -> visitContainer(i, object, builder);
             case EnumTypeInfo i -> visitEnum(i, (Value<?>) object, builder);
-            case PointerTypeInfo i -> visitPointer(i, (Ref<?>) object, builder);
+            case PointerTypeInfo i -> visitPointer(i, object, builder);
         }
     }
 }

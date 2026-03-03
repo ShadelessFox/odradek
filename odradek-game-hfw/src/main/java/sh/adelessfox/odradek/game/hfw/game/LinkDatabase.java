@@ -4,9 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.LinkProvider;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.hashing.HashCode;
@@ -15,7 +14,6 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.io.ByteArrayBinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.TypePath;
 import sh.adelessfox.odradek.rtti.data.TypeVisitor;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -175,13 +173,10 @@ public final class LinkDatabase implements LinkProvider {
             }
 
             @Override
-            protected void visitPointer(PointerTypeInfo typeInfo, Ref<?> object, TypePath.Builder builder) {
-                switch (object) {
-                    case StreamingLink(_, int targetGroupId, int targetObjectIndex) ->
-                        links.add(new Link(targetGroupId, targetObjectIndex, builder.build()));
-                    case StreamingRef(int targetGroupId, int targetObjectIndex) ->
-                        links.add(new Link(targetGroupId, targetObjectIndex, builder.build()));
-                    default -> {/* ignored */}
+            protected void visitPointer(PointerTypeInfo typeInfo, Object object, TypePath.Builder builder) {
+                if (object instanceof ObjectIdHolder holder) {
+                    var objectId = holder.objectId();
+                    links.add(new Link(objectId.groupId(), objectId.objectIndex(), builder.build()));
                 }
             }
         };
