@@ -5,10 +5,8 @@ import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 
-public interface ObjectSupplier {
+public interface ObjectSupplier extends ObjectIdHolder {
     TypedObject readObject(Game game) throws IOException;
 
     ClassTypeInfo objectType();
-
-    String objectName();
 }

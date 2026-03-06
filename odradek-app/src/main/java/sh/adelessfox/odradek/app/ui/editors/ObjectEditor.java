@@ -107,11 +107,6 @@ public final class ObjectEditor implements Editor, ObjectIdHolder, ObjectSupplie
     }
 
     @Override
-    public String objectName() {
-        return "%s_%s_%s".formatted(objectType().name(), input.objectId().groupId(), input.objectId().objectIndex());
-    }
-
-    @Override
     public Optional<?> get(String key) {
         if (DataKeys.GAME.is(key)) {
             return Optional.of(input.game());

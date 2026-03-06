@@ -370,11 +370,6 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        public String objectName() {
-            return "%s_%s_%s".formatted(objectType().name(), group.groupID(), index);
-        }
-
-        @Override
         public ObjectId objectId() {
             return new ObjectId(group.groupID(), index);
         }

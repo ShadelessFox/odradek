@@ -109,7 +109,11 @@ public class ExportObjectAction extends Action {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
-                var name = "%s.%s".formatted(selection.objectName(), batch.exporter().extension());
+                var name = "%s_%s_%s.%s".formatted(
+                    selection.objectType(),
+                    selection.objectId().groupId(),
+                    selection.objectId().objectIndex(),
+                    batch.exporter().extension());
                 var path = directory.resolve(name);
 
                 var converted = batch.converter().convert(object, game);
@@ -125,11 +129,11 @@ public class ExportObjectAction extends Action {
                 log.debug("Exported object {} ({}) to {}", object, type, path);
                 exported++;
             } catch (Exception e) {
-                log.error("Failed to export object", e);
+                log.error("Failed to export object {} ({})", selection.objectId(), selection.objectType(), e);
                 JOptionPane.showMessageDialog(
                     JOptionPane.getRootFrame(),
                     "Failed to export object: " + e.getMessage(),
-                    "Unable to export object",
+                    "Unable to export object " + selection.objectId(),
                     JOptionPane.ERROR_MESSAGE
                 );
             }
