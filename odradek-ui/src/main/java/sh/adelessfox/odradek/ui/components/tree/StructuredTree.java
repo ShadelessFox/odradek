@@ -70,6 +70,12 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         ToolTipManager.sharedInstance().registerComponent(this);
     }
 
+    public void expand() {
+        for (int i = 0; i < getRowCount(); i++) {
+            expandRow(i);
+        }
+    }
+
     @Override
     public Optional<?> get(String key) {
         if (DataKeys.COMPONENT.is(key)) {

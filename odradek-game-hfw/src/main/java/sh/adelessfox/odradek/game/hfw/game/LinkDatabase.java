@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 
 public final class LinkDatabase implements LinkProvider {
@@ -67,7 +68,11 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    public static void build(ForbiddenWestGame game, Path path) throws IOException {
+    public static void build(
+        ForbiddenWestGame game,
+        Path path,
+        BiConsumer<Integer, Integer> progress
+    ) throws IOException {
         var graph = game.getStreamingGraph();
         var reader = game.getStreamingReader();
 
@@ -78,12 +83,7 @@ public final class LinkDatabase implements LinkProvider {
 
         for (int i = 0; i < graph.groups().size(); i++) {
             var group = graph.groups().get(i);
-            log.info(
-                "[{}/{}] Processing group {} ({} objects)",
-                i + 1,
-                graph.groups().size(),
-                group.groupID(),
-                group.numObjects());
+            progress.accept(i + 1, graph.groups().size());
 
             var info = visitGroup(group, reader);
             for (int j = 0; j < info.objects().size(); j++) {
