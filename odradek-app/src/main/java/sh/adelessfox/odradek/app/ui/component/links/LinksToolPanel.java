@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.component.links;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -35,19 +37,21 @@ public final class LinksToolPanel implements ToolPanel {
 
     private final ForbiddenWestGame game;
     private final EventBus appEventBus;
+    private final Path config;
 
     private LinkDatabase database;
     private ObjectId pendingObjectId;
 
     @Inject
-    public LinksToolPanel(ForbiddenWestGame game, EventBus appEventBus) {
+    public LinksToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
         this.game = game;
         this.appEventBus = appEventBus;
+        this.config = config;
     }
 
     @Override
     public JComponent createComponent() {
-        var path = Path.of(".data/links.db");
+        var path = determineDatabasePath(game, config);
         var eventBus = new DefaultEventBus();
 
         var layout = new CardLayout();
@@ -176,6 +180,15 @@ public final class LinksToolPanel implements ToolPanel {
         });
 
         return new JScrollPane(tree);
+    }
+
+    private Path determineDatabasePath(ForbiddenWestGame game, Path config) {
+        try {
+            return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
+        } catch (IOException e) {
+            log.error("Failed to compute link database hash, using fallback path", e);
+            return config.resolve("links.db");
+        }
     }
 
     record Progress(int cur, int max) {

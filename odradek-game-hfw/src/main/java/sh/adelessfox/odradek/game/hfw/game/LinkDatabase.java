@@ -55,7 +55,7 @@ public final class LinkDatabase implements LinkProvider {
             }
 
             long checksum = reader.readLong();
-            if (checksum != computeLinkTableChecksum(game).asLong()) {
+            if (checksum != computeHash(game).asLong()) {
                 throw new IllegalArgumentException("Link table checksum mismatch");
             }
 
@@ -113,9 +113,16 @@ public final class LinkDatabase implements LinkProvider {
             writer.position(0);
             writer.writeInt(FILE_MAGIC);
             writer.writeInt(FILE_VERSION);
-            writer.writeLong(computeLinkTableChecksum(game).asLong());
+            writer.writeLong(computeHash(game).asLong());
             writer.writeInts(offsets);
         }
+    }
+
+    public static HashCode computeHash(ForbiddenWestGame game) throws IOException {
+        var graph = game.getStreamingGraph();
+        var system = game.getStreamingSystem();
+        var linkTable = system.getFileData(Math.toIntExact(graph.linkTableID()), 0, graph.linkTableSize());
+        return HashFunction.murmur3().hash(linkTable);
     }
 
     @Override
@@ -141,13 +148,6 @@ public final class LinkDatabase implements LinkProvider {
     @Override
     public void close() throws IOException {
         reader.close();
-    }
-
-    private static HashCode computeLinkTableChecksum(ForbiddenWestGame game) throws IOException {
-        var graph = game.getStreamingGraph();
-        var system = game.getStreamingSystem();
-        var linkTable = system.getFileData(Math.toIntExact(graph.linkTableID()), 0, graph.linkTableSize());
-        return HashFunction.murmur3().hash(linkTable);
     }
 
     private static GroupInfo visitGroup(StreamingGroupData group, StreamingObjectReader reader) throws IOException {

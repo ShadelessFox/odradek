@@ -9,7 +9,6 @@ import sh.adelessfox.odradek.app.ui.settings.gson.PathTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.SettingAdapterFactory;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.util.OS;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,8 +33,8 @@ public final class SettingsManager {
     private final EventBus eventBus;
     private final Settings settings;
 
-    SettingsManager(String identifier, EventBus eventBus) {
-        this.path = determinePath(identifier);
+    SettingsManager(Path path, EventBus eventBus) {
+        this.path = path;
         this.eventBus = eventBus;
         this.settings = load(path).orElseGet(Settings::new);
 
@@ -82,17 +81,5 @@ public final class SettingsManager {
         } catch (IOException e) {
             log.error("Error while saving settings", e);
         }
-    }
-
-    private static Path determinePath(String identifier) {
-        String userHome = System.getProperty("user.home");
-        if (userHome == null) {
-            throw new IllegalStateException("Unable to determine user home directory");
-        }
-        return switch (OS.name()) {
-            case WINDOWS -> Path.of(userHome, "AppData", "Local", identifier, "settings.json");
-            case MACOS -> Path.of(userHome, "Library", "Application Support", identifier, "settings.json");
-            case LINUX -> Path.of(userHome, ".config", identifier, "settings.json");
-        };
     }
 }

@@ -26,7 +26,7 @@ import static java.nio.file.StandardOpenOption.*;
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = GraphMenu.ID, group = "2000,Export")
 @ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
+@ActionContribution(parent = EditorActionIds.MENU_ID, group = "4000,Export")
 @ActionContribution(parent = ObjectEditorActionIds.TOOLBAR_ID, group = ObjectEditorActionIds.TOOLBAR_GROUP_GENERAL)
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";

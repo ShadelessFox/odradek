@@ -16,9 +16,11 @@ import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.util.OS;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -45,8 +47,10 @@ public final class Application {
         }
 
         var game = (ForbiddenWestGame) Game.load(params.sourcePath());
+        var config = determineConfigPath("Odradek");
         var component = DaggerApplicationComponent.builder()
             .game(game)
+            .config(config)
             .build();
 
         application = new Application(component, params);
@@ -113,6 +117,18 @@ public final class Application {
             bounds.height,
             maximized
         ));
+    }
+
+    private static Path determineConfigPath(String identifier) {
+        String userHome = System.getProperty("user.home");
+        if (userHome == null) {
+            throw new IllegalStateException("Unable to determine user home directory");
+        }
+        return switch (OS.name()) {
+            case WINDOWS -> Path.of(userHome, "AppData", "Local", identifier);
+            case MACOS -> Path.of(userHome, "Library", "Application Support", identifier);
+            case LINUX -> Path.of(userHome, ".config", identifier);
+        };
     }
 
     public ForbiddenWestGame game() {
