@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.common.View;
+import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.ObjectId;
@@ -185,7 +186,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
-                eventBus.publish(new GraphViewEvent.ShowObject(new ObjectId(
+                eventBus.publish(new MainEvent.ShowObject(new ObjectId(
                     groupObject.group().groupID(),
                     groupObject.index())
                 ));

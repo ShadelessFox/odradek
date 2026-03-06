@@ -5,7 +5,7 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.Application;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphViewEvent;
+import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.DefaultEventBus;
@@ -37,6 +37,7 @@ public final class LinksToolPanel implements ToolPanel {
     private final EventBus appEventBus;
 
     private LinkDatabase database;
+    private ObjectId pendingObjectId;
 
     @Inject
     public LinksToolPanel(ForbiddenWestGame game, EventBus appEventBus) {
@@ -71,6 +72,11 @@ public final class LinksToolPanel implements ToolPanel {
                 case Events.DatabaseLoaded e -> {
                     database = e.database();
                     layout.show(panel, "main");
+
+                    if (pendingObjectId != null) {
+                        eventBus.publish(new Events.ShowObject(pendingObjectId));
+                        pendingObjectId = null;
+                    }
                 }
                 default -> { /* ignored */}
             }
@@ -78,7 +84,7 @@ public final class LinksToolPanel implements ToolPanel {
 
         // Forward show object request to the internal event bus
         appEventBus.subscribe(
-            GraphViewEvent.ShowLinks.class,
+            MainEvent.ShowLinks.class,
             event -> eventBus.publish(new Events.ShowObject(event.objectId())));
 
         if (Files.exists(path)) {
@@ -162,6 +168,7 @@ public final class LinksToolPanel implements ToolPanel {
 
         eventBus.subscribe(Events.ShowObject.class, event -> {
             if (database == null) {
+                pendingObjectId = event.objectId();
                 return;
             }
             tree.setModel(new StructuredTreeModel<>(new LinkStructure.Root(database, event.objectId())));

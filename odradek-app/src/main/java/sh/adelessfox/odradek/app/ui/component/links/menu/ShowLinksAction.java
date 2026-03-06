@@ -2,7 +2,8 @@ package sh.adelessfox.odradek.app.ui.component.links.menu;
 
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.BookmarkMenu;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphViewEvent;
+import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
+import sh.adelessfox.odradek.app.ui.component.main.MainView;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.Action;
@@ -18,7 +19,9 @@ public final class ShowLinksAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
-        Application.getInstance().events().publish(new GraphViewEvent.ShowLinks(holder.objectId()));
+        var eventBus = Application.getInstance().events();
+        eventBus.publish(new MainEvent.ShowPanel(MainView.LINKS_PANEL_ID));
+        eventBus.publish(new MainEvent.ShowLinks(holder.objectId()));
     }
 
     @Override

@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.app.ui.component.main;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphViewEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
@@ -30,7 +29,7 @@ public class MainPresenter implements Presenter<MainView> {
         this.view = view;
         this.editorManager = editorManager;
 
-        eventBus.subscribe(GraphViewEvent.ShowObject.class, event -> openObject(event.objectId()));
+        eventBus.subscribe(MainEvent.ShowObject.class, event -> openObject(event.objectId()));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadEditors(settings);
