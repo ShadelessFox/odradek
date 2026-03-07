@@ -65,6 +65,10 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-export-png</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-export-wave</artifactId>
         </dependency>
 
