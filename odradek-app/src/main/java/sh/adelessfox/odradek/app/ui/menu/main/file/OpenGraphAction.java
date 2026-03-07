@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.menu.main.file;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -15,6 +16,9 @@ public class OpenGraphAction extends Action {
     public void perform(ActionContext context) {
         var application = Application.getInstance();
         var game = application.game();
-        application.editors().openEditor(new ObjectEditorInput(game, game.getStreamingGraph().resource(), 0, 0));
+        application.editors().openEditor(new ObjectEditorInput(
+            game,
+            game.getStreamingGraph().resource(),
+            new ObjectId(0, 0)));
     }
 }

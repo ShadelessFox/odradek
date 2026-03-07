@@ -8,7 +8,9 @@ import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A panel with buttons on either sides that reveal contents when clicked.
@@ -24,6 +26,8 @@ public final class ToolPanelContainer extends JComponent {
     private final ToolPanelGroup primaryGroup = new ToolPanelGroup();
     private final ToolPanelGroup secondaryGroup = new ToolPanelGroup();
     private final Placement placement;
+
+    private final Map<String, ToolPanel> panels = new HashMap<>();
 
     public enum Placement {
         LEFT,
@@ -58,15 +62,19 @@ public final class ToolPanelContainer extends JComponent {
         }
     }
 
-    public void addPrimaryPanel(String text, Icon icon, ToolPanel panel) {
-        addPanel(text, icon, panel, true);
+    public void addPrimaryPanel(String id, String text, Icon icon, ToolPanel panel) {
+        addPanel(id, text, icon, panel, true);
     }
 
-    public void addSecondaryPanel(String text, Icon icon, ToolPanel panel) {
-        addPanel(text, icon, panel, false);
+    public void addSecondaryPanel(String id, String text, Icon icon, ToolPanel panel) {
+        addPanel(id, text, icon, panel, false);
     }
 
-    private void addPanel(String text, Icon icon, ToolPanel panel, boolean primary) {
+    private void addPanel(String id, String text, Icon icon, ToolPanel panel, boolean primary) {
+        if (panels.containsKey(id)) {
+            throw new IllegalArgumentException("Panel with id '" + id + "' already exists");
+        }
+
         var panelGroup = primary ? primaryGroup : secondaryGroup;
         panelGroup.addPanel(panel);
 
@@ -85,14 +93,24 @@ public final class ToolPanelContainer extends JComponent {
         if (buttonsPanel.getComponentCount() != separatorIndex) {
             buttonsPanel.add(new JSeparator(), "growx", separatorIndex);
         }
+
+        panels.put(id, panel);
     }
 
-    public void showPanel(ToolPanel panel) {
-        selectPanel(panel, true);
+    public void showPanel(String id) {
+        selectPanel(id, true);
     }
 
-    public void hidePanel(ToolPanel panel) {
-        selectPanel(panel, false);
+    public void hidePanel(String id) {
+        selectPanel(id, false);
+    }
+
+    private void selectPanel(String id, boolean select) {
+        var panel = panels.get(id);
+        if (panel == null) {
+            throw new IllegalArgumentException("No panel with id '" + id + "' found");
+        }
+        selectPanel(panel, select);
     }
 
     private void selectPanel(ToolPanel panel, boolean select) {

@@ -1,14 +1,12 @@
 package sh.adelessfox.odradek.game;
 
-import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.data.TypedObject;
+import java.util.function.Supplier;
 
-import java.io.IOException;
+public interface ObjectHolder<T> extends ObjectIdHolder, Supplier<T> {
+    T object();
 
-public interface ObjectHolder {
-    TypedObject readObject(Game game) throws IOException;
-
-    ClassTypeInfo objectType();
-
-    String objectName();
+    @Override
+    default T get() {
+        return object();
+    }
 }

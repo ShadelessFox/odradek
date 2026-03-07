@@ -6,9 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.common.View;
+import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectSupplier;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -40,7 +42,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
     private final ValidationPopup filterValidationPopup;
 
     @Inject
-    public GraphView(EventBus eventBus, ForbiddenWestGame game) {
+    GraphView(EventBus eventBus, ForbiddenWestGame game) {
         this.eventBus = eventBus;
         this.game = game;
 
@@ -58,7 +60,8 @@ public class GraphView implements View<JComponent>, ToolPanel {
         tree = createGraphTree();
 
         var treeScrollPane = new JScrollPane(tree);
-        treeScrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
+        treeScrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
         treeScrollPane.getActionMap().put("focus-in", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -183,9 +186,9 @@ public class GraphView implements View<JComponent>, ToolPanel {
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
-                eventBus.publish(new GraphViewEvent.ShowObject(
+                eventBus.publish(new MainEvent.ShowObject(new ObjectId(
                     groupObject.group().groupID(),
-                    groupObject.index()
+                    groupObject.index())
                 ));
             }
         }));
@@ -193,7 +196,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override
             public Optional<TypedObject> getObject(JTree tree, Object value) {
-                var holder = (ObjectHolder) value;
+                var holder = (ObjectSupplier) value;
                 try {
                     return Optional.of(holder.readObject(game));
                 } catch (IOException e) {
@@ -204,7 +207,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
 
             @Override
             public Optional<TypeInfo> getType(JTree tree, Object value) {
-                if (value instanceof ObjectHolder provider) {
+                if (value instanceof ObjectSupplier provider) {
                     return Optional.of(provider.objectType());
                 }
                 return Optional.empty();

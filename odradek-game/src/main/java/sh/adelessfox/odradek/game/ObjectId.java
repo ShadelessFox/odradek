@@ -7,8 +7,8 @@ public record ObjectId(int groupId, int objectIndex) {
             throw new IllegalArgumentException("Expected object id to be in form of groupId:objectIndex");
         }
         return new ObjectId(
-            Integer.parseInt(parts[0]),
-            Integer.parseInt(parts[1])
+            Integer.parseUnsignedInt(parts[0]),
+            Integer.parseUnsignedInt(parts[1])
         );
     }
 

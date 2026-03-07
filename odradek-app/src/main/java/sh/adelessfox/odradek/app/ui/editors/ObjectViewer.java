@@ -4,10 +4,9 @@ import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
+import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -69,12 +68,12 @@ public final class ObjectViewer implements Viewer {
                 return;
             }
             switch (structure.value()) {
-                case StreamingRef<?> ref -> {
-                    var input = new ObjectEditorInputLazy(ref.groupId(), ref.objectIndex());
+                case ObjectHolder<?> holder when holder.object() instanceof TypedObject typedObject -> {
+                    var input = new ObjectEditorInput(game, typedObject, holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }
-                case StreamingLink<?> link -> {
-                    var input = new ObjectEditorInput(game, link.get(), link.groupId(), link.objectIndex());
+                case ObjectIdHolder holder -> {
+                    var input = new ObjectEditorInputLazy(holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }
                 default -> {
@@ -334,9 +333,9 @@ public final class ObjectViewer implements Viewer {
         private static Optional<TypedObject> get(Object value) {
             if (value instanceof ObjectStructure structure) {
                 Object object = structure.value();
-                if (object instanceof Ref<?> ref) {
+                if (object instanceof ObjectHolder<?> holder) {
                     // Should this be done here?
-                    object = ref.get();
+                    object = holder.get();
                 }
                 if (object instanceof TypedObject typed) {
                     return Optional.of(typed);

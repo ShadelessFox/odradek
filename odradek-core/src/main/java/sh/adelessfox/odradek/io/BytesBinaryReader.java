@@ -5,14 +5,14 @@ import sh.adelessfox.odradek.util.Arrays;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-final class ByteArrayBinaryReader implements BinaryReader {
+final class BytesBinaryReader implements BinaryReader {
     private final byte[] array;
     private final int offset;
     private final int length;
     private int position;
     private ByteOrder order = ByteOrder.LITTLE_ENDIAN;
 
-    ByteArrayBinaryReader(byte[] array, int offset, int length) {
+    BytesBinaryReader(byte[] array, int offset, int length) {
         Objects.checkFromIndexSize(offset, length, array.length);
         this.array = array;
         this.offset = offset;
@@ -79,10 +79,11 @@ final class ByteArrayBinaryReader implements BinaryReader {
     }
 
     @Override
-    public void position(long position) {
+    public BinaryReader position(long position) {
         int pos = Math.toIntExact(position);
         Objects.checkIndex(pos, length + 1);
         this.position = pos;
+        return this;
     }
 
     @Override

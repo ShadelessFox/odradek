@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.ui.components;
 
-import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.ColorFunctions;
 import com.formdev.flatlaf.util.UIScale;
+import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -169,8 +169,7 @@ public class StyledComponent extends JComponent {
     }
 
     private int doPaintTextFragments(Graphics2D g, int startOffset) {
-        FlatUIUtils.setRenderingHints(g);
-        setTextRenderingHints(g);
+        GraphicsUtils.setTextRenderingHints(g);
 
         float offset = startOffset;
 
@@ -183,10 +182,9 @@ public class StyledComponent extends JComponent {
 
         synchronized (fragments) {
             for (StyledFragment fragment : fragments) {
-                FontMetrics metrics = getFontMetrics(font);
-
-                var fragmentBaseline = area.y + area.height - metrics.getDescent();
-                var fragmentWidth = computeFragmentWidth(fragment, font);
+                var fragmentFont = computeFragmentFont(fragment, font);
+                var fragmentBaseline = area.y + area.height - getFontMetrics(fragmentFont).getDescent();
+                var fragmentWidth = computeFragmentWidth(fragment, fragmentFont);
                 var fragmentColor = computeFragmentForeground(fragment);
 
                 if (DEBUG_OVERLAY) {
@@ -194,7 +192,7 @@ public class StyledComponent extends JComponent {
                     g.drawRect((int) offset, area.y, (int) fragmentWidth - 1, area.height - 1);
                 }
 
-                g.setFont(font);
+                g.setFont(fragmentFont);
                 g.setColor(fragmentColor);
                 g.drawString(fragment.text(), offset, fragmentBaseline);
 
@@ -203,24 +201,6 @@ public class StyledComponent extends JComponent {
         }
 
         return (int) offset - startOffset;
-    }
-
-    private static void setTextRenderingHints(Graphics2D g2) {
-        Object aaHint = UIManager.get(RenderingHints.KEY_TEXT_ANTIALIASING);
-        if (aaHint != null) {
-            Object oldAA = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
-            if (aaHint != oldAA) {
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, aaHint);
-            }
-        }
-
-        Object contrastHint = UIManager.get(RenderingHints.KEY_TEXT_LCD_CONTRAST);
-        if (contrastHint != null) {
-            Object oldContrast = g2.getRenderingHint(RenderingHints.KEY_TEXT_LCD_CONTRAST);
-            if (contrastHint != oldContrast) {
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_LCD_CONTRAST, contrastHint);
-            }
-        }
     }
 
     private void doPaintTextBackground(Graphics2D g, int offset) {
@@ -267,6 +247,20 @@ public class StyledComponent extends JComponent {
         }
     }
 
+    private Font computeFragmentFont(StyledFragment fragment, Font font) {
+        int style = Font.PLAIN;
+        if (fragment.flags().contains(StyledFlag.BOLD)) {
+            style |= Font.BOLD;
+        }
+        if (fragment.flags().contains(StyledFlag.ITALIC)) {
+            style |= Font.ITALIC;
+        }
+        if (font.getStyle() == style) {
+            return font;
+        }
+        return font.deriveFont(style);
+    }
+
     private float computeFragmentWidth(StyledFragment fragment, Font font) {
         var metrics = getFontMetrics(font);
         var bounds = font.getStringBounds(fragment.text(), metrics.getFontRenderContext());
@@ -284,7 +278,7 @@ public class StyledComponent extends JComponent {
 
         synchronized (fragments) {
             for (StyledFragment fragment : fragments) {
-                width += computeFragmentWidth(fragment, font);
+                width += computeFragmentWidth(fragment, computeFragmentFont(fragment, font));
             }
         }
 

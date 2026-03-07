@@ -1,18 +1,19 @@
 package sh.adelessfox.odradek.ui.renderers;
 
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class PointerRenderer implements Renderer.OfObject<Ref<?>, Game> {
+public class PointerRenderer implements Renderer.OfObject<Object, Game> {
     @Override
-    public Optional<StyledText> styledText(TypeInfo info, Ref<?> object, Game game) {
-        if (object != null && object.get() instanceof TypedObject to) {
+    public Optional<StyledText> styledText(TypeInfo info, Object object, Game game) {
+        if (object instanceof ObjectHolder<?> holder && holder.object() instanceof TypedObject to) {
             return Renderer.renderer(to.getType())
                 .flatMap(x -> x.styledText(to.getType(), to, game));
         }
@@ -20,15 +21,20 @@ public class PointerRenderer implements Renderer.OfObject<Ref<?>, Game> {
     }
 
     @Override
-    public Optional<String> text(TypeInfo info, Ref<?> object, Game game) {
+    public Optional<String> text(TypeInfo info, Object object, Game game) {
         if (object == null) {
             return Optional.of("null");
         }
-        if (object.get() instanceof TypedObject to) {
+        if (object instanceof ObjectHolder<?> holder && holder.object() instanceof TypedObject to) {
             return Renderer.renderer(to.getType())
                 .flatMap(x -> x.text(to.getType(), to, game))
                 .or(() -> Optional.of("<%s>".formatted(to.getType().name())));
         }
         return Optional.of(object.toString());
+    }
+
+    @Override
+    public boolean supports(TypeInfo info) {
+        return info instanceof PointerTypeInfo;
     }
 }

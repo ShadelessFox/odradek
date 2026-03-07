@@ -19,7 +19,7 @@ public final class Bookmarks {
     private final Map<ObjectId, Bookmark> bookmarks = new LinkedHashMap<>();
 
     @Inject
-    public Bookmarks(EventBus eventBus) {
+    Bookmarks(EventBus eventBus) {
         this.eventBus = eventBus;
     }
 

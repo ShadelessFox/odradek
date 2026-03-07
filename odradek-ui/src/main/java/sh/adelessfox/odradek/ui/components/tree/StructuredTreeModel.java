@@ -94,6 +94,10 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         this.filter = filter;
     }
 
+    boolean isEmpty() {
+        return rootNode == null || getChildCount(rootNode) == 0;
+    }
+
     /**
      * Refreshes the entire tree, recomputing the children of each node
      */

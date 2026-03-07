@@ -2,20 +2,16 @@ package sh.adelessfox.odradek.game.hfw.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingLink;
-import sh.adelessfox.odradek.game.hfw.rtti.data.StreamingRef;
-import sh.adelessfox.odradek.game.hfw.rtti.data.UUIDRef;
+import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
 
@@ -26,7 +22,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     private final StreamingGraphResource graph;
     private final TypeFactory factory;
 
-    private final LruWeakCache<StreamingGroupData, GroupResult> cache = new LruWeakCache<>(5000);
+    private final LruWeakCache<Integer, GroupResult> cache = new LruWeakCache<>(5000);
 
     private GroupResult currentGroup;
     private List<GroupResult> currentSubGroups;
@@ -61,34 +57,32 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     public GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
-        var groups = new ArrayList<GroupResult>();
-        var result = readGroup(id, groups, readSubgroups);
-        assert result == groups.getLast();
-        return result;
+        return readGroup(id, new HashMap<>(), readSubgroups);
     }
 
-    private GroupResult readGroup(int id, List<GroupResult> groups, boolean readSubgroups) throws IOException {
+    private GroupResult readGroup(int id, Map<Integer, GroupResult> cache, boolean readSubgroups) throws IOException {
         var group = Objects.requireNonNull(graph.group(id), () -> "Group not found: " + id);
 
         if (log.isDebugEnabled()) {
             log.debug("{}Reading group {}", indent(), Colors.blue(id));
         }
 
-        for (GroupResult result : groups) {
-            if (result.group == group) {
-                return result;
-            }
+        var result = cache.get(group.groupID());
+        if (result == null) {
+            depth++;
+            result = readGroup(group, cache, readSubgroups);
+            cache.put(result.group.groupID(), result);
+            depth--;
         }
-
-        depth++;
-        var result = readGroup(group, groups, readSubgroups);
-        groups.add(result);
-        depth--;
 
         return result;
     }
 
-    private synchronized GroupResult readGroup(StreamingGroupData group, List<GroupResult> groups, boolean readSubgroups) throws IOException {
+    private synchronized GroupResult readGroup(
+        StreamingGroupData group,
+        Map<Integer, GroupResult> groups,
+        boolean readSubgroups
+    ) throws IOException {
         var subGroups = new ArrayList<GroupResult>(group.subGroupCount());
         if (readSubgroups) {
             for (int i = 0; i < group.subGroupCount(); i++) {
@@ -99,10 +93,10 @@ public class StreamingObjectReader extends HFWTypeReader {
         currentSubGroups = subGroups;
         resolveStreamingLinksAndLocators = readSubgroups;
 
-        GroupResult result = cache.get(group);
+        var result = cache.get(group.groupID());
         if (result == null) {
             result = readSingleGroup(group);
-            cache.put(group, result);
+            cache.put(group.groupID(), result);
         }
 
         return result;
@@ -157,17 +151,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected Ref<?> readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        // FIXME:
-        //  An instance of Ref might be null if it's absent or it can't be resolved (StreamingRef)
-        //  Ref#get might also return null if it doesn't hold an immediate reference (UUIDRef, StreamingRef)
-        //
-        // Pretty sure the game always resolves all links, but it might be not possible in our case.
-        // Those null checks are nauseating; ideally, we should have separate types for resolved and
-        // unresolved references so that we don't have to deal with nullability at all.
-        //
-        // Alternatively, we could make Ref an Optional-like type with methods like isPresent(), orElseThrow(), etc.
-
+    protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
         if (!reader.readByteBoolean()) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
@@ -198,7 +182,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
     }
 
-    private Ref<?> resolveLink(PointerTypeInfo info) {
+    private Object resolveLink(PointerTypeInfo info) {
         if (!resolveStreamingLinksAndLocators) {
             return null;
         }
@@ -209,14 +193,15 @@ public class StreamingObjectReader extends HFWTypeReader {
 
         streamingLinkIndex = result.position();
 
-        if (info.pointerType().equals("StreamingRef")) {
-            // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
+        var pointerType = info.pointerType();
+        if (pointerType.equals("StreamingRef")) {
             if (linkGroup != -1) {
-                return new StreamingRef<>(linkGroup, linkIndex);
+                // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
+                return new StreamingRef<>(new ObjectId(linkGroup, linkIndex));
+            } else {
+                // No idea how to resolve it otherwise. Presumably points to a runtime singleton?
+                return null;
             }
-
-            // No idea how to resolve it otherwise. Likely relies on runtime
-            return null;
         }
 
         GroupResult group;
@@ -247,7 +232,13 @@ public class StreamingObjectReader extends HFWTypeReader {
             throw new IllegalStateException("Type mismatch for pointer");
         }
 
-        return new StreamingLink<>(object.object(), group.group().groupID(), linkIndex);
+        var objectId = new ObjectId(group.group().groupID(), linkIndex);
+        return switch (pointerType) {
+            case "Ref" -> new Ref<>(objectId, object.object());
+            case "WeakPtr" -> new WeakPtr<>(objectId, object.object());
+            case "cptr" -> new CPtr<>(objectId, object.object());
+            default -> throw new UnsupportedOperationException("Unsupported pointer type: " + pointerType);
+        };
     }
 
     private String indent() {

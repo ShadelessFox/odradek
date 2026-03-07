@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.game.hfw.rtti;
 import sh.adelessfox.odradek.hashing.HashFunction;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
@@ -77,7 +76,7 @@ public class HFWTypeReader extends AbstractTypeReader {
     }
 
     @Override
-    protected Ref<?> readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+    protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
         throw new IOException("Unexpected pointer");
     }
 

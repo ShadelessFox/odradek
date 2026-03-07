@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder, DataContext {
+public final class ObjectEditor implements Editor, ObjectIdHolder, ObjectSupplier, DataContext {
     public static final class Provider implements Editor.Provider {
         @Override
         public Editor createEditor(EditorInput input, EditorSite site) {
@@ -97,18 +97,13 @@ public final class ObjectEditor implements Editor, ObjectHolder, ObjectIdHolder,
     }
 
     @Override
+    public ObjectId objectId() {
+        return input.objectId();
+    }
+
+    @Override
     public ClassTypeInfo objectType() {
         return input.object().getType();
-    }
-
-    @Override
-    public String objectName() {
-        return "%s_%s_%s".formatted(objectType().name(), input.groupId(), input.objectIndex());
-    }
-
-    @Override
-    public ObjectId objectId() {
-        return new ObjectId(input.groupId(), input.objectIndex());
     }
 
     @Override

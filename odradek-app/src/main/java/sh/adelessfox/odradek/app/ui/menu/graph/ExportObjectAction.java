@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.game.ObjectSupplier;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -26,7 +26,7 @@ import static java.nio.file.StandardOpenOption.*;
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = GraphMenu.ID, group = "2000,Export")
 @ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
+@ActionContribution(parent = EditorActionIds.MENU_ID, group = "4000,Export")
 @ActionContribution(parent = ObjectEditorActionIds.TOOLBAR_ID, group = ObjectEditorActionIds.TOOLBAR_GROUP_GENERAL)
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
@@ -59,7 +59,7 @@ public class ExportObjectAction extends Action {
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
         var selection = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(ObjectHolder.class))
+            .gather(Gatherers.instanceOf(ObjectSupplier.class))
             .toList();
 
         if (selection.isEmpty()) {
@@ -67,7 +67,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(ObjectHolder::objectType)
+            .map(ObjectSupplier::objectType)
             .distinct()
             .toList();
 
@@ -105,11 +105,15 @@ public class ExportObjectAction extends Action {
         var directory = chooser.getSelectedFile().toPath();
         int exported = 0;
 
-        for (ObjectHolder selection : batch.objects()) {
+        for (ObjectSupplier selection : batch.objects()) {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
-                var name = "%s.%s".formatted(selection.objectName(), batch.exporter().extension());
+                var name = "%s_%s_%s.%s".formatted(
+                    selection.objectType(),
+                    selection.objectId().groupId(),
+                    selection.objectId().objectIndex(),
+                    batch.exporter().extension());
                 var path = directory.resolve(name);
 
                 var converted = batch.converter().convert(object, game);
@@ -125,11 +129,11 @@ public class ExportObjectAction extends Action {
                 log.debug("Exported object {} ({}) to {}", object, type, path);
                 exported++;
             } catch (Exception e) {
-                log.error("Failed to export object", e);
+                log.error("Failed to export object {} ({})", selection.objectId(), selection.objectType(), e);
                 JOptionPane.showMessageDialog(
                     JOptionPane.getRootFrame(),
                     "Failed to export object: " + e.getMessage(),
-                    "Unable to export object",
+                    "Unable to export object " + selection.objectId(),
                     JOptionPane.ERROR_MESSAGE
                 );
             }
@@ -154,6 +158,6 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private record Batch<R>(List<ObjectHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
+    private record Batch<R>(List<ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
     }
 }

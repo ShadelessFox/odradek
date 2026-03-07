@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.rtti.generator;
 
 import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.data.Ref;
 import sh.adelessfox.odradek.rtti.data.Value;
 
 import java.lang.classfile.*;
@@ -22,7 +21,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     private static final ClassDesc CD_Arrays = Arrays.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_ClassTypeInfo = ClassTypeInfo.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_List = List.class.describeConstable().orElseThrow();
-    private static final ClassDesc CD_Ref = Ref.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_StableValue = StableValue.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_TypeDescriptor = TypeDescriptor.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_UnsupportedOperationException = UnsupportedOperationException.class.describeConstable().orElseThrow();
@@ -438,7 +436,12 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             case ClassTypeInfo i -> toClassDesc(i);
             case EnumSetTypeInfo i -> useWrapperType ? CD_Value_OfEnumSet : toClassDesc(i);
             case EnumTypeInfo i -> useWrapperType ? CD_Value_OfEnum : toClassDesc(i);
-            case AtomTypeInfo i -> getBuiltin(i.base().name()).flatMap(Class::describeConstable).orElseThrow();
+            case AtomTypeInfo i -> getBuiltin(i.base().name())
+                .flatMap(Class::describeConstable)
+                .orElseThrow();
+            case PointerTypeInfo i -> getBuiltin(i.pointerType())
+                .flatMap(Class::describeConstable)
+                .orElseThrow();
             case ContainerTypeInfo i -> {
                 var itemType = toClassDesc(i.itemType(), useWrapperType);
                 if (itemType.isPrimitive()) {
@@ -447,7 +450,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                     yield CD_List;
                 }
             }
-            case PointerTypeInfo _ -> CD_Ref;
         };
     }
 
