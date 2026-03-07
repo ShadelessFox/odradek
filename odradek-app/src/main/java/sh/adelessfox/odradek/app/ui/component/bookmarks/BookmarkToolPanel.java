@@ -41,6 +41,7 @@ public class BookmarkToolPanel implements ToolPanel {
         tree = new StructuredTree<>(new BookmarkStructure.Root(repository));
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new BookmarkLabelProvider());
+        tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof BookmarkStructure.Bookmark bookmark) {

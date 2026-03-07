@@ -171,6 +171,7 @@ public final class LinksToolPanel implements ToolPanel {
         tree.setLabelProvider(new LinkLabelProvider(game));
         tree.setShowsRootHandles(true);
         tree.setRootVisible(false);
+        tree.setPlaceholderText("No object selected\n\nRight-click on an object to inspects its usages");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof ObjectIdHolder holder) {

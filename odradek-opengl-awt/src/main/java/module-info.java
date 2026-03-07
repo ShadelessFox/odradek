@@ -1,6 +1,7 @@
 module odradek.opengl.awt {
     requires java.desktop;
     requires odradek.opengl;
+    requires odradek.ui;
     requires org.lwjgl.jawt;
     requires org.lwjgl.opengl;
     requires org.lwjgl;

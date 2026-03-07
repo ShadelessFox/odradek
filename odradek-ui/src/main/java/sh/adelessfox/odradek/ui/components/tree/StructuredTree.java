@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledTreeCellRenderer;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 import sh.adelessfox.odradek.ui.util.Listeners;
 
 import javax.swing.*;
@@ -25,6 +26,7 @@ import java.util.function.BiConsumer;
 public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
     private TreeLabelProvider<T> labelProvider;
+    private String placeholderText;
 
     // For caching last shown tooltip while hovering over the same row
     private int lastRowIndex = -1;
@@ -141,6 +143,16 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     }
 
     @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        if (placeholderText != null && getModel() == null || getModel().isEmpty()) {
+            GraphicsUtils.setTextRenderingHints(g);
+            GraphicsUtils.drawCenteredString(g, placeholderText, this);
+        }
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public StructuredTreeModel<T> getModel() {
         return (StructuredTreeModel<T>) super.getModel();
@@ -182,6 +194,17 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     public void removeActionListener(TreeActionListener listener) {
         Objects.requireNonNull(listener);
         actionListeners.remove(listener);
+    }
+
+    public String getPlaceholderText() {
+        return placeholderText;
+    }
+
+    public void setPlaceholderText(String placeholderText) {
+        if (!Objects.equals(this.placeholderText, placeholderText)) {
+            this.placeholderText = placeholderText;
+            repaint();
+        }
     }
 
     public Object getSelectionPathComponent() {

@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.ui.components;
 
-import com.formdev.flatlaf.ui.FlatUIUtils;
 import com.formdev.flatlaf.util.ColorFunctions;
 import com.formdev.flatlaf.util.UIScale;
+import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -169,8 +169,7 @@ public class StyledComponent extends JComponent {
     }
 
     private int doPaintTextFragments(Graphics2D g, int startOffset) {
-        FlatUIUtils.setRenderingHints(g);
-        setTextRenderingHints(g);
+        GraphicsUtils.setTextRenderingHints(g);
 
         float offset = startOffset;
 
@@ -202,24 +201,6 @@ public class StyledComponent extends JComponent {
         }
 
         return (int) offset - startOffset;
-    }
-
-    private static void setTextRenderingHints(Graphics2D g2) {
-        Object aaHint = UIManager.get(RenderingHints.KEY_TEXT_ANTIALIASING);
-        if (aaHint != null) {
-            Object oldAA = g2.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING);
-            if (aaHint != oldAA) {
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, aaHint);
-            }
-        }
-
-        Object contrastHint = UIManager.get(RenderingHints.KEY_TEXT_LCD_CONTRAST);
-        if (contrastHint != null) {
-            Object oldContrast = g2.getRenderingHint(RenderingHints.KEY_TEXT_LCD_CONTRAST);
-            if (contrastHint != oldContrast) {
-                g2.setRenderingHint(RenderingHints.KEY_TEXT_LCD_CONTRAST, contrastHint);
-            }
-        }
     }
 
     private void doPaintTextBackground(Graphics2D g, int offset) {

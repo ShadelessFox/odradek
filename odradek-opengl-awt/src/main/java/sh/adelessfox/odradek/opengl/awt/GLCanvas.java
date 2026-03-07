@@ -5,6 +5,7 @@ import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -77,34 +78,12 @@ public final class GLCanvas extends Canvas {
     @Override
     public void paint(Graphics g) {
         if (canvas == null) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.clearRect(0, 0, getWidth(), getHeight());
-            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            drawCenteredString(g2, "Unable to create graphics context; refer to logs for more details", getWidth(), getHeight());
-            g2.dispose();
+            g.clearRect(0, 0, getWidth(), getHeight());
+            GraphicsUtils.setTextRenderingHints(g);
+            GraphicsUtils.drawCenteredString(g, "Unable to create graphics context; refer to logs for more details", this);
         } else {
             render();
         }
-    }
-
-    private static void drawCenteredString(Graphics g, String text, int width, int height) {
-        FontMetrics fm = g.getFontMetrics();
-
-        int x = 0;
-        int y = (height - fm.getHeight() + 1) / 2 + fm.getAscent();
-
-        if (text.indexOf('\n') >= 0) {
-            for (String line : text.split("\n")) {
-                drawCenteredString(g, line, x, y, width);
-                y += fm.getHeight();
-            }
-        } else {
-            drawCenteredString(g, text, x, y, width);
-        }
-    }
-
-    private static void drawCenteredString(Graphics g, String text, int x, int y, int width) {
-        g.drawString(text, x + (width - g.getFontMetrics().stringWidth(text)) / 2, y);
     }
 
     @Override
@@ -176,7 +155,7 @@ public final class GLCanvas extends Canvas {
 
             runnable.run();
         } finally {
-            //noinspection DataFlowIssue - false positive
+            // noinspection DataFlowIssue - false positive
             GL.setCapabilities(null);
 
             canvas.makeCurrent(0);

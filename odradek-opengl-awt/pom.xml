@@ -17,6 +17,10 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-opengl</artifactId>
         </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-ui</artifactId>
+        </dependency>
 
         <!-- External dependencies -->
         <dependency>
