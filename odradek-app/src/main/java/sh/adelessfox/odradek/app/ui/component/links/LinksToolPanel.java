@@ -35,6 +35,11 @@ import java.util.concurrent.ExecutionException;
 public final class LinksToolPanel implements ToolPanel {
     private static final Logger log = LoggerFactory.getLogger(LinksToolPanel.class);
 
+    private static final String CARD_SETUP = "setup";
+    private static final String CARD_LOADING = "loading";
+    private static final String CARD_SCANNING = "scanning";
+    private static final String CARD_MAIN = "main";
+
     private final ForbiddenWestGame game;
     private final EventBus appEventBus;
     private final Path config;
@@ -57,30 +62,40 @@ public final class LinksToolPanel implements ToolPanel {
         var layout = new CardLayout();
         var panel = new JPanel();
         panel.setLayout(layout);
-        panel.add(createInitialView(eventBus), "init");
-        panel.add(createLoadingView(), "loading");
-        panel.add(createProgressView(eventBus), "scanning");
-        panel.add(createTreeView(eventBus, game), "main");
-        layout.show(panel, "init");
+        panel.add(createInitialView(eventBus), CARD_SETUP);
+        panel.add(createLoadingView(), CARD_LOADING);
+        panel.add(createProgressView(eventBus), CARD_SCANNING);
+        panel.add(createTreeView(eventBus, game), CARD_MAIN);
+
+        // Show the setup card by default
+        layout.show(panel, CARD_SETUP);
 
         eventBus.subscribe(Events.class, event -> {
             switch (event) {
                 case Events.ScanStart _ -> {
-                    layout.show(panel, "scanning");
+                    layout.show(panel, CARD_SCANNING);
                     new BuildDatabaseWorker(eventBus, game, path).execute();
                 }
                 case Events.DatabaseReady _ -> {
-                    layout.show(panel, "loading");
+                    layout.show(panel, CARD_LOADING);
                     new LoadDatabaseWorker(eventBus, game, path).execute();
                 }
                 case Events.DatabaseLoaded e -> {
                     database = e.database();
-                    layout.show(panel, "main");
+                    layout.show(panel, CARD_MAIN);
 
                     if (pendingObjectId != null) {
                         eventBus.publish(new Events.ShowObject(pendingObjectId));
                         pendingObjectId = null;
                     }
+                }
+                case Events.DatabaseNotLoaded e -> {
+                    JOptionPane.showMessageDialog(
+                        panel,
+                        "Unable to load the link database; refer to logs for more details",
+                        "Links",
+                        JOptionPane.ERROR_MESSAGE);
+                    layout.show(panel, CARD_SETUP);
                 }
                 default -> { /* ignored */}
             }
@@ -211,6 +226,9 @@ public final class LinksToolPanel implements ToolPanel {
         record DatabaseLoaded(LinkDatabase database) implements Events {
         }
 
+        record DatabaseNotLoaded(Throwable reason) implements Events {
+        }
+
         record ShowObject(ObjectId objectId) implements Events {
         }
     }
@@ -237,8 +255,10 @@ public final class LinksToolPanel implements ToolPanel {
                 eventBus.publish(new Events.DatabaseLoaded(get()));
             } catch (InterruptedException e) {
                 log.debug("Link database load interrupted", e);
+                eventBus.publish(new Events.DatabaseNotLoaded(e));
             } catch (ExecutionException e) {
                 log.debug("Failed to load link database", e.getCause());
+                eventBus.publish(new Events.DatabaseNotLoaded(e.getCause()));
             }
         }
     }
@@ -269,12 +289,14 @@ public final class LinksToolPanel implements ToolPanel {
         protected void done() {
             try {
                 get();
+                eventBus.publish(new Events.DatabaseReady());
             } catch (InterruptedException e) {
                 log.debug("Link database build interrupted", e);
+                eventBus.publish(new Events.DatabaseNotLoaded(e));
             } catch (ExecutionException e) {
                 log.debug("Failed to build link database", e.getCause());
+                eventBus.publish(new Events.DatabaseNotLoaded(e.getCause()));
             }
-            eventBus.publish(new Events.DatabaseReady());
         }
     }
 }
