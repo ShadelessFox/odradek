@@ -21,7 +21,7 @@ public class MainPresenter implements Presenter<MainView> {
     private final EditorManager editorManager;
 
     @Inject
-    public MainPresenter(
+    MainPresenter(
         EditorManager editorManager,
         MainView view,
         EventBus eventBus

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.component.bookmarks;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
@@ -17,6 +18,7 @@ import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 
 import javax.swing.*;
 
+@Singleton
 public class BookmarkToolPanel implements ToolPanel {
     private final Bookmarks repository;
     private final EventBus eventBus;
@@ -24,7 +26,7 @@ public class BookmarkToolPanel implements ToolPanel {
     private StructuredTree<BookmarkStructure> tree;
 
     @Inject
-    public BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
+    BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
         this.repository = repository;
         this.eventBus = eventBus;
 

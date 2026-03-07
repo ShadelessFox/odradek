@@ -42,7 +42,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
     private final ValidationPopup filterValidationPopup;
 
     @Inject
-    public GraphView(EventBus eventBus, ForbiddenWestGame game) {
+    GraphView(EventBus eventBus, ForbiddenWestGame game) {
         this.eventBus = eventBus;
         this.game = game;
 

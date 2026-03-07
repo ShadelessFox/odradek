@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.ui.component.usages;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
+@Singleton
 public final class UsagesToolPanel implements ToolPanel {
     private static final Logger log = LoggerFactory.getLogger(UsagesToolPanel.class);
 
@@ -48,7 +50,7 @@ public final class UsagesToolPanel implements ToolPanel {
     private ObjectId pendingObjectId;
 
     @Inject
-    public UsagesToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
+    UsagesToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
         this.game = game;
         this.appEventBus = appEventBus;
         this.config = config;
@@ -89,7 +91,7 @@ public final class UsagesToolPanel implements ToolPanel {
                         pendingObjectId = null;
                     }
                 }
-                case Events.DatabaseNotLoaded e -> {
+                case Events.DatabaseNotLoaded _ -> {
                     JOptionPane.showMessageDialog(
                         panel,
                         "Unable to load the link database; refer to logs for more details",

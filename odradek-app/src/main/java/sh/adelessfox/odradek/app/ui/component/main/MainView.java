@@ -22,7 +22,7 @@ public class MainView implements View<JComponent> {
     private final ToolPanelContainer root;
 
     @Inject
-    public MainView(
+    MainView(
         GraphPresenter graphPresenter,
         BookmarkToolPanel bookmarkPanel,
         UsagesToolPanel usagesPanel,

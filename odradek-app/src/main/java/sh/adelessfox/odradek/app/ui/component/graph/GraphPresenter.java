@@ -19,7 +19,7 @@ public class GraphPresenter implements Presenter<GraphView> {
     private final GraphView view;
 
     @Inject
-    public GraphPresenter(
+    GraphPresenter(
         GraphView view,
         EventBus eventBus
     ) {

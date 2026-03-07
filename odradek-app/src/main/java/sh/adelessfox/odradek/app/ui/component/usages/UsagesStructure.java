@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
+sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
     Logger log = LoggerFactory.getLogger(UsagesStructure.class);
 
     @Override
