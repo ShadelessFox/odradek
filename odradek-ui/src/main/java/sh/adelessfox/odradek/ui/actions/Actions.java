@@ -445,34 +445,27 @@ public final class Actions {
             var id = registration.id().isEmpty() ? type.getName() : registration.id();
             var accelerator = registration.keystroke().isEmpty() ? null : KeyStroke.getKeyStroke(registration.keystroke());
 
-            Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse(registration.text());
-            Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse(registration.description());
-            Function<ActionContext, Icon> iconSupplier = c -> Icons.getIconFromUri(action.getIcon(c).orElse(registration.icon())).orElse(null);
-
             return new ActionDescriptor(
                 action,
                 id,
                 accelerator,
-                textSupplier,
-                descriptionSupplier,
-                iconSupplier,
+                ctx -> action.getText(ctx).orElse(registration.text()),
+                ctx -> action.getDescription(ctx).orElse(registration.description()),
+                ctx -> Icons.getIconFromUri(action.getIcon(ctx).orElse(registration.icon())).orElse(null),
                 List.of(contributions)
             );
         }
 
-        static ActionDescriptor wrap(Action action) {
-            var id = action.getClass().getName();
-            Function<ActionContext, String> textSupplier = c -> action.getText(c).orElse("");
-            Function<ActionContext, String> descriptionSupplier = c -> action.getDescription(c).orElse("");
-            Function<ActionContext, Icon> iconSupplier = c -> action.getIcon(c).flatMap(Icons::getIconFromUri).orElse(null);
-
+        static ActionDescriptor wrap(Action action, OptionalInt index) {
             return new ActionDescriptor(
                 action,
-                id,
+                action.getClass().getName(),
                 null,
-                textSupplier,
-                descriptionSupplier,
-                iconSupplier,
+                ctx -> action.getText(ctx)
+                    .map(text -> index.isPresent() ? prependIndex(text, index.getAsInt()) : text)
+                    .orElse(""),
+                ctx -> action.getDescription(ctx).orElse(""),
+                ctx -> action.getIcon(ctx).flatMap(Icons::getIconFromUri).orElse(null),
                 List.of()
             );
         }
@@ -487,6 +480,18 @@ public final class Actions {
 
         Icon icon(ActionContext context) {
             return iconSupplier.apply(context);
+        }
+
+        private static String prependIndex(String label, int index) {
+            if (index < 0) {
+                throw new IllegalArgumentException("negative index: " + index);
+            } else if (index < 10) {
+                return "&%d. %s".formatted(index < 9 ? index + 1 : 0, label);
+            } else if (index < 36) {
+                return "&%c. %s".formatted(index - 10 + 'A', label);
+            } else {
+                return label;
+            }
         }
     }
 
@@ -505,9 +510,15 @@ public final class Actions {
 
     private interface ActionDescriptorProvider {
         static ActionDescriptorProvider wrap(ActionProvider provider) {
-            return context -> provider.create(context).stream()
-                .map(ActionDescriptor::wrap)
-                .toList();
+            return context -> {
+                var actions = new ArrayList<ActionDescriptor>();
+                for (Action action : provider.create(context)) {
+                    actions.add(ActionDescriptor.wrap(
+                        action,
+                        provider.isList() ? OptionalInt.of(actions.size()) : OptionalInt.empty()));
+                }
+                return List.copyOf(actions);
+            };
         }
 
         List<ActionDescriptor> create(ActionContext context);

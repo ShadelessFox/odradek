@@ -43,6 +43,11 @@ public class ExportObjectAction extends Action {
                 .map(batch -> action(batch, game))
                 .toList();
         }
+
+        @Override
+        public boolean isList() {
+            return true;
+        }
     }
 
     @Override
@@ -82,7 +87,7 @@ public class ExportObjectAction extends Action {
     private static Action action(Batch<?> batch, Game game) {
         return Action.builder()
             .perform(_ -> exportBatch(batch, game))
-            .text(_ -> Optional.of('&' + batch.exporter().name()))
+            .text(_ -> Optional.of(batch.exporter().name()))
             .icon(_ -> batch.exporter().icon())
             .build();
     }
