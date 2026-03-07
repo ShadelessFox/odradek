@@ -81,6 +81,7 @@ public final class LinkDatabase implements LinkProvider {
             .mapToObj(_ -> new ArrayList<PackedLink>())
             .toList();
 
+        log.debug("Scanning graph groups...");
         for (int i = 0; i < graph.groups().size(); i++) {
             var group = graph.groups().get(i);
             progress.accept(i + 1, graph.groups().size());
@@ -96,7 +97,7 @@ public final class LinkDatabase implements LinkProvider {
             }
         }
 
-        log.debug("Serializing...");
+        log.debug("Serializing the database...");
         try (BinaryWriter writer = BinaryWriter.open(path)) {
             var offsets = new int[objects];
 
