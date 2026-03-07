@@ -29,9 +29,8 @@ final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructu
                 .add(" " + getType(object.groupId(), object.objectIndex()), StyledFragment.NAME)
                 .build();
             case UsagesStructure.Links(var type, var links) -> StyledText.builder()
-                .add(type == UsagesStructure.Links.Type.INCOMING ? "Incoming links" : "Outgoing links",
-                    StyledFragment.BOLD)
-                .add("  " + links.size() + " results", StyledFragment.GRAYED)
+                .add(getText(type), StyledFragment.BOLD)
+                .add("  " + (links.size() == 1 ? "1 result" : links.size() + " results"), StyledFragment.GRAYED)
                 .build();
             case UsagesStructure.Link(_, var link) -> StyledText.builder()
                 .add("[" + link.groupId() + ":" + link.objectIndex() + "]")
@@ -45,10 +44,22 @@ final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructu
     public Optional<Icon> getIcon(UsagesStructure element) {
         return switch (element) {
             case UsagesStructure.Object _ -> Optional.of(Fugue.getIcon("blue-document"));
-            case UsagesStructure.Link(var type, _) -> Optional.of(Fugue.getIcon(type == UsagesStructure.Type.INCOMING
-                ? "blue-document-import"
-                : "blue-document-export"));
+            case UsagesStructure.Link(var type, _) -> Optional.of(getIcon(type));
             default -> Optional.empty();
+        };
+    }
+
+    private static String getText(UsagesStructure.Type type) {
+        return switch (type) {
+            case INCOMING -> "Incoming links";
+            case OUTGOING -> "Outgoing links";
+        };
+    }
+
+    private static Icon getIcon(UsagesStructure.Type type) {
+        return switch (type) {
+            case INCOMING -> Fugue.getIcon("blue-document-import");
+            case OUTGOING -> Fugue.getIcon("blue-document-export");
         };
     }
 
