@@ -246,6 +246,7 @@ public final class UsagesToolPanel implements ToolPanel {
 
         @Override
         protected LinkDatabase doInBackground() throws Exception {
+            log.debug("Loading link database from {}", path);
             return LinkDatabase.open(game, path);
         }
 
@@ -276,6 +277,7 @@ public final class UsagesToolPanel implements ToolPanel {
 
         @Override
         protected Void doInBackground() throws Exception {
+            log.debug("Building link database to {}", path);
             LinkDatabase.build(game, path, (cur, max) -> publish(new Progress(cur, max)));
             return null;
         }
