@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.component.links.menu;
+package sh.adelessfox.odradek.app.ui.component.usages.menu;
 
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.BookmarkMenu;
@@ -15,12 +15,12 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 @ActionRegistration(text = "Show &Usages", icon = "fugue:chain", keystroke = "alt F7")
 @ActionContribution(parent = GraphMenu.ID)
 @ActionContribution(parent = BookmarkMenu.ID)
-public final class ShowLinksAction extends Action {
+public final class ShowUsagesAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
         var eventBus = Application.getInstance().events();
-        eventBus.publish(new MainEvent.ShowPanel(MainView.LINKS_PANEL_ID));
+        eventBus.publish(new MainEvent.ShowPanel(MainView.USAGES_PANEL_ID));
         eventBus.publish(new MainEvent.ShowLinks(holder.objectId()));
     }
 

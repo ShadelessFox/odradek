@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.component.links;
+package sh.adelessfox.odradek.app.ui.component.usages;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-public final class LinksToolPanel implements ToolPanel {
-    private static final Logger log = LoggerFactory.getLogger(LinksToolPanel.class);
+public final class UsagesToolPanel implements ToolPanel {
+    private static final Logger log = LoggerFactory.getLogger(UsagesToolPanel.class);
 
     private static final String CARD_SETUP = "setup";
     private static final String CARD_LOADING = "loading";
@@ -48,7 +48,7 @@ public final class LinksToolPanel implements ToolPanel {
     private ObjectId pendingObjectId;
 
     @Inject
-    public LinksToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
+    public UsagesToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
         this.game = game;
         this.appEventBus = appEventBus;
         this.config = config;
@@ -116,15 +116,12 @@ public final class LinksToolPanel implements ToolPanel {
 
     @Override
     public boolean isFocused() {
-        // tree != null && tree.isFocusOwner();
         return false;
     }
 
     @Override
     public void setFocus() {
-        // if (tree != null) {
-        //     tree.requestFocusInWindow();
-        // }
+        // do nothing
     }
 
     private JComponent createInitialView(EventBus eventBus) {
@@ -167,11 +164,11 @@ public final class LinksToolPanel implements ToolPanel {
     }
 
     private JComponent createTreeView(EventBus eventBus, ForbiddenWestGame game) {
-        var tree = new StructuredTree<LinkStructure>();
-        tree.setLabelProvider(new LinkLabelProvider(game));
+        var tree = new StructuredTree<UsagesStructure>();
+        tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
         tree.setRootVisible(false);
-        tree.setPlaceholderText("No object selected\n\nRight-click on an object to inspects its usages");
+        tree.setPlaceholderText("No object selected\n\nRight-click on an object to inspect its usages");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof ObjectIdHolder holder) {
@@ -191,7 +188,7 @@ public final class LinksToolPanel implements ToolPanel {
                 pendingObjectId = event.objectId();
                 return;
             }
-            tree.setModel(new StructuredTreeModel<>(new LinkStructure.Root(database, event.objectId())));
+            tree.setModel(new StructuredTreeModel<>(new UsagesStructure.Root(database, event.objectId())));
             tree.expand();
         });
 

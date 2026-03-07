@@ -60,8 +60,8 @@ public class GraphView implements View<JComponent>, ToolPanel {
         tree = createGraphTree();
 
         var treeScrollPane = new JScrollPane(tree);
-        treeScrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(KeyStroke.getKeyStroke("ctrl F"),
-            "focus-in");
+        treeScrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
         treeScrollPane.getActionMap().put("focus-in", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {

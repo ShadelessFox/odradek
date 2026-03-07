@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.component.links;
+package sh.adelessfox.odradek.app.ui.component.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,14 +11,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public sealed interface LinkStructure extends TreeStructure<LinkStructure> {
-    Logger log = LoggerFactory.getLogger(LinkStructure.class);
+public sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
+    Logger log = LoggerFactory.getLogger(UsagesStructure.class);
 
     @Override
-    default List<? extends LinkStructure> getChildren() {
+    default List<? extends UsagesStructure> getChildren() {
         return switch (this) {
             case Root(var provider, var object) -> {
-                var nodes = new ArrayList<LinkStructure>();
+                var nodes = new ArrayList<UsagesStructure>();
                 nodes.add(new Objects(object));
                 try {
                     nodes.add(new Links(Type.INCOMING, provider.getIncomingLinks(object)));
@@ -57,16 +57,16 @@ public sealed interface LinkStructure extends TreeStructure<LinkStructure> {
         OUTGOING
     }
 
-    record Root(LinkProvider provider, ObjectId object) implements LinkStructure {
+    record Root(LinkProvider provider, ObjectId object) implements UsagesStructure {
     }
 
-    record Objects(ObjectId object) implements LinkStructure {
+    record Objects(ObjectId object) implements UsagesStructure {
     }
 
-    record Object(ObjectId objectId) implements LinkStructure, ObjectIdHolder {
+    record Object(ObjectId objectId) implements UsagesStructure, ObjectIdHolder {
     }
 
-    record Links(Type type, List<LinkProvider.Link> links) implements LinkStructure {
+    record Links(Type type, List<LinkProvider.Link> links) implements UsagesStructure {
         @Override
         public boolean equals(java.lang.Object obj) {
             return obj instanceof Links(var type1, _) && type == type1;
@@ -78,7 +78,7 @@ public sealed interface LinkStructure extends TreeStructure<LinkStructure> {
         }
     }
 
-    record Link(Type type, LinkProvider.Link link) implements LinkStructure, ObjectIdHolder {
+    record Link(Type type, LinkProvider.Link link) implements UsagesStructure, ObjectIdHolder {
         @Override
         public ObjectId objectId() {
             return new ObjectId(link.groupId(), link.objectIndex());
