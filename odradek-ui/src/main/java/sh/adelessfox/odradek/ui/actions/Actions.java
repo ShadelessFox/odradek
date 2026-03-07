@@ -10,6 +10,7 @@ import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import java.awt.event.*;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -320,11 +321,6 @@ public final class Actions {
         private void update() {
             var name = descriptor.text(context);
             var text = name.text();
-            if (descriptor.accelerator() != null && groups.containsKey(descriptor.id())) {
-                // Menus with sub-menus can't have an accelerator in Swing, so we have to fake it
-                text += "\u3000\u3000\u3000";
-                text += getTextForAccelerator(descriptor.accelerator());
-            }
             putValue(NAME, text);
             putValue(MNEMONIC_KEY, name.mnemonicChar());
             putValue(DISPLAYED_MNEMONIC_INDEX_KEY, name.mnemonicIndex());
@@ -538,6 +534,7 @@ public final class Actions {
         @Override
         public JMenuItem createPopupItem(JPopupMenu component, AbstractMenuAction action) {
             var menu = new JMenu(action);
+            configureAcceleratorFromAction(menu, action);
             var popupMenu = menu.getPopupMenu();
             popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context, false));
             return menu;
@@ -556,6 +553,26 @@ public final class Actions {
         @Override
         public JMenuItem createItem(JPopupMenu component, AbstractMenuAction action) {
             return new JMenuItem(action);
+        }
+
+        private static void configureAcceleratorFromAction(JMenu menu, AbstractMenuAction action) {
+            var ks = (KeyStroke) action.getValue(javax.swing.Action.ACCELERATOR_KEY);
+            if (ks != null) {
+                setAccelerator(menu, ks);
+            }
+        }
+
+        private static void setAccelerator(JMenu menu, KeyStroke accelerator) {
+            try {
+                Field field = JMenuItem.class.getDeclaredField("accelerator");
+                if (!field.canAccess(menu)) {
+                    field.setAccessible(true);
+                }
+                field.set(menu, accelerator);
+            } catch (Exception e) {
+                log.warn("Failed to set accelerator for menu '{}'; " +
+                    "accelerator will not be displayed in the menu", menu.getText(), e);
+            }
         }
     }
 
