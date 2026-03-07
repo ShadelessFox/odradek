@@ -7,11 +7,11 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * A reader for DirectStorage archive.
+ * A reader for DirectStorage archives.
  *
  * @see <a href="https://github.com/ShadelessFox/decima/wiki/Archives#directstorage-archive">DirectStorage archive format</a>
  */
-public class DirectStorageReader extends ChunkedBinaryReader {
+public final class DirectStorageReader extends ChunkedBinaryReader {
     private final Header header;
 
     private DirectStorageReader(BinaryReader reader, Header header, List<Chunk> chunks) {

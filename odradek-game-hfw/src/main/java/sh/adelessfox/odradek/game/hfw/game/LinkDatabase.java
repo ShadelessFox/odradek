@@ -12,7 +12,7 @@ import sh.adelessfox.odradek.hashing.HashCode;
 import sh.adelessfox.odradek.hashing.HashFunction;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
-import sh.adelessfox.odradek.io.ByteArrayBinaryWriter;
+import sh.adelessfox.odradek.io.BytesBinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypePath;
 import sh.adelessfox.odradek.rtti.data.TypeVisitor;
@@ -286,7 +286,7 @@ public final class LinkDatabase implements LinkProvider {
     private record PackedLink(int groupId, int objectIndex, byte[] path) {
         static PackedLink pack(int groupId, int objectIndex, TypePath path) throws IOException {
             byte[] bytes;
-            try (ByteArrayBinaryWriter writer = new ByteArrayBinaryWriter()) {
+            try (BytesBinaryWriter writer = new BytesBinaryWriter()) {
                 writePath(path, writer);
                 bytes = writer.toByteArray();
             }

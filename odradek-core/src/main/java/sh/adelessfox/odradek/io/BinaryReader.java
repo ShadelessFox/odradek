@@ -28,15 +28,15 @@ public interface BinaryReader extends Closeable {
         if (!buffer.hasArray()) {
             throw new IllegalArgumentException("Buffer must be backed by an array");
         }
-        return new ByteArrayBinaryReader(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining());
+        return new BytesBinaryReader(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining());
     }
 
     static BinaryReader wrap(byte[] array) {
-        return new ByteArrayBinaryReader(array, 0, array.length);
+        return new BytesBinaryReader(array, 0, array.length);
     }
 
     static BinaryReader wrap(byte[] array, int off, int len) {
-        return new ByteArrayBinaryReader(array, off, len);
+        return new BytesBinaryReader(array, off, len);
     }
 
     static BinaryReader open(Path path) throws IOException {

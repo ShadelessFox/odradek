@@ -1,34 +1,44 @@
 package sh.adelessfox.odradek.io;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-public final class ByteArrayBinaryWriter implements BinaryWriter {
-    private ByteBuffer buffer = ByteBuffer.allocate(32).order(ByteOrder.LITTLE_ENDIAN);
+public final class BytesBinaryWriter implements BinaryWriter {
+    private ByteBuffer buffer;
     private int length = 0;
 
+    public BytesBinaryWriter() {
+        this(32);
+    }
+
+    public BytesBinaryWriter(int size) {
+        if (size < 0) {
+            throw new IllegalArgumentException("Negative initial size: " + size);
+        }
+        buffer = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
+    }
+
     @Override
-    public void writeByte(byte value) throws IOException {
+    public void writeByte(byte value) {
         reserve(Byte.BYTES);
         buffer.put(value);
     }
 
     @Override
-    public void writeShort(short value) throws IOException {
+    public void writeShort(short value) {
         reserve(Short.BYTES);
         buffer.putShort(value);
     }
 
     @Override
-    public void writeInt(int value) throws IOException {
+    public void writeInt(int value) {
         reserve(Integer.BYTES);
         buffer.putInt(value);
     }
 
     @Override
-    public void writeLong(long value) throws IOException {
+    public void writeLong(long value) {
         reserve(Long.BYTES);
         buffer.putLong(value);
     }
@@ -39,7 +49,7 @@ public final class ByteArrayBinaryWriter implements BinaryWriter {
     }
 
     @Override
-    public BinaryWriter position(long pos) throws IOException {
+    public BinaryWriter position(long pos) {
         Objects.checkIndex(pos, Integer.MAX_VALUE);
         int curPos = buffer.position();
         int newPos = Math.toIntExact(Math.max(curPos, pos));
