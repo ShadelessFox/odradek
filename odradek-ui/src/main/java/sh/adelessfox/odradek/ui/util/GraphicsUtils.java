@@ -13,10 +13,11 @@ public final class GraphicsUtils {
 
     public static void drawCenteredString(Graphics g, String text, int width, int height) {
         var fm = g.getFontMetrics();
-        int x = 0;
-        int y = (height - fm.getHeight() + 1) / 2 + fm.getAscent();
+        var lines = text.split("\n");
 
-        for (String line : text.split("\n")) {
+        int x = 0;
+        int y = (height - fm.getHeight() * lines.length + 1) / 2 + fm.getAscent();
+        for (String line : lines) {
             g.drawString(line, x + (width - fm.stringWidth(line)) / 2, y);
             y += fm.getHeight();
         }
