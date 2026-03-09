@@ -1,3 +1,7 @@
+[![Build](https://img.shields.io/github/actions/workflow/status/ShadelessFox/odradek/build.yml?logo=githubactions&logoColor=white&label=Build)](https://github.com/ShadelessFox/odradek/actions/workflows/build.yml)
+[![Discord](https://img.shields.io/discord/1012475585605414983?label=Chat&logo=discord&logoColor=white)](https://discord.gg/Gt4gkMwadB)
+[![Support](https://img.shields.io/badge/Support-Ko--fi-blue?logo=kofi&logoColor=white)](https://ko-fi.com/shadelessfox)
+
 # Odradek
 
 This is a reincarnation of [Decima Workshop](https://github.com/ShadelessFox/decima), a modding tool
@@ -8,12 +12,15 @@ Horizon Forbidden West in an attempt to come up with something that could be use
 
 ### Features
 - Preview for static and skinned models; export to `.cast`
-- Preview for regular and animated textures; export to `.dds`
+- Preview for regular and animated textures; export to `.dds`, `.png`
 - Audio playback; export to `.wav`
 - Rich object inspector that utilizes type information
 - Command-line interface with the export functionality fully exposed
 
 ### Building
+
+> [!TIP]
+> Prebuilt binaries can be downloaded from [Actions](https://github.com/ShadelessFox/odradek/actions/workflows/build.yml).
 
 #### Prerequisites
 
