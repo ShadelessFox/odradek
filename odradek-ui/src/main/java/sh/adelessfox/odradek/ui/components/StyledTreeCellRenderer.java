@@ -1,9 +1,6 @@
 package sh.adelessfox.odradek.ui.components;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
-import sh.adelessfox.odradek.ui.components.StyledComponent;
-import sh.adelessfox.odradek.ui.components.StyledFlag;
-import sh.adelessfox.odradek.ui.components.StyledFragment;
 
 import javax.swing.*;
 import javax.swing.tree.TreeCellRenderer;
@@ -29,10 +26,10 @@ public abstract class StyledTreeCellRenderer<T> extends StyledComponent implemen
     public void updateUI() {
         super.updateUI();
 
-        this.foregroundSelectionColor = UIManager.getColor("Tree.selectionForeground");
-        this.foregroundNonSelectionColor = UIManager.getColor("Tree.textForeground");
-        this.backgroundSelectionColor = UIManager.getColor("Tree.selectionBackground");
-        this.backgroundNonSelectionColor = UIManager.getColor("Tree.textBackground");
+        foregroundSelectionColor = UIManager.getColor("Tree.selectionForeground");
+        foregroundNonSelectionColor = UIManager.getColor("Tree.textForeground");
+        backgroundSelectionColor = UIManager.getColor("Tree.selectionBackground");
+        backgroundNonSelectionColor = UIManager.getColor("Tree.textBackground");
     }
 
     @SuppressWarnings("unchecked")

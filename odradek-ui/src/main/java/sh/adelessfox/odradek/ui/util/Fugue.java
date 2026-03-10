@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.util;
 
+import com.formdev.flatlaf.util.UIScale;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -75,9 +77,21 @@ public final class Fugue {
                 throw new IllegalArgumentException("Unknown icon: " + key);
             }
             var image = sheet.getSubimage(location.x, location.y, location.width, location.height);
-            var icon = new ImageIcon(image);
-            return new IconDescriptor(image, icon);
+            var imageScaled = scale(image);
+            var icon = new ImageIcon(imageScaled);
+            return new IconDescriptor(imageScaled, icon);
         });
+    }
+
+    private static Image scale(BufferedImage image) {
+        float scaleFactor = UIScale.getUserScaleFactor();
+        if (scaleFactor == 1.0f) {
+            return image;
+        }
+        return image.getScaledInstance(
+            UIScale.scale(image.getWidth()),
+            UIScale.scale(image.getHeight()),
+            Image.SCALE_SMOOTH);
     }
 
     private record IconDescriptor(Image image, Icon icon) {

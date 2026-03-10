@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.ui.components.tool;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
-import com.formdev.flatlaf.util.UIScale;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,6 +14,15 @@ final class ToolPanelButton extends JComponent {
     private final ToolPanel pane;
     private final Icon icon;
 
+    // Styles
+    private Dimension size;
+    private Insets insets;
+    private int arc;
+    private Color defaultColor;
+    private Color selectionColor;
+    private Color focusedSelectedColor;
+    private Color rolloverColor;
+
     private boolean rollover;
     private boolean armed;
 
@@ -27,6 +35,21 @@ final class ToolPanelButton extends JComponent {
         addMouseListener(handler);
         addFocusListener(handler);
         setFocusable(true);
+
+        updateUI();
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+
+        size = UIManager.getDimension("ToolPanelButton.size");
+        insets = UIManager.getInsets("ToolPanelButton.margin");
+        arc = UIManager.getInt("ToolPanelButton.arc");
+        defaultColor = UIManager.getColor("ToolPanelButton.background");
+        selectionColor = UIManager.getColor("ToolPanelButton.selectedBackground");
+        focusedSelectedColor = UIManager.getColor("ToolPanelButton.focusedSelectedColor");
+        rolloverColor = UIManager.getColor("ToolPanelButton.rolloverBackground");
     }
 
     @Override
@@ -35,21 +58,21 @@ final class ToolPanelButton extends JComponent {
         try {
             FlatUIUtils.setRenderingHints(g2);
 
-            int arc = UIScale.scale(10);
-            Color defaultColor = UIManager.getColor("ToolWindowButton.background");
-            Color selectionColor = UIManager.getColor("ToolWindowButton.selectedBackground");
-            Color focusedSelectedColor = UIManager.getColor("ToolWindowButton.focusedSelectedColor");
-            Color rolloverColor = UIManager.getColor("ToolWindowButton.rolloverBackground");
-
-            boolean isRollover = rollover;
-            boolean isSelected = group.isSelected(pane);
-            boolean isFocused = isButtonOrChildFocused();
-
-            g2.setColor(isSelected ? isFocused ? focusedSelectedColor : selectionColor : isRollover ? rolloverColor : defaultColor);
-            g2.fillRoundRect(4, 4, 24, 24, arc, arc);
+            g2.setColor(getColor());
+            g2.fillRoundRect(
+                insets.left,
+                insets.top,
+                size.width - insets.left - insets.right,
+                size.height - insets.top - insets.bottom,
+                arc,
+                arc);
 
             if (icon != null) {
-                icon.paintIcon(this, g2, 16 - icon.getIconWidth() / 2, 16 - icon.getIconHeight() / 2);
+                icon.paintIcon(
+                    this,
+                    g2,
+                    (size.width - icon.getIconWidth()) / 2,
+                    (size.height - icon.getIconHeight()) / 2);
             }
         } finally {
             g2.dispose();
@@ -58,7 +81,7 @@ final class ToolPanelButton extends JComponent {
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(32, 32);
+        return size;
     }
 
     @Override
@@ -69,6 +92,17 @@ final class ToolPanelButton extends JComponent {
     @Override
     public Dimension getMinimumSize() {
         return getPreferredSize();
+    }
+
+    private Color getColor() {
+        boolean isSelected = group.isSelected(pane);
+        if (isSelected) {
+            boolean isFocused = isButtonOrChildFocused();
+            return isFocused ? focusedSelectedColor : selectionColor;
+        } else {
+            boolean isRollover = rollover;
+            return isRollover ? rolloverColor : defaultColor;
+        }
     }
 
     private boolean isButtonOrChildFocused() {
