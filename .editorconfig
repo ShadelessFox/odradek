@@ -16,10 +16,15 @@ ij_java_if_brace_force = always
 ij_java_while_brace_force = always
 ij_java_method_parameters_new_line_after_left_paren = true
 ij_java_method_parameters_right_paren_on_new_line = true
-ij_java_method_parameters_wrap = off
+ij_java_method_parameters_wrap = on_every_item
+ij_java_call_parameters_new_line_after_left_paren = true
+ij_java_call_parameters_right_paren_on_new_line = false
+ij_java_call_parameters_wrap = off
+ij_java_extends_keyword_wrap = normal
 ij_java_doc_do_not_wrap_if_one_line = true
 ij_java_line_comment_at_first_column = false
 ij_any_line_comment_add_space = true
+ij_java_field_annotation_wrap = off
 
 [*.json]
 indent_size = 2
