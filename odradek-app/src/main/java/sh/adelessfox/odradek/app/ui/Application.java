@@ -60,6 +60,12 @@ public final class Application {
     }
 
     private static void run(ApplicationComponent component, ApplicationParameters params) {
+        if (OS.name() == OS.Name.LINUX) {
+            // enable custom window decorations
+            JFrame.setDefaultLookAndFeelDecorated(true);
+            JDialog.setDefaultLookAndFeelDecorated(true);
+        }
+
         if (params.enableDebugMode()) {
             FlatInspector.install("ctrl shift alt X");
             FlatUIDefaultsInspector.install("ctrl shift alt Y");
