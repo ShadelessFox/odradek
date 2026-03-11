@@ -70,13 +70,33 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             buildBufferAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
         vertexAccessors.put(
             Semantic.WEIGHTS,
-            buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
+            buildHairWeightsAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
 
         return Mesh.of(new Primitive(
             indexAccessor,
             vertexAccessors,
             computePrimitiveColor(mesh.hashCode())
         ));
+    }
+
+    private static Accessor buildHairWeightsAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
+        var accessor = buildBufferAccessor(buffer);
+        var view = accessor.asByteView();
+
+        var output = ByteBuffer
+            .allocate(accessor.count() * accessor.componentCount())
+            .order(ByteOrder.LITTLE_ENDIAN);
+
+        // TODO: Figure what might've affected the order
+        for (int i = 0; i < accessor.count(); i++) {
+            output
+                .put(view.get(i, 1))
+                .put(view.get(i, 0))
+                .put((byte) 0)
+                .put((byte) 0);
+        }
+
+        return Accessor.of(output.flip(), 0, Byte.BYTES * 4, new Type.I8(4, true, true), accessor.count());
     }
 
     private static Accessor buildBufferAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
