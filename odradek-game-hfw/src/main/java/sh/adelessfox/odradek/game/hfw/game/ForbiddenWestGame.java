@@ -90,7 +90,7 @@ public final class ForbiddenWestGame implements Game {
     @Override
     public TypedObject readObject(int groupId, int objectIndex) throws IOException {
         synchronized (streamingReader) {
-            return streamingReader.readGroup(groupId).objects().get(objectIndex).object();
+            return streamingReader.readGroup(groupId).objects().get(objectIndex);
         }
     }
 
@@ -127,7 +127,7 @@ public final class ForbiddenWestGame implements Game {
     private static StreamingGraphResource readStreamingGraph(ForbiddenWestFileSystem fileSystem, TypeFactory typeFactory) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new HFWTypeReader().readObject(reader, typeFactory);
-            var graph = (HorizonForbiddenWest.StreamingGraphResource) result.object();
+            var graph = (HorizonForbiddenWest.StreamingGraphResource) result;
             return new StreamingGraphResource(graph, typeFactory);
         }
     }

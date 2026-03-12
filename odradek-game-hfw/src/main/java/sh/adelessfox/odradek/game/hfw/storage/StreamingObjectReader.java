@@ -32,9 +32,13 @@ public class StreamingObjectReader extends HFWTypeReader {
     private int streamingLocatorIndex;
     private int depth;
 
-    public record GroupResult(StreamingGroupData group, List<ObjectInfo> objects) {
+    public record GroupResult(StreamingGroupData group, List<RTTIRefObject> objects, List<Range> ranges) {
         public GroupResult {
+            if (objects.size() != ranges.size()) {
+                throw new IllegalArgumentException("Objects and ranges must have the same size");
+            }
             objects = List.copyOf(objects);
+            ranges = List.copyOf(ranges);
         }
 
         @Override
@@ -43,7 +47,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
     }
 
-    public record ObjectResult(GroupResult group, ObjectInfo object) {
+    public record Range(long offset, int size) {
     }
 
     public StreamingObjectReader(ObjectStreamingSystem system, TypeFactory factory) {
@@ -103,42 +107,48 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     private GroupResult readSingleGroup(StreamingGroupData group) throws IOException {
-        var objects = new ArrayList<ObjectInfo>(group.numObjects());
+        var objects = new ArrayList<RTTIRefObject>(group.numObjects());
+        var ranges = new ArrayList<Range>(group.numObjects());
         for (int i = 0; i < group.numObjects(); i++) {
             var type = graph.types().get(group.typeStart() + objects.size());
             var object = (RTTIRefObject) factory.newInstance(type);
-            objects.add(new ObjectInfo(type, object));
+            objects.add(object);
+            ranges.add(new Range(0, 0));
         }
 
-        var result = new GroupResult(group, objects);
-
-        currentGroup = result;
+        currentGroup = new GroupResult(group, objects, ranges);
         streamingLinkIndex = group.linkStart();
         streamingLocatorIndex = group.locatorStart();
 
-        for (int i = 0, j = 0; i < group.spanCount(); i++) {
-            var span = graph.spanTable().get(group.spanStart() + i);
+        long position = 0;
+        for (int spanIndex = 0, objectIndex = 0; spanIndex < group.spanCount(); spanIndex++) {
+            var span = graph.spanTable().get(group.spanStart() + spanIndex);
             var data = getSpanData(span);
             var reader = BinaryReader.wrap(data);
 
             while (reader.remaining() > 0) {
-                var object = objects.get(j++);
+                var object = objects.get(objectIndex);
+                var start = reader.position();
 
                 if (log.isDebugEnabled()) {
                     log.debug(
                         "{}Reading {} in {} at offset {}",
                         indent(),
-                        Colors.yellow(object.type()),
+                        Colors.yellow(object.getType()),
                         Colors.yellow(getSpanFile(span)),
                         Colors.blue(span.offset() + reader.position())
                     );
                 }
 
-                fillCompound(object.type(), reader, factory, object.object());
+                fillCompound(object.getType(), reader, factory, object);
+                ranges.set(objectIndex, new Range(position + start, Math.toIntExact(reader.position() - start)));
+                objectIndex++;
             }
+
+            position += data.length;
         }
 
-        return result;
+        return new GroupResult(group, objects, ranges);
     }
 
     @Override
@@ -214,14 +224,14 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
 
         var object = group.objects().get(linkIndex);
-        var matches = info.itemType().asClass().isAssignableFrom(object.type());
+        var matches = info.itemType().asClass().isAssignableFrom(object.getType());
 
         if (log.isDebugEnabled()) {
             log.debug(
                 "{}Resolving {} to object {} (index: {}) in group {} (index: {})",
                 indent(),
                 Colors.yellow(info.name()),
-                Colors.yellow(object.type()),
+                Colors.yellow(object.getType()),
                 Colors.blue(linkIndex),
                 Colors.blue(group.group.groupID()),
                 Colors.blue(linkGroup)
@@ -234,9 +244,9 @@ public class StreamingObjectReader extends HFWTypeReader {
 
         var objectId = new ObjectId(group.group().groupID(), linkIndex);
         return switch (pointerType) {
-            case "Ref" -> new Ref<>(objectId, object.object());
-            case "WeakPtr" -> new WeakPtr<>(objectId, object.object());
-            case "cptr" -> new CPtr<>(objectId, object.object());
+            case "Ref" -> new Ref<>(objectId, object);
+            case "WeakPtr" -> new WeakPtr<>(objectId, object);
+            case "cptr" -> new CPtr<>(objectId, object);
             default -> throw new UnsupportedOperationException("Unsupported pointer type: " + pointerType);
         };
     }
