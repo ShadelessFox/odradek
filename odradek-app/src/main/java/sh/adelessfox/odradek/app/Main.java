@@ -10,9 +10,11 @@ import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.util.OS;
 
 import javax.swing.*;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 @Command(
@@ -27,7 +29,7 @@ public class Main implements Callable<Void> {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     @Option(names = {"-s", "--source"}, description = "Path to the game's root directory where its executable resides")
-    private Path source;
+    private Optional<Path> source;
 
     @Option(names = {"--dark"}, description = "Use dark theme for the UI")
     private boolean darkTheme = false;
@@ -44,20 +46,22 @@ public class Main implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         ensureSingleRunningInstance(getClass());
-        Path source = this.source;
-        if (source == null) {
-            source = chooseGameDirectory();
-        }
-        if (source != null) {
-            Application.start(new ApplicationParameters(
-                source,
-                darkTheme,
-                debugMode
-            ));
-        } else {
+
+        var configPath = determineConfigPath("Odradek");
+        var sourcePath = source.or(Main::chooseGameDirectory).orElse(null);
+
+        if (sourcePath == null) {
             log.info("No source directory was provided, exiting");
             System.exit(1);
         }
+
+        Application.start(new ApplicationParameters(
+            configPath,
+            sourcePath,
+            darkTheme,
+            debugMode
+        ));
+
         return null;
     }
 
@@ -73,15 +77,27 @@ public class Main implements Callable<Void> {
         }
     }
 
-    private static Path chooseGameDirectory() {
+    private static Path determineConfigPath(String identifier) {
+        String userHome = System.getProperty("user.home");
+        if (userHome == null) {
+            throw new IllegalStateException("Unable to determine user home directory");
+        }
+        return switch (OS.name()) {
+            case WINDOWS -> Path.of(userHome, "AppData", "Local", identifier);
+            case MACOS -> Path.of(userHome, "Library", "Application Support", identifier);
+            case LINUX -> Path.of(userHome, ".config", identifier);
+        };
+    }
+
+    private static Optional<Path> chooseGameDirectory() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Choose game directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            return chooser.getSelectedFile().toPath();
+            return Optional.of(chooser.getSelectedFile().toPath());
         } else {
-            return null;
+            return Optional.empty();
         }
     }
 }
