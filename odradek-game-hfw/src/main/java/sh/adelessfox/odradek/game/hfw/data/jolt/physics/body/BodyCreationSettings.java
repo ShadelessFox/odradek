@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.game.hfw.data.jolt.physics.collision.GroupFilter;
 import sh.adelessfox.odradek.game.hfw.data.jolt.physics.collision.PhysicsMaterial;
 import sh.adelessfox.odradek.game.hfw.data.jolt.physics.collision.shape.Shape;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 
 import java.io.IOException;
 import java.util.List;
@@ -73,9 +74,9 @@ public class BodyCreationSettings {
         collisionGroup = CollisionGroup.restoreFromBinaryState(reader);
         objectLayer = reader.readShort();
         motionType = MotionType.values()[reader.readByte()];
-        allowDynamicOrKinematic = reader.readByteBoolean();
+        allowDynamicOrKinematic = reader.readBoolean(BoolFormat.BYTE);
         motionQuality = MotionQuality.values()[reader.readByte()];
-        allowSleeping = reader.readByteBoolean();
+        allowSleeping = reader.readBoolean(BoolFormat.BYTE);
         friction = reader.readFloat();
         restitution = reader.readFloat();
         linearDamping = reader.readFloat();

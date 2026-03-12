@@ -145,25 +145,33 @@ public interface BinaryReader extends Closeable {
         return dst;
     }
 
-    default String readString(int length, Charset charset) throws IOException {
-        return new String(readBytes(length), charset);
+    default String readString(StringFormat format) throws IOException {
+        return readString(format, StandardCharsets.UTF_8);
+    }
+
+    default String readString(StringFormat format, Charset charset) throws IOException {
+        int length = switch (format) {
+            case BYTE_LENGTH -> Byte.toUnsignedInt(readByte());
+            case SHORT_LENGTH -> Short.toUnsignedInt(readShort());
+            case INT_LENGTH -> readInt();
+        };
+        return readString(length, charset);
     }
 
     default String readString(int length) throws IOException {
         return readString(length, StandardCharsets.UTF_8);
     }
 
-    default boolean readByteBoolean() throws IOException {
-        var value = readByte();
-        return switch (value) {
-            case 0 -> false;
-            case 1 -> true;
-            default -> throw new IOException("Invalid boolean value: " + value);
-        };
+    default String readString(int length, Charset charset) throws IOException {
+        return new String(readBytes(length), charset);
     }
 
-    default boolean readIntBoolean() throws IOException {
-        var value = readInt();
+    default boolean readBoolean(BoolFormat format) throws IOException {
+        int value = switch (format) {
+            case BYTE -> Byte.toUnsignedInt(readByte());
+            case SHORT -> Short.toUnsignedInt(readShort());
+            case INT -> readInt();
+        };
         return switch (value) {
             case 0 -> false;
             case 1 -> true;

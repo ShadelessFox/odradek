@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw.rtti;
 
 import sh.adelessfox.odradek.hashing.HashFunction;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
@@ -159,7 +160,7 @@ public class HFWTypeReader extends AbstractTypeReader {
         AtomReader FLOAT = of((r, o, h) -> h.set(o, r.readFloat()), BinaryReader::readFloat, BinaryReader::readFloats);
         AtomReader DOUBLE = of((r, o, h) -> h.set(o, r.readDouble()), BinaryReader::readDouble, BinaryReader::readDoubles);
         AtomReader CHAR = of(r -> (char) r.readShort(), (r, o, h) -> h.set(o, (char) r.readShort()));
-        AtomReader BOOL = of(BinaryReader::readByteBoolean, (r, o, h) -> h.set(o, r.readByteBoolean()));
+        AtomReader BOOL = of(reader -> reader.readBoolean(BoolFormat.BYTE), (r, o, h) -> h.set(o, r.readBoolean(BoolFormat.BYTE)));
         AtomReader STRING = of(HFWTypeReader::readString, (r, o, h) -> h.set(o, readString(r)));
         AtomReader WSTRING = of(HFWTypeReader::readWString, (r, o, h) -> h.set(o, readWString(r)));
 

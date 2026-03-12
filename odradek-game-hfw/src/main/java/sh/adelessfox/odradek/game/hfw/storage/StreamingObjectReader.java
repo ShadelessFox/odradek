@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
@@ -162,7 +163,7 @@ public class StreamingObjectReader extends HFWTypeReader {
 
     @Override
     protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        if (!reader.readByteBoolean()) {
+        if (!reader.readBoolean(BoolFormat.BYTE)) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
             return new UUIDRef<>((GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));

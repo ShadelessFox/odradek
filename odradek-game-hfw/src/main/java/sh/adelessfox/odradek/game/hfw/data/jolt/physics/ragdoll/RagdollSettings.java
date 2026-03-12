@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.game.hfw.data.jolt.physics.constraints.ConstraintSe
 import sh.adelessfox.odradek.game.hfw.data.jolt.physics.constraints.TwoBodyConstraintSettings;
 import sh.adelessfox.odradek.game.hfw.data.jolt.skeleton.Skeleton;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class RagdollSettings {
             Part part = new Part();
             part.body = BodyCreationSettings.sRestoreWithChildren(r, shapeMap, materialMap, groupFilterMap);
 
-            boolean hasConstraint = r.readByteBoolean();
+            boolean hasConstraint = r.readBoolean(BoolFormat.BYTE);
             if (hasConstraint) {
                 part.constraint = (TwoBodyConstraintSettings) ConstraintSettings.restoreFromBinaryState(r);
             }

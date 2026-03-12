@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EIndexFormat;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.IndexArrayResource;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.MurmurHashValue;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -16,7 +17,7 @@ public class IndexArrayResourceCallback implements ExtraBinaryDataCallback<Index
         var count = reader.readInt();
         var flags = reader.readInt();
         var format = EIndexFormat.valueOf(reader.readInt());
-        var streaming = reader.readIntBoolean();
+        var streaming = reader.readBoolean(BoolFormat.INT);
         var hash = HFWTypeReader.readCompound(MurmurHashValue.class, reader, factory);
         var data = streaming ? null : reader.readBytes(count * format.stride());
 

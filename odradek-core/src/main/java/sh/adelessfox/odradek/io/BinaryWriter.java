@@ -3,6 +3,8 @@ package sh.adelessfox.odradek.io;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public interface BinaryWriter extends Closeable {
@@ -65,6 +67,40 @@ public interface BinaryWriter extends Closeable {
         for (double value : values) {
             writeDouble(value);
         }
+    }
+
+    default void writeBool(boolean value, BoolFormat format) throws IOException {
+        switch (format) {
+            case BYTE -> writeByte((byte) (value ? 1 : 0));
+            case SHORT -> writeShort((short) (value ? 1 : 0));
+            case INT -> writeInt(value ? 1 : 0);
+        }
+    }
+
+    default void writeString(String value, StringFormat format) throws IOException {
+        writeString(value, format, StandardCharsets.UTF_8);
+    }
+
+    default void writeString(String value, StringFormat format, Charset charset) throws IOException {
+        var data = value.getBytes(charset);
+        switch (format) {
+            case BYTE_LENGTH -> {
+                if (data.length > 255) {
+                    throw new IllegalArgumentException(
+                        "String too long for BYTE_LENGTH format: " + data.length + " bytes");
+                }
+                writeByte((byte) data.length);
+            }
+            case SHORT_LENGTH -> {
+                if (data.length > 65535) {
+                    throw new IllegalArgumentException(
+                        "String too long for SHORT_LENGTH format: " + data.length + " bytes");
+                }
+                writeShort((short) data.length);
+            }
+            case INT_LENGTH -> writeInt((int) data.length);
+        }
+        writeBytes(data);
     }
 
     long position() throws IOException;

@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -13,7 +14,7 @@ public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<Vert
     public void deserialize(BinaryReader reader, TypeFactory factory, VertexArrayResource object) throws IOException {
         var numVertices = reader.readInt();
         var numStreams = reader.readInt();
-        var streaming = reader.readByteBoolean();
+        var streaming = reader.readBoolean(BoolFormat.BYTE);
         var streams = reader.readObjects(numStreams, r -> readVertexStream(r, factory, numVertices, streaming));
 
         object.count(numVertices);
