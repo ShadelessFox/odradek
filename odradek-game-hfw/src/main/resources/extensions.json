@@ -257,7 +257,7 @@
 				{"value": 25, "name": "placeholder25_4"},
 				{"value": 26, "name": "placeholder26_4"},
 				{"value": 27, "name": "RGBA_UINT_16"},
-				{"value": 28, "name": "RGBA_INT_8"},
+				{"value": 28, "name": "RGBA_UINT_8"},
 				{"value": 29, "name": "placeholder29_4"},
 				{"value": 30, "name": "placeholder30_8"},
 				{"value": 31, "name": "placeholder31_4"},

@@ -67,10 +67,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).reshape(3));
         vertexAccessors.put(
             Semantic.JOINTS,
-            buildBufferAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
+            buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
         vertexAccessors.put(
             Semantic.WEIGHTS,
-            buildHairWeightsAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
+            buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
 
         return Mesh.of(new Primitive(
             indexAccessor,
@@ -79,24 +79,24 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         ));
     }
 
-    private static Accessor buildHairWeightsAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
+    private static Accessor buildHairJointsAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
         var accessor = buildBufferAccessor(buffer);
-        var view = accessor.asByteView();
+        var view = accessor.asShortView();
 
         var output = ByteBuffer
-            .allocate(accessor.count() * accessor.componentCount())
+            .allocate(accessor.count() * accessor.componentCount() * Short.BYTES)
             .order(ByteOrder.LITTLE_ENDIAN);
 
         // TODO: Figure what might've affected the order
         for (int i = 0; i < accessor.count(); i++) {
             output
-                .put(view.get(i, 1))
-                .put(view.get(i, 0))
-                .put((byte) 0)
-                .put((byte) 0);
+                .putShort(view.get(i, 1))
+                .putShort(view.get(i, 0))
+                .putShort((short) 0)
+                .putShort((short) 0);
         }
 
-        return Accessor.of(output.flip(), 0, Byte.BYTES * 4, new Type.I8(4, true, true), accessor.count());
+        return Accessor.of(output.flip(), 0, Short.BYTES * 4, new Type.I16(4, true, false), accessor.count());
     }
 
     private static Accessor buildBufferAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
@@ -113,7 +113,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
             case RGB_FLOAT_32 -> Accessor.of(data, 0, 12, new Type.F32(3), count);
             case RGBA_FLOAT_32 -> Accessor.of(data, 0, 16, new Type.F32(4), count);
             case RGBA_UINT_16 -> Accessor.of(data, 0, 8, new Type.I16(4, true, false), count);
-            case RGBA_INT_8 -> Accessor.of(data, 0, 4, new Type.I8(4, false, false), count);
+            case RGBA_UINT_8 -> Accessor.of(data, 0, 4, new Type.I8(4, true, false), count);
             default -> throw new IllegalStateException("Unsupported buffer format: " + buffer.format());
         };
     }
