@@ -2,7 +2,8 @@ package sh.adelessfox.odradek.app.ui.menu.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.editors.ObjectEditorActionIds;
+import sh.adelessfox.odradek.app.ui.editors.ObjectEditorMenu;
+import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
@@ -11,7 +12,7 @@ import sh.adelessfox.odradek.game.ObjectSupplier;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
+import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
@@ -24,10 +25,10 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", icon = "fugue:blue-document-export", keystroke = "ctrl E")
-@ActionContribution(parent = GraphMenu.ID, group = "2000,Export")
-@ActionContribution(parent = MainMenu.File.ID, group = "2000,Export")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = "4000,Export")
-@ActionContribution(parent = ObjectEditorActionIds.TOOLBAR_ID, group = ObjectEditorActionIds.TOOLBAR_GROUP_GENERAL)
+@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_EXPORT)
+@ActionContribution(parent = MainMenu.File.ID, group = MenuIds.GROUP_EXPORT)
+@ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_EXPORT)
+@ActionContribution(parent = ObjectEditorMenu.TOOLBAR_ID)
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
 

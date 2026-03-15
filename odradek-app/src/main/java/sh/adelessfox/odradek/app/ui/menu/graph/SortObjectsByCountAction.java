@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "Sort by count")
-@ActionContribution(parent = GraphMenu.ID, order = 2)
+@ActionContribution(parent = GraphMenu.ID)
 public class SortObjectsByCountAction extends AbstractObjectsOptionAction {
     @Override
     public boolean isVisible(ActionContext context) {

@@ -121,7 +121,7 @@ public final class ObjectEditor implements Editor, ObjectIdHolder, ObjectSupplie
         var pane = new FlatTabbedPane();
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-        pane.setLeadingComponent(Actions.createToolBar(ObjectEditorActionIds.TOOLBAR_ID, this));
+        pane.setLeadingComponent(Actions.createToolBar(ObjectEditorMenu.TOOLBAR_ID, this));
         pane.addChangeListener(_ -> {
             if (lastViewer != null) {
                 lastViewer.deactivate();

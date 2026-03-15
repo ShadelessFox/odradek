@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 
 @ActionRegistration(text = "Close &Other Tabs")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_CLOSE, order = 2000)
+@ActionContribution(parent = EditorMenu.ID, group = EditorMenu.GROUP_CLOSE, order = 2000)
 public class CloseOtherTabsAction extends Action {
     @Override
     public void perform(ActionContext context) {

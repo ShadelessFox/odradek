@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import java.util.Optional;
 
 @ActionRegistration(text = "&Move to Opposite Group", icon = "fugue:layout-join")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_SPLIT, order = 3000)
+@ActionContribution(parent = EditorMenu.ID, group = EditorMenu.GROUP_SPLIT, order = 3000)
 public class MoveToOppositeGroupAction extends Action {
     @Override
     public void perform(ActionContext context) {

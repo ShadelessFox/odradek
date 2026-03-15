@@ -11,7 +11,7 @@ import javax.swing.*;
 import java.util.Collection;
 import java.util.stream.Stream;
 
-public class AbstractBookmarkAction extends Action {
+abstract class AbstractBookmarkAction extends Action {
     protected static String promptName(ObjectId id, String name) {
         while (true) {
             name = (String) JOptionPane.showInputDialog(

@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "Group objects by type")
-@ActionContribution(parent = GraphMenu.ID, order = 1)
+@ActionContribution(parent = GraphMenu.ID)
 public class GroupObjectsByTypeAction extends AbstractObjectsOptionAction {
     @Override
     public boolean isVisible(ActionContext context) {

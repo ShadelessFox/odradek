@@ -10,7 +10,7 @@ import sh.adelessfox.odradek.ui.editors.Editor;
 import java.util.Optional;
 
 @ActionRegistration(text = "Close &All Tabs")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_CLOSE, order = 3000)
+@ActionContribution(parent = EditorMenu.ID, group = EditorMenu.GROUP_CLOSE, order = 3000)
 public class CloseAllTabsAction extends Action {
     @Override
     public void perform(ActionContext context) {

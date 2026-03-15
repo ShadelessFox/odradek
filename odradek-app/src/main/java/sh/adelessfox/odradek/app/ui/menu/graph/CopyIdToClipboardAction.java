@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.menu.graph;
 
 import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.BookmarkMenu;
+import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.Action;
@@ -8,7 +9,7 @@ import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
+import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import java.awt.*;
@@ -17,9 +18,9 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @ActionRegistration(text = "Copy Object &ID", icon = "fugue:blue-document-copy", keystroke = "ctrl shift C")
+@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_UTIL)
+@ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_UTIL)
 @ActionContribution(parent = BookmarkMenu.ID)
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_GENERAL)
-@ActionContribution(parent = GraphMenu.ID)
 public class CopyIdToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {

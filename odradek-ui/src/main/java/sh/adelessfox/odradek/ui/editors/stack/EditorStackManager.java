@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.EditorSite;
-import sh.adelessfox.odradek.ui.editors.actions.EditorActionIds;
+import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.ui.editors.stack.dnd.EditorStackDropOverlay;
 import sh.adelessfox.odradek.ui.editors.stack.dnd.EditorStackDropTarget;
 
@@ -175,7 +175,7 @@ public final class EditorStackManager implements EditorManager {
                 component.setComponent(component.editor.createComponent());
             }
         });
-        Actions.installContextMenu(stack, EditorActionIds.MENU_ID, key -> {
+        Actions.installContextMenu(stack, EditorMenu.ID, key -> {
             if (DataKeys.EDITOR_MANAGER.is(key)) {
                 return Optional.of(this);
             }

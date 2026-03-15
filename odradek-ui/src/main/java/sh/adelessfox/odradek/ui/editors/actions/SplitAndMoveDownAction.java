@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStack;
 
 @ActionRegistration(text = "Split and Move Down", icon = "fugue:layout-split-vertical")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_SPLIT, order = 2000)
+@ActionContribution(parent = EditorMenu.ID, group = EditorMenu.GROUP_SPLIT, order = 2000)
 public class SplitAndMoveDownAction extends Action {
     @Override
     public void perform(ActionContext context) {

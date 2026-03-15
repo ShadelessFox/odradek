@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 
 @ActionRegistration(text = "Change Orientation")
-@ActionContribution(parent = EditorActionIds.MENU_ID, group = EditorActionIds.MENU_GROUP_SPLIT, order = 4000)
+@ActionContribution(parent = EditorMenu.ID, group = EditorMenu.GROUP_SPLIT, order = 4000)
 public class ChangeSplitterOrientationAction extends Action {
     @Override
     public void perform(ActionContext context) {
