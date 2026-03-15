@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
+import java.util.Comparator;
 import java.util.List;
 
 public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
@@ -13,6 +14,7 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
         public List<? extends BookmarkStructure> getChildren() {
             return repository.getAll().stream()
                 .map(b -> new Bookmark(repository, b.objectId(), b.name()))
+                .sorted(Comparator.comparing(Bookmark::name))
                 .toList();
         }
 
