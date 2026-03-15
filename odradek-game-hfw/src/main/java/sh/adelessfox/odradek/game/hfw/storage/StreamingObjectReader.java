@@ -149,6 +149,10 @@ public class StreamingObjectReader extends HFWTypeReader {
             position += data.length;
         }
 
+        if (position != group.groupSize()) {
+            throw new IllegalStateException("Group size mismatch: expected " + group.groupSize() + " but read " + position);
+        }
+
         return new GroupResult(group, objects, ranges);
     }
 
