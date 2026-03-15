@@ -13,9 +13,6 @@ import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
-import sh.adelessfox.odradek.util.Gatherers;
-
-import java.util.Collection;
 
 @ActionRegistration(text = "Show &Usages", icon = "fugue:chain", keystroke = "alt F7")
 @ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_MISC)
@@ -24,11 +21,7 @@ import java.util.Collection;
 public final class ShowUsagesAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var holder = context.get(DataKeys.SELECTION_LIST).stream()
-            .flatMap(Collection::stream)
-            .map(ObjectIdHolder.class::cast)
-            .findFirst().orElseThrow();
-
+        var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
         var eventBus = Application.getInstance().events();
         eventBus.publish(new MainEvent.ShowPanel(MainView.USAGES_PANEL_ID));
         eventBus.publish(new MainEvent.ShowLinks(holder.objectId()));
@@ -36,9 +29,6 @@ public final class ShowUsagesAction extends Action {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION_LIST).stream()
-            .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(ObjectIdHolder.class))
-            .limit(2).count() == 1;
+        return context.get(DataKeys.SELECTION, ObjectIdHolder.class).isPresent();
     }
 }

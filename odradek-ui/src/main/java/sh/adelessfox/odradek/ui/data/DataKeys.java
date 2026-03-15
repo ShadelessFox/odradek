@@ -9,9 +9,6 @@ import javax.swing.*;
 import java.util.List;
 
 public final class DataKeys {
-    private DataKeys() {
-    }
-
     public static final DataKey<JComponent> COMPONENT = DataKey.create("component");
     public static final DataKey<Object> SELECTION = DataKey.create("selection");
     public static final DataKey<List<Object>> SELECTION_LIST = DataKey.create("selection list");
@@ -20,4 +17,7 @@ public final class DataKeys {
     public static final DataKey<EditorManager> EDITOR_MANAGER = DataKey.create("editor manager");
     public static final DataKey<EditorStack> EDITOR_STACK = DataKey.create("editor stack");
     public static final DataKey<Editor> EDITOR = DataKey.create("editor");
+
+    private DataKeys() {
+    }
 }

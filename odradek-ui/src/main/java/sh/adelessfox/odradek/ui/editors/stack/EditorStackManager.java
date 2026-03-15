@@ -182,7 +182,7 @@ public final class EditorStackManager implements EditorManager {
             if (DataKeys.EDITOR_STACK.is(key)) {
                 return Optional.of(stack);
             }
-            if (DataKeys.EDITOR.is(key)) {
+            if (DataKeys.EDITOR.is(key) || DataKeys.SELECTION.is(key)) {
                 return getSelectedEditor(stack).map(e -> e.editor);
             }
             if (DataKeys.SELECTION_LIST.is(key)) {

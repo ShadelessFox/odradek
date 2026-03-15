@@ -84,7 +84,10 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             return Optional.of(this);
         }
         if (DataKeys.SELECTION.is(key)) {
-            return Optional.ofNullable(getSelectionComponent(getSelectionPath()));
+            TreePath[] paths = getSelectionPaths();
+            if (paths != null && paths.length == 1) {
+                return Optional.of(getSelectionComponent(paths[0]));
+            }
         }
         if (DataKeys.SELECTION_LIST.is(key)) {
             TreePath[] paths = getSelectionPaths();
