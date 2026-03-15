@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.io;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -16,6 +17,8 @@ public interface BinaryWriter extends Closeable {
     static BinaryWriter open(Path path) throws IOException {
         return ChannelBinaryWriter.open(path);
     }
+
+    void write(ByteBuffer src) throws IOException;
 
     void writeByte(byte value) throws IOException;
 
@@ -34,9 +37,7 @@ public interface BinaryWriter extends Closeable {
     }
 
     default void writeBytes(byte[] values) throws IOException {
-        for (byte value : values) {
-            writeByte(value);
-        }
+        write(ByteBuffer.wrap(values));
     }
 
     default void writeShorts(short[] values) throws IOException {

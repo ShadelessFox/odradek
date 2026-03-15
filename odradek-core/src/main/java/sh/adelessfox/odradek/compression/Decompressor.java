@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 public abstract sealed class Decompressor
     permits LZ4Decompressor {
 
+    Decompressor() {
+    }
+
     public static Decompressor lz4() {
         return new LZ4Decompressor();
     }

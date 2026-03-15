@@ -33,7 +33,7 @@ public final class DirectStorageReader extends ChunkedBinaryReader {
     }
 
     @Override
-    protected void decompress(byte[] src, int srcLen, byte[] dst, int dstLen) throws IOException {
+    protected void decompress(byte[] src, int srcLen, byte[] dst, int dstLen) {
         Decompressor.lz4().decompress(src, srcLen, dst, dstLen);
     }
 

@@ -62,10 +62,19 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     public GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
-        return readGroup(id, new HashMap<>(), readSubgroups);
+        return readGroup(id, new HashMap<>(), readSubgroups, true);
     }
 
-    private GroupResult readGroup(int id, Map<Integer, GroupResult> cache, boolean readSubgroups) throws IOException {
+    public GroupResult readGroup(int id, boolean readSubgroups, boolean useCache) throws IOException {
+        return readGroup(id, new HashMap<>(), readSubgroups, useCache);
+    }
+
+    private GroupResult readGroup(
+        int id,
+        Map<Integer, GroupResult> cache,
+        boolean readSubgroups,
+        boolean useCache
+    ) throws IOException {
         var group = Objects.requireNonNull(graph.group(id), () -> "Group not found: " + id);
 
         if (log.isDebugEnabled()) {
@@ -75,7 +84,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         var result = cache.get(group.groupID());
         if (result == null) {
             depth++;
-            result = readGroup(group, cache, readSubgroups);
+            result = readGroup(group, cache, readSubgroups, useCache);
             cache.put(result.group.groupID(), result);
             depth--;
         }
@@ -86,25 +95,29 @@ public class StreamingObjectReader extends HFWTypeReader {
     private synchronized GroupResult readGroup(
         StreamingGroupData group,
         Map<Integer, GroupResult> groups,
-        boolean readSubgroups
+        boolean readSubgroups,
+        boolean useCache
     ) throws IOException {
         var subGroups = new ArrayList<GroupResult>(group.subGroupCount());
         if (readSubgroups) {
             for (int i = 0; i < group.subGroupCount(); i++) {
-                subGroups.add(readGroup(graph.subGroups()[group.subGroupStart() + i], groups, true));
+                subGroups.add(readGroup(graph.subGroups()[group.subGroupStart() + i], groups, true, useCache));
             }
         }
 
         currentSubGroups = subGroups;
         resolveStreamingLinksAndLocators = readSubgroups;
 
-        var result = cache.get(group.groupID());
-        if (result == null) {
-            result = readSingleGroup(group);
-            cache.put(group.groupID(), result);
+        if (useCache) {
+            var result = cache.get(group.groupID());
+            if (result == null) {
+                result = readSingleGroup(group);
+                cache.put(group.groupID(), result);
+            }
+            return result;
         }
 
-        return result;
+        return readSingleGroup(group);
     }
 
     private GroupResult readSingleGroup(StreamingGroupData group) throws IOException {
@@ -157,7 +170,12 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
+    protected void fillCompound(
+        ClassTypeInfo info,
+        BinaryReader reader,
+        TypeFactory factory,
+        Object object
+    ) throws IOException {
         super.fillCompound(info, reader, factory, object);
 
         if (object instanceof StreamingDataSource dataSource) {

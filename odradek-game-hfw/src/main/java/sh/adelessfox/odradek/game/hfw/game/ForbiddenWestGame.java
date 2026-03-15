@@ -43,6 +43,7 @@ public final class ForbiddenWestGame implements Game {
     private final ObjectStreamingSystem streamingSystem;
     private final StreamingObjectReader streamingReader;
     private final ForbiddenWestFileSystem fileSystem;
+    private final TypeFactory typeFactory;
 
     // NOTE: Add customization later
     private final ELanguage writtenLanguage = ELanguage.English;
@@ -62,7 +63,7 @@ public final class ForbiddenWestGame implements Game {
         fileSystem = new ForbiddenWestFileSystem(source, platform);
 
         log.debug("Loading type factory");
-        var typeFactory = new HFWTypeFactory();
+        typeFactory = new HFWTypeFactory();
 
         log.debug("Loading streaming graph");
         streamingGraph = readStreamingGraph(fileSystem, typeFactory);
@@ -109,6 +110,10 @@ public final class ForbiddenWestGame implements Game {
 
     public StreamingObjectReader getStreamingReader() {
         return streamingReader;
+    }
+
+    public TypeFactory getTypeFactory() {
+        return typeFactory;
     }
 
     public ELanguage getWrittenLanguage() {

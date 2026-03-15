@@ -20,6 +20,12 @@ public final class BytesBinaryWriter implements BinaryWriter {
     }
 
     @Override
+    public void write(ByteBuffer src) {
+        reserve(src.remaining());
+        buffer.put(src);
+    }
+
+    @Override
     public void writeByte(byte value) {
         reserve(Byte.BYTES);
         buffer.put(value);

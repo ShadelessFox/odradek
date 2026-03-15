@@ -23,6 +23,21 @@ final class ChannelBinaryWriter implements BinaryWriter {
     }
 
     @Override
+    public void write(ByteBuffer src) throws IOException {
+        int remaining = src.remaining();
+        if (remaining > buffer.capacity()) {
+            flush();
+            writeInternal(src);
+            position += remaining;
+            return;
+        }
+        if (remaining > buffer.remaining()) {
+            flush();
+        }
+        buffer.put(src);
+    }
+
+    @Override
     public void writeByte(byte value) throws IOException {
         reserve(Byte.BYTES);
         buffer.put(value);
@@ -67,17 +82,15 @@ final class ChannelBinaryWriter implements BinaryWriter {
     }
 
     @Override
-    public BinaryWriter order(ByteOrder order) throws IOException {
-        if (buffer.order() != order) {
-            flush();
-            buffer.order(order);
-        }
+    public BinaryWriter order(ByteOrder order) {
+        buffer.order(order);
         return this;
     }
 
     @Override
     public void close() throws IOException {
         flush();
+        channel.close();
     }
 
     private void reserve(int count) throws IOException {
@@ -93,13 +106,13 @@ final class ChannelBinaryWriter implements BinaryWriter {
         int count = buffer.position();
         if (count > 0) {
             buffer.flip();
-            write(buffer);
+            writeInternal(buffer);
             buffer.clear();
             position += count;
         }
     }
 
-    private void write(ByteBuffer src) throws IOException {
+    private void writeInternal(ByteBuffer src) throws IOException {
         while (src.hasRemaining()) {
             if (channel.write(src) < 0) {
                 throw new EOFException();
