@@ -9,7 +9,10 @@ import sh.adelessfox.odradek.util.OS;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
@@ -356,29 +359,6 @@ public final class Actions {
             }
 
             setEnabled(descriptor.action().isEnabled(context));
-        }
-
-        /**
-         * Copied from {@code com.formdev.flatlaf.ui.FlatMenuItemRenderer#getTextForAccelerator(KeyStroke)}
-         */
-        private static String getTextForAccelerator(KeyStroke accelerator) {
-            StringBuilder buf = new StringBuilder();
-
-            // modifiers
-            int modifiers = accelerator.getModifiers();
-            if (modifiers != 0) {
-                buf.append(InputEvent.getModifiersExText(modifiers)).append('+');
-            }
-
-            // key
-            int keyCode = accelerator.getKeyCode();
-            if (keyCode != 0) {
-                buf.append(KeyEvent.getKeyText(keyCode));
-            } else {
-                buf.append(accelerator.getKeyChar());
-            }
-
-            return buf.toString();
         }
     }
 
