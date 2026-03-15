@@ -44,7 +44,11 @@ public final class Actions {
         return toolBar;
     }
 
-    private static <T extends JComponent, R> void installContextMenu(T component, JPopupMenu popupMenu, SelectionProvider<? super T, R> selectionProvider) {
+    private static <T extends JComponent, R> void installContextMenu(
+        T component,
+        JPopupMenu popupMenu,
+        SelectionProvider<? super T, R> selectionProvider
+    ) {
         component.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -81,7 +85,12 @@ public final class Actions {
         actionMap.put(action, action);
     }
 
-    private static JPopupMenu createPopupMenu(JComponent component, String id, DataContext context, boolean includeSourceAction) {
+    private static JPopupMenu createPopupMenu(
+        JComponent component,
+        String id,
+        DataContext context,
+        boolean includeSourceAction
+    ) {
         JPopupMenu popupMenu = new JPopupMenu();
         popupMenu.addPopupMenuListener(new ActionPopupMenuListener(component, popupMenu, id, context, includeSourceAction));
         return popupMenu;
@@ -121,7 +130,12 @@ public final class Actions {
     }
 
     @SuppressWarnings("MagicConstant")
-    private static void populateActionBinding(JComponent component, ActionDescriptor descriptor, ActionContext context, int condition) {
+    private static void populateActionBinding(
+        JComponent component,
+        ActionDescriptor descriptor,
+        ActionContext context,
+        int condition
+    ) {
         if (descriptor.accelerator() == null) {
             return;
         }
@@ -261,7 +275,6 @@ public final class Actions {
         }
     }
 
-
     private static Map<String, List<GroupDescriptor>> loadGroups(Collection<ActionDescriptor> actions) {
         record ActionInfo(ActionDescriptor action, ActionContribution contribution) {
         }
@@ -279,6 +292,13 @@ public final class Actions {
                 GroupInfo info = collected
                     .computeIfAbsent(contribution.parent(), _ -> new HashMap<>())
                     .computeIfAbsent(groupId, _ -> new GroupInfo(groupId, groupOrder, new ArrayList<>()));
+
+                if (info.order() != groupOrder) {
+                    throw new IllegalArgumentException(
+                        "Registered group '" + groupId + "' has order of " + info.order()
+                            + " but contribution " + contribution + " of " + action.action.getClass().getName()
+                            + " has group order of " + groupOrder);
+                }
 
                 info.actions().add(new ActionInfo(action, contribution));
             }
@@ -570,8 +590,9 @@ public final class Actions {
                 }
                 field.set(menu, accelerator);
             } catch (Exception e) {
-                log.warn("Failed to set accelerator for menu '{}'; " +
-                    "accelerator will not be displayed in the menu", menu.getText(), e);
+                log.warn(
+                    "Failed to set accelerator for menu '{}'; " +
+                        "accelerator will not be displayed in the menu", menu.getText(), e);
             }
         }
     }
