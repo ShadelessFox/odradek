@@ -95,13 +95,12 @@ final class ToolPanelButton extends JComponent {
     }
 
     private Color getColor() {
-        boolean isSelected = group.isSelected(pane);
-        if (isSelected) {
-            boolean isFocused = isButtonOrChildFocused();
-            return isFocused ? focusedSelectedColor : selectionColor;
+        if (group.isSelected(pane)) {
+            return isButtonOrChildFocused() ? focusedSelectedColor : selectionColor;
+        } else if (rollover) {
+            return armed ? selectionColor : rolloverColor;
         } else {
-            boolean isRollover = rollover;
-            return isRollover ? rolloverColor : defaultColor;
+            return defaultColor;
         }
     }
 
@@ -128,12 +127,17 @@ final class ToolPanelButton extends JComponent {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            armed = true;
-            repaint();
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                armed = true;
+                repaint();
+            }
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            if (!SwingUtilities.isLeftMouseButton(e)) {
+                return;
+            }
             if (armed && rollover) {
                 clicked.run();
             }
