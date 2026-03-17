@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.data.jolt.physics.ragdoll.RagdollSettings;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.PhysicsRagdollResource;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.middleware.jolt.physics.ragdoll.RagdollSettings;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 

@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.data.jolt.physics.collision.PhysicsMaterial;
-import sh.adelessfox.odradek.game.hfw.data.jolt.physics.collision.shape.Shape;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.PhysicsShapeResource;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.middleware.jolt.physics.collision.PhysicsMaterial;
+import sh.adelessfox.odradek.middleware.jolt.physics.collision.shape.Shape;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 

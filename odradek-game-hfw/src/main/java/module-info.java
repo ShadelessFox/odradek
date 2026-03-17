@@ -83,6 +83,9 @@ module odradek.game.hfw {
     requires static odradek.rtti.generator;
 
     requires odradek.core;
+    requires odradek.middleware.edgeanim;
+    requires odradek.middleware.jolt;
+    requires odradek.middleware.riglogic;
     requires odradek.game;
     requires odradek.rtti;
     requires org.slf4j;

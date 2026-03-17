@@ -21,6 +21,18 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-middleware-edgeanim</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-middleware-jolt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-middleware-riglogic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-rtti</artifactId>
         </dependency>
         <dependency>

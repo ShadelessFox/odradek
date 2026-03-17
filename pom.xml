@@ -25,6 +25,10 @@
         <module>odradek-game</module>
         <module>odradek-game-hfw-ui</module>
         <module>odradek-game-hfw</module>
+        <module>odradek-game</module>
+        <module>odradek-middleware-edgeanim</module>
+        <module>odradek-middleware-jolt</module>
+        <module>odradek-middleware-riglogic</module>
         <module>odradek-opengl-awt</module>
         <module>odradek-opengl</module>
         <module>odradek-rtti-generator</module>
@@ -87,26 +91,6 @@
             </dependency>
             <dependency>
                 <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-game-hfw</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-game-hfw-ui</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-opengl</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-opengl-awt</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-rtti</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -120,6 +104,20 @@
                 <artifactId>odradek-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- OpenGL -->
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-opengl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-opengl-awt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Viewer -->
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-viewer-audio</artifactId>
@@ -140,6 +138,8 @@
                 <artifactId>odradek-viewer-texture</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- Export -->
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-cast</artifactId>
@@ -165,9 +165,38 @@
                 <artifactId>odradek-export-wave</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- Game -->
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-hfw</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-hfw-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- Middleware -->
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-middleware-edgeanim</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-middleware-jolt</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-middleware-riglogic</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
