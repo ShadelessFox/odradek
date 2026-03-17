@@ -13,6 +13,8 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.StandardLocation;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.constant.ClassDesc;
 import java.net.URL;
 import java.util.Set;
@@ -55,8 +57,11 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
 
             try {
                 generator.build().writeTo(filer);
-            } catch (IOException e) {
-                messager.printError("Am error occurred while writing generated code: " + e.getMessage());
+            } catch (Exception e) {
+                var sw = new StringWriter();
+                var pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                messager.printError("An error occurred while writing generated code:\n" + sw);
             }
         }
 
