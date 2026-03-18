@@ -233,7 +233,6 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
             case ClassTypeInfo i -> toTypeName(i);
             case EnumSetTypeInfo i -> ParameterizedTypeName.get(NAME_Value_OfEnumSet, toTypeName(i));
             case EnumTypeInfo i -> ParameterizedTypeName.get(NAME_Value_OfEnum, toTypeName(i));
-            case AtomTypeInfo i -> getBuiltin(i.base().name()).map(TypeName::get).orElseThrow();
             case AtomTypeInfo i -> getBuiltin(i.base().name())
                 .map(TypeName::get)
                 .orElseThrow(() -> new IllegalStateException("Builtin for atom type '" + i.base().name() + "' not found"));
