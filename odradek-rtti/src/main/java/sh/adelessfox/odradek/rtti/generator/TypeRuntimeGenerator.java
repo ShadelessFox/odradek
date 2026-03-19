@@ -436,6 +436,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             case ClassTypeInfo i -> toClassDesc(i);
             case EnumSetTypeInfo i -> useWrapperType ? CD_Value_OfEnumSet : toClassDesc(i);
             case EnumTypeInfo i -> useWrapperType ? CD_Value_OfEnum : toClassDesc(i);
+            case BitSetTypeInfo i -> useWrapperType ? CD_Value_OfEnum : toClassDesc(i.base());
             case AtomTypeInfo i -> getBuiltin(i.base().name())
                 .flatMap(Class::describeConstable)
                 .orElseThrow();

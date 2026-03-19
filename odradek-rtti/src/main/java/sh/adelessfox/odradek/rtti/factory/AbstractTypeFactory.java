@@ -11,10 +11,10 @@ import sh.adelessfox.odradek.rtti.generator.TypeContext;
 import sh.adelessfox.odradek.rtti.generator.TypeRuntimeGenerator;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -102,12 +102,12 @@ public abstract class AbstractTypeFactory implements TypeFactory {
 
     protected abstract void filterOrderedAttributes(List<OrderedAttr> attrs);
 
-    protected URL getTypes() {
-        return namespace.getClassLoader().getResource(getAnnotation().input().types());
+    protected InputStream getTypes() throws IOException {
+        return namespace.getModule().getResourceAsStream(getAnnotation().input().types());
     }
 
-    protected URL getExtensions() {
-        return namespace.getClassLoader().getResource(getAnnotation().input().extensions());
+    protected InputStream getExtensions() throws IOException {
+        return namespace.getModule().getResourceAsStream(getAnnotation().input().extensions());
     }
 
     protected Map<String, Class<?>> getBuiltins() {

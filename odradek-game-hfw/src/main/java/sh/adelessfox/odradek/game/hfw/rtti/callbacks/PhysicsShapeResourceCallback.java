@@ -67,5 +67,4 @@ public class PhysicsShapeResourceCallback implements ExtraBinaryDataCallback<Phy
 
         return shape;
     }
-
 }

@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.util.LruWeakCache;
 
 import java.io.IOException;
 import java.util.*;

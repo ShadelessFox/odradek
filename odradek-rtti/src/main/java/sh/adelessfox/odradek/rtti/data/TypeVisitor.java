@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.rtti.data;
 
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.rtti.*;
 
 public class TypeVisitor {
@@ -45,6 +46,7 @@ public class TypeVisitor {
             case ContainerTypeInfo i -> visitContainer(i, object, builder);
             case EnumTypeInfo i -> visitEnum(i, (Value<?>) object, builder);
             case PointerTypeInfo i -> visitPointer(i, object, builder);
+            case BitSetTypeInfo t -> throw new NotImplementedException(); // TODO;
         }
     }
 }
