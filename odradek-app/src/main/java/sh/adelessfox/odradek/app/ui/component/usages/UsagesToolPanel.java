@@ -13,10 +13,11 @@ import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.game.LinkDatabase;
+import sh.adelessfox.odradek.game.ds2.game.DS2Game;
+import sh.adelessfox.odradek.game.ds2.game.LinkDatabase;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -42,7 +43,7 @@ public final class UsagesToolPanel implements ToolPanel {
     private static final String CARD_SCANNING = "scanning";
     private static final String CARD_MAIN = "main";
 
-    private final ForbiddenWestGame game;
+    private final DS2Game game;
     private final EventBus appEventBus;
     private final Path config;
 
@@ -50,8 +51,8 @@ public final class UsagesToolPanel implements ToolPanel {
     private ObjectId pendingObjectId;
 
     @Inject
-    UsagesToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
-        this.game = game;
+    UsagesToolPanel(Game game, EventBus appEventBus, @Named("config") Path config) {
+        this.game = (DS2Game) game;
         this.appEventBus = appEventBus;
         this.config = config;
     }
@@ -165,7 +166,7 @@ public final class UsagesToolPanel implements ToolPanel {
         return panel;
     }
 
-    private JComponent createTreeView(EventBus eventBus, ForbiddenWestGame game) {
+    private JComponent createTreeView(EventBus eventBus, DS2Game game) {
         var tree = new StructuredTree<UsagesStructure>();
         tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
@@ -197,7 +198,7 @@ public final class UsagesToolPanel implements ToolPanel {
         return new JScrollPane(tree);
     }
 
-    private Path determineDatabasePath(ForbiddenWestGame game, Path config) {
+    private Path determineDatabasePath(DS2Game game, Path config) {
         try {
             return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
         } catch (IOException e) {
@@ -235,10 +236,10 @@ public final class UsagesToolPanel implements ToolPanel {
 
     private static class LoadDatabaseWorker extends SwingWorker<LinkDatabase, Void> {
         private final EventBus eventBus;
-        private final ForbiddenWestGame game;
+        private final DS2Game game;
         private final Path path;
 
-        LoadDatabaseWorker(EventBus eventBus, ForbiddenWestGame game, Path path) {
+        LoadDatabaseWorker(EventBus eventBus, DS2Game game, Path path) {
             this.eventBus = eventBus;
             this.game = game;
             this.path = path;
@@ -266,10 +267,10 @@ public final class UsagesToolPanel implements ToolPanel {
 
     private static class BuildDatabaseWorker extends SwingWorker<Void, Progress> {
         private final EventBus eventBus;
-        private final ForbiddenWestGame game;
+        private final DS2Game game;
         private final Path path;
 
-        BuildDatabaseWorker(EventBus eventBus, ForbiddenWestGame game, Path path) {
+        BuildDatabaseWorker(EventBus eventBus, DS2Game game, Path path) {
             this.eventBus = eventBus;
             this.game = game;
             this.path = path;

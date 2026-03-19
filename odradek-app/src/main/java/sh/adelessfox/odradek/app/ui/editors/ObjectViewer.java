@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
@@ -193,6 +194,7 @@ public final class ObjectViewer implements Viewer {
                 appendRow(buf, "Type", getTypeHierarchy(type, false));
                 appendRow(buf, "Base", getTypeHierarchy(i.base(), false));
             }
+
             case EnumTypeInfo i -> {
                 var value = (Value<?>) s.value();
                 appendSection(buf, "Enum");
@@ -218,6 +220,7 @@ public final class ObjectViewer implements Viewer {
                 appendRow(buf, "Name", i.pointerType());
                 appendRow(buf, "Item", getTypeHierarchy(i.itemType(), false));
             }
+            case BitSetTypeInfo _ -> throw new NotImplementedException(); // TODO
         }
         if (s instanceof ObjectStructure.Attr(_, _, var attr, _)) {
             appendSection(buf, "Attribute");
