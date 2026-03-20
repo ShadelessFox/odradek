@@ -27,7 +27,6 @@
         <module>odradek-game-hfw</module>
         <module>odradek-game</module>
         <module>odradek-middleware-edgeanim</module>
-        <module>odradek-middleware-jolt</module>
         <module>odradek-middleware-riglogic</module>
         <module>odradek-opengl-awt</module>
         <module>odradek-opengl</module>
@@ -192,11 +191,6 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-middleware-edgeanim</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-middleware-jolt</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

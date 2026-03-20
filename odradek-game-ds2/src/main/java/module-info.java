@@ -56,7 +56,8 @@ import java.math.BigInteger;
         @Callback(type = "DataBufferResource", handler = DataBufferResourceCallback.class),
         @Callback(type = "IndexArrayResource", handler = IndexArrayResourceCallback.class),
         @Callback(type = "LocalizedTextResource", handler = LocalizedTextResourceCallback.class),
-        // @Callback(type = "PhysicsShapeResource", handler = PhysicsShapeResourceCallback.class),
+        @Callback(type = "PhysicsRagdollResource", handler = PhysicsRagdollResourceCallback.class),
+        @Callback(type = "PhysicsShapeResource", handler = PhysicsShapeResourceCallback.class),
         @Callback(type = "ShaderResource", handler = ShaderResourceCallback.class),
         @Callback(type = "Texture", handler = TextureCallback.class),
         @Callback(type = "UITexture", handler = UITextureCallback.class),
@@ -75,7 +76,6 @@ module odradek.game.ds2 {
 
     requires odradek.core;
     requires odradek.middleware.edgeanim;
-    requires odradek.middleware.jolt;
     requires odradek.middleware.riglogic;
     requires odradek.game;
     requires odradek.rtti;

@@ -84,7 +84,6 @@ module odradek.game.hfw {
 
     requires odradek.core;
     requires odradek.middleware.edgeanim;
-    requires odradek.middleware.jolt;
     requires odradek.middleware.riglogic;
     requires odradek.game;
     requires odradek.rtti;
