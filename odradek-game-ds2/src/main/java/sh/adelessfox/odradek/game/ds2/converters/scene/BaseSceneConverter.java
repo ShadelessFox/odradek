@@ -29,9 +29,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
         assert shadingGroups.size() == primitiveResources.size();
 
-        for (int i = 0; i < shadingGroups.size(); i++) {
-            var primitive = primitiveResources.get(i).get();
-
+        for (var primitive : Ref.unwrap(primitiveResources)) {
             if (primitive.startIndex() > 0) {
                 throw new UnsupportedOperationException("startIndex > 0 is not supported");
             }
@@ -48,9 +46,9 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
                 computePrimitiveColor(primitive.hash() ^ primitive.hashCode())));
         }
 
-        // if (buffer.hasRemaining()) {
-        //     throw new IllegalStateException("Not all data was read from the buffer");
-        // }
+        if (buffer.hasRemaining()) {
+            throw new IllegalStateException("Not all data was read from the buffer");
+        }
 
         return Mesh.of(primitives);
     }
@@ -88,7 +86,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
             ByteBuffer view;
             if (object.isStreaming()) {
-                view = readBufferAligned(buffer, count, stride);
+                view = readBuffer(buffer, count, stride);
             } else {
                 view = ByteBuffer
                     .wrap(stream.data())
@@ -198,7 +196,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
         ByteBuffer view;
         if (object.isStreaming()) {
-            view = readBufferAligned(buffer, count, stride);
+            view = readBuffer(buffer, count, stride);
         } else {
             view = ByteBuffer
                 .wrap(object.data())
@@ -217,8 +215,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         );
     }
 
-    private static ByteBuffer readBufferAligned(ByteBuffer buffer, int count, int stride) {
-        int position = alignUp(buffer.position(), stride);
+    private static ByteBuffer readBuffer(ByteBuffer buffer, int count, int stride) {
+        int position = alignUp(alignUp(alignUp(buffer.position(), 16), stride), 16);
         int size = count * stride;
         var view = buffer
             .slice(position, size)
