@@ -216,15 +216,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
     }
 
     private static ByteBuffer readBuffer(ByteBuffer buffer, int count, int stride) {
-        int position;
-
-        // What the fuck?
-        position = buffer.position();
-        position = alignUp(position, stride);
-        position = alignUp(position, 16);
-        position = alignUp(position, stride);
-        position = alignUp(position, 16);
-
+        int position = align(buffer.position(), stride);
         int size = count * stride;
         var view = buffer
             .slice(position, size)
@@ -233,7 +225,19 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         return view;
     }
 
-    private static int alignUp(int value, int alignment) {
-        return Math.ceilDiv(value, alignment) * alignment;
+    private static int lcm(int c) {
+        int a = c;
+        int b = 16;
+        while (b != 0) {
+            int t = b;
+            b = a % b;
+            a = t;
+        }
+        return (c << 4) / a;
+    }
+
+    private static int align(int value, int granularity) {
+        int target = lcm(granularity);
+        return Math.ceilDiv(value, target) * target;
     }
 }
