@@ -1,4 +1,4 @@
---- odradek-game-ds2/src/main/resources/ds2.json	2026-03-18 00:08:55.313281800 +0100
+--- odradek-game-ds2/src/main/resources/types.json	2026-03-18 00:08:55.313281800 +0100
 +++ odradek-game-ds2/src/main/resources/types.json	2026-03-17 21:47:34.998685900 +0100
 @@ -23790,7 +23790,7 @@
  			{"name": "TargetUseLocation", "type": "UUIDRef_UseLocationResource", "offset": 32, "flags": 32},
