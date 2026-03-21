@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextureFrames> {
+public final class UITextureFramesCallback implements ExtraBinaryDataCallback<UITextureFrames> {
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, UITextureFrames object) throws IOException {
         read(reader, factory, object);

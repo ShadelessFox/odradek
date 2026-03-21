@@ -96,7 +96,8 @@ module odradek.game.ds2 {
     provides sh.adelessfox.odradek.game.Converter with
         sh.adelessfox.odradek.game.ds2.converters.scene.MeshToSceneConverter,
         sh.adelessfox.odradek.game.ds2.converters.texture.TextureToTextureConverter,
-        sh.adelessfox.odradek.game.ds2.converters.texture.UITextureToTextureConverter;
+        sh.adelessfox.odradek.game.ds2.converters.texture.UITextureToTextureConverter,
+        sh.adelessfox.odradek.game.ds2.converters.StreamingDataSourceToBytesConverter;
 
     provides sh.adelessfox.odradek.game.Game.Provider with
         sh.adelessfox.odradek.game.ds2.game.DS2Game.Provider;

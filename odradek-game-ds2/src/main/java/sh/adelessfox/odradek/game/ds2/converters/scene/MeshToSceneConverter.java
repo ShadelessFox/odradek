@@ -49,7 +49,7 @@ public final class MeshToSceneConverter
             || PrefabResource.class.isAssignableFrom(cls)
             || PrefabInstance.class.isAssignableFrom(cls)
             || MockupGeometry.class.isAssignableFrom(cls)
-            || HairResource.class.isAssignableFrom(cls);
+            || ArtPartsModelResource.class.isAssignableFrom(cls);
     }
 
     private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, DS2Game game) {
@@ -76,11 +76,26 @@ public final class MeshToSceneConverter
             case PrefabResource r -> convertPrefabResource(context, r, game);
             case PrefabInstance r -> convertPrefabInstance(context, r, game);
             case MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
             }
         };
+    }
+
+    private static Optional<Node> convertArtPartsModelResource(
+        Context context,
+        ArtPartsModelResource resource,
+        DS2Game game
+    ) {
+        var children = resource.general().modelPartResources().stream()
+            .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
+            .map(mesh -> convertNodeIfAbsent(context, mesh.get(), game))
+            .flatMap(Optional::stream)
+            .toList();
+
+        return Node.of(children);
     }
 
     private static Optional<Node> convertMockupGeometry(

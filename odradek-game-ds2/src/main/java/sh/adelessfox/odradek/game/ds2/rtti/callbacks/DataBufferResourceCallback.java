@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class DataBufferResourceCallback implements ExtraBinaryDataCallback<DataBufferResource> {
+public final class DataBufferResourceCallback implements ExtraBinaryDataCallback<DataBufferResource> {
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, DataBufferResource object) throws IOException {
         var count = reader.readInt();

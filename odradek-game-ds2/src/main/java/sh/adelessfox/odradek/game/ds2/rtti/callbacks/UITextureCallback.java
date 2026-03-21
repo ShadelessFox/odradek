@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class UITextureCallback implements ExtraBinaryDataCallback<UITexture> {
+public final class UITextureCallback implements ExtraBinaryDataCallback<UITexture> {
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, UITexture object) throws IOException {
         var animated = reader.readByteBoolean();
