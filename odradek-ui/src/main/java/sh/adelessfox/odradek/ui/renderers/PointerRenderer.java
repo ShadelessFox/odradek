@@ -14,7 +14,7 @@ public class PointerRenderer implements Renderer.OfObject<Object, Game> {
     @Override
     public Optional<StyledText> styledText(TypeInfo info, Object object, Game game) {
         if (object instanceof ObjectHolder<?> holder && holder.object() instanceof TypedObject to) {
-            return Renderer.renderer(to.getType())
+            return Renderer.renderer(to.getType(), game)
                 .flatMap(x -> x.styledText(to.getType(), to, game));
         }
         return Optional.empty();
@@ -26,7 +26,7 @@ public class PointerRenderer implements Renderer.OfObject<Object, Game> {
             return Optional.of("null");
         }
         if (object instanceof ObjectHolder<?> holder && holder.object() instanceof TypedObject to) {
-            return Renderer.renderer(to.getType())
+            return Renderer.renderer(to.getType(), game)
                 .flatMap(x -> x.text(to.getType(), to, game))
                 .or(() -> Optional.of("<%s>".formatted(to.getType().name())));
         }

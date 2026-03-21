@@ -140,8 +140,8 @@ public final class ObjectViewer implements Viewer {
         var renderer = (Renderer<Object, Game>) null;
 
         // Special handling for attributes
-        if (structure instanceof ObjectStructure.Attr(_, var clazz, var attr, var object)) {
-            renderer = Renderer.renderer(clazz, attr).orElse(null);
+        if (structure instanceof ObjectStructure.Attr(var game, var clazz, var attr, var object)) {
+            renderer = Renderer.renderer(clazz, attr, game).orElse(null);
 
             // For attribute renderers, the parent type/object is passed
             if (renderer != null) {
@@ -152,7 +152,7 @@ public final class ObjectViewer implements Viewer {
 
         // If we couldn't find an attribute-specific renderer, try type-based renderer
         if (renderer == null) {
-            renderer = Renderer.renderer(type).orElse(null);
+            renderer = Renderer.renderer(type, structure.game()).orElse(null);
         }
 
         if (renderer != null) {

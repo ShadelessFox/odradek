@@ -44,6 +44,13 @@ public interface Renderer<T, G extends Game> {
                 .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
                 .orElseThrow();
         }
+
+        @SuppressWarnings("unchecked")
+        default Class<G> gameType() {
+            return Reflections.getGenericInterface(getClass(), OfObject.class)
+                .map(iface -> (Class<G>) Reflections.getRawType(iface.getActualTypeArguments()[1]))
+                .orElseThrow();
+        }
     }
 
     interface OfAttribute<T, G extends Game> extends Renderer<T, G> {
@@ -57,8 +64,20 @@ public interface Renderer<T, G extends Game> {
          * @param attr class attribute info
          * @return {@code true} if this renderer supports the given attribute
          */
-        default boolean supports(ClassTypeInfo info, ClassAttrInfo attr) {
-            return false;
+        boolean supports(ClassTypeInfo info, ClassAttrInfo attr);
+
+        @SuppressWarnings("unchecked")
+        default Class<T> supportedType() {
+            return Reflections.getGenericInterface(getClass(), OfAttribute.class)
+                .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
+                .orElseThrow();
+        }
+
+        @SuppressWarnings("unchecked")
+        default Class<G> gameType() {
+            return Reflections.getGenericInterface(getClass(), OfAttribute.class)
+                .map(iface -> (Class<G>) Reflections.getRawType(iface.getActualTypeArguments()[1]))
+                .orElseThrow();
         }
     }
 
@@ -72,19 +91,19 @@ public interface Renderer<T, G extends Game> {
     }
 
     @SuppressWarnings("unchecked")
-    static <T, G extends Game> Optional<OfObject<T, G>> renderer(TypeInfo info) {
+    static <T, G extends Game> Optional<OfObject<T, G>> renderer(TypeInfo info, G game) {
         return renderers()
             .gather(Gatherers.instanceOf(OfObject.class))
-            .filter(r -> r.supports(info))
+            .filter(r -> r.gameType().isInstance(game) && r.supports(info))
             .map(r -> (OfObject<T, G>) r)
             .findFirst();
     }
 
     @SuppressWarnings("unchecked")
-    static <T, G extends Game> Optional<OfAttribute<T, G>> renderer(ClassTypeInfo parent, ClassAttrInfo attr) {
+    static <T, G extends Game> Optional<OfAttribute<T, G>> renderer(ClassTypeInfo parent, ClassAttrInfo attr, G game) {
         return renderers()
             .gather(Gatherers.instanceOf(OfAttribute.class))
-            .filter(r -> r.supports(parent, attr))
+            .filter(r -> r.gameType().isInstance(game) && r.supports(parent, attr))
             .map(r -> (OfAttribute<T, G>) r)
             .findFirst();
     }
