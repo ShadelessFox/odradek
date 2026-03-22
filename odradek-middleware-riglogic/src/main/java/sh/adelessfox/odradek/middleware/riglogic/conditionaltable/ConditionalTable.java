@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import java.io.IOException;
 
 public record ConditionalTable(
+    short[] intervalsRemaining,
     short[] inputIndices,
     short[] outputIndices,
     float[] fromValues,
@@ -16,6 +17,7 @@ public record ConditionalTable(
 ) {
     public static ConditionalTable read(BinaryReader reader) throws IOException {
         return new ConditionalTable(
+            reader.readShorts(reader.readInt()),
             reader.readShorts(reader.readInt()),
             reader.readShorts(reader.readInt()),
             reader.readFloats(reader.readInt()),

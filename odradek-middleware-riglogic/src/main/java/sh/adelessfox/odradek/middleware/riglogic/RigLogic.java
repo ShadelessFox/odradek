@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.middleware.riglogic.controls.Controls;
 import sh.adelessfox.odradek.middleware.riglogic.joints.Joints;
 
 import java.io.IOException;
+import java.nio.ByteOrder;
 
 public record RigLogic(
     Configuration config,
@@ -17,13 +18,17 @@ public record RigLogic(
     AnimatedMaps animatedMaps
 ) {
     public static RigLogic read(BinaryReader reader) throws IOException {
-        return new RigLogic(
-            Configuration.read(reader),
-            RigMetrics.read(reader),
-            Controls.read(reader),
-            Joints.read(reader),
-            BlendShapes.read(reader),
-            AnimatedMaps.read(reader)
-        );
+        reader.order(ByteOrder.BIG_ENDIAN);
+
+        var config = Configuration.read(reader);
+        var metrics = RigMetrics.read(reader);
+        var controls = Controls.read(reader);
+        var joints = Joints.read(config, reader);
+        var blendShapes = config.loadBlendShapes() ? BlendShapes.read(reader) : null;
+        var animatedMaps = config.loadAnimatedMaps() ? AnimatedMaps.read(reader) : null;
+
+        reader.order(ByteOrder.LITTLE_ENDIAN);
+
+        return new RigLogic(config, metrics, controls, joints, blendShapes, animatedMaps);
     }
 }
