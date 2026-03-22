@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -22,8 +23,8 @@ public abstract class AbstractTypeReader {
         };
     }
 
-    protected Object readCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        Object object = factory.newInstance(info);
+    protected TypedObject readCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        var object = factory.newInstance(info);
         fillCompound(info, reader, factory, object);
         return object;
     }

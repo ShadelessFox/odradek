@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.rtti.ClassAttrInfo;
 import sh.adelessfox.odradek.rtti.ClassBaseInfo;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings;
 import sh.adelessfox.odradek.rtti.generator.TypeContext;
 import sh.adelessfox.odradek.rtti.generator.TypeRuntimeGenerator;
@@ -74,7 +75,7 @@ public abstract class AbstractTypeFactory implements TypeFactory {
 
     @Override
     @SuppressWarnings({"deprecation", "unchecked"})
-    public <T> T newInstance(ClassTypeInfo info) {
+    public <T extends TypedObject> T newInstance(ClassTypeInfo info) {
         Class<?> clazz = classes.computeIfAbsent(info, generator::lookup);
         try {
             return (T) clazz.newInstance();

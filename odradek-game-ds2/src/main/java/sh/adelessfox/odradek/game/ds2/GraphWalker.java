@@ -105,7 +105,7 @@ public final class GraphWalker {
                 if (result != null) {
                     var objects = result.objects();
                     for (int i = nextObjectIndex; i < objects.size(); i++) {
-                        var object = objects.get(i).object();
+                        var object = objects.get(i);
                         if (ofType.isInstance(object)) {
                             action.accept(new SearchResult<>(new ObjectId(result.group().groupID(), i), ofType.cast(object)));
                             nextObjectIndex = i + 1;

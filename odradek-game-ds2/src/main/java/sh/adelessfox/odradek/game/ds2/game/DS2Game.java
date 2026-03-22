@@ -91,7 +91,7 @@ public final class DS2Game implements Game {
     @Override
     public TypedObject readObject(int groupId, int objectIndex) throws IOException {
         synchronized (streamingReader) {
-            return streamingReader.readGroup(groupId).objects().get(objectIndex).object();
+            return streamingReader.readGroup(groupId).objects().get(objectIndex);
         }
     }
 
@@ -131,7 +131,7 @@ public final class DS2Game implements Game {
     ) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new DS2TypeReader().readObject(reader, typeFactory);
-            var graph = (DS2.StreamingGraphResource) result.object();
+            var graph = (DS2.StreamingGraphResource) result;
             return new StreamingGraphResource(graph, typeFactory);
         }
     }

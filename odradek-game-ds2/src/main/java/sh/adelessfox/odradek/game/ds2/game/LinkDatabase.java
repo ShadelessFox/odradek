@@ -156,7 +156,7 @@ public final class LinkDatabase implements LinkProvider {
         var objects = new ArrayList<ObjectInfo>(group.numObjects());
 
         for (int i = 0; i < group.numObjects(); i++) {
-            objects.add(visitObject(result.objects().get(i).object()));
+            objects.add(visitObject(result.objects().get(i)));
         }
 
         return new GroupInfo(group, objects);

@@ -39,19 +39,20 @@ public final class ObjectStreamingSystem {
     }
 
     public byte[] getFileData(String file, long offset, long length) throws IOException {
-        var reader = device.resolve(file);
         var buffer = new byte[Math.toIntExact(length)];
+        readFileData(file, offset, buffer, 0, Math.toIntExact(length));
+        return buffer;
+    }
 
+    public void readFileData(String file, long offset, byte[] dst, int dstOff, int length) throws IOException {
+        var reader = device.resolve(file);
         if (length == 0) {
-            return buffer;
+            return;
         }
-
         synchronized (reader) {
             reader.position(offset);
-            reader.readBytes(buffer, 0, buffer.length);
+            reader.readBytes(dst, dstOff, length);
         }
-
-        return buffer;
     }
 
     public StreamingGraphResource graph() {

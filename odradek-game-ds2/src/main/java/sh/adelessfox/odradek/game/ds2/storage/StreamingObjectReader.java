@@ -32,7 +32,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
     private int streamingLocatorIndex;
     private int depth;
 
-    public record GroupResult(StreamingGroupData group, List<ObjectInfo> objects) {
+    public record GroupResult(StreamingGroupData group, List<RTTIRefObject> objects) {
         public GroupResult {
             objects = List.copyOf(objects);
         }
@@ -41,9 +41,6 @@ public final class StreamingObjectReader extends DS2TypeReader {
         public String toString() {
             return "GroupInfo[group=" + group + ", objects=" + objects.size() + "]";
         }
-    }
-
-    public record ObjectResult(GroupResult group, ObjectInfo object) {
     }
 
     public StreamingObjectReader(ObjectStreamingSystem system, TypeFactory factory) {
@@ -103,11 +100,11 @@ public final class StreamingObjectReader extends DS2TypeReader {
     }
 
     private GroupResult readSingleGroup(StreamingGroupData group) throws IOException {
-        var objects = new ArrayList<ObjectInfo>(group.numObjects());
+        var objects = new ArrayList<RTTIRefObject>(group.numObjects());
         for (int i = 0; i < group.numObjects(); i++) {
             var type = graph.types().get(group.typeStart() + objects.size());
             var object = (RTTIRefObject) factory.newInstance(type);
-            objects.add(new ObjectInfo(type, object));
+            objects.add(object);
         }
 
         var result = new GroupResult(group, objects);
@@ -116,33 +113,29 @@ public final class StreamingObjectReader extends DS2TypeReader {
         streamingLinkIndex = group.linkStart();
         streamingLocatorIndex = group.locatorStart();
 
-        for (int i = 0, j = 0; i < group.spanCount(); i++) {
+        var data = new byte[Math.toIntExact(group.groupSize())];
+        for (int i = 0, o = 0; i < group.spanCount(); i++) {
             var span = graph.spanTable().get(group.spanStart() + i);
-            var data = getSpanData(span);
-            var reader = BinaryReader.wrap(data);
+            readSpanData(span, data, o);
+            o += span.length();
+        }
 
-            while (reader.remaining() > 0) {
-                var object = objects.get(j++);
-
-                if (log.isDebugEnabled()) {
-                    log.debug(
-                        "{}Reading {} in {} at offset {}",
-                        indent(),
-                        Colors.yellow(object.type()),
-                        Colors.yellow(getSpanFile(span)),
-                        Colors.blue(span.offset() + reader.position())
-                    );
-                }
-
-                fillCompound(object.type(), reader, factory, object.object());
-            }
+        var reader = BinaryReader.wrap(data);
+        for (int i = 0; i < group.numObjects(); i++) {
+            var object = objects.get(i);
+            fillCompound(object.getType(), reader, factory, object);
         }
 
         return result;
     }
 
     @Override
-    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
+    protected void fillCompound(
+        ClassTypeInfo info,
+        BinaryReader reader,
+        TypeFactory factory,
+        Object object
+    ) throws IOException {
         super.fillCompound(info, reader, factory, object);
 
         if (object instanceof StreamingDataSource dataSource) {
@@ -199,7 +192,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
                 // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
                 return new StreamingRef<>(new ObjectId(linkGroup, linkIndex));
             } else {
-                // No idea how to resolve it otherwise. Presumably points to a runtime singleton?
+                // No idea how to resolve it otherwise. Has something to do with StreamingGraphResource.UUIDLinkTable
                 return null;
             }
         }
@@ -214,14 +207,14 @@ public final class StreamingObjectReader extends DS2TypeReader {
         }
 
         var object = group.objects().get(linkIndex);
-        var matches = info.itemType().asClass().isAssignableFrom(object.type());
+        var matches = info.itemType().asClass().isAssignableFrom(object.getType());
 
         if (log.isDebugEnabled()) {
             log.debug(
                 "{}Resolving {} to object {} (index: {}) in group {} (index: {})",
                 indent(),
                 Colors.yellow(info.name()),
-                Colors.yellow(object.type()),
+                Colors.yellow(object.getType()),
                 Colors.blue(linkIndex),
                 Colors.blue(group.group.groupID()),
                 Colors.blue(linkGroup)
@@ -229,14 +222,22 @@ public final class StreamingObjectReader extends DS2TypeReader {
         }
 
         if (!matches) {
-            throw new IllegalStateException("Type mismatch for pointer");
+            // FIXME must be a fatal error
+            // throw new IllegalStateException("Type mismatch for pointer");
+            log.error(
+                "Type mismatch for {}: resolved to {} ({}:{})",
+                info,
+                object.getType(),
+                group.group.groupID(),
+                linkIndex);
+            return null;
         }
 
         var objectId = new ObjectId(group.group().groupID(), linkIndex);
         return switch (pointerType) {
-            case "Ref" -> new Ref<>(objectId, object.object());
-            case "WeakPtr" -> new WeakPtr<>(objectId, object.object());
-            case "cptr" -> new CPtr<>(objectId, object.object());
+            case "Ref" -> new Ref<>(objectId, object);
+            case "WeakPtr" -> new WeakPtr<>(objectId, object);
+            case "cptr" -> new CPtr<>(objectId, object);
             default -> throw new UnsupportedOperationException("Unsupported pointer type: " + pointerType);
         };
     }
@@ -245,8 +246,8 @@ public final class StreamingObjectReader extends DS2TypeReader {
         return "\t".repeat(depth);
     }
 
-    private byte[] getSpanData(StreamingSourceSpan span) throws IOException {
-        return system.getFileData(getSpanFile(span), span.offset(), span.length());
+    private void readSpanData(StreamingSourceSpan span, byte[] dst, int dstOff) throws IOException {
+        system.readFileData(getSpanFile(span), span.offset(), dst, dstOff, span.length());
     }
 
     private String getSpanFile(StreamingSourceSpan span) {

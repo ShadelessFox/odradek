@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.game.ds2.rtti.data.MotionMatchingVecN;
 import sh.adelessfox.odradek.hashing.HashFunction;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
@@ -13,18 +14,13 @@ import java.lang.invoke.VarHandle;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
-import static sh.adelessfox.odradek.game.ds2.rtti.DS2.RTTIRefObject;
-
 public class DS2TypeReader extends AbstractTypeReader {
-    public record ObjectInfo(ClassTypeInfo type, RTTIRefObject object) {
-    }
-
     public static <T> T readCompound(Class<T> cls, BinaryReader reader, TypeFactory factory) throws IOException {
         var type = factory.get(cls.getSimpleName()).asClass();
         return cls.cast(new DS2TypeReader().readCompound(type, reader, factory));
     }
 
-    public ObjectInfo readObject(BinaryReader reader, TypeFactory factory) throws IOException {
+    public TypedObject readObject(BinaryReader reader, TypeFactory factory) throws IOException {
         var hash = reader.readLong();
         var size = reader.readInt();
         var type = factory.get(DS2TypeId.of(hash)).asClass();
@@ -37,11 +33,12 @@ public class DS2TypeReader extends AbstractTypeReader {
             throw new IllegalStateException("Size mismatch for %s: %d (actual) != %d (expected)".formatted(type.name(), end - start, size));
         }
 
-        if (!(object instanceof RTTIRefObject refObject)) {
-            throw new IllegalStateException("Expected RTTIRefObject, got " + type.name());
+        int numLinks = reader.readInt();
+        if (numLinks != 0) {
+            throw new IllegalStateException("Expected 0 links, got " + numLinks);
         }
 
-        return new ObjectInfo(type, refObject);
+        return object;
     }
 
     @Override
