@@ -126,6 +126,23 @@ public final class StreamingObjectReader extends DS2TypeReader {
             fillCompound(object.getType(), reader, factory, object);
         }
 
+        if (reader.remaining() > 0) {
+            throw new IOException("Not all data was read for group " + group.groupID()
+                + ": " + reader.remaining() + " bytes remaining");
+        }
+
+        if (resolveStreamingLinksAndLocators) {
+            if (streamingLinkIndex != group.linkStart() + group.linkSize()) {
+                throw new IOException("Not all links were read for group " + group.groupID() + ": "
+                    + (group.linkStart() + group.linkSize() - streamingLinkIndex) + " links remaining");
+            }
+
+            if (streamingLocatorIndex != group.locatorStart() + group.locatorCount()) {
+                throw new IOException("Not all locators were read for group " + group.groupID() + ": "
+                    + (group.locatorStart() + group.locatorCount() - streamingLocatorIndex) + " locators remaining");
+            }
+        }
+
         return result;
     }
 
@@ -222,8 +239,6 @@ public final class StreamingObjectReader extends DS2TypeReader {
         }
 
         if (!matches) {
-            // FIXME must be a fatal error
-            // throw new IllegalStateException("Type mismatch for pointer");
             log.error(
                 "Type mismatch for {}: resolved to {} ({}:{})",
                 info,
