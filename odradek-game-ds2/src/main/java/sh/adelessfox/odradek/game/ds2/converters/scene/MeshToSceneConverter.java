@@ -89,7 +89,7 @@ public final class MeshToSceneConverter
         ArtPartsModelResource resource,
         DS2Game game
     ) {
-        var children = resource.general().modelPartResources().stream()
+        var children = resource.general().expandedModelPartResources().stream()
             .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
             .map(mesh -> convertNodeIfAbsent(context, mesh.get(), game))
             .flatMap(Optional::stream)
