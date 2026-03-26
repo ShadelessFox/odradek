@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.game.ds2.rtti.callbacks;
 
+import sh.adelessfox.odradek.game.ds2.middleware.riglogic.RigLogic;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2.FacialRigSettingWithLODResource;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.middleware.riglogic.RigLogic;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 

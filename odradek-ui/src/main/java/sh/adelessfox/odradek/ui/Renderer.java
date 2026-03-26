@@ -38,6 +38,7 @@ public interface Renderer<T, G extends Game> {
             return supportedType().isAssignableFrom(info.type());
         }
 
+        @Override
         @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
             return Reflections.getGenericInterface(getClass(), OfObject.class)
@@ -45,6 +46,7 @@ public interface Renderer<T, G extends Game> {
                 .orElseThrow();
         }
 
+        @Override
         @SuppressWarnings("unchecked")
         default Class<G> gameType() {
             return Reflections.getGenericInterface(getClass(), OfObject.class)
@@ -66,6 +68,7 @@ public interface Renderer<T, G extends Game> {
          */
         boolean supports(ClassTypeInfo info, ClassAttrInfo attr);
 
+        @Override
         @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
             return Reflections.getGenericInterface(getClass(), OfAttribute.class)
@@ -73,6 +76,7 @@ public interface Renderer<T, G extends Game> {
                 .orElseThrow();
         }
 
+        @Override
         @SuppressWarnings("unchecked")
         default Class<G> gameType() {
             return Reflections.getGenericInterface(getClass(), OfAttribute.class)
@@ -139,4 +143,8 @@ public interface Renderer<T, G extends Game> {
     default Optional<StyledText> styledText(TypeInfo info, T object, G game) {
         return Optional.empty();
     }
+
+    Class<T> supportedType();
+
+    Class<G> gameType();
 }
