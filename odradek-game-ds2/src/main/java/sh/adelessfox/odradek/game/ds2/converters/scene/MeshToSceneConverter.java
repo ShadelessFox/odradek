@@ -100,7 +100,7 @@ public final class MeshToSceneConverter
             case StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
             case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, skeleton, repSkeleton, game);
             case LodMeshResource r -> convertLodMeshResource(context, r, skeleton, repSkeleton, game);
-            case MultiMeshResource r -> convertMultiMeshResource(context, r, game);
+            case MultiMeshResource r -> convertMultiMeshResource(context, r, skeleton, repSkeleton, game);
             case BodyVariant r -> convertBodyVariant(context, r, game);
             case SkinnedModelResource r -> convertSkinnedModelResource(context, r, skeleton, repSkeleton, game);
             case DestructibilityPart r -> convertDestructibilityPart(context, r, game);
@@ -473,6 +473,28 @@ public final class MeshToSceneConverter
         return Node.of(children);
     }
 
+    private static Optional<Node> convertMultiMeshResource(
+        Context context,
+        MultiMeshResource resource,
+        Skeleton skeleton,
+        Skeleton repSkeleton,
+        DS2Game game
+    ) {
+        var meshes = resource.meshes();
+        var transforms = resource.transforms();
+        var children = IntStream.range(0, meshes.size())
+            .mapToObj(i -> convertMultiMeshResourcePart(context,
+                meshes.get(i).get(),
+                skeleton,
+                repSkeleton,
+                transforms.isEmpty() ? null : transforms.get(i),
+                game))
+            .flatMap(Optional::stream)
+            .toList();
+
+        return Node.of(children);
+    }
+
     private static Optional<Node> convertMultiMeshResourcePart(
         Context context,
         MeshResourceBase resource,
@@ -480,6 +502,20 @@ public final class MeshToSceneConverter
         DS2Game game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
+        var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
+
+        return child.map(c -> c.transform(matrix));
+    }
+
+    private static Optional<Node> convertMultiMeshResourcePart(
+        Context context,
+        MeshResourceBase resource,
+        Skeleton skeleton,
+        Skeleton repSkeleton,
+        Mat34 transform,
+        DS2Game game
+    ) {
+        var child = convertNodeIfAbsent(context, resource, skeleton, repSkeleton, game);
         var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
 
         return child.map(c -> c.transform(matrix));
