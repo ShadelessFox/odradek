@@ -26,6 +26,7 @@ module odradek.app {
     requires odradek.export.cast;
     requires odradek.export.dds;
     requires odradek.export.json;
+    requires odradek.export.png;
     requires odradek.export.wave;
 
     // Viewers
