@@ -128,6 +128,11 @@ public final class MeshToSceneConverter
         DS2Game game
     ) {
         var children = new ArrayList<Node>();
+
+        for (var coverModel : Ref.unwrap(resource.coverModels().coverModelResources())) {
+            convertNodeIfAbsent(context, coverModel, game).ifPresent(children::add);
+        }
+
         if (resource.general().mainModelResource() != null) {
             var mainModel = resource.general().mainModelResource().get();
             convertNodeIfAbsent(context, mainModel, game).ifPresent(children::add);
@@ -135,6 +140,22 @@ public final class MeshToSceneConverter
         if (resource.facialModels().facialAModelResource() != null) {
             var faceModel = resource.facialModels().facialAModelResource().get();
             convertNodeIfAbsent(context, faceModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().hairAModelResource() != null) {
+            var hairModel = resource.coverAndAnimModels().hairAModelResource().get();
+            convertNodeIfAbsent(context, hairModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().clothAModelResource() != null) {
+            var clothAModel = resource.coverAndAnimModels().clothAModelResource().get();
+            convertNodeIfAbsent(context, clothAModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().clothBModelResource() != null) {
+            var clothBModel = resource.coverAndAnimModels().clothBModelResource().get();
+            convertNodeIfAbsent(context, clothBModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().clothCModelResource() != null) {
+            var clothCModel = resource.coverAndAnimModels().clothCModelResource().get();
+            convertNodeIfAbsent(context, clothCModel, game).ifPresent(children::add);
         }
 
         if (children.isEmpty()) {
