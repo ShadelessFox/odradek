@@ -9,12 +9,21 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>odradek-middleware-riglogic</artifactId>
+    <artifactId>odradek-game-ds2-ui</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-core</artifactId>
+            <artifactId>odradek-game</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-game-ds2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-ui</artifactId>
         </dependency>
     </dependencies>
+
 </project>
