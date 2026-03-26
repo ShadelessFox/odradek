@@ -181,13 +181,22 @@ public final class MeshToSceneConverter
         ArtPartsModelResource resource,
         DS2Game game
     ) {
-        var skeleton = resource.skinned().skeleton().get();
-        var repSkeleton = resource.skinned().representationSkeleton().get();
-        var children = resource.general().expandedModelPartResources().stream()
+        List<Node> children = new ArrayList<Node>();
+        if (resource.skinned().skeleton() != null && resource.skinned().representationSkeleton() != null) {
+            var skeleton = resource.skinned().skeleton().get();
+            var repSkeleton = resource.skinned().representationSkeleton().get();
+            children = resource.general().expandedModelPartResources().stream()
             .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
             .map(mesh -> convertNodeIfAbsent(context, mesh.get(), skeleton, repSkeleton, game))
             .flatMap(Optional::stream)
             .toList();
+        } else {
+            children = resource.general().expandedModelPartResources().stream()
+            .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
+            .map(mesh -> convertNodeIfAbsent(context, mesh.get(), game))
+            .flatMap(Optional::stream)
+            .toList();
+        }
 
         return Node.of(children);
     }
