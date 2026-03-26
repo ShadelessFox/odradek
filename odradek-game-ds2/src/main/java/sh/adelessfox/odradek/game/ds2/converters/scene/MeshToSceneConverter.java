@@ -49,7 +49,9 @@ public final class MeshToSceneConverter
             || PrefabResource.class.isAssignableFrom(cls)
             || PrefabInstance.class.isAssignableFrom(cls)
             || MockupGeometry.class.isAssignableFrom(cls)
-            || ArtPartsModelResource.class.isAssignableFrom(cls);
+            || ArtPartsCoverModelSettingResource.class.isAssignableFrom(cls)
+            || ArtPartsModelResource.class.isAssignableFrom(cls)
+            || ArtPartsDataResource.class.isAssignableFrom(cls);
     }
 
     private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, DS2Game game) {
@@ -86,7 +88,9 @@ public final class MeshToSceneConverter
             case PrefabResource r -> convertPrefabResource(context, r, game);
             case PrefabInstance r -> convertPrefabInstance(context, r, game);
             case MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game); 
             case ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
+            case ArtPartsDataResource r -> convertArtPartsDataResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
@@ -108,7 +112,9 @@ public final class MeshToSceneConverter
             case PrefabResource r -> convertPrefabResource(context, r, game);
             case PrefabInstance r -> convertPrefabInstance(context, r, game);
             case MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game);
             case ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
+            case ArtPartsDataResource r -> convertArtPartsDataResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
@@ -116,25 +122,38 @@ public final class MeshToSceneConverter
         };
     }
 
-    // private static Optional<Node> convertArtPartsModelResource(
-    //     Context context,
-    //     ArtPartsModelResource resource,
-    //     DS2Game game
-    // ) {
-    //     var skin = convertSkeleton(resource.skinned().skeleton().get()).orElse(null);
-    //     var parts = resource.general().expandedModelPartResources().stream()
-    //         .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
-    //         .toList();
+    private static Optional<Node> convertArtPartsDataResource(
+        Context context,
+        ArtPartsDataResource resource,
+        DS2Game game
+    ) {
+        var children = new ArrayList<Node>();
+        if (resource.general().mainModelResource() != null) {
+            var mainModel = resource.general().mainModelResource().get();
+            convertNodeIfAbsent(context, mainModel, game).ifPresent(children::add);
+        }
+        if (resource.facialModels().facialAModelResource() != null) {
+            var faceModel = resource.facialModels().facialAModelResource().get();
+            convertNodeIfAbsent(context, faceModel, game).ifPresent(children::add);
+        }
 
-    //     var node = Node.builder()
-    //         .skin(skin)
-    //         .children(parts)
-    //         .build();
+        if (children.isEmpty()) {
+            return Optional.empty();
+        }
 
-    //     log.debug("Using skeleton: {}", skin);
+        return Node.of(children);
+    }
 
-    //     return Optional.of(node);
-    // }
+    private static Optional<Node> convertArtPartsCoverModelSettingResource(
+        Context context,
+        ArtPartsCoverModelSettingResource resource,
+        DS2Game game
+    ) {
+        if (resource.general().modelResource() == null) {
+            return Optional.empty();
+        }
+        return convertNodeIfAbsent(context, resource.general().modelResource().get(), game);
+    }
 
     private static Optional<Node> convertArtPartsModelResource(
         Context context,
