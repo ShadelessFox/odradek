@@ -3,6 +3,9 @@
 		"DataBufferResource": [
 			"DataBufferResourceExtension"
 		],
+		"DebugMouseCursorPS4": [
+			"DebugMouseCursorPS4Extension"
+		],
 		"IndexArrayResource": [
 			"IndexArrayResourceExtension"
 		],
@@ -18,6 +21,9 @@
 		"Texture": [
 			"TextureInfo"
 		],
+		"TextureList": [
+			"TextureListExtension"
+		],
 		"UITexture": [
 			"UITextureInfo"
 		],
@@ -26,6 +32,9 @@
 		],
 		"VertexArrayResource": [
 			"VertexArrayResourceExtension"
+		],
+		"ZivaRTResource": [
+			"ZivaRTResourceExtension"
 		]
 	},
 	"types": {
@@ -35,6 +44,12 @@
 				{"name": "IsStreaming", "type": "bool", "offset": 0, "flags": 0},
 				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
 				{"name": "Format", "type": "EDataBufferFormat", "offset": 0, "flags": 0},
+				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"DebugMouseCursorPS4Extension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
 				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
 			]
@@ -74,6 +89,18 @@
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Header", "type": "TextureHeader", "offset": 0, "flags": 0},
 				{"name": "Data", "type": "TextureData", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureListEntryInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "StreamingOffset", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "StreamingLength", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Texture", "type": "TextureInfo", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureListExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Entries", "type": "Array_TextureListEntryInfo", "offset": 0, "flags": 0}
 			]
 		},
 		"ShaderResourceExtension": {
@@ -116,6 +143,11 @@
 				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
 			]
 		},
+		"ZivaRTResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
 		"UITextureFramesInfo": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0, "comment": "LZ4-compressed frame data; split into chunks defined by {@link #spans()}."},
@@ -149,8 +181,9 @@
 				{"name": "Mode", "type": "uint8", "offset": 0, "flags": 0}
 			]
 		},
+		"Array_LocalizedTextResourceText": {"kind": "container", "type": "Array", "item_type": "LocalizedTextResourceText"},
+		"Array_TextureListEntryInfo": {"kind": "container", "type": "Array", "item_type": "TextureListEntryInfo"},
 		"Array_VertexArrayStreamElementInfo": {"kind": "container", "type": "Array", "item_type": "VertexArrayStreamElementInfo"},
-		"Array_VertexArrayStreamInfo": {"kind": "container", "type": "Array", "item_type": "VertexArrayStreamInfo"},
-		"Array_LocalizedTextResourceText": {"kind": "container", "type": "Array", "item_type": "LocalizedTextResourceText"}
+		"Array_VertexArrayStreamInfo": {"kind": "container", "type": "Array", "item_type": "VertexArrayStreamInfo"}
 	}
 }

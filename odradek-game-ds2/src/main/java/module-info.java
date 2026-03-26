@@ -1,10 +1,7 @@
 import sh.adelessfox.odradek.game.ds2.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.ds2.rtti.data.MotionMatchingVecN;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.*;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.EIndexFormatExtension;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.ELanguageExtension;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.GGUUIDExtension;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.StreamingDataSourceExtension;
+import sh.adelessfox.odradek.game.ds2.rtti.extensions.*;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings.Builtin;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings.Callback;
@@ -54,20 +51,25 @@ import java.math.BigInteger;
     },
     callbacks = {
         @Callback(type = "DataBufferResource", handler = DataBufferResourceCallback.class),
+        @Callback(type = "DebugMouseCursorPS4", handler = DebugMouseCursorPS4Callback.class),
+        @Callback(type = "FacialRigSettingWithLODResource", handler = FacialRigSettingWithLODResourceCallback.class),
         @Callback(type = "IndexArrayResource", handler = IndexArrayResourceCallback.class),
         @Callback(type = "LocalizedTextResource", handler = LocalizedTextResourceCallback.class),
         @Callback(type = "PhysicsRagdollResource", handler = PhysicsRagdollResourceCallback.class),
         @Callback(type = "PhysicsShapeResource", handler = PhysicsShapeResourceCallback.class),
         @Callback(type = "ShaderResource", handler = ShaderResourceCallback.class),
         @Callback(type = "Texture", handler = TextureCallback.class),
+        @Callback(type = "TextureList", handler = TextureListCallback.class),
         @Callback(type = "UITexture", handler = UITextureCallback.class),
         @Callback(type = "UITextureFrames", handler = UITextureFramesCallback.class),
         @Callback(type = "VertexArrayResource", handler = VertexArrayResourceCallback.class),
+        @Callback(type = "ZivaRTResource", handler = ZivaRTResourceCallback.class),
     },
     extensions = {
         @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
         @Extension(type = "ELanguage", extension = ELanguageExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
+        @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)
     }
 )
@@ -76,7 +78,6 @@ module odradek.game.ds2 {
 
     requires odradek.core;
     requires odradek.middleware.edgeanim;
-    requires odradek.middleware.riglogic;
     requires odradek.game;
     requires odradek.rtti;
     requires org.slf4j;
