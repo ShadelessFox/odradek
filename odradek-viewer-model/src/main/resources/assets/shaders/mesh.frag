@@ -41,7 +41,7 @@ void main() {
         color *= u_color;
 
     if ((u_flags & FLAG_HAS_UV) != 0)
-        color *= texture(u_texture, io_uv).rgb;
+        color *= texture(u_texture, io_uv * vec2(+1, -1)).rgb;
 
     out_color = vec4(color, 1.0);
 }
