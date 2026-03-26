@@ -30,6 +30,31 @@ public sealed interface Accessor {
     }
 
     /**
+     * Creates a new accessor backed by the given buffer.
+     *
+     * @param buffer the buffer to read from
+     * @param offset the offset in bytes from the start of the buffer to the first element
+     * @param type   the type of the elements in the buffer
+     * @param count  the number of elements in the buffer
+     * @return a new accessor backed by the given buffer
+     */
+    static Accessor of(ByteBuffer buffer, int offset, Type type, int count) {
+        return of(buffer, offset, OfBuffer.byteSize(type), type, count);
+    }
+
+    /**
+     * Creates a new accessor backed by the given buffer.
+     *
+     * @param buffer the buffer to read from
+     * @param type   the type of the elements in the buffer
+     * @param count  the number of elements in the buffer
+     * @return a new accessor backed by the given buffer
+     */
+    static Accessor of(ByteBuffer buffer, Type type, int count) {
+        return of(buffer, 0, type, count);
+    }
+
+    /**
      * Creates a new accessor by interleaving the given accessors.
      * <p>
      * The accessors must have the same type and count.
@@ -60,14 +85,14 @@ public sealed interface Accessor {
     }
 
     /**
-     * Reshapes this accessor to have the given number of components per element.
+     * Resizes this accessor to have the given number of components per element.
      *
      * @param componentCount the new number of components per element;
      *                       must be less than or equal to the current component count
      * @return a new accessor with the given number of components per element
      * @throws UnsupportedOperationException if the new component count is greater than the current component count
      */
-    Accessor reshape(int componentCount);
+    Accessor resize(int componentCount);
 
     default ByteView asByteView() {
         return switch (type()) {
@@ -124,12 +149,12 @@ public sealed interface Accessor {
         }
 
         @Override
-        public Accessor reshape(int componentCount) {
+        public Accessor resize(int componentCount) {
             if (componentCount() == componentCount) {
                 return this;
             }
             if (componentCount > componentCount()) {
-                throw new UnsupportedOperationException("can't reshape to a type with more components");
+                throw new UnsupportedOperationException("can't resize to a type with more components");
             }
             return new OfBuffer(buffer, stride, type.withComponents(componentCount), count);
         }
@@ -224,7 +249,7 @@ public sealed interface Accessor {
         }
 
         @Override
-        public Accessor reshape(int componentCount) {
+        public Accessor resize(int componentCount) {
             throw new UnsupportedOperationException("reshape of interleaved accessors is not supported");
         }
 
