@@ -28,6 +28,11 @@ public sealed interface Semantic {
     record Binormal() implements Semantic {
     }
 
+    /**
+     * Texture coordinates.
+     * <p>
+     * The origin of the texture coordinates (0, 0) corresponds to the upper left corner of a texture image.
+     */
     record Texture(int n) implements Semantic {
         public Texture {
             if (n < 0) {

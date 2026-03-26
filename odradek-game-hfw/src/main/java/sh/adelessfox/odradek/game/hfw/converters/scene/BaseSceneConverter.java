@@ -64,7 +64,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
 
         vertexAccessors.put(
             Semantic.POSITION,
-            buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).reshape(3));
+            buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3));
         vertexAccessors.put(
             Semantic.JOINTS,
             buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
@@ -96,7 +96,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
                 .putShort((short) 0);
         }
 
-        return Accessor.of(output.flip(), 0, Short.BYTES * 4, new Type.I16(4, true, false), accessor.count());
+        return Accessor.of(output.flip(), new Type.I16(4, true, false), accessor.count());
     }
 
     private static Accessor buildBufferAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
@@ -108,12 +108,12 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         var data = ByteBuffer.wrap(buffer.data()).order(ByteOrder.LITTLE_ENDIAN);
 
         return switch (buffer.format().unwrap()) {
-            case R_FLOAT_32 -> Accessor.of(data, 0, 4, new Type.F32(1), count);
-            case RG_FLOAT_32 -> Accessor.of(data, 0, 8, new Type.F32(2), count);
-            case RGB_FLOAT_32 -> Accessor.of(data, 0, 12, new Type.F32(3), count);
-            case RGBA_FLOAT_32 -> Accessor.of(data, 0, 16, new Type.F32(4), count);
-            case RGBA_UINT_16 -> Accessor.of(data, 0, 8, new Type.I16(4, true, false), count);
-            case RGBA_UINT_8 -> Accessor.of(data, 0, 4, new Type.I8(4, true, false), count);
+            case R_FLOAT_32 -> Accessor.of(data, new Type.F32(1), count);
+            case RG_FLOAT_32 -> Accessor.of(data, new Type.F32(2), count);
+            case RGB_FLOAT_32 -> Accessor.of(data, new Type.F32(3), count);
+            case RGBA_FLOAT_32 -> Accessor.of(data, new Type.F32(4), count);
+            case RGBA_UINT_16 -> Accessor.of(data, new Type.I16(4, true, false), count);
+            case RGBA_UINT_8 -> Accessor.of(data, new Type.I8(4, true, false), count);
             default -> throw new IllegalStateException("Unsupported buffer format: " + buffer.format());
         };
     }

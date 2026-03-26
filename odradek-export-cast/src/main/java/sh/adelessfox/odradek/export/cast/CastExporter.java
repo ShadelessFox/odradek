@@ -95,7 +95,7 @@ public class CastExporter implements Exporter<Scene> {
                     case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
                     case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
                     case Semantic.Texture _ -> {
-                        result.addVertexUVBuffer(toFloatBuffer(accessor));
+                        result.addVertexUVBuffer(toUVBuffer(accessor));
                         result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
                     }
                     case Semantic.Color _ -> {
@@ -123,12 +123,11 @@ public class CastExporter implements Exporter<Scene> {
         }
     }
 
-    private static CastNodes.Skeleton exportSkeleton(CastNodes.Model model, Skin nodeSkin) {
+    private static void exportSkeleton(CastNodes.Model model, Skin nodeSkin) {
         var skeleton = model.createSkeleton();
         for (Joint joint : nodeSkin.joints()) {
             exportBone(skeleton, joint.parent(), joint);
         }
-        return skeleton;
     }
 
     private static void exportBone(CastNodes.Skeleton skeleton, OptionalInt parent, Joint joint) {
@@ -211,6 +210,18 @@ public class CastExporter implements Exporter<Scene> {
             buffer.put((a << 24) | (b << 16) | (g << 8) | r);
         }
         return buffer.flip();
+    }
+
+    private static FloatBuffer toUVBuffer(Accessor accessor) {
+        assert accessor.componentCount() == 2;
+        var output = FloatBuffer.allocate(accessor.count() * 2);
+        var view = accessor.asFloatView();
+        for (int i = 0; i < accessor.count(); i++) {
+            float u = view.get(i, 0);
+            float v = 1.0f - view.get(i, 1);
+            output.put(u).put(v);
+        }
+        return output.flip();
     }
     // endregion
 }
