@@ -1,10 +1,7 @@
 import sh.adelessfox.odradek.game.ds2.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.ds2.rtti.data.MotionMatchingVecN;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.*;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.EIndexFormatExtension;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.ELanguageExtension;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.GGUUIDExtension;
-import sh.adelessfox.odradek.game.ds2.rtti.extensions.StreamingDataSourceExtension;
+import sh.adelessfox.odradek.game.ds2.rtti.extensions.*;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings.Builtin;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings.Callback;
@@ -72,6 +69,7 @@ import java.math.BigInteger;
         @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
         @Extension(type = "ELanguage", extension = ELanguageExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
+        @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)
     }
 )
@@ -80,7 +78,6 @@ module odradek.game.ds2 {
 
     requires odradek.core;
     requires odradek.middleware.edgeanim;
-    requires odradek.middleware.riglogic;
     requires odradek.game;
     requires odradek.rtti;
     requires org.slf4j;
