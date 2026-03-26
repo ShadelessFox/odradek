@@ -186,10 +186,10 @@ public final class MeshToSceneConverter
             var skeleton = resource.skinned().skeleton().get();
             var repSkeleton = resource.skinned().representationSkeleton().get();
             children = resource.general().expandedModelPartResources().stream()
-            .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
-            .map(mesh -> convertNodeIfAbsent(context, mesh.get(), skeleton, repSkeleton, game))
-            .flatMap(Optional::stream)
-            .toList();
+                .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
+                .map(mesh -> convertNodeIfAbsent(context, mesh.get(), skeleton, repSkeleton, game))
+                .flatMap(Optional::stream)
+                .toList();
         } else {
             children = resource.general().expandedModelPartResources().stream()
             .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
