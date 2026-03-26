@@ -328,6 +328,7 @@ public final class MeshToSceneConverter
         if (resource.general().meshResource() == null) {
             return Optional.empty();
         }
+
         return convertNodeIfAbsent(context, resource.general().meshResource().get(), game);
     }
 
