@@ -49,7 +49,9 @@ public final class MeshToSceneConverter
             || PrefabResource.class.isAssignableFrom(cls)
             || PrefabInstance.class.isAssignableFrom(cls)
             || MockupGeometry.class.isAssignableFrom(cls)
-            || ArtPartsModelResource.class.isAssignableFrom(cls);
+            || ArtPartsCoverModelSettingResource.class.isAssignableFrom(cls)
+            || ArtPartsModelResource.class.isAssignableFrom(cls)
+            || ArtPartsDataResource.class.isAssignableFrom(cls);
     }
 
     private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, DS2Game game) {
@@ -76,7 +78,9 @@ public final class MeshToSceneConverter
             case PrefabResource r -> convertPrefabResource(context, r, game);
             case PrefabInstance r -> convertPrefabInstance(context, r, game);
             case MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game);
             case ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
+            case ArtPartsDataResource r -> convertArtPartsDataResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
@@ -84,12 +88,66 @@ public final class MeshToSceneConverter
         };
     }
 
+    private static Optional<Node> convertArtPartsDataResource(
+        Context context,
+        ArtPartsDataResource resource,
+        DS2Game game
+    ) {
+        var children = new ArrayList<Node>();
+
+        for (var coverModel : Ref.unwrap(resource.coverModels().coverModelResources())) {
+            convertNodeIfAbsent(context, coverModel, game).ifPresent(children::add);
+        }
+
+        if (resource.general().mainModelResource() != null) {
+            var mainModel = resource.general().mainModelResource().get();
+            convertNodeIfAbsent(context, mainModel, game).ifPresent(children::add);
+        }
+        if (resource.facialModels().facialAModelResource() != null) {
+            var faceModel = resource.facialModels().facialAModelResource().get();
+            convertNodeIfAbsent(context, faceModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().hairAModelResource() != null) {
+            var hairModel = resource.coverAndAnimModels().hairAModelResource().get();
+            convertNodeIfAbsent(context, hairModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().clothAModelResource() != null) {
+            var clothAModel = resource.coverAndAnimModels().clothAModelResource().get();
+            convertNodeIfAbsent(context, clothAModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().clothBModelResource() != null) {
+            var clothBModel = resource.coverAndAnimModels().clothBModelResource().get();
+            convertNodeIfAbsent(context, clothBModel, game).ifPresent(children::add);
+        }
+        if (resource.coverAndAnimModels().clothCModelResource() != null) {
+            var clothCModel = resource.coverAndAnimModels().clothCModelResource().get();
+            convertNodeIfAbsent(context, clothCModel, game).ifPresent(children::add);
+        }
+
+        if (children.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Node.of(children);
+    }
+
+    private static Optional<Node> convertArtPartsCoverModelSettingResource(
+        Context context,
+        ArtPartsCoverModelSettingResource resource,
+        DS2Game game
+    ) {
+        if (resource.general().modelResource() == null) {
+            return Optional.empty();
+        }
+        return convertNodeIfAbsent(context, resource.general().modelResource().get(), game);
+    }
+
     private static Optional<Node> convertArtPartsModelResource(
         Context context,
         ArtPartsModelResource resource,
         DS2Game game
     ) {
-        var children = resource.general().modelPartResources().stream()
+        var children = resource.general().expandedModelPartResources().stream()
             .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
             .map(mesh -> convertNodeIfAbsent(context, mesh.get(), game))
             .flatMap(Optional::stream)
@@ -264,11 +322,6 @@ public final class MeshToSceneConverter
     }
 
     private static Optional<Skin> convertSkeleton(Skeleton skeleton) {
-        if (!skeleton.general().hasBindPose()) {
-            log.warn("Skipping skeleton {} without a bind pose", skeleton.general().objectUUID().toDisplayString());
-            return Optional.empty();
-        }
-
         List<EdgeAnimJointTransform> transforms;
 
         try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
