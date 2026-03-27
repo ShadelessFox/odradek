@@ -64,16 +64,6 @@ public final class MeshToSceneConverter
         return node;
     }
 
-    private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, Skeleton skeleton, Skeleton repSkeleton, DS2Game game) {
-        var key = object.general().objectUUID();
-        var node = Optional.ofNullable(context.resources.get(key));
-        if (node.isEmpty()) {
-            node = convertNode(context, object, skeleton, repSkeleton, game);
-        }
-        node.ifPresent(n -> context.resources.put(key, n));
-        return node;
-    }
-
     private static Optional<Node> convertNode(Context context, RTTIRefObject object, DS2Game game) {
         return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(context, r, game);
@@ -83,30 +73,6 @@ public final class MeshToSceneConverter
             case MultiMeshResource r -> convertMultiMeshResource(context, r, game);
             case BodyVariant r -> convertBodyVariant(context, r, game);
             case SkinnedModelResource r -> convertSkinnedModelResource(context, r, game);
-            case DestructibilityPart r -> convertDestructibilityPart(context, r, game);
-            case ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
-            case PrefabResource r -> convertPrefabResource(context, r, game);
-            case PrefabInstance r -> convertPrefabInstance(context, r, game);
-            case MockupGeometry r -> convertMockupGeometry(context, r, game);
-            case ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game); 
-            case ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
-            case ArtPartsDataResource r -> convertArtPartsDataResource(context, r, game);
-            default -> {
-                log.debug("Unsupported resource type: {}", object.getType());
-                yield Optional.empty();
-            }
-        };
-    }
-
-    private static Optional<Node> convertNode(Context context, RTTIRefObject object, Skeleton skeleton, Skeleton repSkeleton, DS2Game game) {
-        return switch (object) {
-            case StaticMeshResource r -> convertStaticMeshResource(context, r, game);
-            case StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
-            case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, skeleton, repSkeleton, game);
-            case LodMeshResource r -> convertLodMeshResource(context, r, skeleton, repSkeleton, game);
-            case MultiMeshResource r -> convertMultiMeshResource(context, r, skeleton, repSkeleton, game);
-            case BodyVariant r -> convertBodyVariant(context, r, game);
-            case SkinnedModelResource r -> convertSkinnedModelResource(context, r, skeleton, repSkeleton, game);
             case DestructibilityPart r -> convertDestructibilityPart(context, r, game);
             case ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
             case PrefabResource r -> convertPrefabResource(context, r, game);
@@ -181,22 +147,11 @@ public final class MeshToSceneConverter
         ArtPartsModelResource resource,
         DS2Game game
     ) {
-        List<Node> children = new ArrayList<Node>();
-        if (resource.skinned().skeleton() != null && resource.skinned().representationSkeleton() != null) {
-            var skeleton = resource.skinned().skeleton().get();
-            var repSkeleton = resource.skinned().representationSkeleton().get();
-            children = resource.general().expandedModelPartResources().stream()
-                .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
-                .map(mesh -> convertNodeIfAbsent(context, mesh.get(), skeleton, repSkeleton, game))
-                .flatMap(Optional::stream)
-                .toList();
-        } else {
-            children = resource.general().expandedModelPartResources().stream()
+        var children = resource.general().expandedModelPartResources().stream()
             .map(part -> part.get().general().meshResource()).filter(Objects::nonNull)
             .map(mesh -> convertNodeIfAbsent(context, mesh.get(), game))
             .flatMap(Optional::stream)
             .toList();
-        }
 
         return Node.of(children);
     }
@@ -287,26 +242,6 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    private static Optional<Node> convertSkinnedModelResource(
-        Context context,
-        SkinnedModelResource resource,
-        Skeleton skeleton,
-        Skeleton repSkeleton,
-        DS2Game game
-    ) {
-        var skin = convertSkeleton(skeleton, repSkeleton).orElse(null);
-        var parts = resource.general().modelPartResources().stream()
-            .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
-            .toList();
-
-        var node = Node.builder()
-            .skin(skin)
-            .children(parts)
-            .build();
-
-        return Optional.of(node);
-    }
-
     private static Optional<Node> convertDestructibilityPart(
         Context context,
         DestructibilityPart part,
@@ -328,21 +263,7 @@ public final class MeshToSceneConverter
         if (resource.general().meshResource() == null) {
             return Optional.empty();
         }
-
         return convertNodeIfAbsent(context, resource.general().meshResource().get(), game);
-    }
-
-    private static Optional<Node> convertModelPartResource(
-        Context context,
-        ModelPartResource resource,
-        Skeleton skeleton,
-        Skeleton repSkeleton,
-        DS2Game game
-    ) {
-        if (resource.general().meshResource() == null) {
-            return Optional.empty();
-        }
-        return convertNodeIfAbsent(context, resource.general().meshResource().get(), skeleton, repSkeleton, game);
     }
 
     private static Optional<Node> convertStaticMeshInstance(
@@ -400,40 +321,7 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    @SuppressWarnings("unused")
-    private static Optional<Node> convertRegularSkinnedMeshResource(
-        Context context,
-        RegularSkinnedMeshResource resource,
-        Skeleton skeleton,
-        Skeleton repSkeleton,
-        DS2Game game
-    ) {
-        // TODO
-        // if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-        //     log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
-        //     return Optional.empty();
-        // }
-        var skin = convertSkeleton(skeleton, repSkeleton).orElse(null);
-        var mesh = convertMesh(
-            resource.shadingGroups(),
-            resource.primitives(),
-            resource.streamingDataSource(),
-            game
-        );
-        var node = Node.builder()
-            .mesh(mesh)
-            .skin(skin)
-            .build();
-        return Optional.of(node);
-    }
-
-
     private static Optional<Skin> convertSkeleton(Skeleton skeleton) {
-        if (!skeleton.general().hasBindPose()) {
-            log.warn("Skipping skeleton {} without a bind pose", skeleton.general().objectUUID().toDisplayString());
-            return Optional.empty();
-        }
-
         List<EdgeAnimJointTransform> transforms;
 
         try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
@@ -457,34 +345,6 @@ public final class MeshToSceneConverter
         return Optional.of(new Skin(converted));
     }
 
-    private static Optional<Skin> convertSkeleton(Skeleton skeleton, Skeleton repSkeleton) {
-        List<EdgeAnimJointTransform> transforms;
-
-        try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
-            transforms = EdgeAnimSkeleton.read(reader).readBasePose(reader);
-        } catch (IOException e) {
-            log.error("Error reading edgeanim skeleton", e);
-            return Optional.empty();
-        }
-
-        var joints = repSkeleton.general().joints();
-        var converted = new ArrayList<Joint>();
-
-        for (int i = 0; i < joints.size(); i++) {
-            var joint = joints.get(i);
-            var transform = transforms.get(0).toMatrix();
-            if (i < transforms.size()) {
-                transform = transforms.get(i).toMatrix();
-            }
-            converted.add(new Joint(
-                joint.parentIndex() != -1 ? OptionalInt.of(joint.parentIndex()) : OptionalInt.empty(),
-                joint.name(),
-                transform));
-        }
-
-        return Optional.of(new Skin(converted));
-    }
-
     private static Optional<Node> convertLodMeshResource(
         Context context,
         LodMeshResource resource,
@@ -494,17 +354,6 @@ public final class MeshToSceneConverter
         return convertNodeIfAbsent(context, part.mesh().get(), game);
     }
 
-    private static Optional<Node> convertLodMeshResource(
-        Context context,
-        LodMeshResource resource,
-        Skeleton skeleton,
-        Skeleton repSkeleton,
-        DS2Game game
-    ) {
-        var part = resource.runtimeMeshes().getFirst();
-        return convertNodeIfAbsent(context, part.mesh().get(), skeleton, repSkeleton, game);
-    }
-
     private static Optional<Node> convertMultiMeshResource(
         Context context,
         MultiMeshResource resource,
@@ -515,28 +364,6 @@ public final class MeshToSceneConverter
         var children = IntStream.range(0, meshes.size())
             .mapToObj(i -> convertMultiMeshResourcePart(context,
                 meshes.get(i).get(),
-                transforms.isEmpty() ? null : transforms.get(i),
-                game))
-            .flatMap(Optional::stream)
-            .toList();
-
-        return Node.of(children);
-    }
-
-    private static Optional<Node> convertMultiMeshResource(
-        Context context,
-        MultiMeshResource resource,
-        Skeleton skeleton,
-        Skeleton repSkeleton,
-        DS2Game game
-    ) {
-        var meshes = resource.meshes();
-        var transforms = resource.transforms();
-        var children = IntStream.range(0, meshes.size())
-            .mapToObj(i -> convertMultiMeshResourcePart(context,
-                meshes.get(i).get(),
-                skeleton,
-                repSkeleton,
                 transforms.isEmpty() ? null : transforms.get(i),
                 game))
             .flatMap(Optional::stream)
@@ -552,20 +379,6 @@ public final class MeshToSceneConverter
         DS2Game game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
-        var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
-
-        return child.map(c -> c.transform(matrix));
-    }
-
-    private static Optional<Node> convertMultiMeshResourcePart(
-        Context context,
-        MeshResourceBase resource,
-        Skeleton skeleton,
-        Skeleton repSkeleton,
-        Mat34 transform,
-        DS2Game game
-    ) {
-        var child = convertNodeIfAbsent(context, resource, skeleton, repSkeleton, game);
         var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
 
         return child.map(c -> c.transform(matrix));
