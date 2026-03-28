@@ -149,7 +149,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (placeholderText != null && getModel() == null || getModel().isEmpty()) {
+        if (placeholderText != null && (getModel() == null || getModel().isEmpty())) {
             GraphicsUtils.setTextRenderingHints(g);
             GraphicsUtils.drawCenteredString(g, placeholderText, this);
         }
