@@ -20,6 +20,8 @@ import javax.swing.*;
 import java.util.*;
 
 public final class TextureSetViewer implements Viewer {
+    private StructuredTree<FileStructure> tree;
+
     public static final class Provider implements Viewer.Provider<TextureSet> {
         @Override
         public Viewer create(TextureSet object, Game game) {
@@ -65,7 +67,7 @@ public final class TextureSetViewer implements Viewer {
             textures.put(path, sourceTexture);
         }
 
-        var tree = new StructuredTree<>(FileStructure.of(new CompactFileProvider(paths)));
+        tree = new StructuredTree<>(FileStructure.of(new CompactFileProvider(paths)));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setLabelProvider((StyledTreeLabelProvider<FileStructure>) element -> switch (element) {
@@ -97,6 +99,20 @@ public final class TextureSetViewer implements Viewer {
         }
 
         return tree;
+    }
+
+    @Override
+    public void activate() {
+        if (tree.getSelectionPath() != null) {
+            return;
+        }
+        for (int row = 0; row < tree.getRowCount(); row++) {
+            var path = tree.getPathForRow(row);
+            if (tree.getLastPathComponent(path) instanceof FileStructure.File) {
+                tree.setSelectionPath(path);
+                break;
+            }
+        }
     }
 
     private void show(TextureSet.SourceTexture sourceTexture) {
