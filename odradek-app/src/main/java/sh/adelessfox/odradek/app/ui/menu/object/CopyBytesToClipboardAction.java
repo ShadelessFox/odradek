@@ -12,7 +12,7 @@ import sh.adelessfox.odradek.ui.util.ByteContents;
 import javax.swing.*;
 import java.awt.*;
 
-@ActionRegistration(text = "Copy to clipboard", description = "Copy bytes to clipboard as binary data")
+@ActionRegistration(text = "Copy blob", description = "Copy bytes to clipboard as binary data")
 @ActionContribution(parent = ObjectMenu.ID)
 public class CopyBytesToClipboardAction extends Action {
     @Override
