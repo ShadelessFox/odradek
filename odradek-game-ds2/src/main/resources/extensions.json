@@ -1,0 +1,189 @@
+{
+	"extends": {
+		"DataBufferResource": [
+			"DataBufferResourceExtension"
+		],
+		"DebugMouseCursorPS4": [
+			"DebugMouseCursorPS4Extension"
+		],
+		"IndexArrayResource": [
+			"IndexArrayResourceExtension"
+		],
+		"LocalizedTextResource": [
+			"LocalizedTextResourceExtension"
+		],
+		"ShaderResource": [
+			"ShaderResourceExtension"
+		],
+		"StreamingDataSource": [
+			"StreamingDataSourceExtension"
+		],
+		"Texture": [
+			"TextureInfo"
+		],
+		"TextureList": [
+			"TextureListExtension"
+		],
+		"UITexture": [
+			"UITextureInfo"
+		],
+		"UITextureFrames": [
+			"UITextureFramesInfo"
+		],
+		"VertexArrayResource": [
+			"VertexArrayResourceExtension"
+		],
+		"ZivaRTResource": [
+			"ZivaRTResourceExtension"
+		]
+	},
+	"types": {
+		"DataBufferResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Count", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "IsStreaming", "type": "bool", "offset": 0, "flags": 0},
+				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Format", "type": "EDataBufferFormat", "offset": 0, "flags": 0},
+				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"DebugMouseCursorPS4Extension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"StreamingDataSourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Locator", "type": "uint64", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureData": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "TotalSize", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "EmbeddedSize", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "StreamedSize", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "StreamedMips", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "EmbeddedData", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureHeader": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Type", "type": "ETextureType", "offset": 0, "flags": 0},
+				{"name": "Width", "type": "uint16", "offset": 0, "flags": 0, "comment": "Width of the texture. Two leftmost bits represent padding width; other bits represent aligned width."},
+				{"name": "Height", "type": "uint16", "offset": 0, "flags": 0, "comment": "Height of the texture. Two leftmost bits represent padding height; other bits represent aligned height."},
+				{"name": "NumSurfaces", "type": "uint16", "offset": 0, "flags": 0},
+				{"name": "NumMips", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "PixelFormat", "type": "EPixelFormat", "offset": 0, "flags": 0},
+				{"name": "Unk0A", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "ColorSpace", "type": "ETexColorSpace", "offset": 0, "flags": 0},
+				{"name": "Unk0C", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Unk0D", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Unk0E", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Unk0F", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Hash", "type": "MurmurHashValue", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Header", "type": "TextureHeader", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "TextureData", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureListEntryInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "StreamingOffset", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "StreamingLength", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Texture", "type": "TextureInfo", "offset": 0, "flags": 0}
+			]
+		},
+		"TextureListExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Entries", "type": "Array_TextureListEntryInfo", "offset": 0, "flags": 0}
+			]
+		},
+		"ShaderResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Hash", "type": "MurmurHashValue", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"IndexArrayResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Count", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Format", "type": "EIndexFormat", "offset": 0, "flags": 0},
+				{"name": "Checksum", "type": "MurmurHashValue", "offset": 0, "flags": 0},
+				{"name": "IsStreaming", "type": "bool", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"VertexArrayResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Count", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "IsStreaming", "type": "bool", "offset": 0, "flags": 0},
+				{"name": "Streams", "type": "Array_VertexArrayStreamInfo", "offset": 0, "flags": 0}
+			]
+		},
+		"VertexArrayStreamElementInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Offset", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "StorageType", "type": "EVertexElementStorageType", "offset": 0, "flags": 0},
+				{"name": "SlotsUsed", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Element", "type": "EVertexElement", "offset": 0, "flags": 0}
+			]
+		},
+		"VertexArrayStreamInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Flags", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Stride", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Elements", "type": "Array_VertexArrayStreamElementInfo", "offset": 0, "flags": 0},
+				{"name": "Hash", "type": "MurmurHashValue", "offset": 0, "flags": 0},
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"ZivaRTResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"UITextureFramesInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0, "comment": "LZ4-compressed frame data; split into chunks defined by {@link #spans()}."},
+				{"name": "Spans", "type": "Array_uint64", "offset": 0, "flags": 0, "comment": "{@code (u32 length; u32 offset)} pairs that define frame chunks in {@link #data()}."},
+				{"name": "Width", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Height", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "PixelFormat", "type": "EPixelFormat", "offset": 0, "flags": 0},
+				{"name": "Frequency", "type": "EUpdateFrequency", "offset": 0, "flags": 0},
+				{"name": "Size", "type": "uint32", "offset": 0, "flags": 0, "comment": "Allocation size of a single frame; dimensions are aligned for compressed textures"},
+				{"name": "Scale", "type": "FSize", "offset": 0, "flags": 0}
+			]
+		},
+		"UITextureInfo": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Animated", "type": "bool", "offset": 0, "flags": 0},
+				{"name": "SmallTexture", "type": "TextureInfo", "offset": 0, "flags": 0},
+				{"name": "LargeTexture", "type": "TextureInfo", "offset": 0, "flags": 0},
+				{"name": "SmallTextureFrames", "type": "UITextureFramesInfo", "offset": 0, "flags": 0},
+				{"name": "LargeTextureFrames", "type": "UITextureFramesInfo", "offset": 0, "flags": 0}
+			]
+		},
+		"LocalizedTextResourceExtension": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Texts", "type": "Array_LocalizedTextResourceText", "offset": 0, "flags": 0}
+			]
+		},
+		"LocalizedTextResourceText": {
+			"kind": "compound", "version": 0, "flags": 0, "attrs": [
+				{"name": "Text", "type": "String", "offset": 0, "flags": 0},
+				{"name": "Notes", "type": "String", "offset": 0, "flags": 0},
+				{"name": "Mode", "type": "uint8", "offset": 0, "flags": 0}
+			]
+		},
+		"Array_LocalizedTextResourceText": {"kind": "container", "type": "Array", "item_type": "LocalizedTextResourceText"},
+		"Array_TextureListEntryInfo": {"kind": "container", "type": "Array", "item_type": "TextureListEntryInfo"},
+		"Array_VertexArrayStreamElementInfo": {"kind": "container", "type": "Array", "item_type": "VertexArrayStreamElementInfo"},
+		"Array_VertexArrayStreamInfo": {"kind": "container", "type": "Array", "item_type": "VertexArrayStreamInfo"}
+	}
+}

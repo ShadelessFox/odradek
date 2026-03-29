@@ -12,6 +12,7 @@ module odradek.app {
     requires java.desktop;
     requires odradek.core;
     requires odradek.game;
+    requires odradek.game.ds2;
     requires odradek.game.hfw;
     requires odradek.game.hfw.ui;
     requires odradek.rtti;
@@ -57,7 +58,8 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,
         sh.adelessfox.odradek.app.ui.menu.graph.GroupObjectsByTypeAction,
         sh.adelessfox.odradek.app.ui.menu.graph.SortObjectsByCountAction,
-        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction;
+        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction,
+        sh.adelessfox.odradek.app.ui.menu.object.SaveBytesToFileAction;
 
     provides sh.adelessfox.odradek.ui.editors.Editor.Provider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditor.Provider;

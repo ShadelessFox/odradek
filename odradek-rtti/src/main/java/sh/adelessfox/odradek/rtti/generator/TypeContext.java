@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.VarHandle;
 import java.lang.reflect.Array;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -26,9 +25,9 @@ public class TypeContext {
     private final Map<StableValue<TypeInfo>, String> pending = new IdentityHashMap<>();
     private final Map<String, List<ClassTypeInfo>> extensions = new HashMap<>();
 
-    public void load(URL typesUrl, URL extensionsUrl) throws IOException {
-        var typesObject = readJson(typesUrl);
-        var extensionsObject = readJson(extensionsUrl);
+    public void load(InputStream typesStream, InputStream extensionsStream) throws IOException {
+        var typesObject = readJson(typesStream);
+        var extensionsObject = readJson(extensionsStream);
 
         log.debug("Loading type extensions");
         for (var entry : extensionsObject.getAsJsonObject("types").entrySet()) {
@@ -63,8 +62,8 @@ public class TypeContext {
         extensions.clear();
     }
 
-    private static JsonObject readJson(URL url) throws IOException {
-        try (InputStream is = url.openStream()) {
+    private static JsonObject readJson(InputStream in) throws IOException {
+        try (InputStream is = in) {
             var reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             return JsonParser.parseReader(reader).getAsJsonObject();
         }
@@ -85,6 +84,7 @@ public class TypeContext {
             case "compound" -> processCompound(name, object);
             case "container" -> processContainer(name, object);
             case "enum flags" -> processEnum(name, object, true);
+            case "enum bitset" -> processBitSet(name, object);
             case "enum" -> processEnum(name, object, false);
             case "pointer" -> processPointer(name, object);
             default -> throw new IllegalStateException("Type '%s' has unsupported kind '%s'".formatted(name, kind));
@@ -204,6 +204,17 @@ public class TypeContext {
         }
     }
 
+    private BitSetTypeInfoImpl processBitSet(String name, JsonObject object) {
+        var size = object.get("size").getAsInt();
+        var base = object.get("type").getAsString();
+
+        return new BitSetTypeInfoImpl(
+            name,
+            size,
+            resolveType(base)
+        );
+    }
+
     private PointerTypeInfo processPointer(String name, JsonObject object) {
         var type = object.get("type").getAsString();
         var itemType = object.get("item_type").getAsString();
@@ -266,6 +277,27 @@ public class TypeContext {
         @Override
         public AtomTypeInfo base() {
             return (AtomTypeInfo) base.orElseThrow();
+        }
+    }
+
+    private final class BitSetTypeInfoImpl extends TypeInfoImpl implements BitSetTypeInfo {
+        private final int size;
+        private final StableValue<TypeInfo> base;
+
+        BitSetTypeInfoImpl(String name, int size, StableValue<TypeInfo> base) {
+            super(name);
+            this.size = size;
+            this.base = base;
+        }
+
+        @Override
+        public int size() {
+            return size;
+        }
+
+        @Override
+        public EnumTypeInfo base() {
+            return (EnumTypeInfo) base.orElseThrow();
         }
     }
 

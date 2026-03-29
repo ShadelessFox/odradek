@@ -1,5 +1,6 @@
 module odradek.export.json {
     requires com.google.gson;
+    requires odradek.core;
     requires odradek.game;
     requires odradek.rtti;
 

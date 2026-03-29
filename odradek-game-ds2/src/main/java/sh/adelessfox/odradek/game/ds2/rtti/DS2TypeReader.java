@@ -1,0 +1,265 @@
+package sh.adelessfox.odradek.game.ds2.rtti;
+
+import sh.adelessfox.odradek.game.ds2.rtti.data.MotionMatchingVecN;
+import sh.adelessfox.odradek.hashing.HashFunction;
+import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.rtti.data.Value;
+import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
+
+import java.io.IOException;
+import java.lang.invoke.VarHandle;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+
+public class DS2TypeReader extends AbstractTypeReader {
+    public static <T> T readCompound(Class<T> cls, BinaryReader reader, TypeFactory factory) throws IOException {
+        var type = factory.get(cls.getSimpleName()).asClass();
+        return cls.cast(new DS2TypeReader().readCompound(type, reader, factory));
+    }
+
+    public TypedObject readObject(BinaryReader reader, TypeFactory factory) throws IOException {
+        var hash = reader.readLong();
+        var size = reader.readInt();
+        var type = factory.get(DS2TypeId.of(hash)).asClass();
+
+        var start = reader.position();
+        var object = readCompound(type, reader, factory);
+        var end = reader.position();
+
+        if (end - start != size) {
+            throw new IllegalStateException("Size mismatch for %s: %d (actual) != %d (expected)".formatted(type.name(), end - start, size));
+        }
+
+        int numLinks = reader.readInt();
+        if (numLinks != 0) {
+            throw new IllegalStateException("Expected 0 links, got " + numLinks);
+        }
+
+        return object;
+    }
+
+    @Override
+    protected void readAtomHandle(AtomTypeInfo info, BinaryReader reader, TypeFactory factory, Object object, VarHandle handle) throws IOException {
+        getAtomReader(info).readSingle(reader, object, handle);
+    }
+
+    @Override
+    protected Object readAtom(AtomTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        return getAtomReader(info).readSingle(reader);
+    }
+
+    @Override
+    protected Value<?> readEnum(EnumTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        int value = switch (info.size()) {
+            case Byte.BYTES -> reader.readByte();
+            case Short.BYTES -> reader.readShort();
+            case Integer.BYTES -> reader.readInt();
+            default -> throw new IllegalArgumentException("Unexpected enum size: " + info.size());
+        };
+        if (info instanceof EnumSetTypeInfo) {
+            return info.setOf(value);
+        } else {
+            return info.valueOf(value);
+        }
+    }
+
+    @Override
+    protected Object readContainer(ContainerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        return switch (info.containerType()) {
+            case "HashMap", "HashSet" -> readHashContainer(info, reader, factory);
+            default -> readSimpleContainer(info, reader, factory);
+        };
+    }
+
+    @Override
+    protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        throw new IOException("Unexpected pointer");
+    }
+
+    private Object readSimpleContainer(ContainerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        var count = reader.readInt();
+        var item = info.itemType();
+
+        // Fast path
+        if (item instanceof AtomTypeInfo atom) {
+            return getAtomReader(atom).readMultiple(reader, count, info);
+        }
+
+        var result = info.newInstance(count);
+        for (int i = 0; i < count; i++) {
+            info.set(result, i, read(item, reader, factory));
+        }
+
+        return result;
+    }
+
+    // TODO: Use specialized type (Map, Set, etc.)
+    private Object readHashContainer(ContainerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        var count = reader.readInt();
+        var item = info.itemType();
+        var result = info.newInstance(count);
+
+        for (int i = 0; i < count; i++) {
+            // NOTE: Hash is based on the key - for HashMap, and on the value - for HashSet
+            //       We don't actually need to store or use it - but we'll have to compute it
+            //       when serialization support is added
+            reader.skip(4); // hash
+            info.set(result, i, read(item, reader, factory));
+        }
+
+        return result;
+    }
+
+    private static String readString(BinaryReader reader) throws IOException {
+        var length = reader.readInt();
+        if (length == 0) {
+            return "";
+        }
+        var hash = reader.readInt();
+        var data = reader.readBytes(length);
+        if (hash != HashFunction.crc32c().hash(data).asInt()) {
+            throw new IllegalArgumentException("String is corrupted - mismatched checksum");
+        }
+        return new String(data, StandardCharsets.UTF_8);
+    }
+
+    private static String readWString(BinaryReader reader) throws IOException {
+        var length = reader.readInt();
+        if (length == 0) {
+            return "";
+        }
+        return reader.readString(length * 2, StandardCharsets.UTF_16LE);
+    }
+
+    private static int readStringHash(BinaryReader reader) throws IOException {
+        int size = reader.readInt();
+        if (size != 4) {
+            throw new IllegalArgumentException("Unexpected string hash size: " + size);
+        }
+        return reader.readInt();
+    }
+
+    private static MotionMatchingVecN readMotionMatchingVecN(BinaryReader reader) throws IOException {
+        return new MotionMatchingVecN(reader.readFloats(72));
+    }
+
+    private static BigInteger readInt128(BinaryReader reader) throws IOException {
+        return new BigInteger(1, reader.readBytes(16));
+    }
+
+    private static AtomReader getAtomReader(AtomTypeInfo info) {
+        var name = info.base().name();
+        return switch (name) {
+            case "bool" -> AtomReader.BOOL;
+            case "wchar", "tchar" -> AtomReader.CHAR;
+            case "uint8", "int8" -> AtomReader.INT8;
+            case "uint16", "int16" -> AtomReader.INT16;
+            case "uint", "int", "uint32", "int32", "ucs4" -> AtomReader.INT32;
+            case "uint64", "int64", "uintptr" -> AtomReader.INT64;
+            case "uint128" -> AtomReader.INT128;
+            case "HalfFloat" -> AtomReader.HALF;
+            case "float" -> AtomReader.FLOAT;
+            case "double" -> AtomReader.DOUBLE;
+            case "StringHash" -> AtomReader.STRING_HASH;
+            case "String" -> AtomReader.STRING;
+            case "WString" -> AtomReader.WSTRING;
+            case "MotionMatchingVecN" -> AtomReader.MOTION_MATCHING_VEC_N;
+            default -> throw new IllegalArgumentException("Unknown atom type: " + info.name() + " (" + name + ")");
+        };
+    }
+
+    private sealed interface AtomReader {
+        AtomReader INT8 = of((r, o, h) -> h.set(o, r.readByte()), BinaryReader::readByte, BinaryReader::readBytes);
+        AtomReader INT16 = of((r, o, h) -> h.set(o, r.readShort()), BinaryReader::readShort, BinaryReader::readShorts);
+        AtomReader INT32 = of((r, o, h) -> h.set(o, r.readInt()), BinaryReader::readInt, BinaryReader::readInts);
+        AtomReader INT64 = of((r, o, h) -> h.set(o, r.readLong()), BinaryReader::readLong, BinaryReader::readLongs);
+        AtomReader INT128 = of(DS2TypeReader::readInt128, (r, o, h) -> h.set(o, readInt128(r)));
+        AtomReader HALF = of((r, o, h) -> h.set(o, r.readHalf()), BinaryReader::readHalf, BinaryReader::readHalfs);
+        AtomReader FLOAT = of((r, o, h) -> h.set(o, r.readFloat()), BinaryReader::readFloat, BinaryReader::readFloats);
+        AtomReader DOUBLE = of((r, o, h) -> h.set(o, r.readDouble()), BinaryReader::readDouble, BinaryReader::readDoubles);
+        AtomReader CHAR = of(r -> (char) r.readShort(), (r, o, h) -> h.set(o, (char) r.readShort()));
+        AtomReader BOOL = of(BinaryReader::readByteBoolean, (r, o, h) -> h.set(o, r.readByteBoolean()));
+        AtomReader STRING = of(DS2TypeReader::readString, (r, o, h) -> h.set(o, readString(r)));
+        AtomReader WSTRING = of(DS2TypeReader::readWString, (r, o, h) -> h.set(o, readWString(r)));
+        AtomReader STRING_HASH = of(DS2TypeReader::readStringHash, (r, o, h) -> h.set(o, readStringHash(r)));
+        AtomReader MOTION_MATCHING_VEC_N = of(DS2TypeReader::readMotionMatchingVecN, (r, o, h) -> h.set(o, readMotionMatchingVecN(r)));
+
+        @FunctionalInterface
+        interface ReadSingleHandle {
+            void read(BinaryReader reader, Object object, VarHandle handle) throws IOException;
+        }
+
+        @FunctionalInterface
+        interface ReadSingle {
+            Object read(BinaryReader reader) throws IOException;
+        }
+
+        @FunctionalInterface
+        interface ReadArray {
+            Object read(BinaryReader reader, int count) throws IOException;
+        }
+
+        static AtomReader of(ReadSingleHandle readSingleHandle, ReadSingle readSingle, ReadArray readArray) {
+            return new Single(readSingleHandle, readSingle, readArray);
+        }
+
+        static AtomReader of(ReadSingle readSingle, ReadSingleHandle readSingleHandle) {
+            return new SingleMultiple(readSingleHandle, readSingle);
+        }
+
+        void readSingle(BinaryReader reader, Object object, VarHandle handle) throws IOException;
+
+        Object readSingle(BinaryReader reader) throws IOException;
+
+        Object readMultiple(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException;
+
+        record Single(
+            ReadSingleHandle readSingleHandle,
+            ReadSingle readSingle,
+            ReadArray readArray
+        ) implements AtomReader {
+            @Override
+            public Object readSingle(BinaryReader reader) throws IOException {
+                return readSingle.read(reader);
+            }
+
+            @Override
+            public void readSingle(BinaryReader reader, Object object, VarHandle handle) throws IOException {
+                readSingleHandle.read(reader, object, handle);
+            }
+
+            @Override
+            public Object readMultiple(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type().isArray();
+                return readArray.read(reader, count);
+            }
+        }
+
+        record SingleMultiple(
+            ReadSingleHandle readSingleHandle,
+            ReadSingle readSingle
+        ) implements AtomReader {
+            @Override
+            public Object readSingle(BinaryReader reader) throws IOException {
+                return readSingle.read(reader);
+            }
+
+            @Override
+            public void readSingle(BinaryReader reader, Object object, VarHandle handle) throws IOException {
+                readSingleHandle.read(reader, object, handle);
+            }
+
+            @Override
+            public Object readMultiple(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
+                Object result = info.newInstance(count);
+                for (int i = 0; i < count; i++) {
+                    info.set(result, i, readSingle(reader));
+                }
+                return result;
+            }
+        }
+    }
+}
