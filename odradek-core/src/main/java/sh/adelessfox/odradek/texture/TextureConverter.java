@@ -261,7 +261,9 @@ final class TextureConverter {
         return (byte) Math.fma(Math.clamp(value, 0.0f, 1.0f), 255.0f, 0.5f);
     }
 
-    private static byte packU16To8(short value) { return (byte) ((Short.toUnsignedInt(value) + 128) / 257); }
+    private static byte packU16To8(short value) {
+        return (byte) ((Short.toUnsignedInt(value) + 128) / 257);
+    }
 
     private static Surface rgba2bgra(Surface surface, int stride) {
         var data = surface.data();
