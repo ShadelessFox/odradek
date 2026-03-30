@@ -155,10 +155,17 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         }
 
         interleaved.forEach(((semantic, value) -> {
-            if (!value.isEmpty()) {
+            if (value.size() == 1) {
+                accessors.put(semantic, value.getFirst());
+            } else {
                 accessors.put(semantic, Accessor.ofInterleaved(value));
             }
         }));
+
+        accessors.replaceAll((semantic, accessor) -> switch (semantic) {
+            case Semantic.Weights _ -> normalizeAccessor(accessor);
+            default -> accessor;
+        });
 
         if (accessors.containsKey(Semantic.JOINTS) && !accessors.containsKey(Semantic.WEIGHTS)) {
             // Weights MAY be absent in case there's only one bone per vertex.
@@ -204,6 +211,26 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         }
 
         return Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
+    }
+
+    private static Accessor normalizeAccessor(Accessor accessor) {
+        var buffer = ByteBuffer
+            .allocate(accessor.count() * accessor.componentCount() * Float.BYTES)
+            .order(ByteOrder.LITTLE_ENDIAN);
+        var view = accessor.asFloatView();
+        var acc = new float[accessor.componentCount()];
+        for (int i = 0; i < accessor.count(); i++) {
+            float sum = 0;
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                float value = view.get(i, j);
+                acc[j] = view.get(i, j);
+                sum += value;
+            }
+            for (int j = 0; j < accessor.componentCount(); j++) {
+                buffer.putFloat(acc[j] / sum);
+            }
+        }
+        return Accessor.of(buffer.flip(), 0, new Type.F32(accessor.componentCount()), accessor.count());
     }
 
     private static Vector3f computePrimitiveColor(int hash) {

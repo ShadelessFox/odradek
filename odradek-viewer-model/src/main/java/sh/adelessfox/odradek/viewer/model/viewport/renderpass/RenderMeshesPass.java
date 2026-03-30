@@ -174,7 +174,7 @@ public final class RenderMeshesPass implements RenderPass {
             }
             if (!(accessor instanceof Accessor.OfBuffer buffer)) {
                 log.error("Unsupported accessor type for semantic {}: {}", semantic, accessor.getClass().getName());
-                return Optional.empty();
+                continue;
             }
             var attributes = buffers.computeIfAbsent(buffer.buffer(), _ -> new ArrayList<>());
             attributes.add(new VertexAttribute(location1, buffer.type(), 0, buffer.stride()));
