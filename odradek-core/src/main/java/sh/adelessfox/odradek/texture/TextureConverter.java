@@ -252,7 +252,7 @@ final class TextureConverter {
         var dst = target.data();
 
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            int u16 = Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN) & 0xFFFF;
+            int u16 = Short.toUnsignedInt(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
 
             dst[o] = (byte) ((u16 + 128) / 257);
         }
