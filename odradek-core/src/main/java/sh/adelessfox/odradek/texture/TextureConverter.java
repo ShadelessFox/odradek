@@ -252,17 +252,16 @@ final class TextureConverter {
         var dst = target.data();
 
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            int u16 = Short.toUnsignedInt(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
-
-            dst[o] = (byte) ((u16 + 128) / 257);
+            dst[o] = packU16To8(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
         }
-
         return target;
     }
 
     private static byte packUNorm8(float value) {
         return (byte) Math.fma(Math.clamp(value, 0.0f, 1.0f), 255.0f, 0.5f);
     }
+
+    private static byte packU16To8(short value) { return (byte) ((Short.toUnsignedInt(value) + 128) / 257); }
 
     private static Surface rgba2bgra(Surface surface, int stride) {
         var data = surface.data();
