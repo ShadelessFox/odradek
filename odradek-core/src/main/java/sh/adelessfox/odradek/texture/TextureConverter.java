@@ -83,6 +83,12 @@ final class TextureConverter {
         Converter operator = switch (srcFormat) {
             case R16G16B16_SFLOAT ->
                 new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8_UNORM), TextureFormat.R8G8B8_UNORM);
+            case R16G16B16A16_SFLOAT ->
+                new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8A8_UNORM), TextureFormat.R8G8B8A8_UNORM);
+            case R16_UNORM ->
+                new Converter(surface -> tonemapUnorm16(surface, TextureFormat.R8_UNORM), TextureFormat.R8_UNORM);
+            case R32_SFLOAT ->
+                new Converter(surface -> tonemapF32(surface, TextureFormat.R8_UNORM), TextureFormat.R8_UNORM);
             default -> null;
         };
 
@@ -225,6 +231,32 @@ final class TextureConverter {
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
             dst[o] = packUNorm8(Float.float16ToFloat(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN)));
         }
+        return target;
+    }
+
+    private static Surface tonemapF32(Surface surface, TextureFormat format) {
+        Surface target = Surface.create(surface.width(), surface.height(), format);
+
+        var src = surface.data();
+        var dst = target.data();
+        for (int i = 0, o = 0; i < src.length; i += 4, o++) {
+            dst[o] = packUNorm8(Arrays.getFloat(src, i, ByteOrder.LITTLE_ENDIAN));
+        }
+        return target;
+    }
+
+    private static Surface tonemapUnorm16(Surface surface, TextureFormat format) {
+        Surface target = Surface.create(surface.width(), surface.height(), format);
+
+        var src = surface.data();
+        var dst = target.data();
+
+        for (int i = 0, o = 0; i < src.length; i += 2, o++) {
+            int u16 = Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN) & 0xFFFF;
+
+            dst[o] = (byte) ((u16 + 128) / 257);
+        }
+
         return target;
     }
 
