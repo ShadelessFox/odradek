@@ -13,7 +13,12 @@ record DdsHeaderDxt10(
     public static final int BYTES = 20;
 
     // dxgiFormat
+    static final int DXGI_FORMAT_R16G16B16A16_FLOAT = 10;
     static final int DXGI_FORMAT_R8G8B8A8_UNORM = 28;
+    static final int DXGI_FORMAT_R32_FLOAT = 41;
+    static final int DXGI_FORMAT_R16_UNORM = 56;
+    static final int DXGI_FORMAT_B8G8R8A8_UNORM = 87;
+
     static final int DXGI_FORMAT_BC1_UNORM = 71;
     static final int DXGI_FORMAT_BC2_UNORM = 74;
     static final int DXGI_FORMAT_BC3_UNORM = 77;

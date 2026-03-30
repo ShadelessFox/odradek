@@ -22,7 +22,11 @@ abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, D
     protected static Optional<TextureFormat> mapFormat(EPixelFormat format) {
         return Optional.ofNullable(switch (format) {
             case R_UNORM_8 -> TextureFormat.R8_UNORM;
+            case R_UNORM_16 -> TextureFormat.R16_UNORM;
             case RGBA_8888 -> TextureFormat.R8G8B8A8_UNORM;
+            case RGBA_8888_REV -> TextureFormat.B8G8R8A8_UNORM;
+            case RGBA_FLOAT_16 -> TextureFormat.R16G16B16A16_SFLOAT;
+            case R_FLOAT_32 -> TextureFormat.R32_SFLOAT;
             case BC1 -> TextureFormat.BC1_UNORM;
             case BC2 -> TextureFormat.BC2_UNORM;
             case BC3 -> TextureFormat.BC3_UNORM;
