@@ -19,7 +19,22 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
-    abstract sealed class GroupableByGroup {
+    @SuppressWarnings("unused")
+    abstract sealed class Groupable<T extends Groupable<T, ?>, O extends Enum<O>> {
+        final EnumSet<O> options;
+        final StreamingGraphResource graph;
+
+        Groupable(StreamingGraphResource graph, EnumSet<O> options) {
+            this.options = EnumSet.copyOf(options);
+            this.graph = graph;
+        }
+
+        public Set<O> options() {
+            return options;
+        }
+    }
+
+    abstract sealed class GroupableByGroup extends Groupable<GroupableByGroup, GroupableByGroup.Option> {
         private static final Comparator<Map.Entry<StreamingGroupData, int[]>>
             DEFAULT_COMPARATOR = Comparator.comparingInt(e -> e.getKey().groupID()),
             COUNT_COMPARATOR = Comparator.comparingInt(e -> -e.getValue().length);
@@ -29,11 +44,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             SORT_BY_COUNT
         }
 
-        final Set<Option> options = EnumSet.of(Option.GROUP_BY_GROUP);
-        final StreamingGraphResource graph;
-
         GroupableByGroup(StreamingGraphResource graph) {
-            this.graph = graph;
+            super(graph, EnumSet.of(Option.GROUP_BY_GROUP));
         }
 
         List<? extends GraphStructure> getGroupedChildren() {
@@ -69,7 +81,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         protected abstract int[] indices(StreamingGroupData group);
     }
 
-    abstract sealed class GroupableByType {
+    abstract sealed class GroupableByType extends Groupable<GroupableByType, GroupableByType.Option> {
         public static final Comparator<Map.Entry<ClassTypeInfo, List<Integer>>>
             DEFAULT_COMPARATOR = Comparator.comparing(e -> e.getKey().name()),
             COUNT_COMPARATOR = Comparator.comparingInt(e -> -e.getValue().size());
@@ -79,11 +91,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             SORT_BY_COUNT
         }
 
-        final Set<Option> options = EnumSet.noneOf(Option.class);
-        final StreamingGraphResource graph;
-
         GroupableByType(StreamingGraphResource graph) {
-            this.graph = graph;
+            super(graph, EnumSet.noneOf(Option.class));
         }
 
         List<? extends GraphStructure> getGroupedChildren() {
