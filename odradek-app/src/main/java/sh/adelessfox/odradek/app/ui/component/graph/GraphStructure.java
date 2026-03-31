@@ -448,7 +448,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         boolean includeGroupId() {
-            return indexAndIncludeGroupId >>> 31 != 0;
+            return indexAndIncludeGroupId < 0;
         }
 
         @Override
