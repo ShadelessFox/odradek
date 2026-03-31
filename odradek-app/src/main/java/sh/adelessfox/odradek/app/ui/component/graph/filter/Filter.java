@@ -66,12 +66,15 @@ public sealed interface Filter {
                 // @formatter:off
                 case GraphStructure.Group(var graph, var group, _) ->
                     FilterResult.of(graph.types(group).anyMatch(info -> matches(info, options)));
-                case GraphStructure.GraphObjectSet(_, var info, _) ->
-                    FilterResult.of(matches(info, options));
+                case GraphStructure.GraphObjectSet objectSet ->
+                    FilterResult.of(matches(objectSet.info(), options));
                 case GraphStructure.GroupObject object ->
                     FilterResult.of(matches(object.objectType(), options));
                 case GraphStructure.GroupedByType groupedByType ->
                     FilterResult.of(matches(groupedByType.info(), options));
+                // FIXME
+                // case GraphStructure.GroupedByGroup groupedByGroup ->
+                //     FilterResult.of(matches(groupedByGroup.info(), options));
                 default -> FilterResult.NOT_APPLICABLE;
                 // @formatter:on
             };

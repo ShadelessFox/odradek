@@ -55,7 +55,9 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.graph.CopyIdToClipboardAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,
+        sh.adelessfox.odradek.app.ui.menu.graph.GroupObjectsByGroupAction,
         sh.adelessfox.odradek.app.ui.menu.graph.GroupObjectsByTypeAction,
+        sh.adelessfox.odradek.app.ui.menu.graph.SortGroupsByCountAction,
         sh.adelessfox.odradek.app.ui.menu.graph.SortObjectsByCountAction,
         sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction,
         sh.adelessfox.odradek.app.ui.menu.object.SaveBytesToFileAction;

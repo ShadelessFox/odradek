@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.game.ObjectSupplier;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
@@ -20,6 +19,51 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
+    abstract sealed class GroupableByGroup {
+        public enum Option {
+            GROUP_BY_GROUP,
+            SORT_BY_COUNT
+        }
+
+        final Set<Option> options = EnumSet.of(Option.GROUP_BY_GROUP);
+        final StreamingGraphResource graph;
+
+        GroupableByGroup(StreamingGraphResource graph) {
+            this.graph = graph;
+        }
+
+        List<? extends GraphStructure> getGroupedChildren() {
+            if (options.contains(Option.GROUP_BY_GROUP)) {
+                var comparator = options.contains(Option.SORT_BY_COUNT)
+                    ? Comparator.<Map.Entry<StreamingGroupData, int[]>>comparingInt(e -> e.getValue().length).reversed()
+                    : Comparator.<Map.Entry<StreamingGroupData, int[]>>comparingInt(e -> e.getKey().groupID());
+                return groupEntries()
+                    .sorted(comparator)
+                    .map(entry -> new GroupedByGroup(this, entry.getKey(), entry.getValue()))
+                    .toList();
+            } else {
+                return groupEntries()
+                    .flatMap(entry -> IntStream.of(entry.getValue())
+                        .mapToObj(index -> new GroupObject(graph, entry.getKey(), index)))
+                    .toList();
+            }
+        }
+
+        GroupObject toGroupObject(StreamingGroupData group, int index) {
+            return new GroupObject(graph, group, index);
+        }
+
+        public Set<Option> options() {
+            return options;
+        }
+
+        public Stream<StreamingGroupData> groups() {
+            return groupEntries().map(Map.Entry::getKey);
+        }
+
+        protected abstract Stream<Map.Entry<StreamingGroupData, int[]>> groupEntries();
+    }
+
     abstract sealed class GroupableByType {
         public enum Option {
             GROUP_BY_TYPE,
@@ -71,6 +115,31 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         private ClassTypeInfo type(int key) {
             return graph.types().get(group(key).typeStart() + index(key));
+        }
+    }
+
+    record GroupedByGroup(GroupableByGroup parent, StreamingGroupData group, int[] indices) implements GraphStructure {
+        List<? extends GraphStructure> getGroupedChildren() {
+            return IntStream.of(indices)
+                .mapToObj(index -> parent.toGroupObject(group, index))
+                .toList();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return o instanceof GroupedByGroup that
+                && parent.equals(that.parent)
+                && group.groupID() == that.group.groupID();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(parent, group.groupID());
+        }
+
+        @Override
+        public String toString() {
+            return "Group %d (%d)".formatted(group.groupID(), indices.length);
         }
     }
 
@@ -154,7 +223,37 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record GraphObjectSet(StreamingGraphResource graph, ClassTypeInfo info, int count) implements GraphStructure {
+    final class GraphObjectSet extends GroupableByGroup implements GraphStructure {
+        private final ClassTypeInfo info;
+        private final int count;
+
+        GraphObjectSet(StreamingGraphResource graph, ClassTypeInfo info, int count) {
+            super(graph);
+            this.info = info;
+            this.count = count;
+        }
+
+        public ClassTypeInfo info() {
+            return info;
+        }
+
+        public int count() {
+            return count;
+        }
+
+        @Override
+        protected Stream<Map.Entry<StreamingGroupData, int[]>> groupEntries() {
+            return graph.groups().stream()
+                .filter(group -> graph.types(group).anyMatch(type -> type == info))
+                .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
+                .map(group -> {
+                    var indices = IntStream.range(0, group.typeCount())
+                        .filter(index -> graph.types().get(group.typeStart() + index) == info)
+                        .toArray();
+                    return Map.entry(group, indices);
+                });
+        }
+
         @Override
         public boolean equals(Object object) {
             return object instanceof GraphObjectSet that && info.equals(that.info);
@@ -168,51 +267,6 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         public String toString() {
             return "%s (%d)".formatted(info, count);
-        }
-    }
-
-    final class GraphObjectSetGroup extends GroupableByType implements GraphStructure {
-        private final StreamingGroupData group;
-        private final TypeInfo info;
-        private final int[] indices;
-
-        GraphObjectSetGroup(StreamingGraphResource graph, StreamingGroupData group, TypeInfo info, int[] indices) {
-            super(graph);
-            this.group = group;
-            this.info = info;
-            this.indices = indices;
-        }
-
-        @Override
-        protected IntStream keys() {
-            return IntStream.of(indices);
-        }
-
-        @Override
-        protected StreamingGroupData group(int key) {
-            return group;
-        }
-
-        @Override
-        protected int index(int key) {
-            return key;
-        }
-
-        @Override
-        public boolean equals(Object object) {
-            return object instanceof GraphObjectSetGroup that
-                && group.groupID() == that.group.groupID()
-                && info.equals(that.info);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(group.groupID(), info);
-        }
-
-        @Override
-        public String toString() {
-            return "Group %s (%d)".formatted(group.groupID(), indices.length);
         }
     }
 
@@ -409,16 +463,6 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
                 .sorted(Comparator.comparing(x -> x.getKey().name()))
                 .map(entry -> new GraphObjectSet(graph, entry.getKey(), Math.toIntExact(entry.getValue())))
                 .toList();
-            case GraphObjectSet(var graph, var info, var _) -> graph.groups().stream()
-                .filter(group -> graph.types(group).anyMatch(type -> type == info))
-                .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
-                .map(group -> {
-                    var indices = IntStream.range(0, group.typeCount())
-                        .filter(index -> graph.types().get(group.typeStart() + index) == info)
-                        .toArray();
-                    return new GraphObjectSetGroup(graph, group, info, indices);
-                })
-                .toList();
             case Group(var graph, var group, _) -> List.of(
                 new GroupObjects(graph, group),
                 new GroupRoots(graph, group),
@@ -438,6 +482,9 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
             case GroupableByType groupableByType -> groupableByType.getGroupedChildren();
             case GroupedByType groupedByType -> groupedByType.getGroupedChildren();
+
+            case GroupableByGroup groupableByGroup -> groupableByGroup.getGroupedChildren();
+            case GroupedByGroup groupedByGroup -> groupedByGroup.getGroupedChildren();
 
             case GroupObject _ -> List.of();
         };

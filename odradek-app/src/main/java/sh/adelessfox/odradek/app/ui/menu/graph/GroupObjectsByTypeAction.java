@@ -11,9 +11,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 public class GroupObjectsByTypeAction extends AbstractObjectsOptionAction {
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION, GroupableByType.class).stream()
-            .flatMap(GroupableByType::types)
-            .distinct().limit(2).count() == 2;
+        return context.has(DataKeys.SELECTION, GroupableByType.class);
     }
 
     @Override
