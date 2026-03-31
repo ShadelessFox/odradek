@@ -72,9 +72,6 @@ public sealed interface Filter {
                     FilterResult.of(matches(object.objectType(), options));
                 case GraphStructure.GroupedByType groupedByType ->
                     FilterResult.of(matches(groupedByType.info(), options));
-                // FIXME
-                // case GraphStructure.GroupedByGroup groupedByGroup ->
-                //     FilterResult.of(matches(groupedByGroup.info(), options));
                 default -> FilterResult.NOT_APPLICABLE;
                 // @formatter:on
             };
