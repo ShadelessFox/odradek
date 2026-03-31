@@ -49,13 +49,13 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             } else {
                 return groups()
                     .flatMap(group -> IntStream.of(indices(group))
-                        .mapToObj(index -> new GroupObject(graph, group, index)))
+                        .mapToObj(index -> toGroupObject(group, index, true)))
                     .toList();
             }
         }
 
-        GroupObject toGroupObject(StreamingGroupData group, int index) {
-            return new GroupObject(graph, group, index);
+        GroupObject toGroupObject(StreamingGroupData group, int index, boolean includeGroupId) {
+            return new GroupObject(graph, group, index, includeGroupId);
         }
 
         public Set<Option> options() {
@@ -131,7 +131,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     record GroupedByGroup(GroupableByGroup parent, StreamingGroupData group, int[] indices) implements GraphStructure {
         List<? extends GraphStructure> getGroupedChildren() {
             return IntStream.of(indices)
-                .mapToObj(index -> parent.toGroupObject(group, index))
+                .mapToObj(index -> parent.toGroupObject(group, index, false))
                 .toList();
         }
 
@@ -203,6 +203,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
+        GroupObject toGroupObject(int key) {
+            return new GroupObject(graph, group(key), index(key), true);
+        }
+
+        @Override
         protected IntStream keys() {
             return IntStream.range(0, graph.rootIndices().length);
         }
@@ -254,7 +259,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         protected Stream<StreamingGroupData> groups() {
             return graph.groups().stream()
-                .filter(group -> graph.types(group).anyMatch(type -> type == info));
+                .filter(group -> graph.types(group).anyMatch(type -> type == info))
+                .sorted(Comparator.comparingInt(StreamingGroupData::groupID));
         }
 
         @Override
@@ -421,38 +427,55 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     record GroupObject(
         StreamingGraphResource graph,
         StreamingGroupData group,
-        int index
+        int indexAndIncludeGroupId
     ) implements GraphStructure, ObjectSupplier, ObjectIdHolder {
+        public GroupObject(StreamingGraphResource graph, StreamingGroupData group, int index, boolean includeGroupId) {
+            Objects.checkIndex(index, group.numObjects());
+            this(graph, group, index | (includeGroupId ? 0x80000000 : 0));
+        }
+
+        int index() {
+            return indexAndIncludeGroupId & 0x7FFFFFFF;
+        }
+
+        boolean includeGroupId() {
+            return indexAndIncludeGroupId >>> 31 != 0;
+        }
+
         @Override
         public TypedObject readObject(Game game) throws IOException {
-            return game.readObject(group.groupID(), index);
+            return game.readObject(group.groupID(), index());
         }
 
         @Override
         public ClassTypeInfo objectType() {
-            return graph.types().get(group.typeStart() + index);
+            return graph.types().get(group.typeStart() + index());
         }
 
         @Override
         public ObjectId objectId() {
-            return new ObjectId(group.groupID(), index);
+            return new ObjectId(group.groupID(), index());
         }
 
         @Override
         public boolean equals(Object object) {
             return object instanceof GroupObject that
                 && group.groupID() == that.group.groupID()
-                && index == that.index;
+                && indexAndIncludeGroupId == that.indexAndIncludeGroupId;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(group.groupID(), index);
+            return Objects.hash(group.groupID(), indexAndIncludeGroupId);
         }
 
         @Override
         public String toString() {
-            return "[%d] %s".formatted(index, objectType());
+            if (includeGroupId()) {
+                return "[%d:%d] %s".formatted(group.groupID(), index(), objectType());
+            } else {
+                return "[%d] %s".formatted(index(), objectType());
+            }
         }
     }
 
