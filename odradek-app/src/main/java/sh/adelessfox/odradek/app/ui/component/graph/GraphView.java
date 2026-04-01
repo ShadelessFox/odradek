@@ -179,7 +179,8 @@ public class GraphView implements View<JComponent>, ToolPanel {
                          GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
                     case GraphStructure.GroupableByType _,
                          GraphStructure.GroupedByType _,
-                         GraphStructure.GraphObjectSet _ -> Fugue.getIcon("folder-open-document");
+                         GraphStructure.GroupableByGroup _,
+                         GraphStructure.GroupedByGroup _ -> Fugue.getIcon("folder-open-document");
                 });
             }
         });
