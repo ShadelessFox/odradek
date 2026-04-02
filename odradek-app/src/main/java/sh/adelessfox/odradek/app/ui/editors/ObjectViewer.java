@@ -221,6 +221,7 @@ public final class ObjectViewer implements Viewer {
         }
         if (s instanceof ObjectStructure.Attr(_, _, var attr, _)) {
             appendSection(buf, "Attribute");
+            appendRow(buf, "Offset", toText(attr.offset()));
             appendRow(buf, "Flags", toText(attr.flags()));
             appendRow(buf, "Min value", attr.min().orElse("NOT SET"));
             appendRow(buf, "Max value", attr.max().orElse("NOT SET"));
