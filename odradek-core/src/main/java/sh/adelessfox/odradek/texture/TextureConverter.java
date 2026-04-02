@@ -30,7 +30,7 @@ final class TextureConverter {
             throw new UnsupportedOperationException("Compressed target formats are not supported");
         }
 
-        var converter = Optional.of(Converter.noop(source))
+        var converter = Optional.of(Converter.copy(source))
             .map(c -> decompress(c.format()).map(c::andThen).orElse(c))
             .map(c -> tonemap(c.format()).map(c::andThen).orElse(c))
             .map(c -> unpack(c.format(), target).map(c::andThen).orElse(c))
@@ -225,30 +225,31 @@ final class TextureConverter {
     }
 
     private static Surface tonemapF16(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
-
+        var target = Surface.create(surface.width(), surface.height(), format);
         var src = surface.data();
         var dst = target.data();
+
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
             dst[o] = packUNorm8(Float.float16ToFloat(Handles.getShort(src, i, ByteOrder.LITTLE_ENDIAN)));
         }
+
         return target;
     }
 
     private static Surface tonemapF32(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
-
+        var target = Surface.create(surface.width(), surface.height(), format);
         var src = surface.data();
         var dst = target.data();
+
         for (int i = 0, o = 0; i < src.length; i += 4, o++) {
             dst[o] = packUNorm8(Handles.getFloat(src, i, ByteOrder.LITTLE_ENDIAN));
         }
+
         return target;
     }
 
     private static Surface tonemapUnorm16(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
-
+        var target = Surface.create(surface.width(), surface.height(), format);
         var src = surface.data();
         var dst = target.data();
 
@@ -304,8 +305,15 @@ final class TextureConverter {
     }
 
     private record Converter(Function<Surface, Surface> operator, TextureFormat format) {
-        static Converter noop(TextureFormat format) {
-            return new Converter(Function.identity(), format);
+        static Converter copy(TextureFormat format) {
+            return new Converter(Converter::copy, format);
+        }
+
+        private static Surface copy(Surface surface) {
+            return new Surface(
+                surface.width(),
+                surface.height(),
+                Arrays.copyOf(surface.data(), surface.data().length));
         }
 
         Converter andThen(Converter after) {
