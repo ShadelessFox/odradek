@@ -86,13 +86,13 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         if (DataKeys.SELECTION.is(key)) {
             TreePath[] paths = getSelectionPaths();
             if (paths != null && paths.length == 1) {
-                return Optional.of(getSelectionComponent(paths[0]));
+                return Optional.of(getLastPathComponent(paths[0]));
             }
         }
         if (DataKeys.SELECTION_LIST.is(key)) {
             TreePath[] paths = getSelectionPaths();
             if (paths != null) {
-                return Optional.of(Arrays.stream(paths).map(this::getSelectionComponent).toList());
+                return Optional.of(Arrays.stream(paths).map(this::getLastPathComponent).toList());
             }
         }
         return Optional.empty();
@@ -149,7 +149,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if (placeholderText != null && getModel() == null || getModel().isEmpty()) {
+        if (placeholderText != null && (getModel() == null || getModel().isEmpty())) {
             GraphicsUtils.setTextRenderingHints(g);
             GraphicsUtils.drawCenteredString(g, placeholderText, this);
         }
@@ -211,7 +211,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     }
 
     public Object getSelectionPathComponent() {
-        return getSelectionComponent(getSelectionPath());
+        return getLastPathComponent(getSelectionPath());
     }
 
     private void notifyTreeAction(EventObject event, BiConsumer<TreeActionListener, TreeActionEvent> consumer) {
@@ -228,7 +228,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         consumer.accept(actionListeners.broadcast(), new TreeActionEvent(event, path, getRowForPath(path)));
     }
 
-    private Object getSelectionComponent(TreePath path) {
+    public Object getLastPathComponent(TreePath path) {
         if (path == null) {
             return null;
         }

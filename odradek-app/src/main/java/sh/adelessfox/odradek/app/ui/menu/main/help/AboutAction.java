@@ -15,7 +15,7 @@ public class AboutAction extends Action {
     public void perform(ActionContext context) {
         JOptionPane.showMessageDialog(
             JOptionPane.getRootFrame(),
-            "A Horizon Forbidden West asset viewer and extractor.\n\n© 2025 ShadelessFox",
+            "A Horizon Forbidden West asset viewer and extractor.\n\n© 2025-2026 ShadelessFox and contributors",
             "About",
             JOptionPane.PLAIN_MESSAGE
         );

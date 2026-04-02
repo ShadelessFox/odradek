@@ -7,8 +7,11 @@
 This is a reincarnation of [Decima Workshop](https://github.com/ShadelessFox/decima), a modding tool
 for Horizon Zero Dawn and Death Stranding.
 
-Odradek, however, despite its name, targets exclusively
-Horizon Forbidden West in an attempt to come up with something that could be useful for modders.
+Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attempt to come up with something that could be useful for modders.
+
+> [!IMPORTANT]
+> 
+> A separate build targeting **Death Stranding 2** is now available [here](https://github.com/ShadelessFox/odradek/releases/tag/v1.0).
 
 ### Features
 - Preview for static and skinned models; export to `.cast`

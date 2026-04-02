@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.io;
 
-import sh.adelessfox.odradek.util.Arrays;
+import sh.adelessfox.odradek.util.Handles;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -52,31 +52,31 @@ public abstract class ChunkedBinaryReader implements BinaryReader {
     @Override
     public short readShort() throws IOException {
         readBytes(scratch, 0, Short.BYTES);
-        return Arrays.getShort(scratch, 0, order);
+        return Handles.getShort(scratch, 0, order);
     }
 
     @Override
     public int readInt() throws IOException {
         readBytes(scratch, 0, Integer.BYTES);
-        return Arrays.getInt(scratch, 0, order);
+        return Handles.getInt(scratch, 0, order);
     }
 
     @Override
     public long readLong() throws IOException {
         readBytes(scratch, 0, Long.BYTES);
-        return Arrays.getLong(scratch, 0, order);
+        return Handles.getLong(scratch, 0, order);
     }
 
     @Override
     public float readFloat() throws IOException {
         readBytes(scratch, 0, Float.BYTES);
-        return Arrays.getFloat(scratch, 0, order);
+        return Handles.getFloat(scratch, 0, order);
     }
 
     @Override
     public double readDouble() throws IOException {
         readBytes(scratch, 0, Double.BYTES);
-        return Arrays.getDouble(scratch, 0, order);
+        return Handles.getDouble(scratch, 0, order);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.texture;
 
-import sh.adelessfox.odradek.util.Arrays;
+import sh.adelessfox.odradek.util.Handles;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
@@ -57,7 +57,7 @@ public record Surface(int width, int height, byte[] data) {
                 var buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
                 for (int i = 0, o = 0, len = converted.data().length; i < len; i += 4, o++) {
-                    buffer[o] = Arrays.getInt(converted.data(), i, ByteOrder.LITTLE_ENDIAN);
+                    buffer[o] = Handles.getInt(converted.data(), i, ByteOrder.LITTLE_ENDIAN);
                 }
 
                 return image;

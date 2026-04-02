@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "Sort by count")
 @ActionContribution(parent = GraphMenu.ID)
-public class SortObjectsByCountAction extends AbstractObjectsOptionAction {
+public class SortObjectsByCountAction extends AbstractGroupableAction<GroupableByType, GroupableByType.Option> {
     @Override
     public boolean isVisible(ActionContext context) {
         return context.get(DataKeys.SELECTION, GroupableByType.class)
@@ -19,5 +19,10 @@ public class SortObjectsByCountAction extends AbstractObjectsOptionAction {
     @Override
     protected GroupableByType.Option getOption() {
         return GroupableByType.Option.SORT_BY_COUNT;
+    }
+
+    @Override
+    protected Class<GroupableByType> getType() {
+        return GroupableByType.class;
     }
 }

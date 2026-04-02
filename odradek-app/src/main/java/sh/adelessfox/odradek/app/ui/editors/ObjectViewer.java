@@ -77,7 +77,7 @@ public final class ObjectViewer implements Viewer {
                     var input = new ObjectEditorInputLazy(holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }
-                default -> {
+                case null, default -> {
                     // nothing to do
                 }
             }

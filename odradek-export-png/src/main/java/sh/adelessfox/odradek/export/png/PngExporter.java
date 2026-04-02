@@ -31,23 +31,23 @@ public final class PngExporter implements Exporter<Texture> {
         }
     }
 
-    private static void writeSingle(Texture object, WritableByteChannel channel, PngFormat format) throws IOException {
-        var surface = object.surfaces().getFirst();
-        var converted = surface.convert(object.format(), TextureFormat.R8G8B8A8_UNORM);
+    private static void writeSingle(Texture texture, WritableByteChannel channel, PngFormat format) throws IOException {
+        var surface = texture.surfaces().getFirst();
+        var converted = surface.convert(texture.format(), TextureFormat.R8G8B8A8_UNORM);
 
         try (var writer = PngWriter.of(format, channel)) {
             writer.write(converted.data());
         }
     }
 
-    private static void writeAnimated(Texture object, WritableByteChannel channel, PngFormat format) throws IOException {
-        int frames = object.surfaces().size();
-        var duration = object.duration().orElseThrow();
+    private static void writeAnimated(Texture texture, WritableByteChannel channel, PngFormat format) throws IOException {
+        int frames = texture.surfaces().size();
+        var duration = texture.duration().orElseThrow();
 
         try (var writer = PngWriter.ofAnimated(format, frames, 0, channel)) {
-            for (Surface surface : object.surfaces()) {
+            for (Surface surface : texture.surfaces()) {
                 writer.write(
-                    surface.convert(object.format(), TextureFormat.R8G8B8A8_UNORM).data(),
+                    surface.convert(texture.format(), TextureFormat.R8G8B8A8_UNORM).data(),
                     duration,
                     PngDisposeMethod.BACKGROUND,
                     PngBlendMethod.SOURCE);

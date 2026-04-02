@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.util;
+package sh.adelessfox.odradek.util.system;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public record ProductVersion(int major, int minor, int build, int revision) {
         if (Files.isDirectory(path)) {
             throw new IllegalArgumentException("Path represents a directory");
         }
-        if (OS.name() != OS.Name.WINDOWS) {
+        if (OperatingSystem.name() != OperatingSystem.Name.WINDOWS) {
             return Optional.empty();
         }
         try (Arena arena = Arena.ofConfined()) {

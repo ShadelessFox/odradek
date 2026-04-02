@@ -15,7 +15,7 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
-import sh.adelessfox.odradek.util.OS;
+import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -57,7 +57,7 @@ public final class Application {
     }
 
     private static void run(ApplicationComponent component, ApplicationParameters params) {
-        if (OS.name() == OS.Name.LINUX) {
+        if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
             // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);

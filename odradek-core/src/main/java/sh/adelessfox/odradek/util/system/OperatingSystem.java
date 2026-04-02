@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.util;
+package sh.adelessfox.odradek.util.system;
 
 import java.util.Locale;
 
@@ -7,7 +7,7 @@ import java.util.Locale;
  * <p>
  * Vaguely based on {@code com.formdev.flatlaf.util.SystemInfo}
  */
-public final class OS {
+public final class OperatingSystem {
     public enum Name {
         WINDOWS,
         LINUX,
@@ -45,7 +45,7 @@ public final class OS {
         };
     }
 
-    private OS() {
+    private OperatingSystem() {
     }
 
     /**

@@ -10,7 +10,7 @@ import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.util.OS;
+import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -82,7 +82,7 @@ public class Main implements Callable<Void> {
         if (userHome == null) {
             throw new IllegalStateException("Unable to determine user home directory");
         }
-        return switch (OS.name()) {
+        return switch (OperatingSystem.name()) {
             case WINDOWS -> Path.of(userHome, "AppData", "Local", identifier);
             case MACOS -> Path.of(userHome, "Library", "Application Support", identifier);
             case LINUX -> Path.of(userHome, ".config", identifier);

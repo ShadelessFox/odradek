@@ -33,6 +33,6 @@ public class OpenObjectAction extends Action {
         }
 
         lastInput = result;
-        Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(ObjectId.valueOf(result)));
+        Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(ObjectId.valueOf(result.strip())));
     }
 }
