@@ -1,9 +1,10 @@
 package sh.adelessfox.odradek.hashing;
 
-import sh.adelessfox.odradek.util.Arrays;
+import sh.adelessfox.odradek.util.Handles;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.HexFormat;
 
 public abstract sealed class HashCode {
@@ -61,12 +62,12 @@ public abstract sealed class HashCode {
 
         @Override
         public int asInt() {
-            return Arrays.getInt(hash, 0, ByteOrder.LITTLE_ENDIAN);
+            return Handles.getInt(hash, 0, ByteOrder.LITTLE_ENDIAN);
         }
 
         @Override
         public long asLong() {
-            return Arrays.getLong(hash, 0, ByteOrder.LITTLE_ENDIAN);
+            return Handles.getLong(hash, 0, ByteOrder.LITTLE_ENDIAN);
         }
 
         @Override
@@ -81,7 +82,7 @@ public abstract sealed class HashCode {
 
         @Override
         public int hashCode() {
-            return java.util.Arrays.hashCode(hash);
+            return Arrays.hashCode(hash);
         }
 
         @Override

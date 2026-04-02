@@ -1,9 +1,10 @@
 package sh.adelessfox.odradek.texture;
 
 import be.twofold.tinybcdec.BlockDecoder;
-import sh.adelessfox.odradek.util.Arrays;
+import sh.adelessfox.odradek.util.Handles;
 
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -229,7 +230,7 @@ final class TextureConverter {
         var src = surface.data();
         var dst = target.data();
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            dst[o] = packUNorm8(Float.float16ToFloat(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN)));
+            dst[o] = packUNorm8(Float.float16ToFloat(Handles.getShort(src, i, ByteOrder.LITTLE_ENDIAN)));
         }
         return target;
     }
@@ -240,7 +241,7 @@ final class TextureConverter {
         var src = surface.data();
         var dst = target.data();
         for (int i = 0, o = 0; i < src.length; i += 4, o++) {
-            dst[o] = packUNorm8(Arrays.getFloat(src, i, ByteOrder.LITTLE_ENDIAN));
+            dst[o] = packUNorm8(Handles.getFloat(src, i, ByteOrder.LITTLE_ENDIAN));
         }
         return target;
     }
@@ -252,8 +253,9 @@ final class TextureConverter {
         var dst = target.data();
 
         for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            dst[o] = packU16To8(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
+            dst[o] = packU16To8(Handles.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
         }
+
         return target;
     }
 

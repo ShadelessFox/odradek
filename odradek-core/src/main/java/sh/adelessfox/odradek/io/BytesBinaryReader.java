@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.io;
 
-import sh.adelessfox.odradek.util.Arrays;
+import sh.adelessfox.odradek.util.Handles;
 
 import java.nio.ByteOrder;
 import java.util.Objects;
@@ -35,35 +35,35 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public short readShort() {
-        var value = Arrays.getShort(array, offset + position, order);
+        var value = Handles.getShort(array, offset + position, order);
         position += Short.BYTES;
         return value;
     }
 
     @Override
     public int readInt() {
-        var value = Arrays.getInt(array, offset + position, order);
+        var value = Handles.getInt(array, offset + position, order);
         position += Integer.BYTES;
         return value;
     }
 
     @Override
     public long readLong() {
-        var value = Arrays.getLong(array, offset + position, order);
+        var value = Handles.getLong(array, offset + position, order);
         position += Long.BYTES;
         return value;
     }
 
     @Override
     public float readFloat() {
-        var value = Arrays.getFloat(array, offset + position, order);
+        var value = Handles.getFloat(array, offset + position, order);
         position += Float.BYTES;
         return value;
     }
 
     @Override
     public double readDouble() {
-        var value = Arrays.getDouble(array, offset + position, order);
+        var value = Handles.getDouble(array, offset + position, order);
         position += Double.BYTES;
         return value;
     }
