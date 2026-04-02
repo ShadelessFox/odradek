@@ -9,7 +9,12 @@ public enum TextureFormat {
     B8G8R8_UNORM(Block.BITS_24),
     B8G8R8A8_UNORM(Block.BITS_32),
 
+    R16_UNORM(Block.BITS_16),
+
     R16G16B16_SFLOAT(Block.BITS_48),
+    R16G16B16A16_SFLOAT(Block.BITS_64),
+
+    R32_SFLOAT(Block.BITS_32),
 
     // Compressed formats
     BC1_UNORM(Block.BC1),
@@ -52,6 +57,7 @@ public enum TextureFormat {
         BITS_24(1, 1, 3),
         BITS_32(1, 1, 4),
         BITS_48(1, 1, 6),
+        BITS_64(1, 1, 8),
 
         BC1(4, 4, 8),
         BC2(4, 4, 16),

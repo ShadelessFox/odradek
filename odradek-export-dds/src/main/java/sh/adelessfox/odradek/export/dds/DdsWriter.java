@@ -135,6 +135,10 @@ final class DdsWriter {
         return switch (texture.format()) {
             // Uncompressed
             case R8G8B8A8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM);
+            case B8G8R8A8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM);
+            case R16_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R16_UNORM);
+            case R16G16B16A16_SFLOAT -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R16G16B16A16_FLOAT);
+            case R32_SFLOAT -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R32_FLOAT);
 
             // Compressed
             case BC1_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM);
