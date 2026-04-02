@@ -260,29 +260,6 @@ final class TextureConverter {
         return target;
     }
 
-    private static Surface tonemapF32(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
-
-        var src = surface.data();
-        var dst = target.data();
-        for (int i = 0, o = 0; i < src.length; i += 4, o++) {
-            dst[o] = packUNorm8(Arrays.getFloat(src, i, ByteOrder.LITTLE_ENDIAN));
-        }
-        return target;
-    }
-
-    private static Surface tonemapUnorm16(Surface surface, TextureFormat format) {
-        Surface target = Surface.create(surface.width(), surface.height(), format);
-
-        var src = surface.data();
-        var dst = target.data();
-
-        for (int i = 0, o = 0; i < src.length; i += 2, o++) {
-            dst[o] = packU16To8(Arrays.getShort(src, i, ByteOrder.LITTLE_ENDIAN));
-        }
-        return target;
-    }
-
     private static byte packUNorm8(float value) {
         return (byte) Math.fma(Math.clamp(value, 0.0f, 1.0f), 255.0f, 0.5f);
     }

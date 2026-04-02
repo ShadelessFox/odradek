@@ -16,7 +16,7 @@ import sh.adelessfox.odradek.game.ds2.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
-import sh.adelessfox.odradek.util.ProductVersion;
+import sh.adelessfox.odradek.util.system.ProductVersion;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
