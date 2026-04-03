@@ -14,6 +14,7 @@ module odradek.game.hfw.ui {
         sh.adelessfox.odradek.game.hfw.ui.renderers.MurmurHashValueRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.RTTIHandleRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.ProgramParameterRenderer,
+        sh.adelessfox.odradek.game.hfw.ui.renderers.ProgramResourceEntryPointRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.SentenceResourceRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.ShaderTextureBindingRenderer,
         sh.adelessfox.odradek.game.hfw.ui.renderers.StreamingDataSourceRenderer,
