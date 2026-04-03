@@ -23,8 +23,10 @@ import java.util.stream.Stream;
  * @param <T> the type of the object this renderer operates on
  * @param <G> the type of the game
  */
-public interface Renderer<T, G extends Game> {
-    interface OfObject<T, G extends Game> extends Renderer<T, G> {
+public sealed interface Renderer<T, G extends Game>
+    permits Renderer.OfObject, Renderer.OfAttribute {
+
+    non-sealed interface OfObject<T, G extends Game> extends Renderer<T, G> {
         /**
          * Checks whether this renderer is applicable to the given type.
          * <p>
@@ -55,7 +57,7 @@ public interface Renderer<T, G extends Game> {
         }
     }
 
-    interface OfAttribute<T, G extends Game> extends Renderer<T, G> {
+    non-sealed interface OfAttribute<T, G extends Game> extends Renderer<T, G> {
         /**
          * Checks whether this renderer is applicable to the given class attribute.
          * <p>
