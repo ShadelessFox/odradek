@@ -16,7 +16,10 @@ import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -33,6 +36,7 @@ public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
 
     private static final Logger log = LoggerFactory.getLogger(ExportObjectAction.class);
+    private static Path lastPath;
 
     @ActionRegistration(text = "")
     @ActionContribution(parent = ExportObjectAction.ID)
@@ -94,28 +98,42 @@ public class ExportObjectAction extends Action {
     }
 
     private static <T> void exportBatch(Batch<T> batch, Game game) {
+        var singleFile = batch.objects().size() == 1;
+        var exporter = batch.exporter();
         var chooser = new JFileChooser();
-        chooser.setDialogTitle("Specify output directory");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
+        if (singleFile) {
+            var name = makeObjectName(exporter, batch.objects().getFirst());
+            var path = lastPath != null ? lastPath.resolve(name).toFile() : new File(name);
+
+            chooser.setDialogTitle("Specify output name");
+            chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            chooser.setFileFilter(new FileNameExtensionFilter(exporter.name(), exporter.extension()));
+            chooser.setAcceptAllFileFilterUsed(false);
+            chooser.setSelectedFile(path);
+        } else {
+            var path = lastPath != null ? lastPath.toFile() : new File("");
+
+            chooser.setDialogTitle("Specify output directory");
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setSelectedFile(path);
+        }
 
         if (chooser.showSaveDialog(JOptionPane.getRootFrame()) != JFileChooser.APPROVE_OPTION) {
             log.debug("Export cancelled by user");
             return;
         }
 
-        var directory = chooser.getSelectedFile().toPath();
+        var output = chooser.getSelectedFile().toPath();
         int exported = 0;
+
+        lastPath = singleFile ? output.getParent() : output;
 
         for (ObjectSupplier selection : batch.objects()) {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
-                var name = "%s_%s_%s.%s".formatted(
-                    selection.objectType(),
-                    selection.objectId().groupId(),
-                    selection.objectId().objectIndex(),
-                    batch.exporter().extension());
-                var path = directory.resolve(name);
+                var path = singleFile ? output : output.resolve(makeObjectName(exporter, selection));
 
                 var converted = batch.converter().convert(object, game);
                 if (converted.isEmpty()) {
@@ -124,7 +142,7 @@ public class ExportObjectAction extends Action {
                 }
 
                 try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                    batch.exporter().export(converted.get(), channel);
+                    exporter.export(converted.get(), channel);
                 }
 
                 log.debug("Exported object {} ({}) to {}", object, type, path);
@@ -157,6 +175,14 @@ public class ExportObjectAction extends Action {
                 JOptionPane.WARNING_MESSAGE
             );
         }
+    }
+
+    private static String makeObjectName(Exporter<?> exporter, ObjectSupplier object) {
+        return "%s_%s_%s.%s".formatted(
+            object.objectType(),
+            object.objectId().groupId(),
+            object.objectId().objectIndex(),
+            exporter.extension());
     }
 
     private record Batch<R>(List<ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
