@@ -13,10 +13,10 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.StandardLocation;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.constant.ClassDesc;
-import java.net.URL;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -32,7 +32,7 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
 
             var context = new TypeContext();
             try {
-                context.load(getResourceUrl(annotation.input().types()), getResourceUrl(annotation.input().extensions()));
+                context.load(openResource(annotation.input().types()), openResource(annotation.input().extensions()));
             } catch (IOException e) {
                 messager.printError("An error occurred while reading type definitions: " + e.getMessage(), module);
             }
@@ -68,8 +68,8 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
         return true;
     }
 
-    private URL getResourceUrl(String name) throws IOException {
-        return processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", name).toUri().toURL();
+    private InputStream openResource(String name) throws IOException {
+        return processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", name).openInputStream();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
@@ -139,8 +140,8 @@ public final class ObjectViewer implements Viewer {
         var renderer = (Renderer<Object, Game>) null;
 
         // Special handling for attributes
-        if (structure instanceof ObjectStructure.Attr(_, var clazz, var attr, var object)) {
-            renderer = Renderer.renderer(clazz, attr).orElse(null);
+        if (structure instanceof ObjectStructure.Attr(var game, var clazz, var attr, var object)) {
+            renderer = Renderer.renderer(clazz, attr, game).orElse(null);
 
             // For attribute renderers, the parent type/object is passed
             if (renderer != null) {
@@ -151,7 +152,7 @@ public final class ObjectViewer implements Viewer {
 
         // If we couldn't find an attribute-specific renderer, try type-based renderer
         if (renderer == null) {
-            renderer = Renderer.renderer(type).orElse(null);
+            renderer = Renderer.renderer(type, structure.game()).orElse(null);
         }
 
         if (renderer != null) {
@@ -193,6 +194,7 @@ public final class ObjectViewer implements Viewer {
                 appendRow(buf, "Type", getTypeHierarchy(type, false));
                 appendRow(buf, "Base", getTypeHierarchy(i.base(), false));
             }
+
             case EnumTypeInfo i -> {
                 var value = (Value<?>) s.value();
                 appendSection(buf, "Enum");
@@ -218,6 +220,7 @@ public final class ObjectViewer implements Viewer {
                 appendRow(buf, "Name", i.pointerType());
                 appendRow(buf, "Item", getTypeHierarchy(i.itemType(), false));
             }
+            case BitSetTypeInfo _ -> throw new NotImplementedException(); // TODO
         }
         if (s instanceof ObjectStructure.Attr(_, _, var attr, _)) {
             appendSection(buf, "Attribute");

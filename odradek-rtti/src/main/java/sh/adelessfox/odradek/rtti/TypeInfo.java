@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.rtti;
 
 public sealed interface TypeInfo
-    permits AtomTypeInfo, ClassTypeInfo, ContainerTypeInfo, EnumTypeInfo, PointerTypeInfo {
+    permits AtomTypeInfo, BitSetTypeInfo, ClassTypeInfo, ContainerTypeInfo, EnumTypeInfo, PointerTypeInfo {
 
     String name();
 

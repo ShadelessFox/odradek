@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -15,7 +16,7 @@ public class OpenGraphAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var application = Application.getInstance();
-        var game = application.game();
+        var game = (DS2Game) application.game();
         application.editors().openEditor(new ObjectEditorInput(
             game,
             game.getStreamingGraph().resource(),

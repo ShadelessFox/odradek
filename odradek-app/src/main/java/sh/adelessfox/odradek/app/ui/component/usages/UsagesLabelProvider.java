@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.usages;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
@@ -11,9 +11,9 @@ import javax.swing.*;
 import java.util.Optional;
 
 final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructure> {
-    private final ForbiddenWestGame game;
+    private final DS2Game game;
 
-    UsagesLabelProvider(ForbiddenWestGame game) {
+    UsagesLabelProvider(DS2Game game) {
         this.game = game;
     }
 

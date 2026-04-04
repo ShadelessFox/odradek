@@ -22,12 +22,12 @@
         <module>odradek-export-json</module>
         <module>odradek-export-png</module>
         <module>odradek-export-wave</module>
+        <module>odradek-game-ds2-ui</module>
+        <module>odradek-game-ds2</module>
         <module>odradek-game-hfw-ui</module>
         <module>odradek-game-hfw</module>
         <module>odradek-game</module>
         <module>odradek-middleware-edgeanim</module>
-        <module>odradek-middleware-jolt</module>
-        <module>odradek-middleware-riglogic</module>
         <module>odradek-opengl-awt</module>
         <module>odradek-opengl</module>
         <module>odradek-rtti-generator</module>
@@ -173,6 +173,16 @@
             </dependency>
             <dependency>
                 <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-ds2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-ds2-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game-hfw</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -186,16 +196,6 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-middleware-edgeanim</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-middleware-jolt</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>odradek-middleware-riglogic</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

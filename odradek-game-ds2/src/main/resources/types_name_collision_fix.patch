@@ -1,0 +1,92 @@
+--- odradek-game-ds2/src/main/resources/types.json	2026-03-18 00:08:55.313281800 +0100
++++ odradek-game-ds2/src/main/resources/types.json	2026-03-17 21:47:34.998685900 +0100
+@@ -23790,7 +23790,7 @@
+ 			{"name": "TargetUseLocation", "type": "UUIDRef_UseLocationResource", "offset": 32, "flags": 32},
+ 			{"name": "ForceTacticalLightOn", "type": "bool", "offset": 536, "flags": 0},
+ 			{"name": "ResetTurretPosture", "type": "bool", "offset": 537, "flags": 0},
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "AttachLeftHandEvent", "type": "Ref_SkeletonAnimationEventPayload", "offset": 120, "flags": 32},
+ 			{"name": "AttachRightHandEvent", "type": "Ref_SkeletonAnimationEventPayload", "offset": 128, "flags": 32},
+ 			{"category": "Animation"},
+@@ -42334,7 +42334,7 @@
+ 			{"name": "FacingObstacleInterval", "type": "float", "offset": 272, "flags": 0},
+ 			{"name": "WallCheckDistance", "type": "float", "offset": 276, "flags": 0},
+ 			{"name": "CopySettingResource", "type": "Ref_DynamicMeshPaintCopySettingResource", "offset": 256, "flags": 0},
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "PBDOffEvent", "type": "Ref_SkeletonAnimationEventPayload", "offset": 240, "flags": 32},
+ 			{"name": "PBDOnEvent", "type": "Ref_SkeletonAnimationEventPayload", "offset": 248, "flags": 32}
+ 		]
+@@ -42931,7 +42931,7 @@
+ 			{"name": "TagDamage", "type": "Ref_SkeletonAnimationEventPayload", "offset": 216, "flags": 0},
+ 			{"name": "TagDead", "type": "Ref_SkeletonAnimationEventPayload", "offset": 224, "flags": 0},
+ 			{"name": "TagDeadPose", "type": "Ref_SkeletonAnimationEventPayload", "offset": 232, "flags": 0},
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "EventDisableCollisionAndGravity", "type": "Ref_SkeletonAnimationEventPayload", "offset": 240, "flags": 0},
+ 			{"name": "EventDisableCollision", "type": "Ref_SkeletonAnimationEventPayload", "offset": 248, "flags": 0},
+ 			{"name": "EventDisableGravity", "type": "Ref_SkeletonAnimationEventPayload", "offset": 256, "flags": 0},
+@@ -61811,7 +61811,7 @@
+ 			{"category": "Tag"},
+ 			{"name": "Tag", "type": "Array_Ref_SkeletonAnimationEventTag", "offset": 96, "flags": 256},
+ 			{"name": "TagNameToIndexMap", "type": "HashMap_StringHash_int", "offset": 112, "flags": 1},
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "Event", "type": "Array_Ref_SkeletonAnimationEventText", "offset": 128, "flags": 256},
+ 			{"name": "EventLabelToIndexMap", "type": "HashMap_StringHash_int", "offset": 144, "flags": 1}
+ 		]
+@@ -112687,7 +112687,7 @@
+ 			{"type": "Resource", "offset": 0}
+ 		],
+ 		"attrs": [
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "Enabled", "type": "bool", "offset": 36, "flags": 0},
+ 			{"name": "StartFrame", "type": "int", "offset": 32, "flags": 0, "min": "0"}
+ 		]
+@@ -156933,7 +156933,7 @@
+ 			{"type": "EventResource", "offset": 0}
+ 		],
+ 		"attrs": [
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "PauseFrame", "type": "int", "offset": 40, "flags": 0}
+ 		]
+ 	},
+@@ -168279,7 +168279,7 @@
+ 			{"type": "EventResource", "offset": 0}
+ 		],
+ 		"attrs": [
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "SceneInstance", "type": "UUIDRef_ScenePrefabInstance", "offset": 40, "flags": 512},
+ 			{"name": "Scene", "type": "UUIDRef_Scene", "offset": 56, "flags": 0}
+ 		]
+@@ -175534,7 +175534,7 @@
+ 			{"type": "TimedEventResource", "offset": 0}
+ 		],
+ 		"attrs": [
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "SceneInstance", "type": "UUIDRef_ScenePrefabInstance", "offset": 48, "flags": 512},
+ 			{"name": "Scene", "type": "UUIDRef_Scene", "offset": 64, "flags": 0}
+ 		]
+@@ -181808,7 +181808,7 @@
+ 			{"type": "EventResource", "offset": 0}
+ 		],
+ 		"attrs": [
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "StopFrame", "type": "int", "offset": 40, "flags": 0}
+ 		]
+ 	},
+@@ -185121,7 +185121,7 @@
+ 			{"name": "WalkAndTalkPath", "type": "UUIDRef_WalkAndTalkPath", "offset": 64, "flags": 32},
+ 			{"name": "FromNode", "type": "UUIDRef_WalkAndTalkPathNode", "offset": 80, "flags": 4},
+ 			{"name": "ToNode", "type": "UUIDRef_WalkAndTalkPathNode", "offset": 96, "flags": 4},
+-			{"category": "Event"},
++			{"category": "Events"},
+ 			{"name": "PauseUntilArrival", "type": "bool", "offset": 125, "flags": 0},
+ 			{"category": "Distances"},
+ 			{"name": "IdealDistance", "type": "float", "offset": 112, "flags": 0, "min": "0.1f", "max": "500.0f"},
