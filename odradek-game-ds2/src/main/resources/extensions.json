@@ -177,8 +177,15 @@
 		"LocalizedTextResourceText": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Text", "type": "String", "offset": 0, "flags": 0},
-				{"name": "Notes", "type": "String", "offset": 0, "flags": 0},
-				{"name": "Mode", "type": "uint8", "offset": 0, "flags": 0}
+				{"name": "AltText", "type": "String", "offset": 0, "flags": 0},
+				{"name": "Mode", "type": "ESubtitleMode", "offset": 0, "flags": 0}
+			]
+		},
+		"ESubtitleMode": {
+			"kind": "enum", "size": 1, "values": [
+				{"value": 0, "name": "Default"},
+				{"value": 1, "name": "ForcedOn"},
+				{"value": 2, "name": "ForcedOff"}
 			]
 		},
 		"Array_LocalizedTextResourceText": {"kind": "container", "type": "Array", "item_type": "LocalizedTextResourceText"},

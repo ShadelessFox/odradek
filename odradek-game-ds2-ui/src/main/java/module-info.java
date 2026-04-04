@@ -9,6 +9,8 @@ module odradek.game.ds2.ui {
         sh.adelessfox.odradek.game.ds2.ui.renderers.EnumFactEntryRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.GeometryRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.JointRenderer,
+        sh.adelessfox.odradek.game.ds2.ui.renderers.LocalizedTextResourceRenderer,
+        sh.adelessfox.odradek.game.ds2.ui.renderers.LocalizedTextResourceTextRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.GGUUIDRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.MurmurHashValueRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.RTTIHandleRenderer,
