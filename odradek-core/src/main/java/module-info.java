@@ -7,7 +7,6 @@ module odradek.core {
     requires sh.adelessfox.atrac9j;
     requires sh.adelessfox.vgmstream;
 
-    exports sh.adelessfox.odradek.audio.codec;
     exports sh.adelessfox.odradek.audio.container.at9;
     exports sh.adelessfox.odradek.audio.container.riff;
     exports sh.adelessfox.odradek.audio.container.wave;

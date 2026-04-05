@@ -1,9 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.converters.audio;
 
 import sh.adelessfox.odradek.audio.Audio;
+import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.audio.AudioFormat;
-import sh.adelessfox.odradek.audio.codec.AudioCodecAtrac9;
-import sh.adelessfox.odradek.audio.codec.AudioCodecPcm;
 import sh.adelessfox.odradek.audio.container.at9.Atrac9FactChunk;
 import sh.adelessfox.odradek.audio.container.at9.Atrac9FmtChunk;
 import sh.adelessfox.odradek.audio.container.riff.RiffFile;
@@ -24,8 +23,19 @@ abstract class BaseAudioConverter<T> implements Converter<T, Audio, ForbiddenWes
         .reader(Atrac9FactChunk.ID, Atrac9FactChunk.reader())
         .reader(WaveDataChunk.ID, WaveDataChunk.reader());
 
-    protected static Optional<Audio> convertPcm(int bitsPerSample, int sampleRate, int channelCount, int sampleCount, byte[] stream) {
-        var codec = new AudioCodecPcm(bitsPerSample, true, false);
+    protected static Optional<Audio> convertPcm(
+        int bitsPerSample,
+        int sampleRate,
+        int channelCount,
+        int sampleCount,
+        byte[] stream
+    ) {
+        var codec = switch (bitsPerSample) {
+            case 16 -> AudioCodec.Pcm.S16LE;
+            case 24 -> AudioCodec.Pcm.S24LE;
+            case 32 -> AudioCodec.Pcm.S32LE;
+            default -> throw new IllegalArgumentException("unsupported bitsPerSample: " + bitsPerSample);
+        };
         var format = new AudioFormat(sampleRate, channelCount);
         return Optional.of(new Audio(codec, format, sampleCount, stream));
     }
@@ -41,10 +51,9 @@ abstract class BaseAudioConverter<T> implements Converter<T, Audio, ForbiddenWes
 
         var fmt = file.get(Atrac9FmtChunk.ID).orElseThrow();
         var fact = file.get(Atrac9FactChunk.ID).orElseThrow();
-        var data = file.get(WaveDataChunk.ID).orElseThrow();
 
-        var codec = new AudioCodecAtrac9(fmt.extension().configData(), fact.encoderDelaySamples());
+        var codec = new AudioCodec.Atrac9();
         var format = new AudioFormat(fmt.sampleRate(), fmt.channelCount());
-        return Optional.of(new Audio(codec, format, fact.sampleCount(), data.data()));
+        return Optional.of(new Audio(codec, format, fact.sampleCount(), stream));
     }
 }

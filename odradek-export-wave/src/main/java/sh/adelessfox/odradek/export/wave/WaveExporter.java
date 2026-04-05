@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.export.wave;
 
 import sh.adelessfox.odradek.audio.Audio;
+import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.game.Exporter;
 
 import java.io.IOException;
@@ -18,7 +19,7 @@ public final class WaveExporter implements Exporter<Audio> {
 
     @Override
     public void export(Audio object, WritableByteChannel channel) throws IOException {
-        var pcm16 = object.toPcm16();
+        var pcm16 = object.convert(AudioCodec.Pcm.S16LE);
         int channels = pcm16.format().channels();
         int sampleRate = pcm16.format().sampleRate();
 

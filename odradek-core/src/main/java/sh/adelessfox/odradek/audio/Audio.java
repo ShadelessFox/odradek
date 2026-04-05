@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.audio;
 
-import sh.adelessfox.odradek.audio.codec.AudioCodec;
-
 /**
  * Audio data container.
  *
@@ -17,7 +15,15 @@ public record Audio(AudioCodec codec, AudioFormat format, int samples, byte[] da
         }
     }
 
-    public Audio toPcm16() {
-        return codec.toPcm16(format, samples, data);
+    public Audio convert(AudioCodec codec, AudioFormat format) {
+        return AudioConverter.convert(this, codec, format);
+    }
+
+    public Audio convert(AudioCodec codec, int channels) {
+        return AudioConverter.convert(this, codec, new AudioFormat(format.sampleRate(), channels));
+    }
+
+    public Audio convert(AudioCodec codec) {
+        return convert(codec, format);
     }
 }

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.audio;
 
 import sh.adelessfox.odradek.audio.Audio;
+import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.audio.AudioFormat;
 
 import javax.swing.*;
@@ -30,7 +31,7 @@ final class AudioWaveform extends JComponent {
     private int peakVerticalGap;
 
     public AudioWaveform(Audio audio) {
-        this.audio = audio.toPcm16();
+        this.audio = audio.convert(AudioCodec.Pcm.S16LE);
         this.data = ByteBuffer.wrap(this.audio.data())
             .order(ByteOrder.LITTLE_ENDIAN)
             .asShortBuffer();
