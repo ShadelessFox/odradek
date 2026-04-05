@@ -14,7 +14,6 @@
     </properties>
 
     <modules>
-        <module>lib/atrac9j</module>
         <module>lib/vgmstream</module>
 
         <module>odradek-app</module>
@@ -202,11 +201,6 @@
             </dependency>
 
             <!-- Libraries -->
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>atrac9j</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>vgmstream</artifactId>
