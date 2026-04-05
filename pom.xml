@@ -15,6 +15,8 @@
 
     <modules>
         <module>lib/atrac9j</module>
+        <module>lib/vgmstream</module>
+
         <module>odradek-app</module>
         <module>odradek-core</module>
         <module>odradek-export-cast</module>
@@ -203,6 +205,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>atrac9j</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>vgmstream</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
 

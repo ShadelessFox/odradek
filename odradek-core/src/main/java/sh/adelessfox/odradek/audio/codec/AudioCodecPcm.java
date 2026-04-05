@@ -11,7 +11,7 @@ public record AudioCodecPcm(int bits, boolean signed, boolean bigEndian) impleme
     }
 
     @Override
-    public Audio toPcm16(AudioFormat format, byte[] data) {
+    public Audio toPcm16(AudioFormat format, int samples, byte[] data) {
         if (bits != 16) {
             throw new UnsupportedOperationException();
         }

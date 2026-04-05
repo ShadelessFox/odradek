@@ -9,7 +9,7 @@ import java.nio.ByteOrder;
 
 public record AudioCodecAtrac9(byte[] configData, int encoderDelaySamples) implements AudioCodec {
     @Override
-    public Audio toPcm16(AudioFormat format, byte[] data) {
+    public Audio toPcm16(AudioFormat format, int ignored, byte[] data) {
         var decoder = Atrac9Decoder.of(configData);
         var config = decoder.config();
 

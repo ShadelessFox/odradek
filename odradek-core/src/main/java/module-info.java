@@ -5,11 +5,13 @@ module odradek.core {
     requires org.lz4.java;
     requires org.slf4j;
     requires sh.adelessfox.atrac9j;
+    requires sh.adelessfox.vgmstream;
 
     exports sh.adelessfox.odradek.audio.codec;
     exports sh.adelessfox.odradek.audio.container.at9;
     exports sh.adelessfox.odradek.audio.container.riff;
     exports sh.adelessfox.odradek.audio.container.wave;
+    exports sh.adelessfox.odradek.audio.container.wwise;
     exports sh.adelessfox.odradek.audio;
     exports sh.adelessfox.odradek.compression;
     exports sh.adelessfox.odradek.event;

@@ -16,6 +16,10 @@
             <groupId>sh.adelessfox</groupId>
             <artifactId>atrac9j</artifactId>
         </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>vgmstream</artifactId>
+        </dependency>
 
         <!-- External dependencies -->
         <dependency>
