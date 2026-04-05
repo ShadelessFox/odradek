@@ -1,4 +1,6 @@
-package sh.adelessfox.vgmstream;
+package sh.adelessfox.vgmstream.util;
+
+import sh.adelessfox.vgmstream.StreamFile;
 
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SegmentAllocator;

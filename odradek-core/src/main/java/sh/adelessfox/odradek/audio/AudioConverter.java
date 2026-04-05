@@ -2,11 +2,11 @@ package sh.adelessfox.odradek.audio;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.vgmstream.MemoryStreamFile;
 import sh.adelessfox.vgmstream.libvgmstream.libvgmstream_config_t;
 import sh.adelessfox.vgmstream.libvgmstream.libvgmstream_decoder_t;
 import sh.adelessfox.vgmstream.libvgmstream.libvgmstream_format_t;
 import sh.adelessfox.vgmstream.libvgmstream.libvgmstream_t;
+import sh.adelessfox.vgmstream.util.MemoryStreamFile;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
