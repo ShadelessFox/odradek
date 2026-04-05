@@ -50,24 +50,35 @@ final class AudioConverter {
         if (audio.format().equals(format)) {
             return audio;
         }
-        if (audio.format().channels() == format.channels()) {
-            return new Audio(codec, format, audio.samples(), audio.data());
+
+        int sourceChannels = audio.format().channels();
+        int targetChannels = format.channels();
+        if (sourceChannels != targetChannels) {
+            var buffer = remap(audio.data(), audio.samples(), codec.sizeBytes(), sourceChannels, targetChannels);
+            return new Audio(codec, format, audio.samples(), buffer);
         }
-        if (audio.format().channels() < format.channels()) {
-            throw new IllegalArgumentException("Upmixing is not supported");
-        }
-        int sampleSize = codec.sizeBytes();
-        var buffer = new byte[audio.samples() * sampleSize * format.channels()];
-        for (int i = 0; i < audio.samples(); i++) {
-            for (int ch = 0; ch < format.channels(); ch++) {
-                int srcCh = ch % audio.format().channels();
+
+        return new Audio(codec, format, audio.samples(), audio.data());
+    }
+
+    private static byte[] remap(
+        byte[] data,
+        int sampleCount,
+        int sampleSize,
+        int sourceChannels,
+        int targetChannels
+    ) {
+        var buffer = new byte[sampleCount * sampleSize * targetChannels];
+        for (int i = 0; i < sampleCount; i++) {
+            for (int ch = 0; ch < targetChannels; ch++) {
+                int srcCh = ch % sourceChannels;
                 System.arraycopy(
-                    audio.data(), (i * audio.format().channels() + srcCh) * sampleSize,
-                    buffer, (i * format.channels() + ch) * sampleSize,
+                    data, (i * sourceChannels + srcCh) * sampleSize,
+                    buffer, (i * targetChannels + ch) * sampleSize,
                     sampleSize);
             }
         }
-        return new Audio(codec, format, audio.samples(), buffer);
+        return buffer;
     }
 
     private static Audio convertPcm(Audio audio, AudioCodec.Pcm target) {
