@@ -14,7 +14,6 @@
     </properties>
 
     <modules>
-        <module>lib/atrac9j</module>
         <module>odradek-app</module>
         <module>odradek-core</module>
         <module>odradek-export-cast</module>
@@ -197,13 +196,6 @@
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-middleware-riglogic</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <!-- Libraries -->
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>atrac9j</artifactId>
-                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <!-- External dependencies -->
