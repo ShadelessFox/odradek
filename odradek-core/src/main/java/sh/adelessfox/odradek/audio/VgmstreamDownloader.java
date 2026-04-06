@@ -11,11 +11,16 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 final class VgmstreamDownloader {
     private static final Logger log = LoggerFactory.getLogger(VgmstreamDownloader.class);
+
+    private static final Set<PosixFilePermission> EXECUTABLE_PERMISSIONS = PosixFilePermissions.fromString("rwxr-xr-x");
 
     private static final String VERSION = "r2083";
     private static final String PREFIX = "https://github.com/vgmstream/vgmstream/releases/download/" + VERSION + "/";
@@ -41,15 +46,22 @@ final class VgmstreamDownloader {
                 default -> throw new UnsupportedOperationException(OperatingSystem.arch().name());
             };
         };
-        var cache = Path.of("vgmstream-" + VERSION);
-        if (Files.notExists(cache)) {
-            downloadZip(URI.create(string), cache);
+        var directory = Path.of("vgmstream-" + VERSION);
+        if (!Files.exists(directory)) {
+            downloadZip(URI.create(string), directory);
         }
-        var executable = switch (OperatingSystem.name()) {
+        var executable = directory.resolve(switch (OperatingSystem.name()) {
             case WINDOWS -> "vgmstream-cli.exe";
             case LINUX, MACOS -> "vgmstream-cli";
-        };
-        return cache.resolve(executable);
+        });
+        if (!Files.isExecutable(executable)) {
+            try {
+                Files.setPosixFilePermissions(executable, EXECUTABLE_PERMISSIONS);
+            } catch (Exception e) {
+                log.error("Failed to set executable permissions for {}", executable, e);
+            }
+        }
+        return executable;
     }
 
     private static void downloadZip(URI uri, Path path) {
