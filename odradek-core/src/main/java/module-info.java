@@ -2,9 +2,9 @@ module odradek.core {
     requires static java.desktop; // sh.adelessfox.odradek.texture.Converter.AWT
 
     requires be.twofold.tinybcdec;
+    requires java.net.http;
     requires org.lz4.java;
     requires org.slf4j;
-    requires sh.adelessfox.vgmstream;
 
     exports sh.adelessfox.odradek.audio.container.at9;
     exports sh.adelessfox.odradek.audio.container.riff;

@@ -14,8 +14,6 @@
     </properties>
 
     <modules>
-        <module>lib/vgmstream</module>
-
         <module>odradek-app</module>
         <module>odradek-core</module>
         <module>odradek-export-cast</module>
@@ -198,13 +196,6 @@
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-middleware-riglogic</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <!-- Libraries -->
-            <dependency>
-                <groupId>sh.adelessfox</groupId>
-                <artifactId>vgmstream</artifactId>
-                <version>1.0-SNAPSHOT</version>
             </dependency>
 
             <!-- External dependencies -->
