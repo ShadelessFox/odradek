@@ -9,7 +9,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 import static java.lang.foreign.ValueLayout.OfBoolean;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct {
  *     _Bool force_title;
  *     _Bool subsong_range;
@@ -17,7 +17,7 @@ import static java.lang.foreign.ValueLayout.OfBoolean;
  *     _Bool remove_archive;
  *     const char *filename;
  * }
- * }
+ *}
  */
 public class libvgmstream_title_t {
 
@@ -41,13 +41,13 @@ public class libvgmstream_title_t {
         return $LAYOUT;
     }
 
-    private static final OfBoolean force_title$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("force_title"));
+    private static final OfBoolean force_title$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("force_title"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_title
-     * }
+     *}
      */
     public static OfBoolean force_title$layout() {
         return force_title$LAYOUT;
@@ -57,9 +57,9 @@ public class libvgmstream_title_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_title
-     * }
+     *}
      */
     public static long force_title$offset() {
         return force_title$OFFSET;
@@ -67,9 +67,9 @@ public class libvgmstream_title_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_title
-     * }
+     *}
      */
     public static boolean force_title(MemorySegment struct) {
         return struct.get(force_title$LAYOUT, force_title$OFFSET);
@@ -77,21 +77,21 @@ public class libvgmstream_title_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_title
-     * }
+     *}
      */
     public static void force_title(MemorySegment struct, boolean fieldValue) {
         struct.set(force_title$LAYOUT, force_title$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean subsong_range$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("subsong_range"));
+    private static final OfBoolean subsong_range$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("subsong_range"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool subsong_range
-     * }
+     *}
      */
     public static OfBoolean subsong_range$layout() {
         return subsong_range$LAYOUT;
@@ -101,9 +101,9 @@ public class libvgmstream_title_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool subsong_range
-     * }
+     *}
      */
     public static long subsong_range$offset() {
         return subsong_range$OFFSET;
@@ -111,9 +111,9 @@ public class libvgmstream_title_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool subsong_range
-     * }
+     *}
      */
     public static boolean subsong_range(MemorySegment struct) {
         return struct.get(subsong_range$LAYOUT, subsong_range$OFFSET);
@@ -121,21 +121,21 @@ public class libvgmstream_title_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool subsong_range
-     * }
+     *}
      */
     public static void subsong_range(MemorySegment struct, boolean fieldValue) {
         struct.set(subsong_range$LAYOUT, subsong_range$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean remove_extension$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("remove_extension"));
+    private static final OfBoolean remove_extension$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("remove_extension"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_extension
-     * }
+     *}
      */
     public static OfBoolean remove_extension$layout() {
         return remove_extension$LAYOUT;
@@ -145,9 +145,9 @@ public class libvgmstream_title_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_extension
-     * }
+     *}
      */
     public static long remove_extension$offset() {
         return remove_extension$OFFSET;
@@ -155,9 +155,9 @@ public class libvgmstream_title_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_extension
-     * }
+     *}
      */
     public static boolean remove_extension(MemorySegment struct) {
         return struct.get(remove_extension$LAYOUT, remove_extension$OFFSET);
@@ -165,21 +165,21 @@ public class libvgmstream_title_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_extension
-     * }
+     *}
      */
     public static void remove_extension(MemorySegment struct, boolean fieldValue) {
         struct.set(remove_extension$LAYOUT, remove_extension$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean remove_archive$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("remove_archive"));
+    private static final OfBoolean remove_archive$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("remove_archive"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_archive
-     * }
+     *}
      */
     public static OfBoolean remove_archive$layout() {
         return remove_archive$LAYOUT;
@@ -189,9 +189,9 @@ public class libvgmstream_title_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_archive
-     * }
+     *}
      */
     public static long remove_archive$offset() {
         return remove_archive$OFFSET;
@@ -199,9 +199,9 @@ public class libvgmstream_title_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_archive
-     * }
+     *}
      */
     public static boolean remove_archive(MemorySegment struct) {
         return struct.get(remove_archive$LAYOUT, remove_archive$OFFSET);
@@ -209,21 +209,21 @@ public class libvgmstream_title_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool remove_archive
-     * }
+     *}
      */
     public static void remove_archive(MemorySegment struct, boolean fieldValue) {
         struct.set(remove_archive$LAYOUT, remove_archive$OFFSET, fieldValue);
     }
 
-    private static final AddressLayout filename$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("filename"));
+    private static final AddressLayout filename$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("filename"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *filename
-     * }
+     *}
      */
     public static AddressLayout filename$layout() {
         return filename$LAYOUT;
@@ -233,9 +233,9 @@ public class libvgmstream_title_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *filename
-     * }
+     *}
      */
     public static long filename$offset() {
         return filename$OFFSET;
@@ -243,9 +243,9 @@ public class libvgmstream_title_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *filename
-     * }
+     *}
      */
     public static MemorySegment filename(MemorySegment struct) {
         return struct.get(filename$LAYOUT, filename$OFFSET);
@@ -253,9 +253,9 @@ public class libvgmstream_title_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *filename
-     * }
+     *}
      */
     public static void filename(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(filename$LAYOUT, filename$OFFSET, fieldValue);
@@ -272,7 +272,9 @@ public class libvgmstream_title_t {
     /**
      * The size (in bytes) of this struct
      */
-    public static long sizeof() { return layout().byteSize(); }
+    public static long sizeof() {
+        return layout().byteSize();
+    }
 
     /**
      * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -301,7 +303,12 @@ public class libvgmstream_title_t {
      * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
      * The returned segment has size {@code elementCount * layout().byteSize()}
      */
-    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+    public static MemorySegment reinterpret(
+        MemorySegment addr,
+        long elementCount,
+        Arena arena,
+        Consumer<MemorySegment> cleanup
+    ) {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }

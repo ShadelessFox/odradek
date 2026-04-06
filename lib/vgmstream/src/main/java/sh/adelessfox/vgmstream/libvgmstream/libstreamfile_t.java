@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct libstreamfile_t {
  *     void *user_data;
  *     int (*read)(void *, uint8_t *, int64_t, int);
@@ -18,7 +18,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
  *     struct libstreamfile_t *(*open)(void *, const char *);
  *     void (*close)(struct libstreamfile_t *);
  * }
- * }
+ *}
  */
 public class libstreamfile_t {
 
@@ -42,13 +42,13 @@ public class libstreamfile_t {
         return $LAYOUT;
     }
 
-    private static final AddressLayout user_data$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("user_data"));
+    private static final AddressLayout user_data$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("user_data"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *user_data
-     * }
+     *}
      */
     public static AddressLayout user_data$layout() {
         return user_data$LAYOUT;
@@ -58,9 +58,9 @@ public class libstreamfile_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *user_data
-     * }
+     *}
      */
     public static long user_data$offset() {
         return user_data$OFFSET;
@@ -68,9 +68,9 @@ public class libstreamfile_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *user_data
-     * }
+     *}
      */
     public static MemorySegment user_data(MemorySegment struct) {
         return struct.get(user_data$LAYOUT, user_data$OFFSET);
@@ -78,18 +78,18 @@ public class libstreamfile_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *user_data
-     * }
+     *}
      */
     public static void user_data(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(user_data$LAYOUT, user_data$OFFSET, fieldValue);
     }
 
     /**
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int (*read)(void *, uint8_t *, int64_t, int)
-     * }
+     *}
      */
     public final static class read {
 
@@ -145,13 +145,13 @@ public class libstreamfile_t {
         }
     }
 
-    private static final AddressLayout read$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("read"));
+    private static final AddressLayout read$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("read"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int (*read)(void *, uint8_t *, int64_t, int)
-     * }
+     *}
      */
     public static AddressLayout read$layout() {
         return read$LAYOUT;
@@ -161,9 +161,9 @@ public class libstreamfile_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int (*read)(void *, uint8_t *, int64_t, int)
-     * }
+     *}
      */
     public static long read$offset() {
         return read$OFFSET;
@@ -171,9 +171,9 @@ public class libstreamfile_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int (*read)(void *, uint8_t *, int64_t, int)
-     * }
+     *}
      */
     public static MemorySegment read(MemorySegment struct) {
         return struct.get(read$LAYOUT, read$OFFSET);
@@ -181,18 +181,18 @@ public class libstreamfile_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int (*read)(void *, uint8_t *, int64_t, int)
-     * }
+     *}
      */
     public static void read(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(read$LAYOUT, read$OFFSET, fieldValue);
     }
 
     /**
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int64_t (*get_size)(void *)
-     * }
+     *}
      */
     public final static class get_size {
 
@@ -245,13 +245,13 @@ public class libstreamfile_t {
         }
     }
 
-    private static final AddressLayout get_size$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("get_size"));
+    private static final AddressLayout get_size$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("get_size"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int64_t (*get_size)(void *)
-     * }
+     *}
      */
     public static AddressLayout get_size$layout() {
         return get_size$LAYOUT;
@@ -261,9 +261,9 @@ public class libstreamfile_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int64_t (*get_size)(void *)
-     * }
+     *}
      */
     public static long get_size$offset() {
         return get_size$OFFSET;
@@ -271,9 +271,9 @@ public class libstreamfile_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int64_t (*get_size)(void *)
-     * }
+     *}
      */
     public static MemorySegment get_size(MemorySegment struct) {
         return struct.get(get_size$LAYOUT, get_size$OFFSET);
@@ -281,18 +281,18 @@ public class libstreamfile_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int64_t (*get_size)(void *)
-     * }
+     *}
      */
     public static void get_size(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(get_size$LAYOUT, get_size$OFFSET, fieldValue);
     }
 
     /**
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *(*get_name)(void *)
-     * }
+     *}
      */
     public final static class get_name {
 
@@ -345,13 +345,13 @@ public class libstreamfile_t {
         }
     }
 
-    private static final AddressLayout get_name$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("get_name"));
+    private static final AddressLayout get_name$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("get_name"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *(*get_name)(void *)
-     * }
+     *}
      */
     public static AddressLayout get_name$layout() {
         return get_name$LAYOUT;
@@ -361,9 +361,9 @@ public class libstreamfile_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *(*get_name)(void *)
-     * }
+     *}
      */
     public static long get_name$offset() {
         return get_name$OFFSET;
@@ -371,9 +371,9 @@ public class libstreamfile_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *(*get_name)(void *)
-     * }
+     *}
      */
     public static MemorySegment get_name(MemorySegment struct) {
         return struct.get(get_name$LAYOUT, get_name$OFFSET);
@@ -381,18 +381,18 @@ public class libstreamfile_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const char *(*get_name)(void *)
-     * }
+     *}
      */
     public static void get_name(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(get_name$LAYOUT, get_name$OFFSET, fieldValue);
     }
 
     /**
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * struct libstreamfile_t *(*open)(void *, const char *)
-     * }
+     *}
      */
     public final static class open {
 
@@ -446,13 +446,13 @@ public class libstreamfile_t {
         }
     }
 
-    private static final AddressLayout open$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("open"));
+    private static final AddressLayout open$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("open"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * struct libstreamfile_t *(*open)(void *, const char *)
-     * }
+     *}
      */
     public static AddressLayout open$layout() {
         return open$LAYOUT;
@@ -462,9 +462,9 @@ public class libstreamfile_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * struct libstreamfile_t *(*open)(void *, const char *)
-     * }
+     *}
      */
     public static long open$offset() {
         return open$OFFSET;
@@ -472,9 +472,9 @@ public class libstreamfile_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * struct libstreamfile_t *(*open)(void *, const char *)
-     * }
+     *}
      */
     public static MemorySegment open(MemorySegment struct) {
         return struct.get(open$LAYOUT, open$OFFSET);
@@ -482,18 +482,18 @@ public class libstreamfile_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * struct libstreamfile_t *(*open)(void *, const char *)
-     * }
+     *}
      */
     public static void open(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(open$LAYOUT, open$OFFSET, fieldValue);
     }
 
     /**
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void (*close)(struct libstreamfile_t *)
-     * }
+     *}
      */
     public final static class close {
 
@@ -536,7 +536,7 @@ public class libstreamfile_t {
          */
         public static void invoke(MemorySegment funcPtr, MemorySegment _x0) {
             try {
-                 DOWN$MH.invokeExact(funcPtr, _x0);
+                DOWN$MH.invokeExact(funcPtr, _x0);
             } catch (Error | RuntimeException ex) {
                 throw ex;
             } catch (Throwable ex$) {
@@ -545,13 +545,13 @@ public class libstreamfile_t {
         }
     }
 
-    private static final AddressLayout close$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("close"));
+    private static final AddressLayout close$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("close"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void (*close)(struct libstreamfile_t *)
-     * }
+     *}
      */
     public static AddressLayout close$layout() {
         return close$LAYOUT;
@@ -561,9 +561,9 @@ public class libstreamfile_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void (*close)(struct libstreamfile_t *)
-     * }
+     *}
      */
     public static long close$offset() {
         return close$OFFSET;
@@ -571,9 +571,9 @@ public class libstreamfile_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void (*close)(struct libstreamfile_t *)
-     * }
+     *}
      */
     public static MemorySegment close(MemorySegment struct) {
         return struct.get(close$LAYOUT, close$OFFSET);
@@ -581,9 +581,9 @@ public class libstreamfile_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void (*close)(struct libstreamfile_t *)
-     * }
+     *}
      */
     public static void close(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(close$LAYOUT, close$OFFSET, fieldValue);
@@ -600,7 +600,9 @@ public class libstreamfile_t {
     /**
      * The size (in bytes) of this struct
      */
-    public static long sizeof() { return layout().byteSize(); }
+    public static long sizeof() {
+        return layout().byteSize();
+    }
 
     /**
      * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -629,7 +631,12 @@ public class libstreamfile_t {
      * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
      * The returned segment has size {@code elementCount * layout().byteSize()}
      */
-    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+    public static MemorySegment reinterpret(
+        MemorySegment addr,
+        long elementCount,
+        Arena arena,
+        Consumer<MemorySegment> cleanup
+    ) {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }

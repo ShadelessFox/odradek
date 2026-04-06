@@ -9,7 +9,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 import static java.lang.foreign.ValueLayout.OfBoolean;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct {
  *     _Bool is_extension;
  *     _Bool skip_standard;
@@ -17,7 +17,7 @@ import static java.lang.foreign.ValueLayout.OfBoolean;
  *     _Bool accept_unknown;
  *     _Bool accept_common;
  * }
- * }
+ *}
  */
 public class libvgmstream_valid_t {
 
@@ -40,13 +40,13 @@ public class libvgmstream_valid_t {
         return $LAYOUT;
     }
 
-    private static final OfBoolean is_extension$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("is_extension"));
+    private static final OfBoolean is_extension$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("is_extension"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool is_extension
-     * }
+     *}
      */
     public static OfBoolean is_extension$layout() {
         return is_extension$LAYOUT;
@@ -56,9 +56,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool is_extension
-     * }
+     *}
      */
     public static long is_extension$offset() {
         return is_extension$OFFSET;
@@ -66,9 +66,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool is_extension
-     * }
+     *}
      */
     public static boolean is_extension(MemorySegment struct) {
         return struct.get(is_extension$LAYOUT, is_extension$OFFSET);
@@ -76,21 +76,21 @@ public class libvgmstream_valid_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool is_extension
-     * }
+     *}
      */
     public static void is_extension(MemorySegment struct, boolean fieldValue) {
         struct.set(is_extension$LAYOUT, is_extension$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean skip_standard$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("skip_standard"));
+    private static final OfBoolean skip_standard$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("skip_standard"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool skip_standard
-     * }
+     *}
      */
     public static OfBoolean skip_standard$layout() {
         return skip_standard$LAYOUT;
@@ -100,9 +100,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool skip_standard
-     * }
+     *}
      */
     public static long skip_standard$offset() {
         return skip_standard$OFFSET;
@@ -110,9 +110,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool skip_standard
-     * }
+     *}
      */
     public static boolean skip_standard(MemorySegment struct) {
         return struct.get(skip_standard$LAYOUT, skip_standard$OFFSET);
@@ -120,21 +120,21 @@ public class libvgmstream_valid_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool skip_standard
-     * }
+     *}
      */
     public static void skip_standard(MemorySegment struct, boolean fieldValue) {
         struct.set(skip_standard$LAYOUT, skip_standard$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean reject_extensionless$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("reject_extensionless"));
+    private static final OfBoolean reject_extensionless$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("reject_extensionless"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool reject_extensionless
-     * }
+     *}
      */
     public static OfBoolean reject_extensionless$layout() {
         return reject_extensionless$LAYOUT;
@@ -144,9 +144,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool reject_extensionless
-     * }
+     *}
      */
     public static long reject_extensionless$offset() {
         return reject_extensionless$OFFSET;
@@ -154,9 +154,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool reject_extensionless
-     * }
+     *}
      */
     public static boolean reject_extensionless(MemorySegment struct) {
         return struct.get(reject_extensionless$LAYOUT, reject_extensionless$OFFSET);
@@ -164,21 +164,21 @@ public class libvgmstream_valid_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool reject_extensionless
-     * }
+     *}
      */
     public static void reject_extensionless(MemorySegment struct, boolean fieldValue) {
         struct.set(reject_extensionless$LAYOUT, reject_extensionless$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean accept_unknown$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("accept_unknown"));
+    private static final OfBoolean accept_unknown$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("accept_unknown"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_unknown
-     * }
+     *}
      */
     public static OfBoolean accept_unknown$layout() {
         return accept_unknown$LAYOUT;
@@ -188,9 +188,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_unknown
-     * }
+     *}
      */
     public static long accept_unknown$offset() {
         return accept_unknown$OFFSET;
@@ -198,9 +198,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_unknown
-     * }
+     *}
      */
     public static boolean accept_unknown(MemorySegment struct) {
         return struct.get(accept_unknown$LAYOUT, accept_unknown$OFFSET);
@@ -208,21 +208,21 @@ public class libvgmstream_valid_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_unknown
-     * }
+     *}
      */
     public static void accept_unknown(MemorySegment struct, boolean fieldValue) {
         struct.set(accept_unknown$LAYOUT, accept_unknown$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean accept_common$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("accept_common"));
+    private static final OfBoolean accept_common$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("accept_common"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_common
-     * }
+     *}
      */
     public static OfBoolean accept_common$layout() {
         return accept_common$LAYOUT;
@@ -232,9 +232,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_common
-     * }
+     *}
      */
     public static long accept_common$offset() {
         return accept_common$OFFSET;
@@ -242,9 +242,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_common
-     * }
+     *}
      */
     public static boolean accept_common(MemorySegment struct) {
         return struct.get(accept_common$LAYOUT, accept_common$OFFSET);
@@ -252,9 +252,9 @@ public class libvgmstream_valid_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool accept_common
-     * }
+     *}
      */
     public static void accept_common(MemorySegment struct, boolean fieldValue) {
         struct.set(accept_common$LAYOUT, accept_common$OFFSET, fieldValue);
@@ -271,7 +271,9 @@ public class libvgmstream_valid_t {
     /**
      * The size (in bytes) of this struct
      */
-    public static long sizeof() { return layout().byteSize(); }
+    public static long sizeof() {
+        return layout().byteSize();
+    }
 
     /**
      * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -300,7 +302,12 @@ public class libvgmstream_valid_t {
      * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
      * The returned segment has size {@code elementCount * layout().byteSize()}
      */
-    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+    public static MemorySegment reinterpret(
+        MemorySegment addr,
+        long elementCount,
+        Arena arena,
+        Consumer<MemorySegment> cleanup
+    ) {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }

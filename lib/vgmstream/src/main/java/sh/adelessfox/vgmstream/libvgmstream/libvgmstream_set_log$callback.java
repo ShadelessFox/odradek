@@ -9,9 +9,9 @@ import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * void (*callback)(int, const char *)
- * }
+ *}
  */
 public final class libvgmstream_set_log$callback {
 
@@ -55,7 +55,7 @@ public final class libvgmstream_set_log$callback {
      */
     public static void invoke(MemorySegment funcPtr, int _x0, MemorySegment _x1) {
         try {
-             DOWN$MH.invokeExact(funcPtr, _x0, _x1);
+            DOWN$MH.invokeExact(funcPtr, _x0, _x1);
         } catch (Error | RuntimeException ex) {
             throw ex;
         } catch (Throwable ex$) {

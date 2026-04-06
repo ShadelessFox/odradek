@@ -170,6 +170,32 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-vgmstream-libs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dist/${image.name}/runtime/bin</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../lib/vgmstream/src/main/resources/sh/adelessfox/vgmstream/natives</directory>
+                                    <filtering>false</filtering>
+                                    <includes>
+                                        <include>*.dll</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.panteleyev</groupId>
                 <artifactId>jpackage-maven-plugin</artifactId>
                 <version>1.6.5</version>

@@ -9,7 +9,7 @@ import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 import static java.lang.foreign.ValueLayout.*;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct {
  *     _Bool disable_config_override;
  *     _Bool allow_play_forever;
@@ -25,7 +25,7 @@ import static java.lang.foreign.ValueLayout.*;
  *     int auto_downmix_channels;
  *     libvgmstream_sfmt_t force_sfmt;
  * }
- * }
+ *}
  */
 public class libvgmstream_config_t {
 
@@ -58,13 +58,13 @@ public class libvgmstream_config_t {
         return $LAYOUT;
     }
 
-    private static final OfBoolean disable_config_override$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("disable_config_override"));
+    private static final OfBoolean disable_config_override$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("disable_config_override"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool disable_config_override
-     * }
+     *}
      */
     public static OfBoolean disable_config_override$layout() {
         return disable_config_override$LAYOUT;
@@ -74,9 +74,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool disable_config_override
-     * }
+     *}
      */
     public static long disable_config_override$offset() {
         return disable_config_override$OFFSET;
@@ -84,9 +84,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool disable_config_override
-     * }
+     *}
      */
     public static boolean disable_config_override(MemorySegment struct) {
         return struct.get(disable_config_override$LAYOUT, disable_config_override$OFFSET);
@@ -94,21 +94,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool disable_config_override
-     * }
+     *}
      */
     public static void disable_config_override(MemorySegment struct, boolean fieldValue) {
         struct.set(disable_config_override$LAYOUT, disable_config_override$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean allow_play_forever$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("allow_play_forever"));
+    private static final OfBoolean allow_play_forever$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("allow_play_forever"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool allow_play_forever
-     * }
+     *}
      */
     public static OfBoolean allow_play_forever$layout() {
         return allow_play_forever$LAYOUT;
@@ -118,9 +118,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool allow_play_forever
-     * }
+     *}
      */
     public static long allow_play_forever$offset() {
         return allow_play_forever$OFFSET;
@@ -128,9 +128,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool allow_play_forever
-     * }
+     *}
      */
     public static boolean allow_play_forever(MemorySegment struct) {
         return struct.get(allow_play_forever$LAYOUT, allow_play_forever$OFFSET);
@@ -138,21 +138,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool allow_play_forever
-     * }
+     *}
      */
     public static void allow_play_forever(MemorySegment struct, boolean fieldValue) {
         struct.set(allow_play_forever$LAYOUT, allow_play_forever$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean play_forever$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("play_forever"));
+    private static final OfBoolean play_forever$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("play_forever"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool play_forever
-     * }
+     *}
      */
     public static OfBoolean play_forever$layout() {
         return play_forever$LAYOUT;
@@ -162,9 +162,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool play_forever
-     * }
+     *}
      */
     public static long play_forever$offset() {
         return play_forever$OFFSET;
@@ -172,9 +172,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool play_forever
-     * }
+     *}
      */
     public static boolean play_forever(MemorySegment struct) {
         return struct.get(play_forever$LAYOUT, play_forever$OFFSET);
@@ -182,21 +182,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool play_forever
-     * }
+     *}
      */
     public static void play_forever(MemorySegment struct, boolean fieldValue) {
         struct.set(play_forever$LAYOUT, play_forever$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean ignore_loop$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("ignore_loop"));
+    private static final OfBoolean ignore_loop$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("ignore_loop"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_loop
-     * }
+     *}
      */
     public static OfBoolean ignore_loop$layout() {
         return ignore_loop$LAYOUT;
@@ -206,9 +206,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_loop
-     * }
+     *}
      */
     public static long ignore_loop$offset() {
         return ignore_loop$OFFSET;
@@ -216,9 +216,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_loop
-     * }
+     *}
      */
     public static boolean ignore_loop(MemorySegment struct) {
         return struct.get(ignore_loop$LAYOUT, ignore_loop$OFFSET);
@@ -226,21 +226,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_loop
-     * }
+     *}
      */
     public static void ignore_loop(MemorySegment struct, boolean fieldValue) {
         struct.set(ignore_loop$LAYOUT, ignore_loop$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean force_loop$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("force_loop"));
+    private static final OfBoolean force_loop$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("force_loop"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_loop
-     * }
+     *}
      */
     public static OfBoolean force_loop$layout() {
         return force_loop$LAYOUT;
@@ -250,9 +250,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_loop
-     * }
+     *}
      */
     public static long force_loop$offset() {
         return force_loop$OFFSET;
@@ -260,9 +260,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_loop
-     * }
+     *}
      */
     public static boolean force_loop(MemorySegment struct) {
         return struct.get(force_loop$LAYOUT, force_loop$OFFSET);
@@ -270,21 +270,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool force_loop
-     * }
+     *}
      */
     public static void force_loop(MemorySegment struct, boolean fieldValue) {
         struct.set(force_loop$LAYOUT, force_loop$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean really_force_loop$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("really_force_loop"));
+    private static final OfBoolean really_force_loop$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("really_force_loop"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool really_force_loop
-     * }
+     *}
      */
     public static OfBoolean really_force_loop$layout() {
         return really_force_loop$LAYOUT;
@@ -294,9 +294,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool really_force_loop
-     * }
+     *}
      */
     public static long really_force_loop$offset() {
         return really_force_loop$OFFSET;
@@ -304,9 +304,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool really_force_loop
-     * }
+     *}
      */
     public static boolean really_force_loop(MemorySegment struct) {
         return struct.get(really_force_loop$LAYOUT, really_force_loop$OFFSET);
@@ -314,21 +314,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool really_force_loop
-     * }
+     *}
      */
     public static void really_force_loop(MemorySegment struct, boolean fieldValue) {
         struct.set(really_force_loop$LAYOUT, really_force_loop$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean ignore_fade$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("ignore_fade"));
+    private static final OfBoolean ignore_fade$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("ignore_fade"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_fade
-     * }
+     *}
      */
     public static OfBoolean ignore_fade$layout() {
         return ignore_fade$LAYOUT;
@@ -338,9 +338,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_fade
-     * }
+     *}
      */
     public static long ignore_fade$offset() {
         return ignore_fade$OFFSET;
@@ -348,9 +348,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_fade
-     * }
+     *}
      */
     public static boolean ignore_fade(MemorySegment struct) {
         return struct.get(ignore_fade$LAYOUT, ignore_fade$OFFSET);
@@ -358,21 +358,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool ignore_fade
-     * }
+     *}
      */
     public static void ignore_fade(MemorySegment struct, boolean fieldValue) {
         struct.set(ignore_fade$LAYOUT, ignore_fade$OFFSET, fieldValue);
     }
 
-    private static final OfDouble loop_count$LAYOUT = (OfDouble)$LAYOUT.select(groupElement("loop_count"));
+    private static final OfDouble loop_count$LAYOUT = (OfDouble) $LAYOUT.select(groupElement("loop_count"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double loop_count
-     * }
+     *}
      */
     public static OfDouble loop_count$layout() {
         return loop_count$LAYOUT;
@@ -382,9 +382,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double loop_count
-     * }
+     *}
      */
     public static long loop_count$offset() {
         return loop_count$OFFSET;
@@ -392,9 +392,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double loop_count
-     * }
+     *}
      */
     public static double loop_count(MemorySegment struct) {
         return struct.get(loop_count$LAYOUT, loop_count$OFFSET);
@@ -402,21 +402,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double loop_count
-     * }
+     *}
      */
     public static void loop_count(MemorySegment struct, double fieldValue) {
         struct.set(loop_count$LAYOUT, loop_count$OFFSET, fieldValue);
     }
 
-    private static final OfDouble fade_time$LAYOUT = (OfDouble)$LAYOUT.select(groupElement("fade_time"));
+    private static final OfDouble fade_time$LAYOUT = (OfDouble) $LAYOUT.select(groupElement("fade_time"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_time
-     * }
+     *}
      */
     public static OfDouble fade_time$layout() {
         return fade_time$LAYOUT;
@@ -426,9 +426,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_time
-     * }
+     *}
      */
     public static long fade_time$offset() {
         return fade_time$OFFSET;
@@ -436,9 +436,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_time
-     * }
+     *}
      */
     public static double fade_time(MemorySegment struct) {
         return struct.get(fade_time$LAYOUT, fade_time$OFFSET);
@@ -446,21 +446,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_time
-     * }
+     *}
      */
     public static void fade_time(MemorySegment struct, double fieldValue) {
         struct.set(fade_time$LAYOUT, fade_time$OFFSET, fieldValue);
     }
 
-    private static final OfDouble fade_delay$LAYOUT = (OfDouble)$LAYOUT.select(groupElement("fade_delay"));
+    private static final OfDouble fade_delay$LAYOUT = (OfDouble) $LAYOUT.select(groupElement("fade_delay"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_delay
-     * }
+     *}
      */
     public static OfDouble fade_delay$layout() {
         return fade_delay$LAYOUT;
@@ -470,9 +470,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_delay
-     * }
+     *}
      */
     public static long fade_delay$offset() {
         return fade_delay$OFFSET;
@@ -480,9 +480,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_delay
-     * }
+     *}
      */
     public static double fade_delay(MemorySegment struct) {
         return struct.get(fade_delay$LAYOUT, fade_delay$OFFSET);
@@ -490,21 +490,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * double fade_delay
-     * }
+     *}
      */
     public static void fade_delay(MemorySegment struct, double fieldValue) {
         struct.set(fade_delay$LAYOUT, fade_delay$OFFSET, fieldValue);
     }
 
-    private static final OfInt stereo_track$LAYOUT = (OfInt)$LAYOUT.select(groupElement("stereo_track"));
+    private static final OfInt stereo_track$LAYOUT = (OfInt) $LAYOUT.select(groupElement("stereo_track"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int stereo_track
-     * }
+     *}
      */
     public static OfInt stereo_track$layout() {
         return stereo_track$LAYOUT;
@@ -514,9 +514,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int stereo_track
-     * }
+     *}
      */
     public static long stereo_track$offset() {
         return stereo_track$OFFSET;
@@ -524,9 +524,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int stereo_track
-     * }
+     *}
      */
     public static int stereo_track(MemorySegment struct) {
         return struct.get(stereo_track$LAYOUT, stereo_track$OFFSET);
@@ -534,21 +534,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int stereo_track
-     * }
+     *}
      */
     public static void stereo_track(MemorySegment struct, int fieldValue) {
         struct.set(stereo_track$LAYOUT, stereo_track$OFFSET, fieldValue);
     }
 
-    private static final OfInt auto_downmix_channels$LAYOUT = (OfInt)$LAYOUT.select(groupElement("auto_downmix_channels"));
+    private static final OfInt auto_downmix_channels$LAYOUT = (OfInt) $LAYOUT.select(groupElement("auto_downmix_channels"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int auto_downmix_channels
-     * }
+     *}
      */
     public static OfInt auto_downmix_channels$layout() {
         return auto_downmix_channels$LAYOUT;
@@ -558,9 +558,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int auto_downmix_channels
-     * }
+     *}
      */
     public static long auto_downmix_channels$offset() {
         return auto_downmix_channels$OFFSET;
@@ -568,9 +568,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int auto_downmix_channels
-     * }
+     *}
      */
     public static int auto_downmix_channels(MemorySegment struct) {
         return struct.get(auto_downmix_channels$LAYOUT, auto_downmix_channels$OFFSET);
@@ -578,21 +578,21 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int auto_downmix_channels
-     * }
+     *}
      */
     public static void auto_downmix_channels(MemorySegment struct, int fieldValue) {
         struct.set(auto_downmix_channels$LAYOUT, auto_downmix_channels$OFFSET, fieldValue);
     }
 
-    private static final OfInt force_sfmt$LAYOUT = (OfInt)$LAYOUT.select(groupElement("force_sfmt"));
+    private static final OfInt force_sfmt$LAYOUT = (OfInt) $LAYOUT.select(groupElement("force_sfmt"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_sfmt_t force_sfmt
-     * }
+     *}
      */
     public static OfInt force_sfmt$layout() {
         return force_sfmt$LAYOUT;
@@ -602,9 +602,9 @@ public class libvgmstream_config_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_sfmt_t force_sfmt
-     * }
+     *}
      */
     public static long force_sfmt$offset() {
         return force_sfmt$OFFSET;
@@ -612,9 +612,9 @@ public class libvgmstream_config_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_sfmt_t force_sfmt
-     * }
+     *}
      */
     public static int force_sfmt(MemorySegment struct) {
         return struct.get(force_sfmt$LAYOUT, force_sfmt$OFFSET);
@@ -622,9 +622,9 @@ public class libvgmstream_config_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_sfmt_t force_sfmt
-     * }
+     *}
      */
     public static void force_sfmt(MemorySegment struct, int fieldValue) {
         struct.set(force_sfmt$LAYOUT, force_sfmt$OFFSET, fieldValue);
@@ -641,7 +641,9 @@ public class libvgmstream_config_t {
     /**
      * The size (in bytes) of this struct
      */
-    public static long sizeof() { return layout().byteSize(); }
+    public static long sizeof() {
+        return layout().byteSize();
+    }
 
     /**
      * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -670,7 +672,12 @@ public class libvgmstream_config_t {
      * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
      * The returned segment has size {@code elementCount * layout().byteSize()}
      */
-    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+    public static MemorySegment reinterpret(
+        MemorySegment addr,
+        long elementCount,
+        Arena arena,
+        Consumer<MemorySegment> cleanup
+    ) {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }

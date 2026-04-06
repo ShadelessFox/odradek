@@ -8,13 +8,13 @@ import java.util.function.Consumer;
 import static java.lang.foreign.MemoryLayout.PathElement.groupElement;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct {
  *     void *priv;
  *     const libvgmstream_format_t *format;
  *     libvgmstream_decoder_t *decoder;
  * }
- * }
+ *}
  */
 public class libvgmstream_t {
 
@@ -35,13 +35,13 @@ public class libvgmstream_t {
         return $LAYOUT;
     }
 
-    private static final AddressLayout priv$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("priv"));
+    private static final AddressLayout priv$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("priv"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *priv
-     * }
+     *}
      */
     public static AddressLayout priv$layout() {
         return priv$LAYOUT;
@@ -51,9 +51,9 @@ public class libvgmstream_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *priv
-     * }
+     *}
      */
     public static long priv$offset() {
         return priv$OFFSET;
@@ -61,9 +61,9 @@ public class libvgmstream_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *priv
-     * }
+     *}
      */
     public static MemorySegment priv(MemorySegment struct) {
         return struct.get(priv$LAYOUT, priv$OFFSET);
@@ -71,21 +71,21 @@ public class libvgmstream_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *priv
-     * }
+     *}
      */
     public static void priv(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(priv$LAYOUT, priv$OFFSET, fieldValue);
     }
 
-    private static final AddressLayout format$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("format"));
+    private static final AddressLayout format$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("format"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const libvgmstream_format_t *format
-     * }
+     *}
      */
     public static AddressLayout format$layout() {
         return format$LAYOUT;
@@ -95,9 +95,9 @@ public class libvgmstream_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const libvgmstream_format_t *format
-     * }
+     *}
      */
     public static long format$offset() {
         return format$OFFSET;
@@ -105,9 +105,9 @@ public class libvgmstream_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const libvgmstream_format_t *format
-     * }
+     *}
      */
     public static MemorySegment format(MemorySegment struct) {
         return struct.get(format$LAYOUT, format$OFFSET);
@@ -115,21 +115,21 @@ public class libvgmstream_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * const libvgmstream_format_t *format
-     * }
+     *}
      */
     public static void format(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(format$LAYOUT, format$OFFSET, fieldValue);
     }
 
-    private static final AddressLayout decoder$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("decoder"));
+    private static final AddressLayout decoder$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("decoder"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_decoder_t *decoder
-     * }
+     *}
      */
     public static AddressLayout decoder$layout() {
         return decoder$LAYOUT;
@@ -139,9 +139,9 @@ public class libvgmstream_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_decoder_t *decoder
-     * }
+     *}
      */
     public static long decoder$offset() {
         return decoder$OFFSET;
@@ -149,9 +149,9 @@ public class libvgmstream_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_decoder_t *decoder
-     * }
+     *}
      */
     public static MemorySegment decoder(MemorySegment struct) {
         return struct.get(decoder$LAYOUT, decoder$OFFSET);
@@ -159,9 +159,9 @@ public class libvgmstream_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * libvgmstream_decoder_t *decoder
-     * }
+     *}
      */
     public static void decoder(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(decoder$LAYOUT, decoder$OFFSET, fieldValue);
@@ -178,7 +178,9 @@ public class libvgmstream_t {
     /**
      * The size (in bytes) of this struct
      */
-    public static long sizeof() { return layout().byteSize(); }
+    public static long sizeof() {
+        return layout().byteSize();
+    }
 
     /**
      * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -207,7 +209,12 @@ public class libvgmstream_t {
      * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
      * The returned segment has size {@code elementCount * layout().byteSize()}
      */
-    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+    public static MemorySegment reinterpret(
+        MemorySegment addr,
+        long elementCount,
+        Arena arena,
+        Consumer<MemorySegment> cleanup
+    ) {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }

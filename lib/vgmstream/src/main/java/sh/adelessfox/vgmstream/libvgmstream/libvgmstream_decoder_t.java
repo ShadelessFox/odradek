@@ -10,14 +10,14 @@ import static java.lang.foreign.ValueLayout.OfBoolean;
 import static java.lang.foreign.ValueLayout.OfInt;
 
 /**
- * {@snippet lang=c :
+ * {@snippet lang = c:
  * struct {
  *     void *buf;
  *     int buf_samples;
  *     int buf_bytes;
  *     _Bool done;
  * }
- * }
+ *}
  */
 public class libvgmstream_decoder_t {
 
@@ -40,13 +40,13 @@ public class libvgmstream_decoder_t {
         return $LAYOUT;
     }
 
-    private static final AddressLayout buf$LAYOUT = (AddressLayout)$LAYOUT.select(groupElement("buf"));
+    private static final AddressLayout buf$LAYOUT = (AddressLayout) $LAYOUT.select(groupElement("buf"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *buf
-     * }
+     *}
      */
     public static AddressLayout buf$layout() {
         return buf$LAYOUT;
@@ -56,9 +56,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *buf
-     * }
+     *}
      */
     public static long buf$offset() {
         return buf$OFFSET;
@@ -66,9 +66,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *buf
-     * }
+     *}
      */
     public static MemorySegment buf(MemorySegment struct) {
         return struct.get(buf$LAYOUT, buf$OFFSET);
@@ -76,21 +76,21 @@ public class libvgmstream_decoder_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * void *buf
-     * }
+     *}
      */
     public static void buf(MemorySegment struct, MemorySegment fieldValue) {
         struct.set(buf$LAYOUT, buf$OFFSET, fieldValue);
     }
 
-    private static final OfInt buf_samples$LAYOUT = (OfInt)$LAYOUT.select(groupElement("buf_samples"));
+    private static final OfInt buf_samples$LAYOUT = (OfInt) $LAYOUT.select(groupElement("buf_samples"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_samples
-     * }
+     *}
      */
     public static OfInt buf_samples$layout() {
         return buf_samples$LAYOUT;
@@ -100,9 +100,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_samples
-     * }
+     *}
      */
     public static long buf_samples$offset() {
         return buf_samples$OFFSET;
@@ -110,9 +110,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_samples
-     * }
+     *}
      */
     public static int buf_samples(MemorySegment struct) {
         return struct.get(buf_samples$LAYOUT, buf_samples$OFFSET);
@@ -120,21 +120,21 @@ public class libvgmstream_decoder_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_samples
-     * }
+     *}
      */
     public static void buf_samples(MemorySegment struct, int fieldValue) {
         struct.set(buf_samples$LAYOUT, buf_samples$OFFSET, fieldValue);
     }
 
-    private static final OfInt buf_bytes$LAYOUT = (OfInt)$LAYOUT.select(groupElement("buf_bytes"));
+    private static final OfInt buf_bytes$LAYOUT = (OfInt) $LAYOUT.select(groupElement("buf_bytes"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_bytes
-     * }
+     *}
      */
     public static OfInt buf_bytes$layout() {
         return buf_bytes$LAYOUT;
@@ -144,9 +144,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_bytes
-     * }
+     *}
      */
     public static long buf_bytes$offset() {
         return buf_bytes$OFFSET;
@@ -154,9 +154,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_bytes
-     * }
+     *}
      */
     public static int buf_bytes(MemorySegment struct) {
         return struct.get(buf_bytes$LAYOUT, buf_bytes$OFFSET);
@@ -164,21 +164,21 @@ public class libvgmstream_decoder_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * int buf_bytes
-     * }
+     *}
      */
     public static void buf_bytes(MemorySegment struct, int fieldValue) {
         struct.set(buf_bytes$LAYOUT, buf_bytes$OFFSET, fieldValue);
     }
 
-    private static final OfBoolean done$LAYOUT = (OfBoolean)$LAYOUT.select(groupElement("done"));
+    private static final OfBoolean done$LAYOUT = (OfBoolean) $LAYOUT.select(groupElement("done"));
 
     /**
      * Layout for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool done
-     * }
+     *}
      */
     public static OfBoolean done$layout() {
         return done$LAYOUT;
@@ -188,9 +188,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Offset for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool done
-     * }
+     *}
      */
     public static long done$offset() {
         return done$OFFSET;
@@ -198,9 +198,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Getter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool done
-     * }
+     *}
      */
     public static boolean done(MemorySegment struct) {
         return struct.get(done$LAYOUT, done$OFFSET);
@@ -208,9 +208,9 @@ public class libvgmstream_decoder_t {
 
     /**
      * Setter for field:
-     * {@snippet lang=c :
+     * {@snippet lang = c:
      * _Bool done
-     * }
+     *}
      */
     public static void done(MemorySegment struct, boolean fieldValue) {
         struct.set(done$LAYOUT, done$OFFSET, fieldValue);
@@ -227,7 +227,9 @@ public class libvgmstream_decoder_t {
     /**
      * The size (in bytes) of this struct
      */
-    public static long sizeof() { return layout().byteSize(); }
+    public static long sizeof() {
+        return layout().byteSize();
+    }
 
     /**
      * Allocate a segment of size {@code layout().byteSize()} using {@code allocator}
@@ -256,7 +258,12 @@ public class libvgmstream_decoder_t {
      * Reinterprets {@code addr} using target {@code arena} and {@code cleanupAction} (if any).
      * The returned segment has size {@code elementCount * layout().byteSize()}
      */
-    public static MemorySegment reinterpret(MemorySegment addr, long elementCount, Arena arena, Consumer<MemorySegment> cleanup) {
+    public static MemorySegment reinterpret(
+        MemorySegment addr,
+        long elementCount,
+        Arena arena,
+        Consumer<MemorySegment> cleanup
+    ) {
         return addr.reinterpret(layout().byteSize() * elementCount, arena, cleanup);
     }
 }

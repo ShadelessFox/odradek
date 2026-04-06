@@ -17,14 +17,6 @@ import static sh.adelessfox.vgmstream.libvgmstream.libvgmstream_h.*;
 final class AudioConverter {
     private static final Logger log = LoggerFactory.getLogger(AudioConverter.class);
 
-    static {
-        System.loadLibrary("ogg");
-        System.loadLibrary("vorbis");
-        System.loadLibrary("vorbisfile");
-        System.loadLibrary("libatrac9");
-        System.loadLibrary("libvgmstream");
-    }
-
     private AudioConverter() {
     }
 
