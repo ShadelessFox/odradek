@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.viewer.audio;
 import com.formdev.flatlaf.extras.components.FlatProgressBar;
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.audio.Audio;
+import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.odradek.ui.components.StyledComponent;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
@@ -27,7 +28,7 @@ final class AudioPlayer extends JPanel implements Disposable {
 
     public AudioPlayer(Audio audio) {
         // Both waveform and clip expects pcm16, so do it right away to avoid extra conversion
-        Audio pcm16 = audio.toPcm16();
+        var pcm16 = audio.convert(AudioCodec.Pcm.S16LE, 2);
 
         progress = new FlatProgressBar();
         progress.setLargeHeight(true);
@@ -114,7 +115,7 @@ final class AudioPlayer extends JPanel implements Disposable {
     }
 
     private static Clip openClip(Audio audio) throws Exception {
-        var pcm16 = audio.toPcm16();
+        var pcm16 = audio.convert(AudioCodec.Pcm.S16LE);
         var format = new AudioFormat(pcm16.format().sampleRate(), 16, pcm16.format().channels(), true, false);
         var clip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
         clip.open(format, pcm16.data(), 0, pcm16.data().length);
