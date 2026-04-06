@@ -96,6 +96,7 @@ module odradek.game.ds2 {
     exports sh.adelessfox.odradek.game.ds2;
 
     provides sh.adelessfox.odradek.game.Converter with
+        sh.adelessfox.odradek.game.ds2.converters.audio.WwiseWemResourceToAudioConverter,
         sh.adelessfox.odradek.game.ds2.converters.scene.MeshToSceneConverter,
         sh.adelessfox.odradek.game.ds2.converters.texture.TextureToTextureConverter,
         sh.adelessfox.odradek.game.ds2.converters.texture.UITextureToTextureConverter,
