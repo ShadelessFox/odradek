@@ -71,7 +71,8 @@ import java.math.BigInteger;
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
         @Extension(type = "LocalizedTextResource", extension = LocalizedTextResourceExtension.class),
         @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
-        @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class)
+        @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class),
+        @Extension(type = "WwiseWemLocalizedResource", extension = WwiseWemLocalizedResourceExtension.class)
     }
 )
 module odradek.game.ds2 {

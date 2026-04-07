@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.audio.container.riff.RiffParser;
 import sh.adelessfox.odradek.audio.container.wwise.WwiseFmtChunk;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2.WwiseWemLocalizedResource;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2.WwiseWemResource;
 import sh.adelessfox.odradek.io.BinaryReader;
 
@@ -22,10 +23,30 @@ public final class WwiseWemResourceToAudioConverter implements Converter<WwiseWe
 
     @Override
     public Optional<Audio> convert(WwiseWemResource object, DS2Game game) {
+        return switch (object) {
+            case WwiseWemLocalizedResource o -> convertWwiseWemLocalizedResource(o, game);
+            case WwiseWemResource o -> convertWwiseWemResource(o, game);
+        };
+    }
+
+    private static Optional<Audio> convertWwiseWemLocalizedResource(WwiseWemLocalizedResource object, DS2Game game) {
+        assert object.format().isStreaming();
+
+        var dataSource = object.localizedDataSource(game.getSpokenLanguage());
+        var data = game.readDataSource(dataSource.streamingDataSource());
+
+        return convertWem(data);
+    }
+
+    private static Optional<Audio> convertWwiseWemResource(WwiseWemResource object, DS2Game game) {
         var data = object.format().isStreaming()
             ? game.readDataSource(object.data().streamingDataSource())
             : object.data().wemData();
 
+        return convertWem(data);
+    }
+
+    private static Optional<Audio> convertWem(byte[] data) {
         RiffFile file;
 
         try {

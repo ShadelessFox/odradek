@@ -17,7 +17,32 @@ public interface ELanguageExtension {
         return Holder.languages;
     }
 
+    static List<ELanguage> spokenLanguages() {
+        class Holder {
+            static final List<ELanguage> languages = Stream.of(ELanguage.values())
+                .filter(ELanguage::isSpokenLanguage)
+                .sorted(Comparator.comparingInt(ELanguage::value))
+                .toList();
+        }
+        return Holder.languages;
+    }
+
     default boolean isWrittenLanguage() {
         return this != ELanguage.Unknown;
+    }
+
+    default boolean isSpokenLanguage() {
+        return this == ELanguage.English
+            || this == ELanguage.French
+            || this == ELanguage.Spanish
+            || this == ELanguage.German
+            || this == ELanguage.Italian
+            || this == ELanguage.Portuguese
+            || this == ELanguage.Russian
+            || this == ELanguage.Polish
+            || this == ELanguage.Japanese
+            || this == ELanguage.LATAMSP
+            || this == ELanguage.LATAMPOR
+            || this == ELanguage.Chinese_Simplified;
     }
 }
