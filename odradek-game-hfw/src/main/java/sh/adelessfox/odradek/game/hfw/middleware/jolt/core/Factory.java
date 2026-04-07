@@ -64,7 +64,7 @@ public class Factory {
 
     @SuppressWarnings("UseHashCodeMethodInspection")
     private static int computeHash(String name) {
-        var hash = HashFunction.fnv1a().hash(name).asLong();
+        var hash = HashFunction.fnv1a_64().hash(name).asLong();
         return (int) (hash ^ (hash >>> 32));
     }
 }
