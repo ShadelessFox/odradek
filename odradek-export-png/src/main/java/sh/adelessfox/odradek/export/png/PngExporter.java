@@ -57,7 +57,7 @@ public final class PngExporter implements Exporter<Texture> {
 
     @Override
     public String id() {
-        return "png";
+        return "image.png";
     }
 
     @Override
