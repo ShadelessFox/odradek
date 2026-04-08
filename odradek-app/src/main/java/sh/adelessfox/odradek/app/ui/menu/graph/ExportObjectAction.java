@@ -203,5 +203,10 @@ public class ExportObjectAction extends Action {
         public List<Action> create(ActionContext context) {
             return actions;
         }
+
+        @Override
+        public boolean isList() {
+            return true;
+        }
     }
 }

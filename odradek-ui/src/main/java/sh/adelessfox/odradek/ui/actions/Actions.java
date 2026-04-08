@@ -183,8 +183,8 @@ public final class Actions {
             menu.add(new DisabledAction(name.text()));
             menu.addSeparator();
         }
-        boolean contributed = contributeGroups(menu, new PopupMenuActionContributor(), id, context);
-        if (!contributed) {
+        int contributed = contributeGroups(menu, new PopupMenuActionContributor(), id, context);
+        if (contributed == 0) {
             menu.add(new DisabledAction("No actions"));
         }
     }
@@ -223,7 +223,7 @@ public final class Actions {
             ));
     }
 
-    private static <C extends JComponent> boolean contributeGroups(
+    private static <C extends JComponent> int contributeGroups(
         C component,
         ActionContributor<C, ?> contributor,
         String id,
@@ -232,38 +232,39 @@ public final class Actions {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
             log.debug("No action groups found for ID: {}", id);
-            return false;
+            return 0;
         }
-        boolean contributed = false;
+        int count = 0;
         for (GroupDescriptor group : groups) {
-            contributed |= contributeGroup(component, contributor, group, context, contributed);
+            count += contributeGroup(component, contributor, group, context, count);
         }
-        return contributed;
+        return count;
     }
 
-    private static <C, T> boolean contributeGroup(
+    private static <C, T> int contributeGroup(
         C component,
         ActionContributor<C, T> contributor,
         ActionDescriptorProvider provider,
         ActionContext context,
-        boolean contributed
+        int contributed
     ) {
-        var actions = provider.create(context);
+        var actions = provider.create(context, contributed);
         if (actions.isEmpty()) {
-            return false;
+            return 0;
         }
-        if (contributed) {
+        if (contributed > 0) {
             contributor.addSeparator(component);
         }
+        int count = 0;
         for (ActionDescriptor action : actions) {
             if (action.action() instanceof ActionProvider p) {
-                contributed |= contributeGroup(component, contributor, ActionDescriptorProvider.wrap(p), context, contributed);
+                count += contributeGroup(component, contributor, ActionDescriptorProvider.wrap(p), context, contributed + count);
             } else {
                 contributor.addItem(component, createGroupItem(component, contributor, new MenuItemAction(action, context)));
-                contributed = true;
+                count += 1;
             }
         }
-        return contributed;
+        return count;
     }
 
     private static <C, T> T createGroupItem(C component, ActionContributor<C, T> contributor, MenuItemAction action) {
@@ -497,7 +498,7 @@ public final class Actions {
         List<ActionDescriptor> actions
     ) implements ActionDescriptorProvider {
         @Override
-        public List<ActionDescriptor> create(ActionContext context) {
+        public List<ActionDescriptor> create(ActionContext context, int contributions) {
             return actions.stream()
                 .filter(action -> action.action().isVisible(context))
                 .toList();
@@ -506,18 +507,18 @@ public final class Actions {
 
     private interface ActionDescriptorProvider {
         static ActionDescriptorProvider wrap(ActionProvider provider) {
-            return context -> {
+            return (context, index) -> {
                 var actions = new ArrayList<ActionDescriptor>();
                 for (Action action : provider.create(context)) {
                     actions.add(ActionDescriptor.wrap(
                         action,
-                        provider.isList() ? OptionalInt.of(actions.size()) : OptionalInt.empty()));
+                        provider.isList() ? OptionalInt.of(actions.size() + index) : OptionalInt.empty()));
                 }
                 return List.copyOf(actions);
             };
         }
 
-        List<ActionDescriptor> create(ActionContext context);
+        List<ActionDescriptor> create(ActionContext context, int contributions);
     }
 
     private static class PopupMenuActionContributor implements ActionContributor<JPopupMenu, JMenuItem> {
