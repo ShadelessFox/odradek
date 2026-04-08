@@ -35,7 +35,22 @@ public interface Exporter<T> {
 
     void export(T object, WritableByteChannel channel) throws IOException;
 
+    /**
+     * A unique identifier of this exporter.
+     * <p>
+     * Can contain an optional namespace, e.g. {@code audio.wwise} or {@code image.dds};
+     * currently only used for grouping exporters in the UI.
+     */
     String id();
+
+    default Optional<String> namespace() {
+        var id = id();
+        var dot = id.indexOf('.');
+        if (dot < 0) {
+            return Optional.empty();
+        }
+        return Optional.of(id.substring(0, dot));
+    }
 
     String name();
 

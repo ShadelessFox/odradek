@@ -56,7 +56,7 @@ public final class WaveExporter implements Exporter<Audio> {
 
     @Override
     public String id() {
-        return "wave";
+        return "audio.wave";
     }
 
     @Override

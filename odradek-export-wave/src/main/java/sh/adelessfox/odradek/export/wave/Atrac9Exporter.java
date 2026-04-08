@@ -20,7 +20,7 @@ public final class Atrac9Exporter implements Exporter<Audio> {
 
     @Override
     public String id() {
-        return "atrac9";
+        return "audio.atrac9";
     }
 
     @Override

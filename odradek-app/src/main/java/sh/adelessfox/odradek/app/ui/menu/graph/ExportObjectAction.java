@@ -45,7 +45,11 @@ public class ExportObjectAction extends Action {
         public List<Action> create(ActionContext context) {
             var game = context.get(DataKeys.GAME).orElseThrow();
             return exporters(context)
-                .map(batch -> action(batch, game))
+                .gather(Gatherers.groupingBy(x -> x.exporter().namespace().orElse("")))
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> (Action) new GroupAction(e.getValue().stream()
+                    .map(batch -> action(batch, game))
+                    .toList()))
                 .toList();
         }
 
@@ -186,5 +190,18 @@ public class ExportObjectAction extends Action {
     }
 
     private record Batch<R>(List<ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
+    }
+
+    private static final class GroupAction extends Action implements ActionProvider {
+        private final List<Action> actions;
+
+        GroupAction(List<Action> actions) {
+            this.actions = actions;
+        }
+
+        @Override
+        public List<Action> create(ActionContext context) {
+            return actions;
+        }
     }
 }

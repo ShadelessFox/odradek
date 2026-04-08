@@ -20,7 +20,7 @@ public final class WwiseExporter implements Exporter<Audio> {
 
     @Override
     public String id() {
-        return "wwise";
+        return "audio.wwise";
     }
 
     @Override

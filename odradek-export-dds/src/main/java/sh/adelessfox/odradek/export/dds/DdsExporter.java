@@ -15,7 +15,7 @@ public final class DdsExporter implements Exporter<Texture> {
 
     @Override
     public String id() {
-        return "dds";
+        return "image.dds";
     }
 
     @Override
