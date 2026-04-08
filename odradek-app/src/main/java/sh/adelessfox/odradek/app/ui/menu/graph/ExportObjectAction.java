@@ -147,6 +147,9 @@ public class ExportObjectAction extends Action {
 
                 try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
                     exporter.export(converted.get(), channel);
+                } catch (Exception e) {
+                    Files.delete(path);
+                    throw e;
                 }
 
                 log.debug("Exported object {} ({}) to {}", object, type, path);
