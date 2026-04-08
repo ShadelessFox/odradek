@@ -3,5 +3,7 @@ module odradek.export.wave {
     requires odradek.game;
 
     provides sh.adelessfox.odradek.game.Exporter with
-        sh.adelessfox.odradek.export.wave.WaveExporter;
+        sh.adelessfox.odradek.export.wave.Atrac9Exporter,
+        sh.adelessfox.odradek.export.wave.WaveExporter,
+        sh.adelessfox.odradek.export.wave.WwiseExporter;
 }
