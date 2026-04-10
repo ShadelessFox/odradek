@@ -10,6 +10,6 @@ public sealed interface MainEvent extends Event {
     record ShowObject(ObjectId objectId) implements MainEvent {
     }
 
-    record ShowLinks(ObjectId objectId) implements MainEvent {
+    record ShowUsages(ObjectId objectId) implements MainEvent {
     }
 }
