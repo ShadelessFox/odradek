@@ -24,7 +24,7 @@ public final class ShowUsagesAction extends Action {
         var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
         var eventBus = Application.getInstance().events();
         eventBus.publish(new MainEvent.ShowPanel(MainView.USAGES_PANEL_ID));
-        eventBus.publish(new MainEvent.ShowLinks(holder.objectId()));
+        eventBus.publish(new MainEvent.ShowUsages(holder.objectId()));
     }
 
     @Override

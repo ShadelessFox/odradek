@@ -24,12 +24,15 @@ import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -46,6 +49,9 @@ public final class UsagesToolPanel implements ToolPanel {
     private final DS2Game game;
     private final EventBus appEventBus;
     private final Path config;
+
+    private final List<ObjectId> queue = new ArrayList<>();
+    private int queueIndex;
 
     private LinkDatabase database;
     private ObjectId pendingObjectId;
@@ -88,7 +94,7 @@ public final class UsagesToolPanel implements ToolPanel {
                     layout.show(panel, CARD_MAIN);
 
                     if (pendingObjectId != null) {
-                        eventBus.publish(new Events.ShowObject(pendingObjectId));
+                        eventBus.publish(new Events.ShowObject(pendingObjectId, false));
                         pendingObjectId = null;
                     }
                 }
@@ -106,8 +112,8 @@ public final class UsagesToolPanel implements ToolPanel {
 
         // Forward show object request to the internal event bus
         appEventBus.subscribe(
-            MainEvent.ShowLinks.class,
-            event -> eventBus.publish(new Events.ShowObject(event.objectId())));
+            MainEvent.ShowUsages.class,
+            event -> eventBus.publish(new Events.ShowObject(event.objectId(), true)));
 
         if (Files.exists(path)) {
             // Trigger loading immediately if database file already exists
@@ -193,9 +199,68 @@ public final class UsagesToolPanel implements ToolPanel {
             }
             tree.setModel(new StructuredTreeModel<>(new UsagesStructure.Root(database, event.objectId())));
             tree.expand();
+            if (event.record()) {
+                addToQueue(event.objectId());
+            }
         });
 
-        return new JScrollPane(tree);
+        var pane = new JScrollPane(tree);
+        pane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")));
+
+        var panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.add(createToolBar(eventBus), BorderLayout.NORTH);
+        panel.add(pane, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JToolBar createToolBar(EventBus eventBus) {
+        var backAction = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (queueIndex > 1) {
+                    queueIndex = Math.max(queueIndex - 1, 0);
+                    eventBus.publish(new Events.ShowObject(queue.get(queueIndex - 1), false));
+                }
+            }
+        };
+        backAction.putValue(Action.SHORT_DESCRIPTION, "Back");
+        backAction.putValue(Action.SMALL_ICON, Fugue.getIcon("arrow-180"));
+        backAction.setEnabled(false);
+
+        var forwardAction = new AbstractAction("Forward", Fugue.getIcon("arrow")) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (queueIndex < queue.size()) {
+                    int index = queueIndex;
+                    queueIndex = Math.min(queueIndex + 1, queue.size());
+                    eventBus.publish(new Events.ShowObject(queue.get(index), false));
+                }
+            }
+        };
+        forwardAction.putValue(Action.SHORT_DESCRIPTION, "Forward");
+        forwardAction.putValue(Action.SMALL_ICON, Fugue.getIcon("arrow"));
+        forwardAction.setEnabled(false);
+
+        eventBus.subscribe(Events.ShowObject.class, _ -> {
+            backAction.setEnabled(queueIndex > 1);
+            forwardAction.setEnabled(queueIndex < queue.size());
+        });
+
+        var toolBar = new JToolBar();
+        toolBar.add(Box.createHorizontalStrut(4));
+        toolBar.add(new JLabel("Usages"));
+        toolBar.add(Box.createHorizontalGlue());
+        toolBar.add(backAction);
+        toolBar.add(forwardAction);
+        return toolBar;
+    }
+
+    private void addToQueue(ObjectId objectId) {
+        queue.subList(queueIndex, queue.size()).clear();
+        queue.add(objectId);
+        queueIndex = queue.size();
     }
 
     private Path determineDatabasePath(DS2Game game, Path config) {
@@ -230,7 +295,7 @@ public final class UsagesToolPanel implements ToolPanel {
         record DatabaseNotLoaded(Throwable reason) implements Events {
         }
 
-        record ShowObject(ObjectId objectId) implements Events {
+        record ShowObject(ObjectId objectId, boolean record) implements Events {
         }
     }
 
