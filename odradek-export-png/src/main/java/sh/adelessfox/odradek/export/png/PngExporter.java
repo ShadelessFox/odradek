@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public final class PngExporter implements Exporter<Texture> {
+public final class PngExporter implements Exporter.OfSingleOutput<Texture> {
     private static final Logger log = LoggerFactory.getLogger(PngExporter.class);
 
     @Override

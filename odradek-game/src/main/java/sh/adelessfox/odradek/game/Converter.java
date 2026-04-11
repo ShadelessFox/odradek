@@ -88,17 +88,11 @@ public interface Converter<T, R, G extends Game> {
         return inputType().isAssignableFrom(info.type());
     }
 
-    @SuppressWarnings("unchecked")
     default Class<T> inputType() {
-        return Reflections.getGenericInterface(getClass(), Converter.class)
-            .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
-            .orElseThrow();
+        return Reflections.getGenericInterfaceArgument(getClass(), Converter.class, 0);
     }
 
-    @SuppressWarnings("unchecked")
     default Class<R> outputType() {
-        return Reflections.getGenericInterface(getClass(), Converter.class)
-            .map(iface -> (Class<R>) Reflections.getRawType(iface.getActualTypeArguments()[1]))
-            .orElseThrow();
+        return Reflections.getGenericInterfaceArgument(getClass(), Converter.class, 1);
     }
 }

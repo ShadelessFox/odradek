@@ -42,9 +42,7 @@ public sealed interface Renderer<T, G extends Game>
 
         @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
-            return Reflections.getGenericInterface(getClass(), OfObject.class)
-                .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
-                .orElseThrow();
+            return Reflections.getGenericInterfaceArgument(getClass(), OfObject.class, 0);
         }
     }
 

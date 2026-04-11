@@ -21,11 +21,8 @@ public interface Preview {
     interface Provider<T> {
         Preview create(T object);
 
-        @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
-            return Reflections.getGenericInterface(getClass(), Preview.Provider.class)
-                .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
-                .orElseThrow();
+            return Reflections.getGenericInterfaceArgument(getClass(), Preview.Provider.class, 0);
         }
     }
 
