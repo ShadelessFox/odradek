@@ -1,16 +1,18 @@
 package sh.adelessfox.odradek.export.dds;
 
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.texture.Texture;
+import sh.adelessfox.odradek.texture.TextureSet;
 
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public final class DdsExporter implements Exporter.OfSingleOutput<Texture> {
+public final class TextureSetDdsExporter implements Exporter.OfMultipleOutputs<TextureSet> {
     @Override
-    public void export(Texture object, WritableByteChannel channel) throws IOException {
-        DdsWriter.write(object, channel);
+    public void export(TextureSet object, OutputProvider provider) throws IOException {
+        int index = 0;
+        for (TextureSet.PackedTexture texture : object.packedTextures()) {
+            DdsWriter.write(texture.texture(), provider.channel((index++) + ".dds"));
+        }
     }
 
     @Override
@@ -21,11 +23,6 @@ public final class DdsExporter implements Exporter.OfSingleOutput<Texture> {
     @Override
     public String name() {
         return "DDS (DirectDraw Surface)";
-    }
-
-    @Override
-    public String extension() {
-        return "dds";
     }
 
     @Override

@@ -78,20 +78,22 @@ public class ExportAssetCommand extends AbstractCommand {
                 log.error("  Unable to create output directory; skipping", e);
             }
 
-            try (var channel = Files.newByteChannel(target, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                exporter.export(converted, channel);
-            } catch (Exception e) {
-                log.error("  Error during export; skipping", e);
-            }
+            // FIXME
+            // try (var channel = Files.newByteChannel(target, WRITE, CREATE, TRUNCATE_EXISTING)) {
+            //     exporter.export(converted, channel);
+            // } catch (Exception e) {
+            //     log.error("  Error during export; skipping", e);
+            // }
         }
     }
 
     private static String formatFileName(ObjectId id, TypedObject object, Exporter<?> exporter) {
+        // FIXME
         return "%s_%s_%s.%s".formatted(
             object.getType().name(),
             id.groupId(),
-            id.objectIndex(),
-            exporter.extension()
+            id.objectIndex()
+            // exporter.extension()
         );
     }
 

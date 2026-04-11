@@ -3,5 +3,6 @@ module odradek.export.dds {
     requires odradek.game;
 
     provides sh.adelessfox.odradek.game.Exporter with
-        sh.adelessfox.odradek.export.dds.DdsExporter;
+        sh.adelessfox.odradek.export.dds.TextureDdsExporter,
+        sh.adelessfox.odradek.export.dds.TextureSetDdsExporter;
 }

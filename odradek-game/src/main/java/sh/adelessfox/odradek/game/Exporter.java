@@ -68,8 +68,6 @@ public sealed interface Exporter<T> {
             .findFirst();
     }
 
-    void export(T object, WritableByteChannel channel) throws IOException;
-
     /**
      * A unique identifier of this exporter.
      * <p>
@@ -88,8 +86,6 @@ public sealed interface Exporter<T> {
     }
 
     String name();
-
-    String extension();
 
     default Optional<String> icon() {
         return Optional.empty();

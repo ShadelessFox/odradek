@@ -18,6 +18,9 @@ import sh.adelessfox.odradek.util.Gatherers;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
+import java.io.IOException;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -102,17 +105,17 @@ public class ExportObjectAction extends Action {
     }
 
     private static <T> void exportBatch(Batch<T> batch, Game game) {
-        var singleFile = batch.objects().size() == 1;
+        var singleFile = batch.objects().size() == 1 && batch.exporter() instanceof Exporter.OfSingleOutput<?>;
         var exporter = batch.exporter();
         var chooser = new JFileChooser();
 
         if (singleFile) {
-            var name = makeObjectName(exporter, batch.objects().getFirst());
+            var name = makeObjectName(batch.objects().getFirst());
             var path = lastPath != null ? lastPath.resolve(name).toFile() : new File(name);
 
             chooser.setDialogTitle("Specify output name");
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            chooser.setFileFilter(new FileNameExtensionFilter(exporter.name(), exporter.extension()));
+            chooser.setFileFilter(new FileNameExtensionFilter(exporter.name(), ((Exporter.OfSingleOutput<?>) exporter).extension()));
             chooser.setAcceptAllFileFilterUsed(false);
             chooser.setSelectedFile(path);
         } else {
@@ -137,22 +140,58 @@ public class ExportObjectAction extends Action {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
-                var path = singleFile ? output : output.resolve(makeObjectName(exporter, selection));
 
                 var converted = batch.converter().convert(object, game);
                 if (converted.isEmpty()) {
-                    log.debug("Unable to convert object {} ({}) to {}", object, type, path);
+                    log.debug("Unable to convert object {} ({})", object, type);
                     continue;
                 }
 
-                try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                    exporter.export(converted.get(), channel);
-                } catch (Exception e) {
-                    Files.delete(path);
-                    throw e;
+                switch (exporter) {
+                    case Exporter.OfSingleOutput<T> e -> {
+                        var path = singleFile ? output : output.resolve(makeObjectName(e, selection));
+                        try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
+                            e.export(converted.get(), channel);
+                            log.debug("Exported object {} ({}) to {}", object, type, path);
+                        } catch (Exception ex) {
+                            Files.delete(path);
+                            throw ex;
+                        }
+                    }
+                    case Exporter.OfMultipleOutputs<T> e -> {
+                        var basename = makeObjectName(selection);
+                        var channels = new HashMap<Path, SeekableByteChannel>();
+                        var provider = new Exporter.OfMultipleOutputs.OutputProvider() {
+                            @Override
+                            public WritableByteChannel channel(String name) throws IOException {
+                                var path = output.resolve(basename).resolve(name).toAbsolutePath();
+                                if (!path.startsWith(output.toAbsolutePath())) {
+                                    throw new IllegalArgumentException("Output path must be within the export directory");
+                                }
+                                var channel = channels.get(path);
+                                if (channel == null) {
+                                    Files.createDirectories(path.getParent());
+                                    channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING);
+                                    channels.put(path, channel);
+                                    log.debug("Opened channel for output '{}' of object {} ({}): {}", name, object, type, path);
+                                }
+                                return channel;
+                            }
+                        };
+                        try {
+                            e.export(converted.get(), provider);
+                        } finally {
+                            for (var channel : channels.values()) {
+                                try {
+                                    channel.close();
+                                } catch (IOException ex) {
+                                    log.warn("Failed to close channel for object {} ({})", object, type, ex);
+                                }
+                            }
+                        }
+                    }
                 }
 
-                log.debug("Exported object {} ({}) to {}", object, type, path);
                 exported++;
             } catch (Exception e) {
                 log.error("Failed to export object {} ({})", selection.objectId(), selection.objectType(), e);
@@ -184,12 +223,15 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private static String makeObjectName(Exporter<?> exporter, ObjectSupplier object) {
-        return "%s_%s_%s.%s".formatted(
+    private static String makeObjectName(ObjectSupplier object) {
+        return "%s_%s_%s".formatted(
             object.objectType(),
             object.objectId().groupId(),
-            object.objectId().objectIndex(),
-            exporter.extension());
+            object.objectId().objectIndex());
+    }
+
+    private static String makeObjectName(Exporter.OfSingleOutput<?> exporter, ObjectSupplier object) {
+        return makeObjectName(object) + '.' + exporter.extension();
     }
 
     private record Batch<R>(List<ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
