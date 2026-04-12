@@ -13,7 +13,11 @@ public final class TextureSetDdsExporter implements Exporter.OfMultipleOutputs<T
         for (TextureSet.SourceTexture sourceTexture : object.sourceTextures()) {
             var packedTexture = object.packedTextures().stream()
                 .filter(pt -> pt.packing().contains(sourceTexture.type()))
-                .findFirst().orElseThrow();
+                .findFirst().orElse(null);
+
+            if (packedTexture == null) {
+                continue;
+            }
 
             var red = unpackChannel(packedTexture.packing().red(), sourceTexture.type());
             var green = unpackChannel(packedTexture.packing().green(), sourceTexture.type());
