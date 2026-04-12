@@ -11,6 +11,8 @@ public enum TextureFormat {
 
     R16_UNORM(Block.BITS_16),
 
+    R16_SFLOAT(Block.BITS_16),
+    R16G16_SFLOAT(Block.BITS_32),
     R16G16B16_SFLOAT(Block.BITS_48),
     R16G16B16A16_SFLOAT(Block.BITS_64),
 

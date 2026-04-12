@@ -8,8 +8,17 @@ import java.nio.channels.WritableByteChannel;
 
 final class DdsWriter {
     static void write(Texture texture, WritableByteChannel channel) throws IOException {
-        writeHeader(texture, channel);
-        writeData(texture, channel);
+        var converted = texture.convert(mapIncompatibleFormat(texture.format()));
+        writeHeader(converted, channel);
+        writeData(converted, channel);
+    }
+
+    private static TextureFormat mapIncompatibleFormat(TextureFormat format) {
+        return switch (format) {
+            case R8G8B8_UNORM -> TextureFormat.R8G8B8A8_UNORM;
+            case B8G8R8_UNORM -> TextureFormat.B8G8R8A8_UNORM;
+            default -> format;
+        };
     }
 
     private static void writeHeader(Texture texture, WritableByteChannel channel) throws IOException {
@@ -134,6 +143,8 @@ final class DdsWriter {
     private static int mapFormat(Texture texture) {
         return switch (texture.format()) {
             // Uncompressed
+            case R8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8_UNORM);
+            case R8G8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8G8_UNORM);
             case R8G8B8A8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM);
             case B8G8R8A8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM);
             case R16_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R16_UNORM);
@@ -157,9 +168,17 @@ final class DdsWriter {
     }
 
     private static int mapColorSpace(TextureColorSpace colorSpace, int format) {
-        return switch (colorSpace) {
-            case LINEAR -> format;
-            case SRGB -> format + 1;
+        if (colorSpace == TextureColorSpace.LINEAR) {
+            return format;
+        }
+        return switch (format) {
+            case DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            case DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+            case DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM_SRGB;
+            case DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM_SRGB;
+            case DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM_SRGB;
+            case DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM_SRGB;
+            default -> format;
         };
     }
 

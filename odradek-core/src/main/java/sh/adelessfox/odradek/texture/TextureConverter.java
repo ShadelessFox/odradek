@@ -1,16 +1,32 @@
 package sh.adelessfox.odradek.texture;
 
 import be.twofold.tinybcdec.BlockDecoder;
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.util.Handles;
 
 import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 final class TextureConverter {
     private TextureConverter() {
+    }
+
+    public static Texture unpack(
+        Texture texture,
+        Optional<Channel> red,
+        Optional<Channel> green,
+        Optional<Channel> blue,
+        Optional<Channel> alpha
+    ) {
+        var converter = Optional.of(Converter.copy(texture.format()))
+            .map(c -> decompress(c.format()).map(c::andThen).orElse(c))
+            .map(c -> tonemap(c.format()).map(c::andThen).orElse(c))
+            .map(c -> swizzle(c.format(), red, green, blue, alpha).map(c::andThen).orElse(c))
+            .orElseThrow();
+
+        return map(texture, converter.format(), converter.operator());
     }
 
     public static Texture convert(Texture texture, TextureFormat target) {
@@ -94,6 +110,113 @@ final class TextureConverter {
         };
 
         return Optional.ofNullable(operator);
+    }
+
+    private static Optional<Converter> swizzle(
+        TextureFormat srcFormat,
+        Optional<Channel> dstRed,
+        Optional<Channel> dstGreen,
+        Optional<Channel> dstBlue,
+        Optional<Channel> dstAlpha
+    ) {
+        var channels = new EnumMap<Channel, Channel>(Channel.class);
+        getChannel(dstRed, channels, Channel.R);
+        getChannel(dstGreen, channels, Channel.G);
+        getChannel(dstBlue, channels, Channel.B);
+        getChannel(dstAlpha, channels, Channel.A);
+
+        var dstFormat = switch (srcFormat) {
+            case R8_UNORM, R16_UNORM, R32_SFLOAT -> switch(channels.size()) {
+                case 1 -> srcFormat;
+                default -> null;
+            };
+            case R8G8_UNORM -> switch(channels.size()) {
+                case 1 -> TextureFormat.R8_UNORM;
+                case 2 -> srcFormat;
+                default -> null;
+            };
+            case R8G8B8_UNORM, B8G8R8_UNORM -> switch(channels.size()) {
+                case 1 -> TextureFormat.R8_UNORM;
+                case 2 -> TextureFormat.R8G8_UNORM;
+                case 3 -> srcFormat;
+                default -> null;
+            };
+            case R8G8B8A8_UNORM, B8G8R8A8_UNORM -> switch(channels.size()) {
+                case 1 -> TextureFormat.R8_UNORM;
+                case 2 -> TextureFormat.R8G8_UNORM;
+                case 3 -> TextureFormat.R8G8B8_UNORM;
+                default -> srcFormat;
+            };
+            case R16G16B16_SFLOAT -> switch(channels.size()) {
+                case 1 -> TextureFormat.R16_SFLOAT;
+                case 2 -> TextureFormat.R16G16_SFLOAT;
+                case 3 -> srcFormat;
+                default -> null;
+            };
+            case R16G16B16A16_SFLOAT -> switch(channels.size()) {
+                case 1 -> TextureFormat.R16_SFLOAT;
+                case 2 -> TextureFormat.R16G16_SFLOAT;
+                case 3 -> TextureFormat.R16G16B16_SFLOAT;
+                default -> srcFormat;
+            };
+            default -> null;
+        };
+
+        UnpackOperation operation = switch (srcFormat) {
+            case R8G8B8A8_UNORM -> switch (channels.size()) {
+                case 1 -> {
+                    var r = channels.get(Channel.R).ordinal();
+                    yield (src, srcPos, dst, dstPos) -> dst[dstPos/**/] = src[srcPos + r];
+                }
+                case 2 -> {
+                    var r = channels.get(Channel.R).ordinal();
+                    var g = channels.get(Channel.G).ordinal();
+                    yield (src, srcPos, dst, dstPos) -> {
+                        dst[dstPos/**/] = src[srcPos + r];
+                        dst[dstPos + 1] = src[srcPos + g];
+                    };
+                }
+                case 3 -> {
+                    var r = channels.get(Channel.R).ordinal();
+                    var g = channels.get(Channel.G).ordinal();
+                    var b = channels.get(Channel.B).ordinal();
+                    yield (src, srcPos, dst, dstPos) -> {
+                        dst[dstPos/**/] = src[srcPos + r];
+                        dst[dstPos + 1] = src[srcPos + g];
+                        dst[dstPos + 2] = src[srcPos + b];
+                    };
+                }
+                default -> null;
+            };
+            default -> null;
+        };
+
+        if (dstFormat == null || operation == null) {
+            return Optional.empty();
+        }
+
+        Function<Surface, Surface> operator = surface -> {
+            var target = Surface.create(surface.width(), surface.height(), dstFormat);
+
+            var src = surface.data();
+            var dst = target.data();
+            var srcStride = srcFormat.block().size();
+            var dstStride = dstFormat.block().size();
+
+            for (int i = 0, o = 0; i < src.length; i += srcStride, o += dstStride) {
+                operation.apply(src, i, dst, o);
+            }
+
+            return target;
+        };
+
+        return Optional.of(new Converter(operator, dstFormat));
+    }
+
+    private static void getChannel(Optional<Channel> dstRed, Map<Channel, Channel> sourceToTarget, Channel r) {
+        if (dstRed.map(c -> sourceToTarget.put(c, r)).orElse(null) != null) {
+            throw new IllegalArgumentException("Duplicate channel: " + dstRed.get());
+        }
     }
 
     private static Optional<Converter> swizzle(TextureFormat srcFormat, TextureFormat dstFormat) {

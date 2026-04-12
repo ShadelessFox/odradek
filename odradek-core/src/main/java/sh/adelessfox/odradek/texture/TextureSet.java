@@ -16,20 +16,24 @@ public record TextureSet(
     public record SourceTexture(String path, String type) {
     }
 
-    public record PackedTexture(Texture texture, ChannelPacking packing) {
+    public record PackedTexture(Texture texture, Packing packing) {
     }
 
-    public record ChannelPacking(
-        Optional<String> red,
-        Optional<String> green,
-        Optional<String> blue,
-        Optional<String> alpha
+    public record Packing(
+        Optional<PackingChannel> red,
+        Optional<PackingChannel> green,
+        Optional<PackingChannel> blue,
+        Optional<PackingChannel> alpha
     ) {
         public boolean contains(String type) {
-            return type.equals(red.orElse(null))
-                || type.equals(green.orElse(null))
-                || type.equals(blue.orElse(null))
-                || type.equals(alpha.orElse(null));
+            return red.filter(x -> x.type().equals(type)).isPresent()
+                || green.filter(x -> x.type().equals(type)).isPresent()
+                || blue.filter(x -> x.type().equals(type)).isPresent()
+                || alpha.filter(x -> x.type().equals(type)).isPresent();
         }
     }
+
+    public record PackingChannel(String type, Channel channel) {
+    }
+
 }

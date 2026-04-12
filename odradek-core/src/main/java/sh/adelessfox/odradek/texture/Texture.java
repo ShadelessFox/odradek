@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.texture;
 
+import sh.adelessfox.odradek.NotImplementedException;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -84,6 +86,24 @@ public record Texture(
 
     public static Texture ofAnimated2D(TextureFormat format, TextureColorSpace colorSpace, List<Surface> surfaces, int frames, Duration duration) {
         return new Texture(format, TextureType.ARRAY, colorSpace, surfaces, 1, OptionalInt.empty(), OptionalInt.of(frames), Optional.of(duration));
+    }
+
+
+    /**
+     * Unpacks the texture data into a new texture with the specified channel mappings.
+     * <p>
+     * The channel mappings specify which channels to extract from the source
+     * data and how to map them to the target texture. The target texture will
+     * have a format determined by the presence of the red, green, blue, and
+     * alpha channels in the mappings.
+     */
+    public Texture unpack(
+        Optional<Channel> red,
+        Optional<Channel> green,
+        Optional<Channel> blue,
+        Optional<Channel> alpha
+    ) {
+        return TextureConverter.unpack(this, red, green, blue, alpha);
     }
 
     public Texture convert(TextureFormat targetFormat) {
