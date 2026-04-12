@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPacking;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPackingChannel;
 import sh.adelessfox.odradek.texture.Channel;
 import sh.adelessfox.odradek.texture.Texture;
+import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureSet;
 
 import java.util.Optional;
@@ -39,7 +40,8 @@ public class TextureSetToTextureSetConverter
     private static Optional<TextureSet.SourceTexture> mapSourceTexture(TextureSetTextureDesc desc) {
         var name = desc.path().isEmpty() ? desc.textureType().toString() : desc.path().substring("work:".length());
         var type = mapTextureSetType(desc.textureType().unwrap());
-        return Optional.of(new TextureSet.SourceTexture(name, type));
+        var colorSpace = desc.gammaSpace() ? TextureColorSpace.SRGB : TextureColorSpace.LINEAR;
+        return Optional.of(new TextureSet.SourceTexture(name, type, colorSpace));
     }
 
     private static Optional<TextureSet.PackedTexture> mapPackedTexture(TextureSetEntry entry, ForbiddenWestGame game) {

@@ -13,7 +13,7 @@ public record TextureSet(
     List<SourceTexture> sourceTextures,
     List<PackedTexture> packedTextures
 ) {
-    public record SourceTexture(String path, String type) {
+    public record SourceTexture(String path, String type, TextureColorSpace colorSpace) {
     }
 
     public record PackedTexture(Texture texture, Packing packing) {

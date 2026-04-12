@@ -88,7 +88,6 @@ public record Texture(
         return new Texture(format, TextureType.ARRAY, colorSpace, surfaces, 1, OptionalInt.empty(), OptionalInt.of(frames), Optional.of(duration));
     }
 
-
     /**
      * Unpacks the texture data into a new texture with the specified channel mappings.
      * <p>
@@ -108,6 +107,13 @@ public record Texture(
 
     public Texture convert(TextureFormat targetFormat) {
         return TextureConverter.convert(this, targetFormat);
+    }
+
+    public Texture withColorSpace(TextureColorSpace colorSpace) {
+        if (colorSpace() == colorSpace) {
+            return this;
+        }
+        return new Texture(format, type, colorSpace, surfaces, mips, depth, arraySize, duration);
     }
 
     public int width() {

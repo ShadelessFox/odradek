@@ -24,7 +24,10 @@ public final class TextureSetDdsExporter implements Exporter.OfMultipleOutputs<T
             var blue = unpackChannel(packedTexture.packing().blue(), sourceTexture.type());
             var alpha = unpackChannel(packedTexture.packing().alpha(), sourceTexture.type());
 
-            var texture = packedTexture.texture().unpack(red, green, blue, alpha);
+            var texture = packedTexture.texture()
+                .unpack(red, green, blue, alpha)
+                .withColorSpace(sourceTexture.colorSpace());
+
             var filename = extractFilename(sourceTexture.path()) + ".dds";
             DdsWriter.write(texture, provider.channel(filename));
         }
