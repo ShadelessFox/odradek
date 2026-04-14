@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 public final class ForbiddenWestGame implements Game {
@@ -88,9 +89,9 @@ public final class ForbiddenWestGame implements Game {
     }
 
     @Override
-    public TypedObject readObject(int groupId, int objectIndex) throws IOException {
+    public List<TypedObject> readGroup(int groupId, boolean readSubgroups) throws IOException {
         synchronized (streamingReader) {
-            return streamingReader.readGroup(groupId).objects().get(objectIndex).object();
+            return streamingReader.readGroup(groupId, readSubgroups).objects();
         }
     }
 
@@ -127,7 +128,7 @@ public final class ForbiddenWestGame implements Game {
     private static StreamingGraphResource readStreamingGraph(ForbiddenWestFileSystem fileSystem, TypeFactory typeFactory) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new HFWTypeReader().readObject(reader, typeFactory);
-            var graph = (HorizonForbiddenWest.StreamingGraphResource) result.object();
+            var graph = (HorizonForbiddenWest.StreamingGraphResource) result;
             return new StreamingGraphResource(graph, typeFactory);
         }
     }

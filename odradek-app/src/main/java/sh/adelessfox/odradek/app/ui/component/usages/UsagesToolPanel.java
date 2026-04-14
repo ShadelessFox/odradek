@@ -30,7 +30,6 @@ import sh.adelessfox.odradek.ui.util.Fugue;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -262,12 +261,7 @@ public final class UsagesToolPanel implements ToolPanel {
     }
 
     private Path determineDatabasePath(ForbiddenWestGame game, Path config) {
-        try {
-            return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
-        } catch (IOException e) {
-            log.error("Failed to compute link database hash, using fallback path", e);
-            return config.resolve("links.db");
-        }
+        return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
     }
 
     record Progress(int cur, int max) {

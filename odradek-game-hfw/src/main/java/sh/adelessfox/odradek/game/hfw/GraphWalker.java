@@ -2,16 +2,15 @@ package sh.adelessfox.odradek.game.hfw;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
-import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
-import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -28,33 +27,32 @@ public final class GraphWalker {
 
     public static <T extends TypedObject> Iterable<SearchResult<T>> iterate(
         Class<T> type,
-        ForbiddenWestGame game,
+        Game game,
         boolean readSubgroups
     ) {
-        return stream(type, game.getStreamingReader(), game.getStreamingGraph(), readSubgroups)::iterator;
+        return stream(type, game, readSubgroups)::iterator;
     }
 
     public static <T extends TypedObject> Stream<SearchResult<T>> stream(
         Class<T> type,
-        StreamingObjectReader reader,
-        StreamingGraphResource graph,
+        Game game,
         boolean readSubgroups
     ) {
-        return StreamSupport.stream(spliterator(type, reader, graph, readSubgroups), false);
+        return StreamSupport.stream(spliterator(type, game, readSubgroups), false);
     }
 
     private static <T extends TypedObject> Spliterator<SearchResult<T>> spliterator(
         Class<T> ofType,
-        StreamingObjectReader reader,
-        StreamingGraphResource graph,
+        Game game,
         boolean readSubgroups
     ) {
-        var groups = graph.groups().stream()
-            .sorted(Comparator.comparingInt(StreamingGroupData::groupID))
+        var groups = game.streamingGraph().groups().stream()
+            .sorted(Comparator.comparingInt(StreamingGraph.Group::id))
             .toList();
 
         return new Spliterator<>() {
-            private StreamingObjectReader.GroupResult result;
+            private StreamingGraph.Group currentGroup;
+            private List<TypedObject> currentObjects;
             private int nextGroupIndex;
             private int nextObjectIndex;
 
@@ -86,10 +84,12 @@ public final class GraphWalker {
             private boolean tryAdvanceGroup() {
                 for (int i = nextGroupIndex; i < groups.size(); i++) {
                     var group = groups.get(i);
-                    if (graph.types(group).anyMatch(t -> ofType.isAssignableFrom(t.type()))) {
-                        log.debug("[{}/{}] Reading group {}", i + 1, groups.size(), group.groupID());
+                    var matches = group.types().stream().anyMatch(t -> ofType.isAssignableFrom(t.type()));
+                    if (matches) {
+                        log.debug("[{}/{}] Reading group {}", i + 1, groups.size(), group.id());
                         try {
-                            result = reader.readGroup(group.groupID(), readSubgroups);
+                            currentGroup = group;
+                            currentObjects = game.readGroup(group.id(), readSubgroups);
                             nextGroupIndex = i + 1;
                             nextObjectIndex = 0;
                             return true;
@@ -102,15 +102,15 @@ public final class GraphWalker {
             }
 
             private boolean tryAdvanceObject(Consumer<? super SearchResult<T>> action) {
-                if (result != null) {
-                    var objects = result.objects();
-                    for (int i = nextObjectIndex; i < objects.size(); i++) {
-                        var object = objects.get(i).object();
-                        if (ofType.isInstance(object)) {
-                            action.accept(new SearchResult<>(new ObjectId(result.group().groupID(), i), ofType.cast(object)));
-                            nextObjectIndex = i + 1;
-                            return true;
-                        }
+                if (currentGroup == null) {
+                    return false;
+                }
+                for (int i = nextObjectIndex; i < currentObjects.size(); i++) {
+                    var object = currentObjects.get(i);
+                    if (ofType.isInstance(object)) {
+                        action.accept(new SearchResult<>(new ObjectId(currentGroup.id(), i), ofType.cast(object)));
+                        nextObjectIndex = i + 1;
+                        return true;
                     }
                 }
                 return false;

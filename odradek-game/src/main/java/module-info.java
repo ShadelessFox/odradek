@@ -4,6 +4,7 @@ module odradek.game {
     requires org.slf4j;
 
     exports sh.adelessfox.odradek.game;
+    exports sh.adelessfox.odradek.game.decima;
 
     uses sh.adelessfox.odradek.game.Converter;
     uses sh.adelessfox.odradek.game.Exporter;

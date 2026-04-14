@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
@@ -32,7 +33,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     private int streamingLocatorIndex;
     private int depth;
 
-    public record GroupResult(StreamingGroupData group, List<ObjectInfo> objects) {
+    public record GroupResult(StreamingGroupData group, List<TypedObject> objects) {
         public GroupResult {
             objects = List.copyOf(objects);
         }
@@ -41,9 +42,6 @@ public class StreamingObjectReader extends HFWTypeReader {
         public String toString() {
             return "GroupInfo[group=" + group + ", objects=" + objects.size() + "]";
         }
-    }
-
-    public record ObjectResult(GroupResult group, ObjectInfo object) {
     }
 
     public StreamingObjectReader(ObjectStreamingSystem system, TypeFactory factory) {
@@ -103,11 +101,11 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     private GroupResult readSingleGroup(StreamingGroupData group) throws IOException {
-        var objects = new ArrayList<ObjectInfo>(group.numObjects());
+        var objects = new ArrayList<TypedObject>(group.numObjects());
         for (int i = 0; i < group.numObjects(); i++) {
             var type = graph.types().get(group.typeStart() + objects.size());
             var object = (RTTIRefObject) factory.newInstance(type);
-            objects.add(new ObjectInfo(type, object));
+            objects.add(object);
         }
 
         var result = new GroupResult(group, objects);
@@ -128,13 +126,13 @@ public class StreamingObjectReader extends HFWTypeReader {
                     log.debug(
                         "{}Reading {} in {} at offset {}",
                         indent(),
-                        Colors.yellow(object.type()),
+                        Colors.yellow(object.getType()),
                         Colors.yellow(getSpanFile(span)),
                         Colors.blue(span.offset() + reader.position())
                     );
                 }
 
-                fillCompound(object.type(), reader, factory, object.object());
+                fillCompound(object.getType(), reader, factory, object);
             }
         }
 
@@ -214,14 +212,14 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
 
         var object = group.objects().get(linkIndex);
-        var matches = info.itemType().asClass().isAssignableFrom(object.type());
+        var matches = info.itemType().asClass().isAssignableFrom(object.getType());
 
         if (log.isDebugEnabled()) {
             log.debug(
                 "{}Resolving {} to object {} (index: {}) in group {} (index: {})",
                 indent(),
                 Colors.yellow(info.name()),
-                Colors.yellow(object.type()),
+                Colors.yellow(object.getType()),
                 Colors.blue(linkIndex),
                 Colors.blue(group.group.groupID()),
                 Colors.blue(linkGroup)
@@ -234,9 +232,9 @@ public class StreamingObjectReader extends HFWTypeReader {
 
         var objectId = new ObjectId(group.group().groupID(), linkIndex);
         return switch (pointerType) {
-            case "Ref" -> new Ref<>(objectId, object.object());
-            case "WeakPtr" -> new WeakPtr<>(objectId, object.object());
-            case "cptr" -> new CPtr<>(objectId, object.object());
+            case "Ref" -> new Ref<>(objectId, object);
+            case "WeakPtr" -> new WeakPtr<>(objectId, object);
+            case "cptr" -> new CPtr<>(objectId, object);
             default -> throw new UnsupportedOperationException("Unsupported pointer type: " + pointerType);
         };
     }
