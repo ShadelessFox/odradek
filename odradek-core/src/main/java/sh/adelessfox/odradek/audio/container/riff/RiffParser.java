@@ -40,6 +40,8 @@ public final class RiffParser {
         var end = reader.position() + size - 4;
 
         while (reader.position() < end) {
+            reader.position(reader.position() + 1 & ~1);
+
             var chunkId = reader.readString(4);
             var chunkSize = reader.readInt();
 
@@ -58,7 +60,6 @@ public final class RiffParser {
                 throw new IOException("Amount of data read by chunk reader doesn't match chunk's actual size: " + (chunkEnd - chunkStart) + " != " + chunkSize);
             }
 
-            reader.position(reader.position() + 1 & ~1);
             chunks.put(chunkId, chunk);
         }
 

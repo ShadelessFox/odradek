@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.audio.AudioFormat;
 import sh.adelessfox.odradek.audio.container.riff.RiffFile;
 import sh.adelessfox.odradek.audio.container.riff.RiffParser;
+import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.audio.container.wwise.WwiseFmtChunk;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
@@ -19,7 +20,8 @@ import java.util.Optional;
 public final class WwiseWemResourceToAudioConverter implements Converter<WwiseWemResource, Audio, DS2Game> {
     private static final RiffParser RIFF_PARSER = new RiffParser()
         .type("WAVE")
-        .reader(WwiseFmtChunk.ID, WwiseFmtChunk.reader());
+        .reader(WwiseFmtChunk.ID, WwiseFmtChunk.reader())
+        .reader(WaveDataChunk.ID, WaveDataChunk.reader());
 
     @Override
     public Optional<Audio> convert(WwiseWemResource object, DS2Game game) {
@@ -46,19 +48,27 @@ public final class WwiseWemResourceToAudioConverter implements Converter<WwiseWe
         return convertWem(data);
     }
 
-    private static Optional<Audio> convertWem(byte[] data) {
+    private static Optional<Audio> convertWem(byte[] wem) {
         RiffFile file;
 
         try {
-            file = RIFF_PARSER.parse(BinaryReader.wrap(data));
+            file = RIFF_PARSER.parse(BinaryReader.wrap(wem));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
         var fmt = file.get(WwiseFmtChunk.ID).orElseThrow();
+        var data = file.get(WaveDataChunk.ID).orElseThrow();
+
         var codec = new AudioCodec.Wwise();
         var format = new AudioFormat(fmt.sampleRate(), fmt.channelCount());
+        var sampleCount = fmt.sampleCount()
+            .orElseGet(() -> pcmBytesToSamples(data.data().length, fmt.channelCount(), fmt.bitsPerSample()));
 
-        return Optional.of(new Audio(codec, format, fmt.sampleCount(), data));
+        return Optional.of(new Audio(codec, format, sampleCount, wem));
+    }
+
+    private static int pcmBytesToSamples(int byteCount, int channelCount, int bitsPerSample) {
+        return byteCount / (channelCount * bitsPerSample / 8);
     }
 }
