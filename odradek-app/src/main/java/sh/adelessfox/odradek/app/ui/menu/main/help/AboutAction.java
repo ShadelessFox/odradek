@@ -17,7 +17,6 @@ public class AboutAction extends Action {
             JOptionPane.getRootFrame(),
             "A Horizon Forbidden West asset viewer and extractor.\n\n© 2025-2026 ShadelessFox and contributors",
             "About",
-            JOptionPane.PLAIN_MESSAGE
-        );
+            JOptionPane.PLAIN_MESSAGE);
     }
 }

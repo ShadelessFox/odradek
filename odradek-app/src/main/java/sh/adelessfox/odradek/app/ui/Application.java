@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
@@ -57,6 +58,9 @@ public final class Application {
     }
 
     private static void run(ApplicationComponent component, ApplicationParameters params) {
+        Thread.setDefaultUncaughtExceptionHandler(
+            (_, e) -> Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e));
+
         if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
             // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated(true);

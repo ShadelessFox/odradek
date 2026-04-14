@@ -30,8 +30,7 @@ public class CopyBytesToClipboardAction extends Action {
                 JOptionPane.getRootFrame(),
                 "Unable to copy data to clipboard",
                 "Copy to clipboard",
-                JOptionPane.ERROR_MESSAGE
-            );
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
