@@ -21,11 +21,8 @@ final class AudioWaveform extends JComponent {
 
     // Styles
     private Color background;
-    private Color peakMaxBackground;
-    private Color peakMinBackground;
-    private Color peakMidBackground;
-    private Color peakMaxDimBackground;
-    private Color peakMinDimBackground;
+    private Color peakBackground;
+    private Color peakDimBackground;
     private int peakWidth;
     private int peakHorizontalGap;
     private int peakVerticalGap;
@@ -44,11 +41,8 @@ final class AudioWaveform extends JComponent {
         super.updateUI();
 
         background = UIManager.getColor("AudioWaveform.background");
-        peakMaxBackground = UIManager.getColor("AudioWaveform.peak.max.background");
-        peakMinBackground = UIManager.getColor("AudioWaveform.peak.min.background");
-        peakMidBackground = UIManager.getColor("AudioWaveform.peak.mid.background");
-        peakMaxDimBackground = UIManager.getColor("AudioWaveform.peak.max.dim.background");
-        peakMinDimBackground = UIManager.getColor("AudioWaveform.peak.min.dim.background");
+        peakBackground = UIManager.getColor("AudioWaveform.peak.background");
+        peakDimBackground = UIManager.getColor("AudioWaveform.peak.dim.background");
         peakWidth = UIManager.getInt("AudioWaveform.peak.width");
         peakHorizontalGap = UIManager.getInt("AudioWaveform.peak.horizontalGap");
         peakVerticalGap = UIManager.getInt("AudioWaveform.peak.verticalGap");
@@ -77,15 +71,12 @@ final class AudioWaveform extends JComponent {
         g2.setColor(background);
         g2.fillRect(0, 0, width, height);
 
-        var paint = new GradientPaint(0.0f, 0.0f, peakMaxBackground, 0.0f, height, peakMinBackground);
-        var paintDim = new GradientPaint(0.0f, 0.0f, peakMaxDimBackground, 0.0f, height, peakMinDimBackground);
-
         // Peaks
         for (int i = 0; i < peaksTotal; i++) {
             if ((float) i / peaksTotal > progress) {
-                g2.setPaint(paintDim);
+                g2.setColor(peakDimBackground);
             } else {
-                g2.setPaint(paint);
+                g2.setColor(peakBackground);
             }
 
             var peak = peaks.get(i);
@@ -98,7 +89,7 @@ final class AudioWaveform extends JComponent {
         }
 
         // Midline
-        g2.setColor(peakMidBackground);
+        g2.setColor(peakBackground);
         g2.fillRect(0, height / 2 - peakVerticalGap / 2, width, peakVerticalGap);
 
         g2.dispose();
