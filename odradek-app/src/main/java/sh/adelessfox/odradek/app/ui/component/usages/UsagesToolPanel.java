@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.usages;
 
+import com.formdev.flatlaf.extras.components.FlatScrollPane;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -23,6 +24,7 @@ import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -97,12 +99,8 @@ public final class UsagesToolPanel implements ToolPanel {
                         pendingObjectId = null;
                     }
                 }
-                case Events.DatabaseNotLoaded _ -> {
-                    JOptionPane.showMessageDialog(
-                        panel,
-                        "Unable to load the link database; refer to logs for more details",
-                        "Links",
-                        JOptionPane.ERROR_MESSAGE);
+                case Events.DatabaseNotLoaded e -> {
+                    Dialogs.showExceptionDialog(panel, "Unable to load the link database", e.reason());
                     layout.show(panel, CARD_SETUP);
                 }
                 default -> { /* ignored */}
@@ -203,8 +201,9 @@ public final class UsagesToolPanel implements ToolPanel {
             }
         });
 
-        var pane = new JScrollPane(tree);
-        pane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")));
+        var pane = new FlatScrollPane();
+        pane.setViewportView(tree);
+        pane.setStyle("border: 1,0,0,0, $Component.borderColor");
 
         var panel = new JPanel();
         panel.setLayout(new BorderLayout());

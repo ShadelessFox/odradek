@@ -25,8 +25,7 @@ public class OpenObjectAction extends Action {
             JOptionPane.PLAIN_MESSAGE,
             null,
             null,
-            lastInput
-        );
+            lastInput);
 
         if (result == null) {
             return;

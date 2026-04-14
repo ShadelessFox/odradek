@@ -72,7 +72,11 @@ public class Main implements Callable<Void> {
             .toList();
         if (vms.size() > 1) {
             log.error("Another instance of app is already running, exiting");
-            JOptionPane.showMessageDialog(null, "Another instance of the application is already running, please close it first", "Odradek", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(
+                JOptionPane.getRootFrame(),
+                "Another instance of the application is already running, please close it first",
+                "Odradek",
+                JOptionPane.INFORMATION_MESSAGE);
             System.exit(1);
         }
     }

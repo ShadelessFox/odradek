@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.EditorSite;
+import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.ui.util.LoadingIcon;
 
 import javax.swing.*;
@@ -128,9 +129,12 @@ public final class LazyEditor implements Editor {
             } catch (InterruptedException | CancellationException e) {
                 manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
             } catch (Throwable e) {
-                manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
                 log.error("Unable to open editor for '{}'", input.getName(), e);
-                // UIUtils.showErrorDialog(e, "Unable to open editor for '%s'".formatted(input.getName()));
+                manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
+                Dialogs.showExceptionDialog(
+                    JOptionPane.getRootFrame(),
+                    "Unable to open editor for '%s'".formatted(input.getName()),
+                    e);
             }
         }
     }

@@ -15,7 +15,7 @@ abstract class AbstractBookmarkAction extends Action {
     protected static String promptName(ObjectId id, String name) {
         while (true) {
             name = (String) JOptionPane.showInputDialog(
-                null,
+                JOptionPane.getRootFrame(),
                 "Enter bookmark name for " + id + ":",
                 "New Bookmark",
                 JOptionPane.PLAIN_MESSAGE,
@@ -24,7 +24,11 @@ abstract class AbstractBookmarkAction extends Action {
                 name
             );
             if (name != null && name.isBlank()) {
-                JOptionPane.showMessageDialog(null, "Bookmark name cannot be empty", "New Bookmark", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(
+                    JOptionPane.getRootFrame(),
+                    "Bookmark name cannot be empty",
+                    "New Bookmark",
+                    JOptionPane.ERROR_MESSAGE);
                 continue;
             }
             return name;

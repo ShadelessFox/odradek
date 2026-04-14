@@ -13,6 +13,7 @@ import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
+import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
@@ -123,7 +124,7 @@ public class ExportObjectAction extends Action {
             chooser.setSelectedFile(path);
         }
 
-        if (chooser.showSaveDialog(JOptionPane.getRootFrame()) != JFileChooser.APPROVE_OPTION) {
+        if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) {
             log.debug("Export cancelled by user");
             return;
         }
@@ -156,12 +157,10 @@ public class ExportObjectAction extends Action {
                 exported++;
             } catch (Exception e) {
                 log.error("Failed to export object {} ({})", selection.objectId(), selection.objectType(), e);
-                JOptionPane.showMessageDialog(
+                Dialogs.showExceptionDialog(
                     JOptionPane.getRootFrame(),
-                    "Failed to export object: " + e.getMessage(),
                     "Unable to export object " + selection.objectId(),
-                    JOptionPane.ERROR_MESSAGE
-                );
+                    e);
             }
         }
 
@@ -170,8 +169,7 @@ public class ExportObjectAction extends Action {
                 JOptionPane.getRootFrame(),
                 "All selected objects were successfully exported.",
                 "Export successful",
-                JOptionPane.INFORMATION_MESSAGE
-            );
+                JOptionPane.INFORMATION_MESSAGE);
         } else {
             JOptionPane.showMessageDialog(
                 JOptionPane.getRootFrame(),
@@ -179,8 +177,7 @@ public class ExportObjectAction extends Action {
                     exported,
                     batch.objects().size()),
                 "Export completed",
-                JOptionPane.WARNING_MESSAGE
-            );
+                JOptionPane.WARNING_MESSAGE);
         }
     }
 
