@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
+import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectSupplier;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -18,9 +19,6 @@ import sh.adelessfox.odradek.util.Gatherers;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -110,12 +108,13 @@ public class ExportObjectAction extends Action {
         var chooser = new JFileChooser();
 
         if (singleFile) {
-            var name = makeObjectName(batch.objects().getFirst());
+            var exporter1 = (Exporter.OfSingleOutput<?>) exporter;
+            var name = makeObjectName(batch.objects().getFirst(), exporter1);
             var path = lastPath != null ? lastPath.resolve(name).toFile() : new File(name);
 
             chooser.setDialogTitle("Specify output name");
             chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-            chooser.setFileFilter(new FileNameExtensionFilter(exporter.name(), ((Exporter.OfSingleOutput<?>) exporter).extension()));
+            chooser.setFileFilter(new FileNameExtensionFilter(exporter.name(), exporter1.extension()));
             chooser.setAcceptAllFileFilterUsed(false);
             chooser.setSelectedFile(path);
         } else {
@@ -149,7 +148,7 @@ public class ExportObjectAction extends Action {
 
                 switch (exporter) {
                     case Exporter.OfSingleOutput<T> e -> {
-                        var path = singleFile ? output : output.resolve(makeObjectName(e, selection));
+                        var path = singleFile ? output : output.resolve(makeObjectName(selection, e));
                         try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
                             e.export(converted.get(), channel);
                             log.debug("Exported object {} ({}) to {}", object, type, path);
@@ -159,35 +158,9 @@ public class ExportObjectAction extends Action {
                         }
                     }
                     case Exporter.OfMultipleOutputs<T> e -> {
-                        var basename = makeObjectName(selection);
-                        var channels = new HashMap<Path, SeekableByteChannel>();
-                        var provider = new Exporter.OfMultipleOutputs.OutputProvider() {
-                            @Override
-                            public WritableByteChannel channel(String name) throws IOException {
-                                var path = output.resolve(basename).resolve(name).toAbsolutePath();
-                                if (!path.startsWith(output.toAbsolutePath())) {
-                                    throw new IllegalArgumentException("Output path must be within the export directory");
-                                }
-                                var channel = channels.get(path);
-                                if (channel == null) {
-                                    Files.createDirectories(path.getParent());
-                                    channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING);
-                                    channels.put(path, channel);
-                                    log.debug("Opened channel for output '{}' of object {} ({}): {}", name, object, type, path);
-                                }
-                                return channel;
-                            }
-                        };
-                        try {
+                        var path = output.resolve(makeObjectName(selection));
+                        try (var provider = new DefaultOutputProvider(path)) {
                             e.export(converted.get(), provider);
-                        } finally {
-                            for (var channel : channels.values()) {
-                                try {
-                                    channel.close();
-                                } catch (IOException ex) {
-                                    log.warn("Failed to close channel for object {} ({})", object, type, ex);
-                                }
-                            }
                         }
                     }
                 }
@@ -230,7 +203,7 @@ public class ExportObjectAction extends Action {
             object.objectId().objectIndex());
     }
 
-    private static String makeObjectName(Exporter.OfSingleOutput<?> exporter, ObjectSupplier object) {
+    private static String makeObjectName(ObjectSupplier object, Exporter.OfSingleOutput<?> exporter) {
         return makeObjectName(object) + '.' + exporter.extension();
     }
 
