@@ -21,7 +21,7 @@ public final class TextureSetDdsExporter implements Exporter.OfMultipleOutputs<T
                 continue;
             }
 
-            String name = Filenames.withSuffix(Filenames.filename(source.path()), ".dds");
+            var name = Filenames.withSuffix(Filenames.filename(source.path()), ".dds");
             DdsWriter.write(unpacked, provider.channel(name));
         }
     }

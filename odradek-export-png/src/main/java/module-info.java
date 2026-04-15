@@ -6,5 +6,6 @@ module odradek.export.png {
     requires org.slf4j;
 
     provides sh.adelessfox.odradek.game.Exporter with
-        sh.adelessfox.odradek.export.png.PngExporter;
+        sh.adelessfox.odradek.export.png.TexturePngExporter,
+        sh.adelessfox.odradek.export.png.TextureSetPngExporter;
 }
