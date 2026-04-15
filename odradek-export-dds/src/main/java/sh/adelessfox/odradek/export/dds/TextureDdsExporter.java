@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public final class DdsExporter implements Exporter<Texture> {
+public final class TextureDdsExporter implements Exporter.OfSingleOutput<Texture> {
     @Override
     public void export(Texture object, WritableByteChannel channel) throws IOException {
         DdsWriter.write(object, channel);

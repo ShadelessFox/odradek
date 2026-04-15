@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
-public class JsonExporter implements Exporter<TypedObject> {
+public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
     @Override
     public void export(TypedObject object, WritableByteChannel channel) throws IOException {
         try (JsonWriter writer = new JsonWriter(Channels.newWriter(channel, StandardCharsets.UTF_8))) {

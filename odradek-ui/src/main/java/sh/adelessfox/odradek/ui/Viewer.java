@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.ui;
 
+import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.util.Reflections;
 
@@ -30,9 +31,7 @@ public interface Viewer extends Activable, Disposable {
 
         @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
-            return Reflections.getGenericInterface(getClass(), Viewer.Provider.class)
-                .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
-                .orElseThrow();
+            return Reflections.getGenericInterfaceArgument(getClass(), Viewer.Provider.class, 0);
         }
     }
 

@@ -10,7 +10,7 @@ import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public final class WaveExporter implements Exporter<Audio> {
+public final class WaveExporter implements Exporter.OfSingleOutput<Audio> {
     private static final int RIFF_CHUNK_ID = 'R' | 'I' << 8 | 'F' << 16 | 'F' << 24;
     private static final int RIFF_FORMAT_ID = 'W' | 'A' << 8 | 'V' << 16 | 'E' << 24;
     private static final int RIFF_CHUNK_FMT_ID = 'f' | 'm' << 8 | 't' << 16 | ' ' << 24;

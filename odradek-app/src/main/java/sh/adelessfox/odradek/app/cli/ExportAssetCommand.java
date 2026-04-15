@@ -29,7 +29,7 @@ public class ExportAssetCommand extends AbstractCommand {
     private String format;
 
     @Option(names = {"-o", "--output"}, description = "The output directory to save exported files to.", required = true)
-    private Path path;
+    private Path output;
 
     @Override
     void execute(Game game) {
@@ -65,34 +65,39 @@ public class ExportAssetCommand extends AbstractCommand {
             }
 
             if (converted == null) {
-                log.info("  Nothing were converted; skipping");
+                log.info("  Nothing was converted; skipping");
                 continue;
             }
 
-            var name = formatFileName(id, object, exporter);
-            var target = path.resolve(name);
-
-            try {
-                Files.createDirectories(target.getParent());
-            } catch (IOException e) {
-                log.error("  Unable to create output directory; skipping", e);
-            }
-
-            try (var channel = Files.newByteChannel(target, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                exporter.export(converted, channel);
-            } catch (Exception e) {
-                log.error("  Error during export; skipping", e);
+            switch (exporter) {
+                case Exporter.OfSingleOutput<Object> e -> {
+                    var path = output.resolve(makeObjectName(id, object, e));
+                    try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
+                        e.export(converted, channel);
+                        log.debug("Exported object {} ({}) to {}", object, object.getType(), path);
+                    } catch (Exception ex) {
+                        log.error("  Failed to export object {} ({}); skipping", object, object.getType(), ex);
+                    }
+                }
+                case Exporter.OfMultipleOutputs<Object> e -> {
+                    var path = output.resolve(makeObjectName(id, object));
+                    try (var provider = new Exporter.OfMultipleOutputs.DefaultOutputProvider(path)) {
+                        e.export(converted, provider);
+                        log.debug("Exported object {} ({}) to {}", object, object.getType(), path);
+                    } catch (Exception ex) {
+                        log.error("  Failed to export object {} ({}); skipping", object, object.getType(), ex);
+                    }
+                }
             }
         }
     }
 
-    private static String formatFileName(ObjectId id, TypedObject object, Exporter<?> exporter) {
-        return "%s_%s_%s.%s".formatted(
-            object.getType().name(),
-            id.groupId(),
-            id.objectIndex(),
-            exporter.extension()
-        );
+    private static String makeObjectName(ObjectId id, TypedObject object) {
+        return "%s_%s_%s".formatted(object.getType(), id.groupId(), id.objectIndex());
+    }
+
+    private static String makeObjectName(ObjectId id, TypedObject object, Exporter.OfSingleOutput<?> exporter) {
+        return makeObjectName(id, object) + '.' + exporter.extension();
     }
 
     private static String supportedFormats() {

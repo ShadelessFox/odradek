@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public final class WwiseExporter implements Exporter<Audio> {
+public final class WwiseExporter implements Exporter.OfSingleOutput<Audio> {
     @Override
     public void export(Audio object, WritableByteChannel channel) throws IOException {
         if (!(object.codec() instanceof AudioCodec.Wwise)) {
