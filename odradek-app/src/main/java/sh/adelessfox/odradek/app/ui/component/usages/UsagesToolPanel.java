@@ -17,7 +17,6 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.game.LinkDatabase;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.decima.StreamingGraph;
+import sh.adelessfox.odradek.game.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;

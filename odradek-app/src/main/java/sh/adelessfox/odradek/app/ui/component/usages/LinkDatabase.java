@@ -1,12 +1,11 @@
-package sh.adelessfox.odradek.game.hfw.game;
+package sh.adelessfox.odradek.app.ui.component.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.LinkProvider;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.decima.StreamingGraph;
+import sh.adelessfox.odradek.game.StreamingGraph;
 import sh.adelessfox.odradek.hashing.HashCode;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
@@ -16,6 +15,7 @@ import sh.adelessfox.odradek.rtti.data.TypePath;
 import sh.adelessfox.odradek.rtti.data.TypeVisitor;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 
-public final class LinkDatabase implements LinkProvider {
+final class LinkDatabase implements Closeable {
+    record Link(int groupId, int objectIndex, TypePath path) {
+    }
+
     private static final Logger log = LoggerFactory.getLogger(LinkDatabase.class);
 
     private static final int FILE_MAGIC = 'G' | 'R' << 8 | 'P' << 16 | 'H' << 24;
@@ -39,7 +42,7 @@ public final class LinkDatabase implements LinkProvider {
         this.offsets = offsets;
     }
 
-    public static LinkDatabase open(Game game, Path path) throws IOException {
+    static LinkDatabase open(Game game, Path path) throws IOException {
         var reader = BinaryReader.open(path);
         try {
             int magic = reader.readInt();
@@ -66,8 +69,8 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    public static void build(
-        ForbiddenWestGame game,
+    static void build(
+        Game game,
         Path path,
         BiConsumer<Integer, Integer> progress
     ) throws IOException {
@@ -86,7 +89,7 @@ public final class LinkDatabase implements LinkProvider {
             var info = visitGroup(group, game);
             for (int j = 0; j < info.objects().size(); j++) {
                 var object = info.objects().get(j);
-                for (LinkProvider.Link link : object.out()) {
+                for (Link link : object.out()) {
                     var targetGroup = graph.group(link.groupId());
                     int targetObject = targetGroup.types().start() + link.objectIndex();
                     links.get(targetObject).add(PackedLink.pack(group.id(), j, link.path()));
@@ -120,8 +123,7 @@ public final class LinkDatabase implements LinkProvider {
         return game.streamingGraph().checksum();
     }
 
-    @Override
-    public List<LinkProvider.Link> getIncomingLinks(ObjectId target) throws IOException {
+    public List<Link> getIncomingLinks(ObjectId target) throws IOException {
         var graph = game.streamingGraph();
         var group = graph.group(target.groupId());
         int index = group.types().start() + target.objectIndex();
@@ -133,14 +135,12 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    @Override
     public List<Link> getOutgoingLinks(ObjectId source) throws IOException {
         var object = game.readObject(source.groupId(), source.objectIndex());
         var info = visitObject(object);
         return info.out();
     }
 
-    @Override
     public void close() throws IOException {
         reader.close();
     }
@@ -181,12 +181,12 @@ public final class LinkDatabase implements LinkProvider {
         return new ObjectInfo(links);
     }
 
-    private static LinkProvider.Link readLink(StreamingGraph graph, BinaryReader reader) throws IOException {
+    private static Link readLink(StreamingGraph graph, BinaryReader reader) throws IOException {
         int groupId = readVarInt(reader);
         int objectIndex = readVarInt(reader);
         var objectType = graph.group(groupId).types().get(objectIndex);
         var path = readPath(objectType, reader);
-        return new LinkProvider.Link(groupId, objectIndex, path);
+        return new Link(groupId, objectIndex, path);
     }
 
     private static void writeLink(PackedLink link, BinaryWriter writer) throws IOException {
@@ -256,7 +256,7 @@ public final class LinkDatabase implements LinkProvider {
         writer.writeByte((byte) value);
     }
 
-    private record ObjectInfo(List<LinkProvider.Link> out) {
+    private record ObjectInfo(List<Link> out) {
         private ObjectInfo {
             out = List.copyOf(out);
         }

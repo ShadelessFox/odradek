@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.game;
 
-import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.Closeable;

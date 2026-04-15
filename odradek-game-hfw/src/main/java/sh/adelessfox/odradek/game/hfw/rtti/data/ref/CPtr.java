@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data.ref;
 
-import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.ObjectWithIdHolder;
 
-public record CPtr<T>(ObjectId objectId, T object) implements ObjectHolder<T> {
+public record CPtr<T>(ObjectId objectId, T object) implements ObjectWithIdHolder<T> {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

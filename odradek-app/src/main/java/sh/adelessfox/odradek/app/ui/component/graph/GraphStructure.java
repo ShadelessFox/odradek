@@ -1,10 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.graph;
 
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.ObjectSupplier;
-import sh.adelessfox.odradek.game.decima.StreamingGraph;
+import sh.adelessfox.odradek.game.*;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;

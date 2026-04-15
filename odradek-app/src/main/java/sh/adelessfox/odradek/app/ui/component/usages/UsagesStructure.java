@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.ui.component.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.LinkProvider;
 import sh.adelessfox.odradek.game.ObjectId;
 import sh.adelessfox.odradek.game.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
@@ -57,7 +56,7 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
         OUTGOING
     }
 
-    record Root(LinkProvider provider, ObjectId object) implements UsagesStructure {
+    record Root(LinkDatabase provider, ObjectId object) implements UsagesStructure {
     }
 
     record Objects(ObjectId object) implements UsagesStructure {
@@ -66,7 +65,7 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
     record Object(ObjectId objectId) implements UsagesStructure, ObjectIdHolder {
     }
 
-    record Links(Type type, List<LinkProvider.Link> links) implements UsagesStructure {
+    record Links(Type type, List<LinkDatabase.Link> links) implements UsagesStructure {
         @Override
         public boolean equals(java.lang.Object obj) {
             return obj instanceof Links(var type1, _) && type == type1;
@@ -78,7 +77,7 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
         }
     }
 
-    record Link(Type type, LinkProvider.Link link) implements UsagesStructure, ObjectIdHolder {
+    record Link(Type type, LinkDatabase.Link link) implements UsagesStructure, ObjectIdHolder {
         @Override
         public ObjectId objectId() {
             return new ObjectId(link.groupId(), link.objectIndex());
@@ -86,7 +85,7 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
 
         @Override
         public boolean equals(java.lang.Object obj) {
-            return obj instanceof Link(Type type1, LinkProvider.Link link1) && type == type1 && link.equals(link1);
+            return obj instanceof Link(Type type1, LinkDatabase.Link link1) && type == type1 && link.equals(link1);
         }
 
         @Override
