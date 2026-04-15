@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.hfw.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EStreamingDataChannel;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.DirectStorageReader;
@@ -20,9 +20,9 @@ public final class StreamingGraphStorage implements Closeable {
     private static final Pattern PACKAGE_NAME = Pattern.compile("^package\\.(?<channel>\\d+)\\.(?<index>\\d+)\\.core");
 
     private final Map<String, BinaryReader> files = new HashMap<>();
-    private final ForbiddenWestGame game;
+    private final Game game;
 
-    public StreamingGraphStorage(ForbiddenWestGame game) {
+    public StreamingGraphStorage(Game game) {
         this.game = game;
     }
 

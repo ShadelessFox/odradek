@@ -10,7 +10,6 @@ import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphImpl;
-import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphStorage;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.io.BinaryReader;
@@ -40,7 +39,6 @@ public final class ForbiddenWestGame implements Game {
 
     private static final Logger log = LoggerFactory.getLogger(ForbiddenWestGame.class);
 
-    private final StreamingGraphResource streamingGraph;
     private final StreamingGraphImpl streamingGraphWrapper;
     private final StreamingGraphStorage storage;
     private final StreamingObjectReader streamingReader;
@@ -67,17 +65,17 @@ public final class ForbiddenWestGame implements Game {
         var typeFactory = new HFWTypeFactory();
 
         log.debug("Loading streaming graph");
-        streamingGraph = readStreamingGraph(fileSystem, typeFactory);
+        var graph = readStreamingGraph(fileSystem, typeFactory);
 
         log.debug("Loading storage files");
         storage = new StreamingGraphStorage(this);
 
-        for (String file : streamingGraph.files()) {
+        for (String file : graph.files()) {
             storage.mount(file);
         }
 
-        streamingGraphWrapper = new StreamingGraphImpl(streamingGraph.resource(), typeFactory, this);
-        streamingReader = new StreamingObjectReader(this, streamingGraphWrapper.linkTable(), typeFactory);
+        streamingGraphWrapper = new StreamingGraphImpl(graph, storage, typeFactory);
+        streamingReader = new StreamingObjectReader(this, typeFactory);
     }
 
     public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) {
@@ -123,10 +121,6 @@ public final class ForbiddenWestGame implements Game {
         return streamingGraphWrapper;
     }
 
-    public StreamingGraphResource getStreamingGraph() {
-        return streamingGraph;
-    }
-
     public ELanguage getWrittenLanguage() {
         return writtenLanguage;
     }
@@ -140,11 +134,10 @@ public final class ForbiddenWestGame implements Game {
         storage.close();
     }
 
-    private static StreamingGraphResource readStreamingGraph(FileSystem fileSystem, TypeFactory typeFactory) throws IOException {
+    private static HorizonForbiddenWest.StreamingGraphResource readStreamingGraph(FileSystem fileSystem, TypeFactory typeFactory) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new HFWTypeReader().readObject(reader, typeFactory);
-            var graph = (HorizonForbiddenWest.StreamingGraphResource) result;
-            return new StreamingGraphResource(graph, typeFactory);
+            return (HorizonForbiddenWest.StreamingGraphResource) result;
         }
     }
 

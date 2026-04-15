@@ -117,7 +117,7 @@ public final class LinkDatabase implements LinkProvider {
     }
 
     public static HashCode computeHash(Game game) {
-        return game.streamingGraph().linkTable().checksum();
+        return game.streamingGraph().checksum();
     }
 
     @Override
