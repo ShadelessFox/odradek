@@ -2,10 +2,10 @@ package sh.adelessfox.odradek.app.ui.component.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.StreamingGraph;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.hashing.HashCode;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
@@ -32,17 +32,17 @@ final class LinkDatabase implements Closeable {
     private static final int FILE_MAGIC = 'G' | 'R' << 8 | 'P' << 16 | 'H' << 24;
     private static final int FILE_VERSION = 1;
 
-    private final Game game;
+    private final DecimaGame game;
     private final BinaryReader reader;
     private final int[] offsets;
 
-    private LinkDatabase(Game game, BinaryReader reader, int[] offsets) {
+    private LinkDatabase(DecimaGame game, BinaryReader reader, int[] offsets) {
         this.game = game;
         this.reader = reader;
         this.offsets = offsets;
     }
 
-    static LinkDatabase open(Game game, Path path) throws IOException {
+    static LinkDatabase open(DecimaGame game, Path path) throws IOException {
         var reader = BinaryReader.open(path);
         try {
             int magic = reader.readInt();
@@ -70,7 +70,7 @@ final class LinkDatabase implements Closeable {
     }
 
     static void build(
-        Game game,
+        DecimaGame game,
         Path path,
         BiConsumer<Integer, Integer> progress
     ) throws IOException {
@@ -119,7 +119,7 @@ final class LinkDatabase implements Closeable {
         }
     }
 
-    public static HashCode computeHash(Game game) {
+    public static HashCode computeHash(DecimaGame game) {
         return game.streamingGraph().checksum();
     }
 
@@ -145,7 +145,7 @@ final class LinkDatabase implements Closeable {
         reader.close();
     }
 
-    private static GroupInfo visitGroup(StreamingGraph.Group group, Game game) throws IOException {
+    private static GroupInfo visitGroup(StreamingGraph.Group group, DecimaGame game) throws IOException {
         var result = game.readGroup(group.id());
         var objects = new ArrayList<ObjectInfo>(group.types().count());
 

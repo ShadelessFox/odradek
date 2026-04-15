@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import sh.adelessfox.odradek.app.ui.Application;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.lazy.LazyEditorInput;
 

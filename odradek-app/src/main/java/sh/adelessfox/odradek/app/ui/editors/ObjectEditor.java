@@ -1,7 +1,9 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
-import sh.adelessfox.odradek.game.*;
+import sh.adelessfox.odradek.game.Converter;
+import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -18,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public final class ObjectEditor implements Editor, ObjectIdHolder, ObjectSupplier, DataContext {
+public final class ObjectEditor implements Editor, sh.adelessfox.odradek.game.decima.ObjectIdHolder, sh.adelessfox.odradek.game.decima.ObjectSupplier, DataContext {
     public static final class Provider implements Editor.Provider {
         @Override
         public Editor createEditor(EditorInput input, EditorSite site) {
@@ -89,7 +91,7 @@ public final class ObjectEditor implements Editor, ObjectIdHolder, ObjectSupplie
     }
 
     @Override
-    public TypedObject readObject(Game game) {
+    public TypedObject readObject(DecimaGame game) {
         if (input.game() != game) {
             throw new IllegalStateException("Unexpected game type");
         }
@@ -97,7 +99,7 @@ public final class ObjectEditor implements Editor, ObjectIdHolder, ObjectSupplie
     }
 
     @Override
-    public ObjectId objectId() {
+    public sh.adelessfox.odradek.game.decima.ObjectId objectId() {
         return input.objectId();
     }
 

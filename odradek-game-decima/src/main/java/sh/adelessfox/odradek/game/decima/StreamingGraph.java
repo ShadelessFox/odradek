@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.game;
+package sh.adelessfox.odradek.game.decima;
 
 import sh.adelessfox.odradek.hashing.HashCode;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;

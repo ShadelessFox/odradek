@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data.ref;
 
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectWithIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 
 public record CPtr<T>(ObjectId objectId, T object) implements ObjectWithIdHolder<T> {
     @Override

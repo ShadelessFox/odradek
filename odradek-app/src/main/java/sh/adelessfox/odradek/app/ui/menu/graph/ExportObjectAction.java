@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectSupplier;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -45,7 +45,7 @@ public class ExportObjectAction extends Action {
     public static class Placeholder extends Action implements ActionProvider {
         @Override
         public List<Action> create(ActionContext context) {
-            var game = context.get(DataKeys.GAME).orElseThrow();
+            var game = context.get(DataKeys.GAME, DecimaGame.class).orElseThrow();
             return exporters(context)
                 .gather(Gatherers.groupingBy(x -> x.exporter().namespace().orElse("")))
                 .sorted(Map.Entry.comparingByKey())
@@ -70,7 +70,7 @@ public class ExportObjectAction extends Action {
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
         var selection = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(ObjectSupplier.class))
+            .gather(Gatherers.instanceOf(sh.adelessfox.odradek.game.decima.ObjectSupplier.class))
             .toList();
 
         if (selection.isEmpty()) {
@@ -78,7 +78,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(ObjectSupplier::objectType)
+            .map(sh.adelessfox.odradek.game.decima.ObjectSupplier::objectType)
             .distinct()
             .toList();
 
@@ -95,7 +95,7 @@ public class ExportObjectAction extends Action {
             .sorted(Comparator.comparing(pipeline -> pipeline.exporter().name()));
     }
 
-    private static Action action(Batch<?> batch, Game game) {
+    private static Action action(Batch<?> batch, DecimaGame game) {
         return Action.builder()
             .perform(_ -> exportBatch(batch, game))
             .text(_ -> Optional.of(batch.exporter().name()))
@@ -103,7 +103,7 @@ public class ExportObjectAction extends Action {
             .build();
     }
 
-    private static <T> void exportBatch(Batch<T> batch, Game game) {
+    private static <T> void exportBatch(Batch<T> batch, DecimaGame game) {
         var singleFile = batch.objects().size() == 1 && batch.exporter() instanceof Exporter.OfSingleOutput<?>;
         var exporter = batch.exporter();
         var chooser = new JFileChooser();
@@ -136,7 +136,7 @@ public class ExportObjectAction extends Action {
 
         lastPath = singleFile ? output.getParent() : output;
 
-        for (ObjectSupplier selection : batch.objects()) {
+        for (sh.adelessfox.odradek.game.decima.ObjectSupplier selection : batch.objects()) {
             try {
                 var object = selection.readObject(game);
                 var type = object.getType();
@@ -193,18 +193,18 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private static String makeObjectName(ObjectSupplier object) {
+    private static String makeObjectName(sh.adelessfox.odradek.game.decima.ObjectSupplier object) {
         return "%s_%s_%s".formatted(
             object.objectType(),
             object.objectId().groupId(),
             object.objectId().objectIndex());
     }
 
-    private static String makeObjectName(ObjectSupplier object, Exporter.OfSingleOutput<?> exporter) {
+    private static String makeObjectName(sh.adelessfox.odradek.game.decima.ObjectSupplier object, Exporter.OfSingleOutput<?> exporter) {
         return makeObjectName(object) + '.' + exporter.extension();
     }
 
-    private record Batch<R>(List<ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
+    private record Batch<R>(List<sh.adelessfox.odradek.game.decima.ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
     }
 
     private static final class GroupAction extends Action implements ActionProvider {

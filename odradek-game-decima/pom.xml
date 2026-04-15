@@ -9,21 +9,20 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>odradek-game-hfw-ui</artifactId>
+    <artifactId>odradek-game-decima</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-game-decima</artifactId>
+            <artifactId>odradek-core</artifactId>
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-game-hfw</artifactId>
+            <artifactId>odradek-game</artifactId>
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-ui</artifactId>
+            <artifactId>odradek-rtti</artifactId>
         </dependency>
     </dependencies>
-
 </project>

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.graph;
 
-import sh.adelessfox.odradek.game.*;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
@@ -17,9 +17,9 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     @SuppressWarnings("unused")
     abstract sealed class Groupable<T extends Groupable<T, ?>, O extends Enum<O>> {
         final EnumSet<O> options;
-        final StreamingGraph graph;
+        final sh.adelessfox.odradek.game.decima.StreamingGraph graph;
 
-        Groupable(StreamingGraph graph, EnumSet<O> options) {
+        Groupable(sh.adelessfox.odradek.game.decima.StreamingGraph graph, EnumSet<O> options) {
             this.options = EnumSet.copyOf(options);
             this.graph = graph;
         }
@@ -30,7 +30,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }
 
     abstract sealed class GroupableByGroup extends Groupable<GroupableByGroup, GroupableByGroup.Option> {
-        private static final Comparator<Map.Entry<StreamingGraph.Group, int[]>>
+        private static final Comparator<Map.Entry<sh.adelessfox.odradek.game.decima.StreamingGraph.Group, int[]>>
             DEFAULT_COMPARATOR = Comparator.comparingInt(e -> e.getKey().id()),
             COUNT_COMPARATOR = Comparator.comparingInt(e -> -e.getValue().length);
 
@@ -39,7 +39,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             SORT_BY_COUNT
         }
 
-        GroupableByGroup(StreamingGraph graph) {
+        GroupableByGroup(sh.adelessfox.odradek.game.decima.StreamingGraph graph) {
             super(graph, EnumSet.of(Option.GROUP_BY_GROUP));
         }
 
@@ -61,7 +61,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             }
         }
 
-        GroupObject toGroupObject(StreamingGraph.Group group, int index, boolean includeGroupId) {
+        GroupObject toGroupObject(sh.adelessfox.odradek.game.decima.StreamingGraph.Group group, int index, boolean includeGroupId) {
             return new GroupObject(graph, group, index, includeGroupId);
         }
 
@@ -70,10 +70,10 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         /** Get the groups that belong to this grouping. */
-        protected abstract Stream<StreamingGraph.Group> groups();
+        protected abstract Stream<sh.adelessfox.odradek.game.decima.StreamingGraph.Group> groups();
 
         /** Get the indices of the objects in the given group. */
-        protected abstract int[] indices(StreamingGraph.Group group);
+        protected abstract int[] indices(sh.adelessfox.odradek.game.decima.StreamingGraph.Group group);
     }
 
     abstract sealed class GroupableByType extends Groupable<GroupableByType, GroupableByType.Option> {
@@ -86,7 +86,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
             SORT_BY_COUNT
         }
 
-        GroupableByType(StreamingGraph graph) {
+        GroupableByType(sh.adelessfox.odradek.game.decima.StreamingGraph graph) {
             super(graph, EnumSet.noneOf(Option.class));
         }
 
@@ -123,7 +123,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         protected abstract IntStream keys();
 
-        protected abstract StreamingGraph.Group group(int key);
+        protected abstract sh.adelessfox.odradek.game.decima.StreamingGraph.Group group(int key);
 
         protected abstract int index(int key);
 
@@ -132,7 +132,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record GroupedByGroup(GroupableByGroup parent, StreamingGraph.Group group, int[] indices) implements GraphStructure {
+    record GroupedByGroup(GroupableByGroup parent, sh.adelessfox.odradek.game.decima.StreamingGraph.Group group, int[] indices) implements GraphStructure {
         List<? extends GraphStructure> getGroupedChildren() {
             return IntStream.of(indices)
                 .mapToObj(index -> parent.toGroupObject(group, index, false))
@@ -180,21 +180,21 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record Graph(StreamingGraph graph) implements GraphStructure {
+    record Graph(sh.adelessfox.odradek.game.decima.StreamingGraph graph) implements GraphStructure {
         @Override
         public String toString() {
             return "Graph";
         }
     }
 
-    record GraphGroups(StreamingGraph graph) implements GraphStructure {
+    record GraphGroups(sh.adelessfox.odradek.game.decima.StreamingGraph graph) implements GraphStructure {
         @Override
         public String toString() {
             return "Groups (" + graph.groups().size() + ")";
         }
     }
 
-    record GraphObjects(StreamingGraph graph) implements GraphStructure {
+    record GraphObjects(sh.adelessfox.odradek.game.decima.StreamingGraph graph) implements GraphStructure {
         @Override
         public String toString() {
             return "Objects (" + graph.types().size() + ")";
@@ -246,7 +246,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         private final ClassTypeInfo info;
         private final int count;
 
-        GraphObjectSet(StreamingGraph graph, ClassTypeInfo info, int count) {
+        GraphObjectSet(sh.adelessfox.odradek.game.decima.StreamingGraph graph, ClassTypeInfo info, int count) {
             super(graph);
             this.info = info;
             this.count = count;
@@ -257,15 +257,15 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        protected Stream<StreamingGraph.Group> groups() {
+        protected Stream<sh.adelessfox.odradek.game.decima.StreamingGraph.Group> groups() {
             return graph.groups().stream()
                 .filter(group -> group.types().stream().anyMatch(type -> type == info))
-                .sorted(Comparator.comparingInt(StreamingGraph.Group::id))
-                .map(StreamingGraph.Group.class::cast);
+                .sorted(Comparator.comparingInt(sh.adelessfox.odradek.game.decima.StreamingGraph.Group::id))
+                .map(sh.adelessfox.odradek.game.decima.StreamingGraph.Group.class::cast);
         }
 
         @Override
-        protected int[] indices(StreamingGraph.Group group) {
+        protected int[] indices(sh.adelessfox.odradek.game.decima.StreamingGraph.Group group) {
             return IntStream.range(0, group.types().count())
                 .filter(index -> group.types().get(index) == info)
                 .toArray();
@@ -288,8 +288,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }
 
     record Group(
-        StreamingGraph graph,
-        StreamingGraph.Group group,
+        sh.adelessfox.odradek.game.decima.StreamingGraph graph,
+        sh.adelessfox.odradek.game.decima.StreamingGraph.Group group,
         boolean filterable
     ) implements GraphStructure, Comparable<Group> {
         @Override
@@ -313,7 +313,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record GroupDependencies(StreamingGraph graph, StreamingGraph.Group group) implements GraphStructure {
+    record GroupDependencies(sh.adelessfox.odradek.game.decima.StreamingGraph graph, sh.adelessfox.odradek.game.decima.StreamingGraph.Group group) implements GraphStructure {
         @Override
         public boolean equals(Object o) {
             return o instanceof GroupDependencies that && Objects.equals(group, that.group);
@@ -348,9 +348,9 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }*/
 
     final class GroupObjects extends GroupableByType implements GraphStructure {
-        private final StreamingGraph.Group group;
+        private final sh.adelessfox.odradek.game.decima.StreamingGraph.Group group;
 
-        public GroupObjects(StreamingGraph graph, StreamingGraph.Group group) {
+        public GroupObjects(sh.adelessfox.odradek.game.decima.StreamingGraph graph, sh.adelessfox.odradek.game.decima.StreamingGraph.Group group) {
             super(graph);
             this.group = group;
         }
@@ -361,7 +361,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        protected StreamingGraph.Group group(int key) {
+        protected sh.adelessfox.odradek.game.decima.StreamingGraph.Group group(int key) {
             return group;
         }
 
@@ -387,9 +387,9 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }
 
     final class GroupRoots extends GroupableByType implements GraphStructure {
-        private final StreamingGraph.Group group;
+        private final sh.adelessfox.odradek.game.decima.StreamingGraph.Group group;
 
-        public GroupRoots(StreamingGraph graph, StreamingGraph.Group group) {
+        public GroupRoots(sh.adelessfox.odradek.game.decima.StreamingGraph graph, sh.adelessfox.odradek.game.decima.StreamingGraph.Group group) {
             super(graph);
             this.group = group;
         }
@@ -400,7 +400,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        protected StreamingGraph.Group group(int key) {
+        protected sh.adelessfox.odradek.game.decima.StreamingGraph.Group group(int key) {
             return group;
         }
 
@@ -426,11 +426,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     }
 
     record GroupObject(
-        StreamingGraph graph,
-        StreamingGraph.Group group,
+        sh.adelessfox.odradek.game.decima.StreamingGraph graph,
+        sh.adelessfox.odradek.game.decima.StreamingGraph.Group group,
         int indexAndIncludeGroupId
-    ) implements GraphStructure, ObjectSupplier, ObjectIdHolder {
-        public GroupObject(StreamingGraph graph, StreamingGraph.Group group, int index, boolean includeGroupId) {
+    ) implements GraphStructure, sh.adelessfox.odradek.game.decima.ObjectSupplier, sh.adelessfox.odradek.game.decima.ObjectIdHolder {
+        public GroupObject(sh.adelessfox.odradek.game.decima.StreamingGraph graph, sh.adelessfox.odradek.game.decima.StreamingGraph.Group group, int index, boolean includeGroupId) {
             Objects.checkIndex(index, group.types().count());
             this(graph, group, index | (includeGroupId ? 0x80000000 : 0));
         }
@@ -444,7 +444,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        public TypedObject readObject(Game game) throws IOException {
+        public TypedObject readObject(DecimaGame game) throws IOException {
             return game.readObject(group.id(), index());
         }
 
@@ -454,8 +454,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        public ObjectId objectId() {
-            return new ObjectId(group.id(), index());
+        public sh.adelessfox.odradek.game.decima.ObjectId objectId() {
+            return new sh.adelessfox.odradek.game.decima.ObjectId(group.id(), index());
         }
 
         @Override

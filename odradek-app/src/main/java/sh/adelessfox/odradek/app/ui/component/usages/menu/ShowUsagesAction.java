@@ -6,7 +6,7 @@ import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.component.main.MainView;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;

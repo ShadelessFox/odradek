@@ -2,9 +2,9 @@ package sh.adelessfox.odradek.game.hfw.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.StreamingGraph;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
@@ -23,7 +23,7 @@ import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.Streaming
 public class StreamingObjectReader extends HFWTypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);
 
-    private final Game game;
+    private final DecimaGame game;
     private final StreamingGraph graph;
     private final TypeFactory factory;
 
@@ -48,7 +48,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
     }
 
-    public StreamingObjectReader(Game game, TypeFactory factory) {
+    public StreamingObjectReader(DecimaGame game, TypeFactory factory) {
         this.game = game;
         this.graph = game.streamingGraph();
         this.factory = factory;

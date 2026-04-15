@@ -3,7 +3,8 @@ package sh.adelessfox.odradek.game.hfw.game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.StreamingGraph;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
@@ -24,7 +25,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public final class ForbiddenWestGame implements Game {
+public final class ForbiddenWestGame implements DecimaGame {
     public static final class Provider implements Game.Provider {
         @Override
         public boolean supports(Path path) {

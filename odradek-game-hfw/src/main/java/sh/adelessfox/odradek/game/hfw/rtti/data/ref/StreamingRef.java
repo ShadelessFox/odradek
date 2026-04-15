@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data.ref;
 
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 
 @SuppressWarnings("unused")
 public record StreamingRef<T>(ObjectId objectId) implements ObjectIdHolder {

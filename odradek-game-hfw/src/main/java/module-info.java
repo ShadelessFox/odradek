@@ -1,3 +1,4 @@
+import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.game.hfw.rtti.extensions.*;
@@ -83,10 +84,10 @@ module odradek.game.hfw {
     requires static odradek.rtti.generator;
 
     requires odradek.core;
+    requires odradek.game.decima;
     requires odradek.middleware.edgeanim;
     requires odradek.middleware.jolt;
     requires odradek.middleware.riglogic;
-    requires odradek.game;
     requires odradek.rtti;
     requires org.slf4j;
 
@@ -113,6 +114,6 @@ module odradek.game.hfw {
         sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter,
         sh.adelessfox.odradek.game.hfw.converters.TextureSetToTextureSetConverter;
 
-    provides sh.adelessfox.odradek.game.Game.Provider with
+    provides Game.Provider with
         sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame.Provider;
 }

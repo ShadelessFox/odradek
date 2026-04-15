@@ -5,8 +5,7 @@ import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.ObjectWithIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
@@ -73,7 +72,7 @@ public final class ObjectViewer implements Viewer {
                     var input = new ObjectEditorInput(game, typedObject, holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }
-                case ObjectIdHolder holder -> {
+                case sh.adelessfox.odradek.game.decima.ObjectIdHolder holder -> {
                     var input = new ObjectEditorInputLazy(holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }

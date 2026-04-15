@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.bookmarks;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 
 import java.util.LinkedHashMap;
 import java.util.List;

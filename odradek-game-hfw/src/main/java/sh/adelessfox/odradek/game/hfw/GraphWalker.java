@@ -2,9 +2,9 @@ package sh.adelessfox.odradek.game.hfw;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.StreamingGraph;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ public final class GraphWalker {
 
     public static <T extends TypedObject> Iterable<SearchResult<T>> iterate(
         Class<T> type,
-        Game game,
+        DecimaGame game,
         boolean readSubgroups
     ) {
         return stream(type, game, readSubgroups)::iterator;
@@ -35,7 +35,7 @@ public final class GraphWalker {
 
     public static <T extends TypedObject> Stream<SearchResult<T>> stream(
         Class<T> type,
-        Game game,
+        DecimaGame game,
         boolean readSubgroups
     ) {
         return StreamSupport.stream(spliterator(type, game, readSubgroups), false);
@@ -43,7 +43,7 @@ public final class GraphWalker {
 
     private static <T extends TypedObject> Spliterator<SearchResult<T>> spliterator(
         Class<T> ofType,
-        Game game,
+        DecimaGame game,
         boolean readSubgroups
     ) {
         var groups = game.streamingGraph().groups().stream()

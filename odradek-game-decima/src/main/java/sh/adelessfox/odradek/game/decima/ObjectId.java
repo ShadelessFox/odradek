@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.game;
+package sh.adelessfox.odradek.game.decima;
 
 public record ObjectId(int groupId, int objectIndex) {
     public static ObjectId valueOf(String value) {
