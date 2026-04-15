@@ -39,7 +39,7 @@ public final class TextureSetPngExporter implements Exporter.OfMultipleOutputs<T
 
     @Override
     public String id() {
-        return "image.png";
+        return "image.set.png";
     }
 
     @Override

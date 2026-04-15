@@ -95,6 +95,7 @@ public sealed interface Exporter<T> {
         class Holder {
             static final List<Exporter<?>> exporters = ServiceLoader.load(Exporter.class).stream()
                 .map(x -> (Exporter<?>) x.get())
+                .sorted(Comparator.comparing(Exporter::id))
                 .collect(Collectors.toUnmodifiableList());
         }
         return Holder.exporters.stream();

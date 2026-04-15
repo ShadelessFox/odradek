@@ -28,7 +28,7 @@ public final class TextureSetDdsExporter implements Exporter.OfMultipleOutputs<T
 
     @Override
     public String id() {
-        return "image.dds";
+        return "image.set.dds";
     }
 
     @Override

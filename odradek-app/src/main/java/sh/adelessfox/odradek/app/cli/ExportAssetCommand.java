@@ -65,7 +65,7 @@ public class ExportAssetCommand extends AbstractCommand {
             }
 
             if (converted == null) {
-                log.info("  Nothing were converted; skipping");
+                log.info("  Nothing was converted; skipping");
                 continue;
             }
 
