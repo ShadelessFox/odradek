@@ -64,8 +64,8 @@ final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructu
     }
 
     private ClassTypeInfo getType(int groupId, int objectIndex) {
-        var graph = game.getStreamingGraph();
+        var graph = game.streamingGraph();
         var group = graph.group(groupId);
-        return graph.types().get(group.typeStart() + objectIndex);
+        return group.types().get(objectIndex);
     }
 }

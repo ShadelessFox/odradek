@@ -59,8 +59,10 @@ public final class Application {
     }
 
     private static void run(ApplicationComponent component, ApplicationParameters params) {
-        Thread.setDefaultUncaughtExceptionHandler(
-            (_, e) -> Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e));
+        Thread.setDefaultUncaughtExceptionHandler((_, e) -> {
+            log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
+            Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
+        });
 
         if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
             // enable custom window decorations

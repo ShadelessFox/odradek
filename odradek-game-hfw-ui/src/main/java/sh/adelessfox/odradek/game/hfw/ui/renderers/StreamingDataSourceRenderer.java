@@ -14,9 +14,8 @@ public class StreamingDataSourceRenderer implements Renderer.OfObject<StreamingD
         if (!object.isPresent()) {
             return Optional.of("<empty>");
         }
-        var graph = game.getStreamingGraph();
         var text = "%s (%d bytes, %s)".formatted(
-            graph.files().get(object.fileId()),
+            game.streamingGraph().files().get(object.fileId()),
             object.length(),
             EStreamingDataChannel.valueOf(object.channel())
         );

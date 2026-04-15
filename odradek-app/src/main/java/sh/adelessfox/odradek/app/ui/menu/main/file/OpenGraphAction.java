@@ -18,7 +18,7 @@ public class OpenGraphAction extends Action {
         var game = application.game();
         application.editors().openEditor(new ObjectEditorInput(
             game,
-            game.getStreamingGraph().resource(),
+            game.streamingGraph().resource(),
             new ObjectId(0, 0)));
     }
 }

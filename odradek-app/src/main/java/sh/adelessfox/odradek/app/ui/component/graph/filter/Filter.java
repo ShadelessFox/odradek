@@ -18,7 +18,7 @@ public sealed interface Filter {
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
                 case GraphStructure.Group group when group.filterable() ->
-                    FilterResult.of(group.group().groupID() == id);
+                    FilterResult.of(group.group().id() == id);
                 default -> FilterResult.NOT_APPLICABLE;
             };
         }
@@ -33,7 +33,7 @@ public sealed interface Filter {
         @Override
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> FilterResult.of(group.group().subGroupCount() > 0);
+                case GraphStructure.Group group -> FilterResult.of(group.group().subGroups().count() > 0);
                 default -> FilterResult.NOT_APPLICABLE;
             };
         }
@@ -48,7 +48,7 @@ public sealed interface Filter {
         @Override
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> FilterResult.of(group.group().rootCount() > 0);
+                case GraphStructure.Group group -> FilterResult.of(!group.group().roots().isEmpty());
                 default -> FilterResult.NOT_APPLICABLE;
             };
         }
@@ -64,8 +64,8 @@ public sealed interface Filter {
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
                 // @formatter:off
-                case GraphStructure.Group(var graph, var group, _) ->
-                    FilterResult.of(graph.types(group).anyMatch(info -> matches(info, options)));
+                case GraphStructure.Group(_, var group, _) ->
+                    FilterResult.of(group.types().stream().anyMatch(info -> matches(info, options)));
                 case GraphStructure.GraphObjectSet objectSet ->
                     FilterResult.of(matches(objectSet.info(), options));
                 case GraphStructure.GroupObject object ->

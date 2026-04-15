@@ -3,6 +3,8 @@ package sh.adelessfox.odradek.game.hfw.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.LinkTable;
+import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
@@ -10,6 +12,7 @@ import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.util.LruWeakCache;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,8 +22,9 @@ import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
 public class StreamingObjectReader extends HFWTypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);
 
-    private final ObjectStreamingSystem system;
+    private final ForbiddenWestGame game;
     private final StreamingGraphResource graph;
+    private final LinkTable linkTable;
     private final TypeFactory factory;
 
     private final LruWeakCache<Integer, GroupResult> cache = new LruWeakCache<>(5000);
@@ -44,9 +48,10 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
     }
 
-    public StreamingObjectReader(ObjectStreamingSystem system, TypeFactory factory) {
-        this.system = system;
-        this.graph = system.graph();
+    public StreamingObjectReader(ForbiddenWestGame game, LinkTable linkTable, TypeFactory factory) {
+        this.game = game;
+        this.graph = game.getStreamingGraph();
+        this.linkTable = linkTable;
         this.factory = factory;
     }
 
@@ -185,17 +190,17 @@ public class StreamingObjectReader extends HFWTypeReader {
             return null;
         }
 
-        var result = system.readLink(streamingLinkIndex);
-        int linkGroup = result.group();
+        var result = linkTable.read(streamingLinkIndex);
+        var linkGroup = result.group();
         int linkIndex = result.index();
 
         streamingLinkIndex = result.position();
 
         var pointerType = info.pointerType();
         if (pointerType.equals("StreamingRef")) {
-            if (linkGroup != -1) {
+            if (linkGroup.isPresent()) {
                 // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
-                return new StreamingRef<>(new ObjectId(linkGroup, linkIndex));
+                return new StreamingRef<>(new ObjectId(linkGroup.orElseThrow(), linkIndex));
             } else {
                 // No idea how to resolve it otherwise. Presumably points to a runtime singleton?
                 return null;
@@ -203,12 +208,12 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
 
         GroupResult group;
-        if (linkGroup == -1) {
+        if (linkGroup.isPresent()) {
+            // Seems to reference subgroups
+            group = currentSubGroups.get(linkGroup.orElseThrow());
+        } else {
             // References the current group being read
             group = currentGroup;
-        } else {
-            // Seems to reference subgroups
-            group = currentSubGroups.get(linkGroup);
         }
 
         var object = group.objects().get(linkIndex);
@@ -244,7 +249,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     private byte[] getSpanData(StreamingSourceSpan span) throws IOException {
-        return system.getFileData(getSpanFile(span), span.offset(), span.length());
+        return game.readFile(getSpanFile(span), span.offset(), span.length());
     }
 
     private String getSpanFile(StreamingSourceSpan span) {

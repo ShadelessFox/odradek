@@ -12,7 +12,7 @@ public class StreamingDataSourceToBytesConverter implements Converter<StreamingD
     @Override
     public Optional<byte[]> convert(StreamingDataSource object, ForbiddenWestGame game) {
         try {
-            return Optional.of(game.getStreamingSystem().getDataSourceData(object));
+            return Optional.of(game.getDataSourceData(object));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

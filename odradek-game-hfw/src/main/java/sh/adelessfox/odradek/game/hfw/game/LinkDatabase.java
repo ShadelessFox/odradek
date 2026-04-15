@@ -184,7 +184,7 @@ public final class LinkDatabase implements LinkProvider {
     private static LinkProvider.Link readLink(StreamingGraph graph, BinaryReader reader) throws IOException {
         int groupId = readVarInt(reader);
         int objectIndex = readVarInt(reader);
-        var objectType = graph.types().get(graph.group(groupId).types().start() + objectIndex);
+        var objectType = graph.group(groupId).types().get(objectIndex);
         var path = readPath(objectType, reader);
         return new LinkProvider.Link(groupId, objectIndex, path);
     }

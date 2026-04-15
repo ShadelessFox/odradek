@@ -157,7 +157,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
     }
 
     private StructuredTree<GraphStructure> createGraphTree() {
-        var tree = new StructuredTree<>(new GraphStructure.Graph(game.getStreamingGraph()));
+        var tree = new StructuredTree<>(new GraphStructure.Graph(game.streamingGraph()));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new TreeLabelProvider<>() {
@@ -173,9 +173,9 @@ public class GraphView implements View<JComponent>, ToolPanel {
                     case GraphStructure.GraphGroups _, GraphStructure.GraphObjects _ -> Fugue.getIcon("folders-stack");
                     case GraphStructure.Group _ -> Fugue.getIcon("folders");
                     case GraphStructure.GroupDependencies _ -> Fugue.getIcon("folder-export");
-                    case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
+                    /*case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");*/
                     case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
-                    case GraphStructure.GraphRoots _,
+                    case /*GraphStructure.GraphRoots _,*/
                          GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
                     case GraphStructure.GroupableByType _,
                          GraphStructure.GroupedByType _,
@@ -188,7 +188,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 eventBus.publish(new MainEvent.ShowObject(new ObjectId(
-                    groupObject.group().groupID(),
+                    groupObject.group().id(),
                     groupObject.index())
                 ));
             }

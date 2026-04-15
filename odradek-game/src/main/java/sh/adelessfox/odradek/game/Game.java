@@ -83,6 +83,12 @@ public interface Game extends Closeable {
         return readGroup(groupId).get(objectIndex);
     }
 
+    default byte[] readFile(int fileId, long offset, long length) throws IOException {
+        return readFile(streamingGraph().files().get(fileId), offset, length);
+    }
+
+    byte[] readFile(String file, long offset, long length) throws IOException;
+
     /**
      * Resolve game-specific path to actual filesystem path.
      * The path should be in a form of {@code <device>:<path>}.

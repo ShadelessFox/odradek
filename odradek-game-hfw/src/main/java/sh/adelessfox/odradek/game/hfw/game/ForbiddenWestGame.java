@@ -3,14 +3,15 @@ package sh.adelessfox.odradek.game.hfw.game;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
 import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
-import sh.adelessfox.odradek.game.hfw.storage.ObjectStreamingSystem;
-import sh.adelessfox.odradek.game.hfw.storage.StorageReadDevice;
+import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphImpl;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
+import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphStorage;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -40,10 +41,10 @@ public final class ForbiddenWestGame implements Game {
     private static final Logger log = LoggerFactory.getLogger(ForbiddenWestGame.class);
 
     private final StreamingGraphResource streamingGraph;
-    private final StorageReadDevice storageDevice;
-    private final ObjectStreamingSystem streamingSystem;
+    private final StreamingGraphImpl streamingGraphWrapper;
+    private final StreamingGraphStorage storage;
     private final StreamingObjectReader streamingReader;
-    private final ForbiddenWestFileSystem fileSystem;
+    private final FileSystem fileSystem;
 
     // NOTE: Add customization later
     private final ELanguage writtenLanguage = ELanguage.English;
@@ -60,7 +61,7 @@ public final class ForbiddenWestGame implements Game {
         log.debug("[GAME] Platform: {}", platform);
         log.debug("[GAME] Version:  {}", version);
 
-        fileSystem = new ForbiddenWestFileSystem(source, platform);
+        fileSystem = new FileSystem(source, platform);
 
         log.debug("Loading type factory");
         var typeFactory = new HFWTypeFactory();
@@ -69,23 +70,35 @@ public final class ForbiddenWestGame implements Game {
         streamingGraph = readStreamingGraph(fileSystem, typeFactory);
 
         log.debug("Loading storage files");
-        storageDevice = new StorageReadDevice(fileSystem);
+        storage = new StreamingGraphStorage(this);
 
         for (String file : streamingGraph.files()) {
-            storageDevice.mount(file);
+            storage.mount(file);
         }
 
-        streamingSystem = new ObjectStreamingSystem(storageDevice, streamingGraph);
-        streamingReader = new StreamingObjectReader(streamingSystem, typeFactory);
+        streamingGraphWrapper = new StreamingGraphImpl(streamingGraph.resource(), typeFactory, this);
+        streamingReader = new StreamingObjectReader(this, streamingGraphWrapper.linkTable(), typeFactory);
     }
 
     public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) {
         try {
-            return getStreamingSystem().getDataSourceData(dataSource);
+            return getDataSourceData(dataSource);
         } catch (IOException e) {
             // FIXME: Throwing unchecked exceptions is not ideal. Think about proper exception handling
             throw new UncheckedIOException(e);
         }
+    }
+
+    public byte[] getDataSourceData(HorizonForbiddenWest.StreamingDataSource dataSource) throws IOException {
+        return getDataSourceData(dataSource, dataSource.offset(), dataSource.length());
+    }
+
+    public byte[] getDataSourceData(HorizonForbiddenWest.StreamingDataSource dataSource, int offset, int length) throws IOException {
+        return getFileData(dataSource.fileId(), (long) dataSource.fileOffset() + offset, length);
+    }
+
+    private byte[] getFileData(int fileId, long offset, long length) throws IOException {
+        return readFile(streamingGraphWrapper.files().get(fileId), offset, length);
     }
 
     @Override
@@ -96,20 +109,22 @@ public final class ForbiddenWestGame implements Game {
     }
 
     @Override
+    public byte[] readFile(String file, long offset, long length) throws IOException {
+        return storage.read(file, offset, length);
+    }
+
+    @Override
     public Path resolvePath(String path) {
         return fileSystem.resolve(path);
     }
 
+    @Override
+    public StreamingGraph streamingGraph() {
+        return streamingGraphWrapper;
+    }
+
     public StreamingGraphResource getStreamingGraph() {
         return streamingGraph;
-    }
-
-    public ObjectStreamingSystem getStreamingSystem() {
-        return streamingSystem;
-    }
-
-    public StreamingObjectReader getStreamingReader() {
-        return streamingReader;
     }
 
     public ELanguage getWrittenLanguage() {
@@ -122,14 +137,26 @@ public final class ForbiddenWestGame implements Game {
 
     @Override
     public void close() throws IOException {
-        storageDevice.close();
+        storage.close();
     }
 
-    private static StreamingGraphResource readStreamingGraph(ForbiddenWestFileSystem fileSystem, TypeFactory typeFactory) throws IOException {
+    private static StreamingGraphResource readStreamingGraph(FileSystem fileSystem, TypeFactory typeFactory) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new HFWTypeReader().readObject(reader, typeFactory);
             var graph = (HorizonForbiddenWest.StreamingGraphResource) result;
             return new StreamingGraphResource(graph, typeFactory);
+        }
+    }
+
+    private record FileSystem(Path source, EPlatform platform) {
+        public Path resolve(String path) {
+            String[] parts = path.split(":", 2);
+            return switch (parts[0]) {
+                case "source" -> source.resolve(parts[1]);
+                case "cache" -> resolve("source:LocalCache" + platform).resolve(parts[1]);
+                case "tools" -> resolve("source:tools").resolve(parts[1]);
+                default -> throw new IllegalArgumentException("Unknown device path: " + path);
+            };
         }
     }
 }
