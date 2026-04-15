@@ -3,11 +3,15 @@ package sh.adelessfox.odradek.game.ds2.converters;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2.ETextureSetChannel;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2.ETextureSetType;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2.TextureSetEntry;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2.TextureSetTextureDesc;
 import sh.adelessfox.odradek.game.ds2.rtti.data.TextureSetPacking;
+import sh.adelessfox.odradek.game.ds2.rtti.data.TextureSetPackingChannel;
+import sh.adelessfox.odradek.texture.Channel;
 import sh.adelessfox.odradek.texture.Texture;
+import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureSet;
 
 import java.util.Optional;
@@ -34,13 +38,10 @@ public class TextureSetToTextureSetConverter
     }
 
     private static Optional<TextureSet.SourceTexture> mapSourceTexture(TextureSetTextureDesc desc) {
-        // TODO: Check if all paths use 'work' device
         var name = desc.path().isEmpty() ? desc.textureType().toString() : desc.path().substring("work:".length());
-        var type = mapTextureSetType(desc.textureType().unwrap()).orElse(null);
-        if (type == null) {
-            return Optional.empty();
-        }
-        return Optional.of(new TextureSet.SourceTexture(name, type));
+        var type = mapTextureSetType(desc.textureType().unwrap());
+        var colorSpace = desc.gammaSpace() ? TextureColorSpace.SRGB : TextureColorSpace.LINEAR;
+        return Optional.of(new TextureSet.SourceTexture(name, type, colorSpace));
     }
 
     private static Optional<TextureSet.PackedTexture> mapPackedTexture(TextureSetEntry entry, DS2Game game) {
@@ -49,20 +50,36 @@ public class TextureSetToTextureSetConverter
             return Optional.empty();
         }
 
-        return Optional.of(new TextureSet.PackedTexture(texture, mapChannelPacking(entry.packingInfo())));
+        return Optional.of(new TextureSet.PackedTexture(texture, mapPacking(entry.packingInfo())));
     }
 
-    private static Optional<String> mapTextureSetType(ETextureSetType type) {
-        return Optional.of(type.toString());
-    }
-
-    private static TextureSet.ChannelPacking mapChannelPacking(int packingInfo) {
+    private static TextureSet.Packing mapPacking(int packingInfo) {
         var packing = TextureSetPacking.of(packingInfo);
-        return new TextureSet.ChannelPacking(
-            packing.red().flatMap(ch -> mapTextureSetType(ch.type())),
-            packing.green().flatMap(ch -> mapTextureSetType(ch.type())),
-            packing.blue().flatMap(ch -> mapTextureSetType(ch.type())),
-            packing.alpha().flatMap(ch -> mapTextureSetType(ch.type()))
+        return new TextureSet.Packing(
+            packing.red().map(TextureSetToTextureSetConverter::mapPackingChannel),
+            packing.green().map(TextureSetToTextureSetConverter::mapPackingChannel),
+            packing.blue().map(TextureSetToTextureSetConverter::mapPackingChannel),
+            packing.alpha().map(TextureSetToTextureSetConverter::mapPackingChannel)
         );
+    }
+
+    private static TextureSet.PackingChannel mapPackingChannel(TextureSetPackingChannel packing) {
+        return new TextureSet.PackingChannel(
+            mapTextureSetType(packing.type()),
+            mapTextureSetChannel(packing.channel().orElseThrow())
+        );
+    }
+
+    private static Channel mapTextureSetChannel(ETextureSetChannel channel) {
+        return switch (channel) {
+            case R -> Channel.R;
+            case G -> Channel.G;
+            case B -> Channel.B;
+            case A -> Channel.A;
+        };
+    }
+
+    private static String mapTextureSetType(ETextureSetType type) {
+        return type.toString();
     }
 }
