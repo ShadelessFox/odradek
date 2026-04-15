@@ -13,15 +13,25 @@ record DdsHeaderDxt10(
     public static final int BYTES = 20;
 
     // dxgiFormat
-    static final int DXGI_FORMAT_R16G16B16A16_FLOAT = 10;
+    static final int DXGI_FORMAT_R8_UNORM = 61;
+    static final int DXGI_FORMAT_R8G8_UNORM = 49;
     static final int DXGI_FORMAT_R8G8B8A8_UNORM = 28;
-    static final int DXGI_FORMAT_R32_FLOAT = 41;
-    static final int DXGI_FORMAT_R16_UNORM = 56;
+    static final int DXGI_FORMAT_R8G8B8A8_UNORM_SRGB = 29;
+
     static final int DXGI_FORMAT_B8G8R8A8_UNORM = 87;
+    static final int DXGI_FORMAT_B8G8R8A8_UNORM_SRGB = 91;
+
+    static final int DXGI_FORMAT_R16_UNORM = 56;
+    static final int DXGI_FORMAT_R16G16B16A16_FLOAT = 10;
+
+    static final int DXGI_FORMAT_R32_FLOAT = 41;
 
     static final int DXGI_FORMAT_BC1_UNORM = 71;
+    static final int DXGI_FORMAT_BC1_UNORM_SRGB = 72;
     static final int DXGI_FORMAT_BC2_UNORM = 74;
+    static final int DXGI_FORMAT_BC2_UNORM_SRGB = 75;
     static final int DXGI_FORMAT_BC3_UNORM = 77;
+    static final int DXGI_FORMAT_BC3_UNORM_SRGB = 78;
     static final int DXGI_FORMAT_BC4_UNORM = 80;
     static final int DXGI_FORMAT_BC4_SNORM = 81;
     static final int DXGI_FORMAT_BC5_UNORM = 83;
@@ -29,6 +39,7 @@ record DdsHeaderDxt10(
     static final int DXGI_FORMAT_BC6H_UF16 = 95;
     static final int DXGI_FORMAT_BC6H_SF16 = 96;
     static final int DXGI_FORMAT_BC7_UNORM = 98;
+    static final int DXGI_FORMAT_BC7_UNORM_SRGB = 99;
 
     // resourceDimension
     static final int DDS_DIMENSION_TEXTURE2D = 3;

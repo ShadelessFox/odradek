@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
-public final class PngExporter implements Exporter<Texture> {
-    private static final Logger log = LoggerFactory.getLogger(PngExporter.class);
+public final class TexturePngExporter implements Exporter.OfSingleOutput<Texture> {
+    private static final Logger log = LoggerFactory.getLogger(TexturePngExporter.class);
 
     @Override
     public void export(Texture object, WritableByteChannel channel) throws IOException {

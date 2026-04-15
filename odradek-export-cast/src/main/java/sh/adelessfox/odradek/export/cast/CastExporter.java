@@ -18,7 +18,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 import java.util.OptionalInt;
 
-public class CastExporter implements Exporter<Scene> {
+public class CastExporter implements Exporter.OfSingleOutput<Scene> {
     private static final Logger log = LoggerFactory.getLogger(CastExporter.class);
 
     @Override

@@ -1,10 +1,12 @@
 package sh.adelessfox.odradek.texture;
 
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.util.Handles;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteOrder;
+import java.util.Optional;
 
 public record Surface(int width, int height, byte[] data) {
     public Surface {

@@ -1,6 +1,7 @@
 module odradek.game {
     requires odradek.rtti;
     requires odradek.core;
+    requires org.slf4j;
 
     exports sh.adelessfox.odradek.game;
 

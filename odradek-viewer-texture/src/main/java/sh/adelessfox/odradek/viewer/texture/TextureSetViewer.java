@@ -141,19 +141,23 @@ public final class TextureSetViewer implements Viewer {
         var packing = packedTexture.packing();
         var channels = EnumSet.noneOf(Channel.class);
 
-        if (sourceTexture.type().equals(packing.red().orElse(null))) {
+        if (packingMatches(packing.red(), sourceTexture.type())) {
             channels.add(Channel.R);
         }
-        if (sourceTexture.type().equals(packing.green().orElse(null))) {
+        if (packingMatches(packing.green(), sourceTexture.type())) {
             channels.add(Channel.G);
         }
-        if (sourceTexture.type().equals(packing.blue().orElse(null))) {
+        if (packingMatches(packing.blue(), sourceTexture.type())) {
             channels.add(Channel.B);
         }
-        if (sourceTexture.type().equals(packing.alpha().orElse(null))) {
+        if (packingMatches(packing.alpha(), sourceTexture.type())) {
             channels.add(Channel.A);
         }
 
         return channels;
+    }
+
+    private static boolean packingMatches(Optional<TextureSet.PackingChannel> packing, String type) {
+        return packing.filter(x -> x.type().equals(type)).isPresent();
     }
 }
