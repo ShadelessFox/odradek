@@ -4,9 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.EPixelFormat;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.ETexColorSpace;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.ETextureType;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
@@ -19,7 +17,7 @@ abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, D
 
     private static final Logger log = LoggerFactory.getLogger(BaseTextureConverter.class);
 
-    protected static Optional<TextureFormat> mapFormat(EPixelFormat format) {
+    protected static Optional<TextureFormat> mapFormat(DS2.EPixelFormat format) {
         return Optional.ofNullable(switch (format) {
             case R_UNORM_8 -> TextureFormat.R8_UNORM;
             case R_UNORM_16 -> TextureFormat.R16_UNORM;
@@ -44,7 +42,7 @@ abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, D
         });
     }
 
-    protected static Optional<TextureType> mapType(ETextureType type) {
+    protected static Optional<TextureType> mapType(DS2.ETextureType type) {
         return Optional.ofNullable(switch (type) {
             case _2D -> TextureType.SURFACE;
             case _2DArray -> TextureType.ARRAY;
@@ -57,7 +55,7 @@ abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, D
         });
     }
 
-    protected static TextureColorSpace mapColorSpace(ETexColorSpace colorSpace) {
+    protected static TextureColorSpace mapColorSpace(DS2.ETexColorSpace colorSpace) {
         return switch (colorSpace) {
             case Linear -> TextureColorSpace.LINEAR;
             case sRGB -> TextureColorSpace.SRGB;

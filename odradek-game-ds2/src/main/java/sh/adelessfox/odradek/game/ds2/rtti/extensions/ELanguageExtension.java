@@ -1,48 +1,48 @@
 package sh.adelessfox.odradek.game.ds2.rtti.extensions;
 
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.ELanguage;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
 public interface ELanguageExtension {
-    static List<ELanguage> writtenLanguages() {
+    static List<DS2.ELanguage> writtenLanguages() {
         class Holder {
-            static final List<ELanguage> languages = Stream.of(ELanguage.values())
-                .filter(ELanguage::isWrittenLanguage)
-                .sorted(Comparator.comparingInt(ELanguage::value))
+            static final List<DS2.ELanguage> languages = Stream.of(DS2.ELanguage.values())
+                .filter(DS2.ELanguage::isWrittenLanguage)
+                .sorted(Comparator.comparingInt(DS2.ELanguage::value))
                 .toList();
         }
         return Holder.languages;
     }
 
-    static List<ELanguage> spokenLanguages() {
+    static List<DS2.ELanguage> spokenLanguages() {
         class Holder {
-            static final List<ELanguage> languages = Stream.of(ELanguage.values())
-                .filter(ELanguage::isSpokenLanguage)
-                .sorted(Comparator.comparingInt(ELanguage::value))
+            static final List<DS2.ELanguage> languages = Stream.of(DS2.ELanguage.values())
+                .filter(DS2.ELanguage::isSpokenLanguage)
+                .sorted(Comparator.comparingInt(DS2.ELanguage::value))
                 .toList();
         }
         return Holder.languages;
     }
 
     default boolean isWrittenLanguage() {
-        return this != ELanguage.Unknown;
+        return this != DS2.ELanguage.Unknown;
     }
 
     default boolean isSpokenLanguage() {
-        return this == ELanguage.English
-            || this == ELanguage.French
-            || this == ELanguage.Spanish
-            || this == ELanguage.German
-            || this == ELanguage.Italian
-            || this == ELanguage.Portuguese
-            || this == ELanguage.Russian
-            || this == ELanguage.Polish
-            || this == ELanguage.Japanese
-            || this == ELanguage.LATAMSP
-            || this == ELanguage.LATAMPOR
-            || this == ELanguage.Chinese_Simplified;
+        return this == DS2.ELanguage.English
+            || this == DS2.ELanguage.French
+            || this == DS2.ELanguage.Spanish
+            || this == DS2.ELanguage.German
+            || this == DS2.ELanguage.Italian
+            || this == DS2.ELanguage.Portuguese
+            || this == DS2.ELanguage.Russian
+            || this == DS2.ELanguage.Polish
+            || this == DS2.ELanguage.Japanese
+            || this == DS2.ELanguage.LATAMSP
+            || this == DS2.ELanguage.LATAMPOR
+            || this == DS2.ELanguage.Chinese_Simplified;
     }
 }

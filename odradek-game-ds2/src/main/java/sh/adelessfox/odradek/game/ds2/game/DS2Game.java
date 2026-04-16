@@ -6,9 +6,6 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.ELanguage;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.EPlatform;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.StreamingDataSource;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeFactory;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeReader;
 import sh.adelessfox.odradek.game.ds2.storage.StreamingGraphImpl;
@@ -35,7 +32,7 @@ public final class DS2Game implements DecimaGame {
 
         @Override
         public Game load(Path path) throws IOException {
-            return new DS2Game(path, EPlatform.WinGame);
+            return new DS2Game(path, DS2.EPlatform.WinGame);
         }
     }
 
@@ -47,10 +44,10 @@ public final class DS2Game implements DecimaGame {
     private final FileSystem fileSystem;
 
     // NOTE: Add customization later
-    private final ELanguage writtenLanguage = ELanguage.English;
-    private final ELanguage spokenLanguage = ELanguage.English;
+    private final DS2.ELanguage writtenLanguage = DS2.ELanguage.English;
+    private final DS2.ELanguage spokenLanguage = DS2.ELanguage.English;
 
-    public DS2Game(Path source, EPlatform platform) throws IOException {
+    public DS2Game(Path source, DS2.EPlatform platform) throws IOException {
         var version = Optional.of(source.resolve("DS2.exe"))
             .filter(Files::exists)
             .flatMap(ProductVersion::probe)
@@ -80,7 +77,7 @@ public final class DS2Game implements DecimaGame {
         streamingReader = new StreamingObjectReader(this, typeFactory);
     }
 
-    public byte[] readDataSource(StreamingDataSource dataSource) {
+    public byte[] readDataSource(DS2.StreamingDataSource dataSource) {
         try {
             return getDataSourceData(dataSource);
         } catch (IOException e) {
@@ -127,11 +124,11 @@ public final class DS2Game implements DecimaGame {
         return streamingGraph;
     }
 
-    public ELanguage getWrittenLanguage() {
+    public DS2.ELanguage getWrittenLanguage() {
         return writtenLanguage;
     }
 
-    public ELanguage getSpokenLanguage() {
+    public DS2.ELanguage getSpokenLanguage() {
         return spokenLanguage;
     }
 
@@ -150,7 +147,7 @@ public final class DS2Game implements DecimaGame {
         }
     }
 
-    private record FileSystem(Path source, EPlatform platform) {
+    private record FileSystem(Path source, DS2.EPlatform platform) {
         public Path resolve(String path) {
             String[] parts = path.split(":", 2);
             return switch (parts[0]) {

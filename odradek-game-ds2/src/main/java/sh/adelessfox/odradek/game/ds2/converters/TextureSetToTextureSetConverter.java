@@ -3,10 +3,6 @@ package sh.adelessfox.odradek.game.ds2.converters;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.ETextureSetChannel;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.ETextureSetType;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.TextureSetEntry;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.TextureSetTextureDesc;
 import sh.adelessfox.odradek.game.ds2.rtti.data.TextureSetPacking;
 import sh.adelessfox.odradek.game.ds2.rtti.data.TextureSetPackingChannel;
 import sh.adelessfox.odradek.texture.Channel;
@@ -37,14 +33,14 @@ public class TextureSetToTextureSetConverter
         ));
     }
 
-    private static Optional<TextureSet.SourceTexture> mapSourceTexture(TextureSetTextureDesc desc) {
+    private static Optional<TextureSet.SourceTexture> mapSourceTexture(DS2.TextureSetTextureDesc desc) {
         var name = desc.path().isEmpty() ? desc.textureType().toString() : desc.path().substring("work:".length());
         var type = mapTextureSetType(desc.textureType().unwrap());
         var colorSpace = desc.gammaSpace() ? TextureColorSpace.SRGB : TextureColorSpace.LINEAR;
         return Optional.of(new TextureSet.SourceTexture(name, type, colorSpace));
     }
 
-    private static Optional<TextureSet.PackedTexture> mapPackedTexture(TextureSetEntry entry, DS2Game game) {
+    private static Optional<TextureSet.PackedTexture> mapPackedTexture(DS2.TextureSetEntry entry, DS2Game game) {
         var texture = Converter.convert(entry.texture().get(), Texture.class, game).orElse(null);
         if (texture == null) {
             return Optional.empty();
@@ -70,7 +66,7 @@ public class TextureSetToTextureSetConverter
         );
     }
 
-    private static Channel mapTextureSetChannel(ETextureSetChannel channel) {
+    private static Channel mapTextureSetChannel(DS2.ETextureSetChannel channel) {
         return switch (channel) {
             case R -> Channel.R;
             case G -> Channel.G;
@@ -79,7 +75,7 @@ public class TextureSetToTextureSetConverter
         };
     }
 
-    private static String mapTextureSetType(ETextureSetType type) {
+    private static String mapTextureSetType(DS2.ETextureSetType type) {
         return type.toString();
     }
 }

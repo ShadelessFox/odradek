@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.ds2.ui.renderers;
 
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.*;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -13,32 +13,32 @@ import java.util.Set;
 
 public final class GeometryRenderer implements Renderer.OfObject<TypedObject, DS2Game> {
     private static final Set<Class<?>> TYPES = Set.of(
-        IVec2.class, Vec2.class, Vec2Pack.class,
-        IVec3.class, Vec3.class, Vec3Pack.class,
-        IVec4.class, Vec4.class, Vec4Pack.class,
-        ISize.class, FSize.class,
-        IRect.class, FRect.class,
-        IRange.class, FRange.class
+        DS2.IVec2.class, DS2.Vec2.class, DS2.Vec2Pack.class,
+        DS2.IVec3.class, DS2.Vec3.class, DS2.Vec3Pack.class,
+        DS2.IVec4.class, DS2.Vec4.class, DS2.Vec4Pack.class,
+        DS2.ISize.class, DS2.FSize.class,
+        DS2.IRect.class, DS2.FRect.class,
+        DS2.IRange.class, DS2.FRange.class
     );
 
     @Override
     public Optional<StyledText> styledText(TypeInfo info, TypedObject object, DS2Game game) {
         return switch (object) {
-            case IVec2 vec -> vec(vec.x(), vec.y());
-            case IVec3 vec -> vec(vec.x(), vec.y(), vec.z());
-            case IVec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
-            case Vec2 vec -> vec(vec.x(), vec.y());
-            case Vec3 vec -> vec(vec.x(), vec.y(), vec.z());
-            case Vec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
-            case Vec2Pack vec -> vec(vec.x(), vec.y());
-            case Vec3Pack vec -> vec(vec.x(), vec.y(), vec.z());
-            case Vec4Pack vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
-            case ISize size -> size(size.width(), size.height());
-            case FSize size -> size(size.width(), size.height());
-            case IRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
-            case FRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
-            case IRange range -> range(range.min(), range.max());
-            case FRange range -> range(range.min(), range.max());
+            case DS2.IVec2 vec -> vec(vec.x(), vec.y());
+            case DS2.IVec3 vec -> vec(vec.x(), vec.y(), vec.z());
+            case DS2.IVec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
+            case DS2.Vec2 vec -> vec(vec.x(), vec.y());
+            case DS2.Vec3 vec -> vec(vec.x(), vec.y(), vec.z());
+            case DS2.Vec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
+            case DS2.Vec2Pack vec -> vec(vec.x(), vec.y());
+            case DS2.Vec3Pack vec -> vec(vec.x(), vec.y(), vec.z());
+            case DS2.Vec4Pack vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
+            case DS2.ISize size -> size(size.width(), size.height());
+            case DS2.FSize size -> size(size.width(), size.height());
+            case DS2.IRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
+            case DS2.FRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
+            case DS2.IRange range -> range(range.min(), range.max());
+            case DS2.FRange range -> range(range.min(), range.max());
             default -> Optional.empty();
         };
     }

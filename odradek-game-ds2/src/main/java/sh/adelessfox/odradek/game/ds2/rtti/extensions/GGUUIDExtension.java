@@ -1,12 +1,12 @@
 package sh.adelessfox.odradek.game.ds2.rtti.extensions;
 
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.GGUUID;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 
 import java.util.HexFormat;
 
 public interface GGUUIDExtension {
     default String toDisplayString() {
-        var object = (GGUUID) this;
+        var object = (DS2.GGUUID) this;
         var builder = new StringBuilder(36);
         var format = HexFormat.of();
 

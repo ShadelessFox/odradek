@@ -9,29 +9,28 @@ import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.audio.container.wwise.WwiseFmtChunk;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.WwiseWemLocalizedResource;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.WwiseWemResource;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.io.BinaryReader;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-public final class WwiseWemResourceToAudioConverter implements Converter<WwiseWemResource, Audio, DS2Game> {
+public final class WwiseWemResourceToAudioConverter implements Converter<DS2.WwiseWemResource, Audio, DS2Game> {
     private static final RiffParser RIFF_PARSER = new RiffParser()
         .type("WAVE")
         .reader(WwiseFmtChunk.ID, WwiseFmtChunk.reader())
         .reader(WaveDataChunk.ID, WaveDataChunk.reader());
 
     @Override
-    public Optional<Audio> convert(WwiseWemResource object, DS2Game game) {
+    public Optional<Audio> convert(DS2.WwiseWemResource object, DS2Game game) {
         return switch (object) {
-            case WwiseWemLocalizedResource o -> convertWwiseWemLocalizedResource(o, game);
-            case WwiseWemResource o -> convertWwiseWemResource(o, game);
+            case DS2.WwiseWemLocalizedResource o -> convertWwiseWemLocalizedResource(o, game);
+            case DS2.WwiseWemResource o -> convertWwiseWemResource(o, game);
         };
     }
 
-    private static Optional<Audio> convertWwiseWemLocalizedResource(WwiseWemLocalizedResource object, DS2Game game) {
+    private static Optional<Audio> convertWwiseWemLocalizedResource(DS2.WwiseWemLocalizedResource object, DS2Game game) {
         assert object.format().isStreaming();
 
         var dataSource = object.localizedDataSource(game.getSpokenLanguage());
@@ -40,7 +39,7 @@ public final class WwiseWemResourceToAudioConverter implements Converter<WwiseWe
         return convertWem(data);
     }
 
-    private static Optional<Audio> convertWwiseWemResource(WwiseWemResource object, DS2Game game) {
+    private static Optional<Audio> convertWwiseWemResource(DS2.WwiseWemResource object, DS2Game game) {
         var data = object.format().isStreaming()
             ? game.readDataSource(object.data().streamingDataSource())
             : object.data().wemData();

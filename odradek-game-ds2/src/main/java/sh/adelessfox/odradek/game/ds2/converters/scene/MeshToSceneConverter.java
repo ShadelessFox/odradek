@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.math.Matrix4f;
@@ -19,8 +20,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static sh.adelessfox.odradek.game.ds2.rtti.DS2.*;
-
 public final class MeshToSceneConverter
     extends BaseSceneConverter<Object>
     implements Converter<Object, Scene, DS2Game> {
@@ -30,31 +29,31 @@ public final class MeshToSceneConverter
     @Override
     public Optional<Scene> convert(Object object, DS2Game game) {
         var context = new Context();
-        var node = convertNodeIfAbsent(context, (RTTIRefObject) object, game);
+        var node = convertNodeIfAbsent(context, (DS2.RTTIRefObject) object, game);
         return node.map(Scene::of);
     }
 
     @Override
     public boolean supports(TypeInfo info) {
         Class<?> cls = info.type();
-        return StaticMeshResource.class.isAssignableFrom(cls)
-            || StaticMeshInstance.class.isAssignableFrom(cls)
-            || RegularSkinnedMeshResource.class.isAssignableFrom(cls)
-            || LodMeshResource.class.isAssignableFrom(cls)
-            || MultiMeshResource.class.isAssignableFrom(cls)
-            || BodyVariant.class.isAssignableFrom(cls)
-            || SkinnedModelResource.class.isAssignableFrom(cls)
-            || DestructibilityPart.class.isAssignableFrom(cls)
-            || ControlledEntityResource.class.isAssignableFrom(cls)
-            || PrefabResource.class.isAssignableFrom(cls)
-            || PrefabInstance.class.isAssignableFrom(cls)
-            || MockupGeometry.class.isAssignableFrom(cls)
-            || ArtPartsCoverModelSettingResource.class.isAssignableFrom(cls)
-            || ArtPartsModelResource.class.isAssignableFrom(cls)
-            || ArtPartsDataResource.class.isAssignableFrom(cls);
+        return DS2.StaticMeshResource.class.isAssignableFrom(cls)
+            || DS2.StaticMeshInstance.class.isAssignableFrom(cls)
+            || DS2.RegularSkinnedMeshResource.class.isAssignableFrom(cls)
+            || DS2.LodMeshResource.class.isAssignableFrom(cls)
+            || DS2.MultiMeshResource.class.isAssignableFrom(cls)
+            || DS2.BodyVariant.class.isAssignableFrom(cls)
+            || DS2.SkinnedModelResource.class.isAssignableFrom(cls)
+            || DS2.DestructibilityPart.class.isAssignableFrom(cls)
+            || DS2.ControlledEntityResource.class.isAssignableFrom(cls)
+            || DS2.PrefabResource.class.isAssignableFrom(cls)
+            || DS2.PrefabInstance.class.isAssignableFrom(cls)
+            || DS2.MockupGeometry.class.isAssignableFrom(cls)
+            || DS2.ArtPartsCoverModelSettingResource.class.isAssignableFrom(cls)
+            || DS2.ArtPartsModelResource.class.isAssignableFrom(cls)
+            || DS2.ArtPartsDataResource.class.isAssignableFrom(cls);
     }
 
-    private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, DS2Game game) {
+    private static Optional<Node> convertNodeIfAbsent(Context context, DS2.RTTIRefObject object, DS2Game game) {
         var key = object.general().objectUUID();
         var node = Optional.ofNullable(context.resources.get(key));
         if (node.isEmpty()) {
@@ -64,23 +63,23 @@ public final class MeshToSceneConverter
         return node;
     }
 
-    private static Optional<Node> convertNode(Context context, RTTIRefObject object, DS2Game game) {
+    private static Optional<Node> convertNode(Context context, DS2.RTTIRefObject object, DS2Game game) {
         return switch (object) {
-            case StaticMeshResource r -> convertStaticMeshResource(context, r, game);
-            case StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
-            case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, game);
-            case LodMeshResource r -> convertLodMeshResource(context, r, game);
-            case MultiMeshResource r -> convertMultiMeshResource(context, r, game);
-            case BodyVariant r -> convertBodyVariant(context, r, game);
-            case SkinnedModelResource r -> convertSkinnedModelResource(context, r, game);
-            case DestructibilityPart r -> convertDestructibilityPart(context, r, game);
-            case ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
-            case PrefabResource r -> convertPrefabResource(context, r, game);
-            case PrefabInstance r -> convertPrefabInstance(context, r, game);
-            case MockupGeometry r -> convertMockupGeometry(context, r, game);
-            case ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game);
-            case ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
-            case ArtPartsDataResource r -> convertArtPartsDataResource(context, r, game);
+            case DS2.StaticMeshResource r -> convertStaticMeshResource(context, r, game);
+            case DS2.StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
+            case DS2.RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, game);
+            case DS2.LodMeshResource r -> convertLodMeshResource(context, r, game);
+            case DS2.MultiMeshResource r -> convertMultiMeshResource(context, r, game);
+            case DS2.BodyVariant r -> convertBodyVariant(context, r, game);
+            case DS2.SkinnedModelResource r -> convertSkinnedModelResource(context, r, game);
+            case DS2.DestructibilityPart r -> convertDestructibilityPart(context, r, game);
+            case DS2.ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
+            case DS2.PrefabResource r -> convertPrefabResource(context, r, game);
+            case DS2.PrefabInstance r -> convertPrefabInstance(context, r, game);
+            case DS2.MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case DS2.ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game);
+            case DS2.ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
+            case DS2.ArtPartsDataResource r -> convertArtPartsDataResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
@@ -90,7 +89,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertArtPartsDataResource(
         Context context,
-        ArtPartsDataResource resource,
+        DS2.ArtPartsDataResource resource,
         DS2Game game
     ) {
         var children = new ArrayList<Node>();
@@ -133,7 +132,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertArtPartsCoverModelSettingResource(
         Context context,
-        ArtPartsCoverModelSettingResource resource,
+        DS2.ArtPartsCoverModelSettingResource resource,
         DS2Game game
     ) {
         if (resource.general().modelResource() == null) {
@@ -144,7 +143,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertArtPartsModelResource(
         Context context,
-        ArtPartsModelResource resource,
+        DS2.ArtPartsModelResource resource,
         DS2Game game
     ) {
         var children = resource.general().expandedModelPartResources().stream()
@@ -158,7 +157,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertMockupGeometry(
         Context context,
-        MockupGeometry geometry,
+        DS2.MockupGeometry geometry,
         DS2Game game
     ) {
         var node = convertNodeIfAbsent(context, geometry.staticMeshInstance().get(), game);
@@ -168,7 +167,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertPrefabResource(
         Context context,
-        PrefabResource resource,
+        DS2.PrefabResource resource,
         DS2Game game
     ) {
         var collection = resource.general().objectCollection().get();
@@ -187,10 +186,10 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertPrefabInstance(
         Context context,
-        PrefabInstance instance,
+        DS2.PrefabInstance instance,
         DS2Game game
     ) {
-        for (PrefabObjectOverrides override : instance.general().overrides()) {
+        for (DS2.PrefabObjectOverrides override : instance.general().overrides()) {
             assert !override.isRemoved();
             assert !override.isTransformOverridden();
         }
@@ -201,20 +200,20 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertControlledEntityResource(
         Context context,
-        ControlledEntityResource resource,
+        DS2.ControlledEntityResource resource,
         DS2Game game
     ) {
         List<Node> children = new ArrayList<>();
 
-        for (EntityComponentResource component : Ref.unwrap(resource.logic().entityComponentResources())) {
+        for (DS2.EntityComponentResource component : Ref.unwrap(resource.logic().entityComponentResources())) {
             switch (component) {
-                case DestructibilityResource destructibility -> {
-                    for (DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
+                case DS2.DestructibilityResource destructibility -> {
+                    for (DS2.DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
                         convertDestructibilityPart(context, part, game).ifPresent(children::add);
                         // TODO: Handle attachment joints
                     }
                 }
-                case SkinnedModelResource model -> {
+                case DS2.SkinnedModelResource model -> {
                     convertSkinnedModelResource(context, model, game).ifPresent(children::add);
                 }
                 default -> log.debug("Skipping unsupported component: {}", component.getType());
@@ -226,7 +225,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertSkinnedModelResource(
         Context context,
-        SkinnedModelResource resource,
+        DS2.SkinnedModelResource resource,
         DS2Game game
     ) {
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
@@ -244,7 +243,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertDestructibilityPart(
         Context context,
-        DestructibilityPart part,
+        DS2.DestructibilityPart part,
         DS2Game game
     ) {
         var initialState = part.initialState().get();
@@ -257,7 +256,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertModelPartResource(
         Context context,
-        ModelPartResource resource,
+        DS2.ModelPartResource resource,
         DS2Game game
     ) {
         if (resource.general().meshResource() == null) {
@@ -268,7 +267,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertStaticMeshInstance(
         Context context,
-        StaticMeshInstance instance,
+        DS2.StaticMeshInstance instance,
         DS2Game game
     ) {
         var node = convertNodeIfAbsent(context, instance.general().resource().get(), game);
@@ -279,7 +278,7 @@ public final class MeshToSceneConverter
     @SuppressWarnings("unused")
     private static Optional<Node> convertStaticMeshResource(
         Context context,
-        StaticMeshResource resource,
+        DS2.StaticMeshResource resource,
         DS2Game game
     ) {
         // TODO
@@ -299,7 +298,7 @@ public final class MeshToSceneConverter
     @SuppressWarnings("unused")
     private static Optional<Node> convertRegularSkinnedMeshResource(
         Context context,
-        RegularSkinnedMeshResource resource,
+        DS2.RegularSkinnedMeshResource resource,
         DS2Game game
     ) {
         // TODO
@@ -321,7 +320,7 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    private static Optional<Skin> convertSkeleton(Skeleton skeleton) {
+    private static Optional<Skin> convertSkeleton(DS2.Skeleton skeleton) {
         List<EdgeAnimJointTransform> transforms;
 
         try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
@@ -347,7 +346,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertLodMeshResource(
         Context context,
-        LodMeshResource resource,
+        DS2.LodMeshResource resource,
         DS2Game game
     ) {
         var part = resource.runtimeMeshes().getFirst();
@@ -356,7 +355,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertMultiMeshResource(
         Context context,
-        MultiMeshResource resource,
+        DS2.MultiMeshResource resource,
         DS2Game game
     ) {
         var meshes = resource.meshes();
@@ -374,8 +373,8 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertMultiMeshResourcePart(
         Context context,
-        MeshResourceBase resource,
-        Mat34 transform,
+        DS2.MeshResourceBase resource,
+        DS2.Mat34 transform,
         DS2Game game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
@@ -386,7 +385,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertBodyVariant(
         Context context,
-        BodyVariant resource,
+        DS2.BodyVariant resource,
         DS2Game game
     ) {
         List<Node> children = resource.logic().modelPartResources().stream()
@@ -398,6 +397,6 @@ public final class MeshToSceneConverter
     }
 
     private static final class Context {
-        private final Map<GGUUID, Node> resources = new HashMap<>();
+        private final Map<DS2.GGUUID, Node> resources = new HashMap<>();
     }
 }

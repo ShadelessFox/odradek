@@ -24,16 +24,16 @@ public final class StreamingGraphImpl implements StreamingGraph {
 
     private final DS2.StreamingGraphResource resource;
 
-    private final List<? extends Group> groups;
-    private final Map<Integer, Group> groupIds;
-    private final List<? extends Group> subGroups;
-    private final Map<Group, List<Group>> superGroups;
+    private final List<? extends StreamingGraph.Group> groups;
+    private final Map<Integer, StreamingGraph.Group> groupIds;
+    private final List<? extends StreamingGraph.Group> subGroups;
+    private final Map<StreamingGraph.Group, List<StreamingGraph.Group>> superGroups;
 
     private final List<ClassTypeInfo> typeTable;
     private final byte[] linkTable;
 
-    private final List<Span> spans;
-    private final List<Locator> locators;
+    private final List<StreamingGraph.Span> spans;
+    private final List<StreamingGraph.Locator> locators;
     private final List<String> files;
 
     public StreamingGraphImpl(
@@ -62,7 +62,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
     }
 
     @Override
-    public List<? extends Group> groups() {
+    public List<? extends StreamingGraph.Group> groups() {
         return groups;
     }
 
@@ -72,12 +72,12 @@ public final class StreamingGraphImpl implements StreamingGraph {
     }
 
     @Override
-    public Group group(int id) {
+    public StreamingGraph.Group group(int id) {
         return Objects.requireNonNull(groupIds.get(id), () -> "Group not found: " + id);
     }
 
     @Override
-    public Iterator<Link> links(int position) {
+    public Iterator<StreamingGraph.Link> links(int position) {
         var buffer = ByteBuffer.wrap(linkTable, position, linkTable.length - position);
         return new Iterator<>() {
             @Override
@@ -86,7 +86,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
             }
 
             @Override
-            public Link next() {
+            public StreamingGraph.Link next() {
                 return readLink(buffer);
             }
         };
@@ -106,32 +106,32 @@ public final class StreamingGraphImpl implements StreamingGraph {
         return Collections.unmodifiableList(graph.files());
     }
 
-    private static List<Locator> computeLocators(DS2.StreamingGraphResource graph) {
+    private static List<StreamingGraph.Locator> computeLocators(DS2.StreamingGraphResource graph) {
         return graph.locatorTable().stream()
-            .map(locator -> new Locator((int) (locator.data() & 0xffffff), locator.data() >>> 24))
+            .map(locator -> new StreamingGraph.Locator((int) (locator.data() & 0xffffff), locator.data() >>> 24))
             .toList();
     }
 
-    private static List<Span> computeSpans(DS2.StreamingGraphResource graph) {
+    private static List<StreamingGraph.Span> computeSpans(DS2.StreamingGraphResource graph) {
         return graph.spanTable().stream()
-            .map(span -> new Span(span.fileIndexAndIsPatch() & 0x7fffffff, span.offset(), span.length()))
+            .map(span -> new StreamingGraph.Span(span.fileIndexAndIsPatch() & 0x7fffffff, span.offset(), span.length()))
             .toList();
     }
 
-    private static List<? extends Group> computeGroups(StreamingGraphImpl graph) {
+    private static List<? extends StreamingGraph.Group> computeGroups(StreamingGraphImpl graph) {
         return graph.resource.groups().stream()
             .map(group -> new GroupImpl(graph, group))
             .toList();
     }
 
-    private static Map<Integer, Group> computeGroupIdToGroup(List<? extends Group> groups) {
-        return groups.stream().collect(Collectors.toMap(Group::id, Function.identity()));
+    private static Map<Integer, StreamingGraph.Group> computeGroupIdToGroup(List<? extends StreamingGraph.Group> groups) {
+        return groups.stream().collect(Collectors.toMap(StreamingGraph.Group::id, Function.identity()));
     }
 
-    private static Map<Group, List<Group>> computeGroupToSuperGroups(List<? extends Group> groups) {
-        var result = new HashMap<Group, List<Group>>();
-        for (Group group : groups) {
-            for (Group subGroup : group.subGroups()) {
+    private static Map<StreamingGraph.Group, List<StreamingGraph.Group>> computeGroupToSuperGroups(List<? extends StreamingGraph.Group> groups) {
+        var result = new HashMap<StreamingGraph.Group, List<StreamingGraph.Group>>();
+        for (StreamingGraph.Group group : groups) {
+            for (StreamingGraph.Group subGroup : group.subGroups()) {
                 result.computeIfAbsent(subGroup, _ -> new ArrayList<>()).add(group);
             }
         }
@@ -139,7 +139,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
         return Map.copyOf(result);
     }
 
-    private List<Group> computeSubgroups(DS2.StreamingGraphResource graph) {
+    private List<StreamingGraph.Group> computeSubgroups(DS2.StreamingGraphResource graph) {
         return IntStream.of(graph.subGroups())
             .mapToObj(this::group)
             .toList();
@@ -192,7 +192,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
         return storage.read(file, 0, graph.linkTableSize());
     }
 
-    private static Link readLink(ByteBuffer buffer) {
+    private static StreamingGraph.Link readLink(ByteBuffer buffer) {
         OptionalInt linkGroup;
         int linkIndex;
 
@@ -205,7 +205,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
             linkIndex = readVarInt(buffer, first & 0xbf);
         }
 
-        return new Link(linkGroup, linkIndex);
+        return new StreamingGraph.Link(linkGroup, linkIndex);
     }
 
     private static int readVarInt(ByteBuffer buffer, int initial) {
@@ -218,7 +218,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
         return value;
     }
 
-    private static final class GroupImpl implements Group {
+    private static final class GroupImpl implements StreamingGraph.Group {
         private final StreamingGraphImpl graph;
         private final DS2.StreamingGroupData inner;
         private final List<Integer> roots;
@@ -243,12 +243,12 @@ public final class StreamingGraphImpl implements StreamingGraph {
         }
 
         @Override
-        public List<? extends Group> subGroups() {
+        public List<? extends StreamingGraph.Group> subGroups() {
             return graph.subGroups.subList(inner.subGroupStart(), inner.subGroupStart() + inner.subGroupCount());
         }
 
         @Override
-        public List<? extends Group> superGroups() {
+        public List<? extends StreamingGraph.Group> superGroups() {
             return graph.superGroups.getOrDefault(this, List.of());
         }
 
@@ -263,17 +263,17 @@ public final class StreamingGraphImpl implements StreamingGraph {
         }
 
         @Override
-        public List<Span> spans() {
+        public List<StreamingGraph.Span> spans() {
             return graph.spans.subList(inner.spanStart(), inner.spanStart() + inner.spanCount());
         }
 
         @Override
-        public List<Locator> locators() {
+        public List<StreamingGraph.Locator> locators() {
             return graph.locators.subList(inner.locatorStart(), inner.locatorStart() + inner.locatorCount());
         }
 
         @Override
-        public Iterator<Link> links() {
+        public Iterator<StreamingGraph.Link> links() {
             return graph.links(inner.linkStart());
         }
     }
