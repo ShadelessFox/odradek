@@ -44,6 +44,21 @@ public sealed interface Filter {
         }
     }
 
+    record GroupHasSupergroups() implements Filter {
+        @Override
+        public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
+            return switch (structure) {
+                case GraphStructure.Group group -> FilterResult.of(!group.group().superGroups().isEmpty());
+                default -> FilterResult.NOT_APPLICABLE;
+            };
+        }
+
+        @Override
+        public String toString() {
+            return "has:supergroups";
+        }
+    }
+
     record GroupHasRoots() implements Filter {
         @Override
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
