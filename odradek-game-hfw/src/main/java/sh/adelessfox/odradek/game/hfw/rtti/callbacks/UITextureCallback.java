@@ -1,15 +1,15 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.UITexture;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class UITextureCallback implements ExtraBinaryDataCallback<UITexture> {
+public class UITextureCallback implements ExtraBinaryDataCallback<HFW.UITexture> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, UITexture object) throws IOException {
+    public void deserialize(BinaryReader reader, TypeFactory factory, HFW.UITexture object) throws IOException {
         var animated = reader.readByteBoolean();
         object.animated(animated);
 

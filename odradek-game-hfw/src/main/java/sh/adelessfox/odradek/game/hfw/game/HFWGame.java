@@ -6,8 +6,6 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.ELanguage;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.EPlatform;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphImpl;
@@ -34,7 +32,7 @@ public final class HFWGame implements DecimaGame {
 
         @Override
         public Game load(Path path) throws IOException {
-            return new HFWGame(path, EPlatform.WinGame);
+            return new HFWGame(path, HFW.EPlatform.WinGame);
         }
     }
 
@@ -46,10 +44,10 @@ public final class HFWGame implements DecimaGame {
     private final FileSystem fileSystem;
 
     // NOTE: Add customization later
-    private final ELanguage writtenLanguage = ELanguage.English;
-    private final ELanguage spokenLanguage = ELanguage.English;
+    private final HFW.ELanguage writtenLanguage = HFW.ELanguage.English;
+    private final HFW.ELanguage spokenLanguage = HFW.ELanguage.English;
 
-    public HFWGame(Path source, EPlatform platform) throws IOException {
+    public HFWGame(Path source, HFW.EPlatform platform) throws IOException {
         var version = Optional.of(source.resolve("HorizonForbiddenWest.exe"))
             .filter(Files::exists)
             .flatMap(ProductVersion::probe)
@@ -126,11 +124,11 @@ public final class HFWGame implements DecimaGame {
         return streamingGraph;
     }
 
-    public ELanguage getWrittenLanguage() {
+    public HFW.ELanguage getWrittenLanguage() {
         return writtenLanguage;
     }
 
-    public ELanguage getSpokenLanguage() {
+    public HFW.ELanguage getSpokenLanguage() {
         return spokenLanguage;
     }
 
@@ -149,7 +147,7 @@ public final class HFWGame implements DecimaGame {
         }
     }
 
-    private record FileSystem(Path source, EPlatform platform) {
+    private record FileSystem(Path source, HFW.EPlatform platform) {
         public Path resolve(String path) {
             String[] parts = path.split(":", 2);
             return switch (parts[0]) {

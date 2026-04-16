@@ -1,28 +1,27 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.*;
 
 // TODO: Introduce a mechanism for providing getters/setters for actual properties
 public interface DrawFlagsExtension {
-    default EShadowCastMode castShadows() {
+    default HFW.EShadowCastMode castShadows() {
         var flags = (HFW.DrawFlags) this;
-        return EShadowCastMode.valueOf(flags.general().data() & 3);
+        return HFW.EShadowCastMode.valueOf(flags.general().data() & 3);
     }
 
-    default EShadowCull shadowCullMode() {
+    default HFW.EShadowCull shadowCullMode() {
         var flags = (HFW.DrawFlags) this;
-        return EShadowCull.valueOf((flags.general().data() >>> 2) & 3);
+        return HFW.EShadowCull.valueOf((flags.general().data() >>> 2) & 3);
     }
 
-    default EDrawPartType renderType() {
+    default HFW.EDrawPartType renderType() {
         var flags = (HFW.DrawFlags) this;
-        return EDrawPartType.valueOf((flags.general().data() >>> 4) & 3);
+        return HFW.EDrawPartType.valueOf((flags.general().data() >>> 4) & 3);
     }
 
-    default EViewLayer viewLayer() {
+    default HFW.EViewLayer viewLayer() {
         var flags = (HFW.DrawFlags) this;
-        return EViewLayer.valueOf((flags.general().data() >>> 6) & 3);
+        return HFW.EViewLayer.valueOf((flags.general().data() >>> 6) & 3);
     }
 
     default float shadowBiasMultiplier() {
@@ -30,9 +29,9 @@ public interface DrawFlagsExtension {
         return Float.float16ToFloat((short) (flags.general().data() >>> 8));
     }
 
-    default EShadowBiasMode shadowBiasMode() {
+    default HFW.EShadowBiasMode shadowBiasMode() {
         var flags = (HFW.DrawFlags) this;
-        return EShadowBiasMode.valueOf((flags.general().data() >>> 24) & 1);
+        return HFW.EShadowBiasMode.valueOf((flags.general().data() >>> 24) & 1);
     }
 
     default boolean disableOcclusionCulling() {

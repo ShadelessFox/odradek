@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.PhysicsRagdollResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.middleware.jolt.physics.ragdoll.RagdollSettings;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
@@ -8,9 +8,9 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class PhysicsRagdollResourceCallback implements ExtraBinaryDataCallback<PhysicsRagdollResource> {
+public class PhysicsRagdollResourceCallback implements ExtraBinaryDataCallback<HFW.PhysicsRagdollResource> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, PhysicsRagdollResource object) throws IOException {
+    public void deserialize(BinaryReader reader, TypeFactory factory, HFW.PhysicsRagdollResource object) throws IOException {
         // FIXME: Skipped for now
         var ragdoll = RagdollSettings.sRestoreFromBinaryState(reader);
     }

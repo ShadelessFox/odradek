@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.math.Matrix4f;
@@ -19,8 +20,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static sh.adelessfox.odradek.game.hfw.rtti.HFW.*;
-
 public final class MeshToSceneConverter
     extends BaseSceneConverter<Object>
     implements Converter<Object, Scene, HFWGame> {
@@ -30,29 +29,29 @@ public final class MeshToSceneConverter
     @Override
     public Optional<Scene> convert(Object object, HFWGame game) {
         var context = new Context();
-        var node = convertNodeIfAbsent(context, (RTTIRefObject) object, game);
+        var node = convertNodeIfAbsent(context, (HFW.RTTIRefObject) object, game);
         return node.map(Scene::of);
     }
 
     @Override
     public boolean supports(TypeInfo info) {
         Class<?> cls = info.type();
-        return StaticMeshResource.class.isAssignableFrom(cls)
-            || StaticMeshInstance.class.isAssignableFrom(cls)
-            || RegularSkinnedMeshResource.class.isAssignableFrom(cls)
-            || LodMeshResource.class.isAssignableFrom(cls)
-            || MultiMeshResource.class.isAssignableFrom(cls)
-            || BodyVariant.class.isAssignableFrom(cls)
-            || SkinnedModelResource.class.isAssignableFrom(cls)
-            || DestructibilityPart.class.isAssignableFrom(cls)
-            || ControlledEntityResource.class.isAssignableFrom(cls)
-            || PrefabResource.class.isAssignableFrom(cls)
-            || PrefabInstance.class.isAssignableFrom(cls)
-            || MockupGeometry.class.isAssignableFrom(cls)
-            || HairResource.class.isAssignableFrom(cls);
+        return HFW.StaticMeshResource.class.isAssignableFrom(cls)
+            || HFW.StaticMeshInstance.class.isAssignableFrom(cls)
+            || HFW.RegularSkinnedMeshResource.class.isAssignableFrom(cls)
+            || HFW.LodMeshResource.class.isAssignableFrom(cls)
+            || HFW.MultiMeshResource.class.isAssignableFrom(cls)
+            || HFW.BodyVariant.class.isAssignableFrom(cls)
+            || HFW.SkinnedModelResource.class.isAssignableFrom(cls)
+            || HFW.DestructibilityPart.class.isAssignableFrom(cls)
+            || HFW.ControlledEntityResource.class.isAssignableFrom(cls)
+            || HFW.PrefabResource.class.isAssignableFrom(cls)
+            || HFW.PrefabInstance.class.isAssignableFrom(cls)
+            || HFW.MockupGeometry.class.isAssignableFrom(cls)
+            || HFW.HairResource.class.isAssignableFrom(cls);
     }
 
-    private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, HFWGame game) {
+    private static Optional<Node> convertNodeIfAbsent(Context context, HFW.RTTIRefObject object, HFWGame game) {
         var key = object.general().objectUUID();
         var node = Optional.ofNullable(context.resources.get(key));
         if (node.isEmpty()) {
@@ -62,21 +61,21 @@ public final class MeshToSceneConverter
         return node;
     }
 
-    private static Optional<Node> convertNode(Context context, RTTIRefObject object, HFWGame game) {
+    private static Optional<Node> convertNode(Context context, HFW.RTTIRefObject object, HFWGame game) {
         return switch (object) {
-            case StaticMeshResource r -> convertStaticMeshResource(context, r, game);
-            case StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
-            case RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, game);
-            case LodMeshResource r -> convertLodMeshResource(context, r, game);
-            case MultiMeshResource r -> convertMultiMeshResource(context, r, game);
-            case BodyVariant r -> convertBodyVariant(context, r, game);
-            case SkinnedModelResource r -> convertSkinnedModelResource(context, r, game);
-            case DestructibilityPart r -> convertDestructibilityPart(context, r, game);
-            case ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
-            case PrefabResource r -> convertPrefabResource(context, r, game);
-            case PrefabInstance r -> convertPrefabInstance(context, r, game);
-            case MockupGeometry r -> convertMockupGeometry(context, r, game);
-            case HairResource r -> convertHairResource(context, r, game);
+            case HFW.StaticMeshResource r -> convertStaticMeshResource(context, r, game);
+            case HFW.StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
+            case HFW.RegularSkinnedMeshResource r -> convertRegularSkinnedMeshResource(context, r, game);
+            case HFW.LodMeshResource r -> convertLodMeshResource(context, r, game);
+            case HFW.MultiMeshResource r -> convertMultiMeshResource(context, r, game);
+            case HFW.BodyVariant r -> convertBodyVariant(context, r, game);
+            case HFW.SkinnedModelResource r -> convertSkinnedModelResource(context, r, game);
+            case HFW.DestructibilityPart r -> convertDestructibilityPart(context, r, game);
+            case HFW.ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
+            case HFW.PrefabResource r -> convertPrefabResource(context, r, game);
+            case HFW.PrefabInstance r -> convertPrefabInstance(context, r, game);
+            case HFW.MockupGeometry r -> convertMockupGeometry(context, r, game);
+            case HFW.HairResource r -> convertHairResource(context, r, game);
             default -> {
                 log.debug("Unsupported resource type: {}", object.getType());
                 yield Optional.empty();
@@ -85,7 +84,7 @@ public final class MeshToSceneConverter
     }
 
     @SuppressWarnings("unused")
-    private static Optional<Node> convertHairResource(Context context, HairResource resource, HFWGame game) {
+    private static Optional<Node> convertHairResource(Context context, HFW.HairResource resource, HFWGame game) {
         var pose = resource.geometry().poses().getFirst();
         var skin = convertHairPose(pose);
 
@@ -100,7 +99,7 @@ public final class MeshToSceneConverter
         return Node.of(nodes);
     }
 
-    private static Skin convertHairPose(HairPose pose) {
+    private static Skin convertHairPose(HFW.HairPose pose) {
         var joints = new ArrayList<Joint>();
         for (int i = 0; i < pose.bundles().size(); i++) {
             var bundle = pose.bundles().get(i);
@@ -130,7 +129,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertMockupGeometry(
         Context context,
-        MockupGeometry geometry,
+        HFW.MockupGeometry geometry,
         HFWGame game
     ) {
         var node = convertNodeIfAbsent(context, geometry.staticMeshInstance().get(), game);
@@ -140,7 +139,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertPrefabResource(
         Context context,
-        PrefabResource resource,
+        HFW.PrefabResource resource,
         HFWGame game
     ) {
         var collection = resource.general().objectCollection().get();
@@ -159,10 +158,10 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertPrefabInstance(
         Context context,
-        PrefabInstance instance,
+        HFW.PrefabInstance instance,
         HFWGame game
     ) {
-        for (PrefabObjectOverrides override : instance.general().overrides()) {
+        for (HFW.PrefabObjectOverrides override : instance.general().overrides()) {
             assert !override.isRemoved();
             assert !override.isTransformOverridden();
         }
@@ -173,20 +172,20 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertControlledEntityResource(
         Context context,
-        ControlledEntityResource resource,
+        HFW.ControlledEntityResource resource,
         HFWGame game
     ) {
         List<Node> children = new ArrayList<>();
 
-        for (EntityComponentResource component : Ref.unwrap(resource.logic().entityComponentResources())) {
+        for (HFW.EntityComponentResource component : Ref.unwrap(resource.logic().entityComponentResources())) {
             switch (component) {
-                case DestructibilityResource destructibility -> {
-                    for (DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
+                case HFW.DestructibilityResource destructibility -> {
+                    for (HFW.DestructibilityPart part : Ref.unwrap(destructibility.logic().convertedParts())) {
                         convertDestructibilityPart(context, part, game).ifPresent(children::add);
                         // TODO: Handle attachment joints
                     }
                 }
-                case SkinnedModelResource model -> {
+                case HFW.SkinnedModelResource model -> {
                     convertSkinnedModelResource(context, model, game).ifPresent(children::add);
                 }
                 default -> log.debug("Skipping unsupported component: {}", component.getType());
@@ -198,7 +197,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertSkinnedModelResource(
         Context context,
-        SkinnedModelResource resource,
+        HFW.SkinnedModelResource resource,
         HFWGame game
     ) {
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
@@ -216,7 +215,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertDestructibilityPart(
         Context context,
-        DestructibilityPart part,
+        HFW.DestructibilityPart part,
         HFWGame game
     ) {
         var initialState = part.initialState().get();
@@ -229,7 +228,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertModelPartResource(
         Context context,
-        ModelPartResource resource,
+        HFW.ModelPartResource resource,
         HFWGame game
     ) {
         if (resource.general().meshResource() == null) {
@@ -240,7 +239,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertStaticMeshInstance(
         Context context,
-        StaticMeshInstance instance,
+        HFW.StaticMeshInstance instance,
         HFWGame game
     ) {
         var node = convertNodeIfAbsent(context, instance.general().resource().get(), game);
@@ -251,10 +250,10 @@ public final class MeshToSceneConverter
     @SuppressWarnings("unused")
     private static Optional<Node> convertStaticMeshResource(
         Context context,
-        StaticMeshResource resource,
+        HFW.StaticMeshResource resource,
         HFWGame game
     ) {
-        if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
+        if (resource.lighting().drawFlags().renderType() == HFW.EDrawPartType.ShadowCasterOnly) {
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
@@ -270,10 +269,10 @@ public final class MeshToSceneConverter
     @SuppressWarnings("unused")
     private static Optional<Node> convertRegularSkinnedMeshResource(
         Context context,
-        RegularSkinnedMeshResource resource,
+        HFW.RegularSkinnedMeshResource resource,
         HFWGame game
     ) {
-        if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
+        if (resource.lighting().drawFlags().renderType() == HFW.EDrawPartType.ShadowCasterOnly) {
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
@@ -291,7 +290,7 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    private static Optional<Skin> convertSkeleton(Skeleton skeleton) {
+    private static Optional<Skin> convertSkeleton(HFW.Skeleton skeleton) {
         if (!skeleton.general().hasBindPose()) {
             log.warn("Skipping skeleton {} without a bind pose", skeleton.general().objectUUID().toDisplayString());
             return Optional.empty();
@@ -322,7 +321,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertLodMeshResource(
         Context context,
-        LodMeshResource resource,
+        HFW.LodMeshResource resource,
         HFWGame game
     ) {
         var part = resource.runtimeMeshes().getFirst();
@@ -331,7 +330,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertMultiMeshResource(
         Context context,
-        MultiMeshResource resource,
+        HFW.MultiMeshResource resource,
         HFWGame game
     ) {
         var meshes = resource.meshes();
@@ -349,8 +348,8 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertMultiMeshResourcePart(
         Context context,
-        MeshResourceBase resource,
-        Mat34 transform,
+        HFW.MeshResourceBase resource,
+        HFW.Mat34 transform,
         HFWGame game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
@@ -361,7 +360,7 @@ public final class MeshToSceneConverter
 
     private static Optional<Node> convertBodyVariant(
         Context context,
-        BodyVariant resource,
+        HFW.BodyVariant resource,
         HFWGame game
     ) {
         List<Node> children = resource.logic().modelPartResources().stream()
@@ -373,6 +372,6 @@ public final class MeshToSceneConverter
     }
 
     private static final class Context {
-        private final Map<GGUUID, Node> resources = new HashMap<>();
+        private final Map<HFW.GGUUID, Node> resources = new HashMap<>();
     }
 }

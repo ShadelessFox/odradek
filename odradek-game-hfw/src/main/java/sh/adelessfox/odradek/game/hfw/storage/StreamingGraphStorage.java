@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.game.hfw.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.EStreamingDataChannel;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.DirectStorageReader;
 
@@ -51,7 +51,7 @@ public final class StreamingGraphStorage implements Closeable {
         var filename = path.getFileName().toString();
         var matcher = PACKAGE_NAME.matcher(filename);
         if (matcher.find()) {
-            var channel = EStreamingDataChannel.valueOf(Byte.parseByte(matcher.group("channel")));
+            var channel = HFW.EStreamingDataChannel.valueOf(Byte.parseByte(matcher.group("channel")));
             log.info("Mounted file: {} ({})", file, channel);
         } else {
             log.info("Mounted file: {}", file);

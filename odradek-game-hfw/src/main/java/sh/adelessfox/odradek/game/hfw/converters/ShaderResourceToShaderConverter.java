@@ -2,8 +2,7 @@ package sh.adelessfox.odradek.game.hfw.converters;
 
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.HFWGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.EProgramType;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.ShaderResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.HwShader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.HwShaderProgram;
 import sh.adelessfox.odradek.graphics.Program;
@@ -16,9 +15,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-public class ShaderResourceToShaderConverter implements Converter<ShaderResource, Shader, HFWGame> {
+public class ShaderResourceToShaderConverter implements Converter<HFW.ShaderResource, Shader, HFWGame> {
     @Override
-    public Optional<Shader> convert(ShaderResource object, HFWGame game) {
+    public Optional<Shader> convert(HFW.ShaderResource object, HFWGame game) {
         HwShader shader;
 
         try {
@@ -42,7 +41,7 @@ public class ShaderResourceToShaderConverter implements Converter<ShaderResource
         );
     }
 
-    private static ProgramType mapProgramType(EProgramType type) {
+    private static ProgramType mapProgramType(HFW.EProgramType type) {
         return switch (type) {
             case VertexProgram -> ProgramType.VERTEX_PROGRAM;
             case GeometryProgram -> ProgramType.GEOMETRY_PROGRAM;

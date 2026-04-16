@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.*;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
@@ -8,9 +8,9 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<VertexArrayResource> {
+public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<HFW.VertexArrayResource> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, VertexArrayResource object) throws IOException {
+    public void deserialize(BinaryReader reader, TypeFactory factory, HFW.VertexArrayResource object) throws IOException {
         var numVertices = reader.readInt();
         var numStreams = reader.readInt();
         var streaming = reader.readByteBoolean();
@@ -21,7 +21,7 @@ public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<Vert
         object.isStreaming(streaming);
     }
 
-    private static VertexArrayStreamInfo readVertexStream(
+    private static HFW.VertexArrayStreamInfo readVertexStream(
         BinaryReader reader,
         TypeFactory factory,
         int numVertices,
@@ -30,10 +30,10 @@ public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<Vert
         var flags = reader.readInt();
         var stride = reader.readInt();
         var elements = reader.readObjects(reader.readInt(), r -> readVertexStreamElement(r, factory));
-        var hash = HFWTypeReader.readCompound(MurmurHashValue.class, reader, factory);
+        var hash = HFWTypeReader.readCompound(HFW.MurmurHashValue.class, reader, factory);
         var data = streaming ? null : reader.readBytes(stride * numVertices);
 
-        var stream = factory.newInstance(VertexArrayStreamInfo.class);
+        var stream = factory.newInstance(HFW.VertexArrayStreamInfo.class);
         stream.flags(flags);
         stream.stride(stride);
         stream.elements(elements);
@@ -43,16 +43,16 @@ public class VertexArrayResourceCallback implements ExtraBinaryDataCallback<Vert
         return stream;
     }
 
-    private static VertexArrayStreamElementInfo readVertexStreamElement(
+    private static HFW.VertexArrayStreamElementInfo readVertexStreamElement(
         BinaryReader reader,
         TypeFactory factory
     ) throws IOException {
         var offset = reader.readByte();
-        var storageType = EVertexElementStorageType.valueOf(reader.readByte());
+        var storageType = HFW.EVertexElementStorageType.valueOf(reader.readByte());
         var slotsUsed = reader.readByte();
-        var element = EVertexElement.valueOf(reader.readByte());
+        var element = HFW.EVertexElement.valueOf(reader.readByte());
 
-        var object = factory.newInstance(VertexArrayStreamElementInfo.class);
+        var object = factory.newInstance(HFW.VertexArrayStreamElementInfo.class);
         object.offset(offset);
         object.storageType(storageType);
         object.slotsUsed(slotsUsed);

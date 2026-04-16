@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
@@ -16,9 +17,6 @@ import sh.adelessfox.odradek.util.LruWeakCache;
 
 import java.io.IOException;
 import java.util.*;
-
-import static sh.adelessfox.odradek.game.hfw.rtti.HFW.GGUUID;
-import static sh.adelessfox.odradek.game.hfw.rtti.HFW.StreamingDataSource;
 
 public class StreamingObjectReader extends HFWTypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);
@@ -145,7 +143,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
         super.fillCompound(info, reader, factory, object);
 
-        if (object instanceof StreamingDataSource dataSource) {
+        if (object instanceof HFW.StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
         }
     }
@@ -155,13 +153,13 @@ public class StreamingObjectReader extends HFWTypeReader {
         if (!reader.readByteBoolean()) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
-            return new UUIDRef<>((GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
+            return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
         } else {
             return resolveLink(info);
         }
     }
 
-    private void resolveStreamingDataSource(StreamingDataSource dataSource) {
+    private void resolveStreamingDataSource(HFW.StreamingDataSource dataSource) {
         if (!resolveStreamingLinksAndLocators) {
             return;
         }

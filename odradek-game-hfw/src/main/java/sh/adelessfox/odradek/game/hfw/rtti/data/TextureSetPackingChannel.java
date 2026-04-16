@@ -1,21 +1,20 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureSetChannel;
-import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureSetType;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.rtti.data.Value;
 
 import java.util.Optional;
 
-public record TextureSetPackingChannel(Optional<ETextureSetChannel> channel, ETextureSetType type) {
+public record TextureSetPackingChannel(Optional<HFW.ETextureSetChannel> channel, HFW.ETextureSetType type) {
     public static Optional<TextureSetPackingChannel> of(int packingInfo) {
-        var type = ETextureSetType.valueOf(packingInfo & 0xf);
-        if (type == ETextureSetType.Invalid) {
+        var type = HFW.ETextureSetType.valueOf(packingInfo & 0xf);
+        if (type == HFW.ETextureSetType.Invalid) {
             return Optional.empty();
         }
 
-        Optional<ETextureSetChannel> channel;
+        Optional<HFW.ETextureSetChannel> channel;
         if ((packingInfo & 0x80) == 0) {
-            channel = Value.valueOf(ETextureSetChannel.class, packingInfo >>> 4).tryUnwrap();
+            channel = Value.valueOf(HFW.ETextureSetChannel.class, packingInfo >>> 4).tryUnwrap();
         } else {
             channel = Optional.empty();
         }
