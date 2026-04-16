@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-game</artifactId>
+            <artifactId>odradek-game-decima</artifactId>
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>

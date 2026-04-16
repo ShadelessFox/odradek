@@ -173,6 +173,11 @@
             </dependency>
             <dependency>
                 <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-decima</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game-ds2</artifactId>
                 <version>${project.version}</version>
             </dependency>

@@ -1,7 +1,7 @@
 module odradek.game.ds2.ui {
     requires odradek.core;
+    requires odradek.game.decima;
     requires odradek.game.ds2;
-    requires odradek.game;
     requires odradek.rtti;
     requires odradek.ui;
 

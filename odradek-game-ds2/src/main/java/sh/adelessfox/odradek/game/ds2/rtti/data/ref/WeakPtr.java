@@ -1,10 +1,9 @@
 package sh.adelessfox.odradek.game.ds2.rtti.data.ref;
 
-import sh.adelessfox.odradek.game.ObjectHolder;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.RTTIRefObject;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 
-public record WeakPtr<T extends RTTIRefObject>(ObjectId objectId, T object) implements ObjectHolder<T> {
+public record WeakPtr<T>(ObjectId objectId, T object) implements ObjectWithIdHolder<T> {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

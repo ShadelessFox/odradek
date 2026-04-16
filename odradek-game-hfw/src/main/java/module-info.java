@@ -86,8 +86,6 @@ module odradek.game.hfw {
     requires odradek.core;
     requires odradek.game.decima;
     requires odradek.middleware.edgeanim;
-    requires odradek.middleware.jolt;
-    requires odradek.middleware.riglogic;
     requires odradek.rtti;
     requires org.slf4j;
 

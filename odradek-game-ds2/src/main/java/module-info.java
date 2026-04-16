@@ -79,8 +79,8 @@ module odradek.game.ds2 {
     requires static odradek.rtti.generator;
 
     requires odradek.core;
+    requires odradek.game.decima;
     requires odradek.middleware.edgeanim;
-    requires odradek.game;
     requires odradek.rtti;
     requires org.slf4j;
 
@@ -94,7 +94,6 @@ module odradek.game.ds2 {
     exports sh.adelessfox.odradek.game.ds2.rtti.extensions;
     exports sh.adelessfox.odradek.game.ds2.rtti;
     exports sh.adelessfox.odradek.game.ds2.storage;
-    exports sh.adelessfox.odradek.game.ds2;
 
     provides sh.adelessfox.odradek.game.Converter with
         sh.adelessfox.odradek.game.ds2.converters.audio.WwiseWemResourceToAudioConverter,

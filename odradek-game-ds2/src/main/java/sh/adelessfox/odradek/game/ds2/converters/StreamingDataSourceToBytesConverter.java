@@ -12,7 +12,7 @@ public final class StreamingDataSourceToBytesConverter implements Converter<Stre
     @Override
     public Optional<byte[]> convert(StreamingDataSource object, DS2Game game) {
         try {
-            return Optional.of(game.getStreamingSystem().getDataSourceData(object));
+            return Optional.of(game.getDataSourceData(object));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

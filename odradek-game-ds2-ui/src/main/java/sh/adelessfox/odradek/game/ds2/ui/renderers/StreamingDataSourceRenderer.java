@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.ds2.ui.renderers;
 
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
-import sh.adelessfox.odradek.game.ds2.rtti.DS2.EStreamingDataChannel;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2.StreamingDataSource;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -14,11 +14,10 @@ public final class StreamingDataSourceRenderer implements Renderer.OfObject<Stre
         if (!object.isPresent()) {
             return Optional.of("<empty>");
         }
-        var graph = game.getStreamingGraph();
         var text = "%s (%d bytes, %s)".formatted(
-            graph.files().get(object.fileId()),
+            game.streamingGraph().files().get(object.fileId()),
             object.length(),
-            EStreamingDataChannel.valueOf(object.channel())
+            DS2.EStreamingDataChannel.valueOf(object.channel())
         );
         return Optional.of(text);
     }
