@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.settings.gson;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 
 import java.lang.reflect.Type;

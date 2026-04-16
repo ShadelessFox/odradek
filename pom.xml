@@ -21,6 +21,7 @@
         <module>odradek-export-json</module>
         <module>odradek-export-png</module>
         <module>odradek-export-wave</module>
+        <module>odradek-game-decima</module>
         <module>odradek-game-hfw-ui</module>
         <module>odradek-game-hfw</module>
         <module>odradek-game</module>
@@ -168,6 +169,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-game</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-game-decima</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

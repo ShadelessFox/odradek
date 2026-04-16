@@ -146,6 +146,7 @@ public final class FilterParser {
                 }
                 yield switch (what) {
                     case "subgroups" -> Result.ok(new Filter.GroupHasSubgroups());
+                    case "supergroups" -> Result.ok(new Filter.GroupHasSupergroups());
                     case "roots" -> Result.ok(new Filter.GroupHasRoots());
                     default -> Result.error(new FilterError("Unknown 'has' criteria '" + what + "'", value.offset()));
                 };

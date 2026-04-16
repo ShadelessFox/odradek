@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.usages;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
@@ -11,9 +11,9 @@ import javax.swing.*;
 import java.util.Optional;
 
 final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructure> {
-    private final ForbiddenWestGame game;
+    private final DecimaGame game;
 
-    UsagesLabelProvider(ForbiddenWestGame game) {
+    UsagesLabelProvider(DecimaGame game) {
         this.game = game;
     }
 
@@ -64,8 +64,8 @@ final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructu
     }
 
     private ClassTypeInfo getType(int groupId, int objectIndex) {
-        var graph = game.getStreamingGraph();
+        var graph = game.streamingGraph();
         var group = graph.group(groupId);
-        return graph.types().get(group.typeStart() + objectIndex);
+        return group.types().get(objectIndex);
     }
 }

@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.app.ui.settings.gson.ObjectIdTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.PathTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.SettingAdapterFactory;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

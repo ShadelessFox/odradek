@@ -4,19 +4,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.WaveResource;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 
 import java.util.Optional;
 
 public class WaveResourceToAudioConverter
-    extends BaseAudioConverter<WaveResource>
-    implements Converter<WaveResource, Audio, ForbiddenWestGame> {
+    extends BaseAudioConverter<HFW.WaveResource>
+    implements Converter<HFW.WaveResource, Audio, HFWGame> {
 
     private static final Logger log = LoggerFactory.getLogger(WaveResourceToAudioConverter.class);
 
     @Override
-    public Optional<Audio> convert(WaveResource object, ForbiddenWestGame game) {
+    public Optional<Audio> convert(HFW.WaveResource object, HFWGame game) {
         var encoding = object.format().encoding().unwrap();
         var data = object.format().isStreaming()
             ? game.readDataSource(object.data().streamingDataSource())

@@ -1,9 +1,9 @@
 module odradek.game.hfw.ui {
-    requires odradek.game.hfw;
-    requires odradek.ui;
     requires odradek.core;
-    requires odradek.game;
+    requires odradek.game.decima;
+    requires odradek.game.hfw;
     requires odradek.rtti;
+    requires odradek.ui;
 
     provides sh.adelessfox.odradek.ui.Renderer with
         sh.adelessfox.odradek.game.hfw.ui.renderers.EnumFactEntryRenderer,

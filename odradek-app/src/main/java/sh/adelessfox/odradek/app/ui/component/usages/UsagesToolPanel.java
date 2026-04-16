@@ -14,10 +14,9 @@ import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.game.LinkDatabase;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -30,7 +29,6 @@ import sh.adelessfox.odradek.ui.util.Fugue;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -47,7 +45,7 @@ public final class UsagesToolPanel implements ToolPanel {
     private static final String CARD_SCANNING = "scanning";
     private static final String CARD_MAIN = "main";
 
-    private final ForbiddenWestGame game;
+    private final DecimaGame game;
     private final EventBus appEventBus;
     private final Path config;
 
@@ -58,7 +56,7 @@ public final class UsagesToolPanel implements ToolPanel {
     private ObjectId pendingObjectId;
 
     @Inject
-    UsagesToolPanel(ForbiddenWestGame game, EventBus appEventBus, @Named("config") Path config) {
+    UsagesToolPanel(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
         this.game = game;
         this.appEventBus = appEventBus;
         this.config = config;
@@ -169,7 +167,7 @@ public final class UsagesToolPanel implements ToolPanel {
         return panel;
     }
 
-    private JComponent createTreeView(EventBus eventBus, ForbiddenWestGame game) {
+    private JComponent createTreeView(EventBus eventBus, DecimaGame game) {
         var tree = new StructuredTree<UsagesStructure>();
         tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
@@ -261,13 +259,8 @@ public final class UsagesToolPanel implements ToolPanel {
         queueIndex = queue.size();
     }
 
-    private Path determineDatabasePath(ForbiddenWestGame game, Path config) {
-        try {
-            return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
-        } catch (IOException e) {
-            log.error("Failed to compute link database hash, using fallback path", e);
-            return config.resolve("links.db");
-        }
+    private Path determineDatabasePath(DecimaGame game, Path config) {
+        return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
     }
 
     record Progress(int cur, int max) {
@@ -299,10 +292,10 @@ public final class UsagesToolPanel implements ToolPanel {
 
     private static class LoadDatabaseWorker extends SwingWorker<LinkDatabase, Void> {
         private final EventBus eventBus;
-        private final ForbiddenWestGame game;
+        private final DecimaGame game;
         private final Path path;
 
-        LoadDatabaseWorker(EventBus eventBus, ForbiddenWestGame game, Path path) {
+        LoadDatabaseWorker(EventBus eventBus, DecimaGame game, Path path) {
             this.eventBus = eventBus;
             this.game = game;
             this.path = path;
@@ -330,10 +323,10 @@ public final class UsagesToolPanel implements ToolPanel {
 
     private static class BuildDatabaseWorker extends SwingWorker<Void, Progress> {
         private final EventBus eventBus;
-        private final ForbiddenWestGame game;
+        private final DecimaGame game;
         private final Path path;
 
-        BuildDatabaseWorker(EventBus eventBus, ForbiddenWestGame game, Path path) {
+        BuildDatabaseWorker(EventBus eventBus, DecimaGame game, Path path) {
             this.eventBus = eventBus;
             this.game = game;
             this.path = path;

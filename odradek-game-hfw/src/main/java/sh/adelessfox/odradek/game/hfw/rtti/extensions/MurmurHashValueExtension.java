@@ -1,12 +1,12 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.MurmurHashValue;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 
 import java.util.HexFormat;
 
 public interface MurmurHashValueExtension {
     default String toDisplayString() {
-        var object = (MurmurHashValue) this;
+        var object = (HFW.MurmurHashValue) this;
         var builder = new StringBuilder(32);
         var format = HexFormat.of();
 

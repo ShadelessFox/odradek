@@ -2,24 +2,27 @@ package sh.adelessfox.odradek.game.hfw.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.util.LruWeakCache;
 
 import java.io.IOException;
 import java.util.*;
 
-import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
-
 public class StreamingObjectReader extends HFWTypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);
 
-    private final ObjectStreamingSystem system;
-    private final StreamingGraphResource graph;
+    private final DecimaGame game;
+    private final StreamingGraph graph;
     private final TypeFactory factory;
 
     private final LruWeakCache<Integer, GroupResult> cache = new LruWeakCache<>(5000);
@@ -28,11 +31,11 @@ public class StreamingObjectReader extends HFWTypeReader {
     private List<GroupResult> currentSubGroups;
 
     private boolean resolveStreamingLinksAndLocators;
-    private int streamingLinkIndex;
-    private int streamingLocatorIndex;
+    private Iterator<StreamingGraph.Link> streamingLinks;
+    private Iterator<StreamingGraph.Locator> streamingLocators;
     private int depth;
 
-    public record GroupResult(StreamingGroupData group, List<ObjectInfo> objects) {
+    public record GroupResult(StreamingGraph.Group group, List<TypedObject> objects) {
         public GroupResult {
             objects = List.copyOf(objects);
         }
@@ -43,12 +46,9 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
     }
 
-    public record ObjectResult(GroupResult group, ObjectInfo object) {
-    }
-
-    public StreamingObjectReader(ObjectStreamingSystem system, TypeFactory factory) {
-        this.system = system;
-        this.graph = system.graph();
+    public StreamingObjectReader(DecimaGame game, TypeFactory factory) {
+        this.game = game;
+        this.graph = game.streamingGraph();
         this.factory = factory;
     }
 
@@ -67,11 +67,11 @@ public class StreamingObjectReader extends HFWTypeReader {
             log.debug("{}Reading group {}", indent(), Colors.blue(id));
         }
 
-        var result = cache.get(group.groupID());
+        var result = cache.get(group.id());
         if (result == null) {
             depth++;
             result = readGroup(group, cache, readSubgroups);
-            cache.put(result.group.groupID(), result);
+            cache.put(result.group.id(), result);
             depth--;
         }
 
@@ -79,62 +79,60 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     private synchronized GroupResult readGroup(
-        StreamingGroupData group,
+        StreamingGraph.Group group,
         Map<Integer, GroupResult> groups,
         boolean readSubgroups
     ) throws IOException {
-        var subGroups = new ArrayList<GroupResult>(group.subGroupCount());
+        var subGroups = new ArrayList<GroupResult>(group.subGroups().size());
         if (readSubgroups) {
-            for (int i = 0; i < group.subGroupCount(); i++) {
-                subGroups.add(readGroup(graph.subGroups()[group.subGroupStart() + i], groups, true));
+            for (StreamingGraph.Group subGroup : group.subGroups()) {
+                subGroups.add(readGroup(subGroup, groups, true));
             }
         }
 
         currentSubGroups = subGroups;
         resolveStreamingLinksAndLocators = readSubgroups;
 
-        var result = cache.get(group.groupID());
+        var result = cache.get(group.id());
         if (result == null) {
             result = readSingleGroup(group);
-            cache.put(group.groupID(), result);
+            cache.put(group.id(), result);
         }
 
         return result;
     }
 
-    private GroupResult readSingleGroup(StreamingGroupData group) throws IOException {
-        var objects = new ArrayList<ObjectInfo>(group.numObjects());
-        for (int i = 0; i < group.numObjects(); i++) {
-            var type = graph.types().get(group.typeStart() + objects.size());
-            var object = (RTTIRefObject) factory.newInstance(type);
-            objects.add(new ObjectInfo(type, object));
+    private GroupResult readSingleGroup(StreamingGraph.Group group) throws IOException {
+        var objects = new ArrayList<TypedObject>(group.types().size());
+        for (ClassTypeInfo type : group.types()) {
+            objects.add(factory.newInstance(type));
         }
 
         var result = new GroupResult(group, objects);
 
         currentGroup = result;
-        streamingLinkIndex = group.linkStart();
-        streamingLocatorIndex = group.locatorStart();
+        streamingLinks = group.links();
+        streamingLocators = group.locators().iterator();
 
-        for (int i = 0, j = 0; i < group.spanCount(); i++) {
-            var span = graph.spanTable().get(group.spanStart() + i);
+        int index = 0;
+        for (StreamingGraph.Span span : group.spans()) {
             var data = getSpanData(span);
             var reader = BinaryReader.wrap(data);
 
             while (reader.remaining() > 0) {
-                var object = objects.get(j++);
+                var object = objects.get(index++);
 
                 if (log.isDebugEnabled()) {
                     log.debug(
                         "{}Reading {} in {} at offset {}",
                         indent(),
-                        Colors.yellow(object.type()),
+                        Colors.yellow(object.getType()),
                         Colors.yellow(getSpanFile(span)),
                         Colors.blue(span.offset() + reader.position())
                     );
                 }
 
-                fillCompound(object.type(), reader, factory, object.object());
+                fillCompound(object.getType(), reader, factory, object);
             }
         }
 
@@ -145,7 +143,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
         super.fillCompound(info, reader, factory, object);
 
-        if (object instanceof StreamingDataSource dataSource) {
+        if (object instanceof HFW.StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
         }
     }
@@ -155,30 +153,30 @@ public class StreamingObjectReader extends HFWTypeReader {
         if (!reader.readByteBoolean()) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
-            return new UUIDRef<>((GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
+            return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
         } else {
             return resolveLink(info);
         }
     }
 
-    private void resolveStreamingDataSource(StreamingDataSource dataSource) {
+    private void resolveStreamingDataSource(HFW.StreamingDataSource dataSource) {
         if (!resolveStreamingLinksAndLocators) {
             return;
         }
 
         if (dataSource.isValid()) {
-            var locator = graph.locatorTable().get(streamingLocatorIndex++).data();
+            var locator = streamingLocators.next();
 
             if (log.isDebugEnabled()) {
                 log.debug(
                     "{}Resolving data source to {} at offset {}",
                     indent(),
-                    Colors.yellow(graph.files().get(Math.toIntExact(locator & 0xffffff))),
-                    Colors.blue(locator >>> 24)
+                    Colors.yellow(graph.files().get(locator.fileIndex())),
+                    Colors.blue(locator.offset())
                 );
             }
 
-            dataSource.locator(locator);
+            dataSource.locator(locator.offset() << 24 | locator.fileIndex() & 0xffffff);
         }
     }
 
@@ -187,17 +185,15 @@ public class StreamingObjectReader extends HFWTypeReader {
             return null;
         }
 
-        var result = system.readLink(streamingLinkIndex);
-        int linkGroup = result.group();
+        var result = streamingLinks.next();
+        var linkGroup = result.group();
         int linkIndex = result.index();
-
-        streamingLinkIndex = result.position();
 
         var pointerType = info.pointerType();
         if (pointerType.equals("StreamingRef")) {
-            if (linkGroup != -1) {
+            if (linkGroup.isPresent()) {
                 // If linkGroup != -1, then it's the id of the group; it's an equivalent of doing graph.group(linkGroup)
-                return new StreamingRef<>(new ObjectId(linkGroup, linkIndex));
+                return new StreamingRef<>(new ObjectId(linkGroup.orElseThrow(), linkIndex));
             } else {
                 // No idea how to resolve it otherwise. Presumably points to a runtime singleton?
                 return null;
@@ -205,25 +201,25 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
 
         GroupResult group;
-        if (linkGroup == -1) {
+        if (linkGroup.isPresent()) {
+            // Seems to reference subgroups
+            group = currentSubGroups.get(linkGroup.orElseThrow());
+        } else {
             // References the current group being read
             group = currentGroup;
-        } else {
-            // Seems to reference subgroups
-            group = currentSubGroups.get(linkGroup);
         }
 
         var object = group.objects().get(linkIndex);
-        var matches = info.itemType().asClass().isAssignableFrom(object.type());
+        var matches = info.itemType().asClass().isAssignableFrom(object.getType());
 
         if (log.isDebugEnabled()) {
             log.debug(
                 "{}Resolving {} to object {} (index: {}) in group {} (index: {})",
                 indent(),
                 Colors.yellow(info.name()),
-                Colors.yellow(object.type()),
+                Colors.yellow(object.getType()),
                 Colors.blue(linkIndex),
-                Colors.blue(group.group.groupID()),
+                Colors.blue(group.group.id()),
                 Colors.blue(linkGroup)
             );
         }
@@ -232,11 +228,11 @@ public class StreamingObjectReader extends HFWTypeReader {
             throw new IllegalStateException("Type mismatch for pointer");
         }
 
-        var objectId = new ObjectId(group.group().groupID(), linkIndex);
+        var objectId = new ObjectId(group.group().id(), linkIndex);
         return switch (pointerType) {
-            case "Ref" -> new Ref<>(objectId, object.object());
-            case "WeakPtr" -> new WeakPtr<>(objectId, object.object());
-            case "cptr" -> new CPtr<>(objectId, object.object());
+            case "Ref" -> new Ref<>(objectId, object);
+            case "WeakPtr" -> new WeakPtr<>(objectId, object);
+            case "cptr" -> new CPtr<>(objectId, object);
             default -> throw new UnsupportedOperationException("Unsupported pointer type: " + pointerType);
         };
     }
@@ -245,12 +241,12 @@ public class StreamingObjectReader extends HFWTypeReader {
         return "\t".repeat(depth);
     }
 
-    private byte[] getSpanData(StreamingSourceSpan span) throws IOException {
-        return system.getFileData(getSpanFile(span), span.offset(), span.length());
+    private byte[] getSpanData(StreamingGraph.Span span) throws IOException {
+        return game.readFile(getSpanFile(span), span.offset(), span.length());
     }
 
-    private String getSpanFile(StreamingSourceSpan span) {
-        return graph.files().get(span.fileIndexAndIsPatch() & 0x7fffffff);
+    private String getSpanFile(StreamingGraph.Span span) {
+        return graph.files().get(span.fileIndex());
     }
 
     private record Colors(CharSequence text, int foreground) {

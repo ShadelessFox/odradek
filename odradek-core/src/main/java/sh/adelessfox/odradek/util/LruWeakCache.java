@@ -1,11 +1,11 @@
-package sh.adelessfox.odradek.game.hfw.storage;
+package sh.adelessfox.odradek.util;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-final class LruWeakCache<K, V> {
+public final class LruWeakCache<K, V> {
     private final ReferenceQueue<V> queue = new ReferenceQueue<>();
     private final LinkedHashMap<K, WeakValue<K, V>> map;
 

@@ -40,7 +40,6 @@ public sealed interface Renderer<T, G extends Game>
             return supportedType().isAssignableFrom(info.type());
         }
 
-        @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
             return Reflections.getGenericInterfaceArgument(getClass(), OfObject.class, 0);
         }

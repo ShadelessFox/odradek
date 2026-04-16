@@ -39,8 +39,7 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
     @Override
     public JComponent createComponent() {
         try (Arena arena = Arena.ofConfined()) {
-            var path = game.resolvePath("tools:bin/x64/dxcompiler.dll");
-            var lookup = SymbolLookup.libraryLookup(path, arena);
+            var lookup = SymbolLookup.libraryLookup("dxcompiler", arena);
             var compiler = new DxCompiler(lookup);
 
             return createShaderPanel(shader, compiler);

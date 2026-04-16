@@ -1,15 +1,15 @@
 package sh.adelessfox.odradek.game.hfw.ui.renderers;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.LocalizedTextResource;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.Renderer;
 
 import java.util.Optional;
 
-public final class LocalizedTextResourceRenderer implements Renderer.OfObject<LocalizedTextResource, ForbiddenWestGame> {
+public final class LocalizedTextResourceRenderer implements Renderer.OfObject<HFW.LocalizedTextResource, HFWGame> {
     @Override
-    public Optional<String> text(TypeInfo info, LocalizedTextResource object, ForbiddenWestGame game) {
+    public Optional<String> text(TypeInfo info, HFW.LocalizedTextResource object, HFWGame game) {
         return Optional.of(object.text(game.getWrittenLanguage()));
     }
 }

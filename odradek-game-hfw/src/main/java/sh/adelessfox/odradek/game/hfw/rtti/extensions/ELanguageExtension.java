@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,21 +11,21 @@ public interface ELanguageExtension {
     int IS_SPOKEN_LANGUAGE = 2;
     int IS_DEFAULT_LANGUAGE = 4;
 
-    static List<ELanguage> writtenLanguages() {
+    static List<HFW.ELanguage> writtenLanguages() {
         class Holder {
-            static final List<ELanguage> languages = Stream.of(ELanguage.values())
-                .filter(ELanguage::isWrittenLanguage)
-                .sorted(Comparator.comparingInt(ELanguage::value))
+            static final List<HFW.ELanguage> languages = Stream.of(HFW.ELanguage.values())
+                .filter(HFW.ELanguage::isWrittenLanguage)
+                .sorted(Comparator.comparingInt(HFW.ELanguage::value))
                 .toList();
         }
         return Holder.languages;
     }
 
-    static List<ELanguage> spokenLanguages() {
+    static List<HFW.ELanguage> spokenLanguages() {
         class Holder {
-            static final List<ELanguage> languages = Stream.of(ELanguage.values())
-                .filter(ELanguage::isSpokenLanguage)
-                .sorted(Comparator.comparingInt(ELanguage::value))
+            static final List<HFW.ELanguage> languages = Stream.of(HFW.ELanguage.values())
+                .filter(HFW.ELanguage::isSpokenLanguage)
+                .sorted(Comparator.comparingInt(HFW.ELanguage::value))
                 .toList();
         }
         return Holder.languages;
@@ -44,7 +44,7 @@ public interface ELanguageExtension {
     }
 
     default int flags() {
-        return switch ((ELanguage) this) {
+        return switch ((HFW.ELanguage) this) {
             case English -> IS_WRITTEN_LANGUAGE | IS_SPOKEN_LANGUAGE | IS_DEFAULT_LANGUAGE;
 
             case French,

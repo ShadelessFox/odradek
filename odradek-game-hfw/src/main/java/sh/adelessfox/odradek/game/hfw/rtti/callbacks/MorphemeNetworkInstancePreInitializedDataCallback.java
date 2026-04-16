@@ -1,15 +1,15 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.MorphemeNetworkInstancePreInitializedData;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-public class MorphemeNetworkInstancePreInitializedDataCallback implements ExtraBinaryDataCallback<MorphemeNetworkInstancePreInitializedData> {
+public class MorphemeNetworkInstancePreInitializedDataCallback implements ExtraBinaryDataCallback<HFW.MorphemeNetworkInstancePreInitializedData> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, MorphemeNetworkInstancePreInitializedData object) throws IOException {
+    public void deserialize(BinaryReader reader, TypeFactory factory, HFW.MorphemeNetworkInstancePreInitializedData object) throws IOException {
         var count = reader.readInt();
         var unk04 = reader.readInt();
         if (unk04 != 4) {
