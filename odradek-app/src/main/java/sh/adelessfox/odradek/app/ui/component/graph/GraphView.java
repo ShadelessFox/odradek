@@ -9,9 +9,9 @@ import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectSupplier;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -35,14 +35,14 @@ public class GraphView implements View<JComponent>, ToolPanel {
     private static final Logger log = LoggerFactory.getLogger(GraphView.class);
 
     private final EventBus eventBus;
-    private final ForbiddenWestGame game;
+    private final DecimaGame game;
 
     private final StructuredTree<GraphStructure> tree;
     private final JPanel panel;
     private final ValidationPopup filterValidationPopup;
 
     @Inject
-    GraphView(EventBus eventBus, ForbiddenWestGame game) {
+    GraphView(EventBus eventBus, DecimaGame game) {
         this.eventBus = eventBus;
         this.game = game;
 
