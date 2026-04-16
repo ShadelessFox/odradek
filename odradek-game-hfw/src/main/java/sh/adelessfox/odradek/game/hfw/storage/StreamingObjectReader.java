@@ -17,8 +17,8 @@ import sh.adelessfox.odradek.util.LruWeakCache;
 import java.io.IOException;
 import java.util.*;
 
-import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.GGUUID;
-import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingDataSource;
+import static sh.adelessfox.odradek.game.hfw.rtti.HFW.GGUUID;
+import static sh.adelessfox.odradek.game.hfw.rtti.HFW.StreamingDataSource;
 
 public class StreamingObjectReader extends HFWTypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);

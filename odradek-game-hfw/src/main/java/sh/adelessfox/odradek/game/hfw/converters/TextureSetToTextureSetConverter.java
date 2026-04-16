@@ -1,12 +1,12 @@
 package sh.adelessfox.odradek.game.hfw.converters;
 
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetChannel;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetType;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureSetEntry;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureSetTextureDesc;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureSetChannel;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureSetType;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.TextureSetEntry;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.TextureSetTextureDesc;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPacking;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPackingChannel;
 import sh.adelessfox.odradek.texture.Channel;
@@ -17,10 +17,10 @@ import sh.adelessfox.odradek.texture.TextureSet;
 import java.util.Optional;
 
 public class TextureSetToTextureSetConverter
-    implements Converter<HorizonForbiddenWest.TextureSet, TextureSet, ForbiddenWestGame> {
+    implements Converter<HFW.TextureSet, TextureSet, HFWGame> {
 
     @Override
-    public Optional<TextureSet> convert(HorizonForbiddenWest.TextureSet object, ForbiddenWestGame game) {
+    public Optional<TextureSet> convert(HFW.TextureSet object, HFWGame game) {
         var sourceTextures = object.textureDesc().stream()
             .map(TextureSetToTextureSetConverter::mapSourceTexture)
             .flatMap(Optional::stream)
@@ -44,7 +44,7 @@ public class TextureSetToTextureSetConverter
         return Optional.of(new TextureSet.SourceTexture(name, type, colorSpace));
     }
 
-    private static Optional<TextureSet.PackedTexture> mapPackedTexture(TextureSetEntry entry, ForbiddenWestGame game) {
+    private static Optional<TextureSet.PackedTexture> mapPackedTexture(TextureSetEntry entry, HFWGame game) {
         var texture = Converter.convert(entry.texture().get(), Texture.class, game).orElse(null);
         if (texture == null) {
             return Optional.empty();

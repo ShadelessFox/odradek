@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.LocalizedTextResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ELanguage;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.LocalizedTextResource;
 
 public interface LocalizedTextResourceExtension {
     default String text(ELanguage language) {

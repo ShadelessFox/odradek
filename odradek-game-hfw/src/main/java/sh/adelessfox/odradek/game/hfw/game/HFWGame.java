@@ -5,11 +5,11 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ELanguage;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.EPlatform;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeFactory;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPlatform;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphImpl;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphStorage;
 import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public final class ForbiddenWestGame implements DecimaGame {
+public final class HFWGame implements DecimaGame {
     public static final class Provider implements Game.Provider {
         @Override
         public boolean supports(Path path) {
@@ -34,13 +34,13 @@ public final class ForbiddenWestGame implements DecimaGame {
 
         @Override
         public Game load(Path path) throws IOException {
-            return new ForbiddenWestGame(path, EPlatform.WinGame);
+            return new HFWGame(path, EPlatform.WinGame);
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(ForbiddenWestGame.class);
+    private static final Logger log = LoggerFactory.getLogger(HFWGame.class);
 
-    private final StreamingGraphImpl streamingGraphWrapper;
+    private final StreamingGraph streamingGraph;
     private final StreamingGraphStorage storage;
     private final StreamingObjectReader streamingReader;
     private final FileSystem fileSystem;
@@ -49,7 +49,7 @@ public final class ForbiddenWestGame implements DecimaGame {
     private final ELanguage writtenLanguage = ELanguage.English;
     private final ELanguage spokenLanguage = ELanguage.English;
 
-    public ForbiddenWestGame(Path source, EPlatform platform) throws IOException {
+    public HFWGame(Path source, EPlatform platform) throws IOException {
         var version = Optional.of(source.resolve("HorizonForbiddenWest.exe"))
             .filter(Files::exists)
             .flatMap(ProductVersion::probe)
@@ -75,11 +75,11 @@ public final class ForbiddenWestGame implements DecimaGame {
             storage.mount(file);
         }
 
-        streamingGraphWrapper = new StreamingGraphImpl(graph, storage, typeFactory);
+        streamingGraph = new StreamingGraphImpl(graph, storage, typeFactory);
         streamingReader = new StreamingObjectReader(this, typeFactory);
     }
 
-    public byte[] readDataSource(HorizonForbiddenWest.StreamingDataSource dataSource) {
+    public byte[] readDataSource(HFW.StreamingDataSource dataSource) {
         try {
             return getDataSourceData(dataSource);
         } catch (IOException e) {
@@ -88,16 +88,20 @@ public final class ForbiddenWestGame implements DecimaGame {
         }
     }
 
-    public byte[] getDataSourceData(HorizonForbiddenWest.StreamingDataSource dataSource) throws IOException {
+    public byte[] getDataSourceData(HFW.StreamingDataSource dataSource) throws IOException {
         return getDataSourceData(dataSource, dataSource.offset(), dataSource.length());
     }
 
-    public byte[] getDataSourceData(HorizonForbiddenWest.StreamingDataSource dataSource, int offset, int length) throws IOException {
+    public byte[] getDataSourceData(
+        HFW.StreamingDataSource dataSource,
+        int offset,
+        int length
+    ) throws IOException {
         return getFileData(dataSource.fileId(), (long) dataSource.fileOffset() + offset, length);
     }
 
     private byte[] getFileData(int fileId, long offset, long length) throws IOException {
-        return readFile(streamingGraphWrapper.files().get(fileId), offset, length);
+        return readFile(streamingGraph.files().get(fileId), offset, length);
     }
 
     @Override
@@ -119,7 +123,7 @@ public final class ForbiddenWestGame implements DecimaGame {
 
     @Override
     public StreamingGraph streamingGraph() {
-        return streamingGraphWrapper;
+        return streamingGraph;
     }
 
     public ELanguage getWrittenLanguage() {
@@ -135,10 +139,13 @@ public final class ForbiddenWestGame implements DecimaGame {
         storage.close();
     }
 
-    private static HorizonForbiddenWest.StreamingGraphResource readStreamingGraph(FileSystem fileSystem, TypeFactory typeFactory) throws IOException {
+    private static HFW.StreamingGraphResource readStreamingGraph(
+        FileSystem fileSystem,
+        TypeFactory typeFactory
+    ) throws IOException {
         try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
             var result = new HFWTypeReader().readObject(reader, typeFactory);
-            return (HorizonForbiddenWest.StreamingGraphResource) result;
+            return (HFW.StreamingGraphResource) result;
         }
     }
 

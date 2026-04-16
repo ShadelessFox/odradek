@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.game.hfw.converters.scene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.math.Matrix4f;
@@ -19,16 +19,16 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
+import static sh.adelessfox.odradek.game.hfw.rtti.HFW.*;
 
 public final class MeshToSceneConverter
     extends BaseSceneConverter<Object>
-    implements Converter<Object, Scene, ForbiddenWestGame> {
+    implements Converter<Object, Scene, HFWGame> {
 
     private static final Logger log = LoggerFactory.getLogger(MeshToSceneConverter.class);
 
     @Override
-    public Optional<Scene> convert(Object object, ForbiddenWestGame game) {
+    public Optional<Scene> convert(Object object, HFWGame game) {
         var context = new Context();
         var node = convertNodeIfAbsent(context, (RTTIRefObject) object, game);
         return node.map(Scene::of);
@@ -52,7 +52,7 @@ public final class MeshToSceneConverter
             || HairResource.class.isAssignableFrom(cls);
     }
 
-    private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, ForbiddenWestGame game) {
+    private static Optional<Node> convertNodeIfAbsent(Context context, RTTIRefObject object, HFWGame game) {
         var key = object.general().objectUUID();
         var node = Optional.ofNullable(context.resources.get(key));
         if (node.isEmpty()) {
@@ -62,7 +62,7 @@ public final class MeshToSceneConverter
         return node;
     }
 
-    private static Optional<Node> convertNode(Context context, RTTIRefObject object, ForbiddenWestGame game) {
+    private static Optional<Node> convertNode(Context context, RTTIRefObject object, HFWGame game) {
         return switch (object) {
             case StaticMeshResource r -> convertStaticMeshResource(context, r, game);
             case StaticMeshInstance r -> convertStaticMeshInstance(context, r, game);
@@ -85,7 +85,7 @@ public final class MeshToSceneConverter
     }
 
     @SuppressWarnings("unused")
-    private static Optional<Node> convertHairResource(Context context, HairResource resource, ForbiddenWestGame game) {
+    private static Optional<Node> convertHairResource(Context context, HairResource resource, HFWGame game) {
         var pose = resource.geometry().poses().getFirst();
         var skin = convertHairPose(pose);
 
@@ -131,7 +131,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertMockupGeometry(
         Context context,
         MockupGeometry geometry,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var node = convertNodeIfAbsent(context, geometry.staticMeshInstance().get(), game);
         var transform = geometry.general().orientation();
@@ -141,7 +141,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertPrefabResource(
         Context context,
         PrefabResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var collection = resource.general().objectCollection().get();
         var children = new ArrayList<Node>();
@@ -160,7 +160,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertPrefabInstance(
         Context context,
         PrefabInstance instance,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         for (PrefabObjectOverrides override : instance.general().overrides()) {
             assert !override.isRemoved();
@@ -174,7 +174,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertControlledEntityResource(
         Context context,
         ControlledEntityResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         List<Node> children = new ArrayList<>();
 
@@ -199,7 +199,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertSkinnedModelResource(
         Context context,
         SkinnedModelResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
@@ -217,7 +217,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertDestructibilityPart(
         Context context,
         DestructibilityPart part,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var initialState = part.initialState().get();
         var modelPartResource = initialState.state().modelPartResource();
@@ -230,7 +230,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertModelPartResource(
         Context context,
         ModelPartResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         if (resource.general().meshResource() == null) {
             return Optional.empty();
@@ -241,7 +241,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertStaticMeshInstance(
         Context context,
         StaticMeshInstance instance,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var node = convertNodeIfAbsent(context, instance.general().resource().get(), game);
         var transform = instance.general().orientation();
@@ -252,7 +252,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertStaticMeshResource(
         Context context,
         StaticMeshResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
@@ -271,7 +271,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertRegularSkinnedMeshResource(
         Context context,
         RegularSkinnedMeshResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
@@ -323,7 +323,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertLodMeshResource(
         Context context,
         LodMeshResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var part = resource.runtimeMeshes().getFirst();
         return convertNodeIfAbsent(context, part.mesh().get(), game);
@@ -332,7 +332,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertMultiMeshResource(
         Context context,
         MultiMeshResource resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var meshes = resource.meshes();
         var transforms = resource.transforms();
@@ -351,7 +351,7 @@ public final class MeshToSceneConverter
         Context context,
         MeshResourceBase resource,
         Mat34 transform,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
         var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
@@ -362,7 +362,7 @@ public final class MeshToSceneConverter
     private static Optional<Node> convertBodyVariant(
         Context context,
         BodyVariant resource,
-        ForbiddenWestGame game
+        HFWGame game
     ) {
         List<Node> children = resource.logic().modelPartResources().stream()
             .map(part -> convertNodeIfAbsent(context, part.get().general().meshResource().get(), game))

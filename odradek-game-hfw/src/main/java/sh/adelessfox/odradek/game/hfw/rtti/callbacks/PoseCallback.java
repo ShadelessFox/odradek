@@ -1,14 +1,14 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.Pose;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.Pose;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 
-import static sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.Mat34;
+import static sh.adelessfox.odradek.game.hfw.rtti.HFW.Mat34;
 
 public class PoseCallback implements ExtraBinaryDataCallback<Pose> {
     @Override

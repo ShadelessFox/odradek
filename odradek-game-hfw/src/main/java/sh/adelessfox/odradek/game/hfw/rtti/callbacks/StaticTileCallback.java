@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.Mat34;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.Mat44;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.StaticTile;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.Mat34;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.Mat44;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StaticTile;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;

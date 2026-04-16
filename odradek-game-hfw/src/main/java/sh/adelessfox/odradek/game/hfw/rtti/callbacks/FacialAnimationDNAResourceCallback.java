@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.FacialAnimationDNAResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.FacialAnimationDNAResource;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.middleware.riglogic.RigLogic;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;

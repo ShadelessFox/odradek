@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.game.hfw.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EStreamingDataChannel;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.EStreamingDataChannel;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.DirectStorageReader;
 

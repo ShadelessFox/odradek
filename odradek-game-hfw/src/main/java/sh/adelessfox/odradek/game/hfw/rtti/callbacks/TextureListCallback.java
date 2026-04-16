@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureList;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureListEntryInfo;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.TextureList;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.TextureListEntryInfo;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;

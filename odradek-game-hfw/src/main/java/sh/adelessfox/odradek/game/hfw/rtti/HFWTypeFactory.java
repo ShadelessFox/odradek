@@ -12,7 +12,7 @@ import java.util.List;
 
 public class HFWTypeFactory extends AbstractTypeFactory {
     public HFWTypeFactory() {
-        super(HorizonForbiddenWest.class, MethodHandles.lookup());
+        super(HFW.class, MethodHandles.lookup());
     }
 
     @Override

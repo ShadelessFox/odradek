@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.LocalizedDataSource;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.LocalizedSimpleSoundResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ELanguage;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.LocalizedDataSource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.LocalizedSimpleSoundResource;
 
 public interface LocalizedSimpleSoundResourceExtension {
     default LocalizedDataSource localizedDataSource(ELanguage language) {

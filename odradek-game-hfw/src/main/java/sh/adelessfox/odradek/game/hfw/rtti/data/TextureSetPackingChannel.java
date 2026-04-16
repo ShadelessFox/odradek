@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetChannel;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetType;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureSetChannel;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureSetType;
 import sh.adelessfox.odradek.rtti.data.Value;
 
 import java.util.Optional;

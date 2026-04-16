@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.DataBufferResource;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EDataBufferFormat;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.DataBufferResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.EDataBufferFormat;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.data.Value;

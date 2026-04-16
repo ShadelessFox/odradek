@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.LocalizedTextResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.LocalizedTextResource;
 import sh.adelessfox.odradek.game.hfw.rtti.extensions.ELanguageExtension;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;

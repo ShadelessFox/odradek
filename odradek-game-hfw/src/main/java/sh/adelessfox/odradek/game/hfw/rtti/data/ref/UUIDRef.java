@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data.ref;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.GGUUID;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.GGUUID;
 
 @SuppressWarnings("unused")
 public record UUIDRef<T>(GGUUID uuid) {

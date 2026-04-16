@@ -14,7 +14,7 @@ import java.math.BigInteger;
         types = "types.json",
         extensions = "extensions.json"
     ),
-    target = "sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest",
+    target = "sh.adelessfox.odradek.game.hfw.rtti.HFW",
     builtins = {
         // atoms
         @Builtin(type = "bool", repr = boolean.class),
@@ -115,5 +115,5 @@ module odradek.game.hfw {
         sh.adelessfox.odradek.game.hfw.converters.TextureSetToTextureSetConverter;
 
     provides Game.Provider with
-        sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame.Provider;
+        sh.adelessfox.odradek.game.hfw.game.HFWGame.Provider;
 }

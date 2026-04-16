@@ -9,14 +9,14 @@ import sh.adelessfox.odradek.audio.container.riff.RiffFile;
 import sh.adelessfox.odradek.audio.container.riff.RiffParser;
 import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
 import sh.adelessfox.odradek.io.BinaryReader;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-abstract class BaseAudioConverter<T> implements Converter<T, Audio, ForbiddenWestGame> {
+abstract class BaseAudioConverter<T> implements Converter<T, Audio, HFWGame> {
     private static final RiffParser RIFF_PARSER = new RiffParser()
         .type("WAVE")
         .reader(Atrac9FmtChunk.ID, Atrac9FmtChunk.reader())

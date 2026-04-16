@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.ui.renderers;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.*;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -11,7 +11,7 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 import java.util.Optional;
 import java.util.Set;
 
-public final class GeometryRenderer implements Renderer.OfObject<TypedObject, ForbiddenWestGame> {
+public final class GeometryRenderer implements Renderer.OfObject<TypedObject, HFWGame> {
     private static final Set<Class<?>> TYPES = Set.of(
         IVec2.class, Vec2.class, Vec2Pack.class,
         IVec3.class, Vec3.class, Vec3Pack.class,
@@ -22,7 +22,7 @@ public final class GeometryRenderer implements Renderer.OfObject<TypedObject, Fo
     );
 
     @Override
-    public Optional<StyledText> styledText(TypeInfo info, TypedObject object, ForbiddenWestGame game) {
+    public Optional<StyledText> styledText(TypeInfo info, TypedObject object, HFWGame game) {
         return switch (object) {
             case IVec2 vec -> vec(vec.x(), vec.y());
             case IVec3 vec -> vec(vec.x(), vec.y(), vec.z());

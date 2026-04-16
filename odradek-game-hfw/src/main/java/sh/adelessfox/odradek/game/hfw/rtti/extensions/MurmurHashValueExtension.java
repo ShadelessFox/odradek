@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.MurmurHashValue;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.MurmurHashValue;
 
 import java.util.HexFormat;
 

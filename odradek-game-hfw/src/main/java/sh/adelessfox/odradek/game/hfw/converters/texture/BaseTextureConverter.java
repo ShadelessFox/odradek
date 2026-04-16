@@ -3,10 +3,10 @@ package sh.adelessfox.odradek.game.hfw.converters.texture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EPixelFormat;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETexColorSpace;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureType;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.EPixelFormat;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETexColorSpace;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ETextureType;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
@@ -14,7 +14,7 @@ import sh.adelessfox.odradek.texture.TextureType;
 
 import java.util.Optional;
 
-abstract class BaseTextureConverter<T> implements Converter<T, Texture, ForbiddenWestGame> {
+abstract class BaseTextureConverter<T> implements Converter<T, Texture, HFWGame> {
     private static final Logger log = LoggerFactory.getLogger(BaseTextureConverter.class);
 
     protected static Optional<TextureFormat> mapFormat(EPixelFormat format) {

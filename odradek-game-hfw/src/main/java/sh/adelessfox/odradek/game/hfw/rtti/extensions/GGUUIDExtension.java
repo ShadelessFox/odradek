@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.GGUUID;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.GGUUID;
 
 import java.util.HexFormat;
 

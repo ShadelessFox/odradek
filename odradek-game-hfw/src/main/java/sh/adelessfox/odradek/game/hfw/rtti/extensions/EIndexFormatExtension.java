@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EIndexFormat;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.EIndexFormat;
 
 public interface EIndexFormatExtension {
     default int stride() {

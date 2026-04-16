@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.ui.renderers.attr;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureSetEntry;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.TextureSetEntry;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPacking;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPackingChannel;
 import sh.adelessfox.odradek.rtti.ClassAttrInfo;
@@ -13,14 +13,14 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class TextureSetEntry$PackingInfoRenderer implements Renderer.OfAttribute<TextureSetEntry, ForbiddenWestGame> {
+public class TextureSetEntry$PackingInfoRenderer implements Renderer.OfAttribute<TextureSetEntry, HFWGame> {
     @Override
-    public Optional<String> text(TypeInfo info, TextureSetEntry object, ForbiddenWestGame game) {
+    public Optional<String> text(TypeInfo info, TextureSetEntry object, HFWGame game) {
         return Optional.of(String.valueOf(object.packingInfo()));
     }
 
     @Override
-    public Optional<StyledText> styledText(TypeInfo info, TextureSetEntry object, ForbiddenWestGame game) {
+    public Optional<StyledText> styledText(TypeInfo info, TextureSetEntry object, HFWGame game) {
         var packingInfo = TextureSetPacking.of(object.packingInfo());
         var builder = StyledText.builder();
         appendChannel(packingInfo.red(), "R", builder);

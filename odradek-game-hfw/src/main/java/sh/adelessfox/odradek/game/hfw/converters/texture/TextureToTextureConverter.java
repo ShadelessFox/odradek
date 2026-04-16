@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.converters.texture;
 
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureType;
@@ -13,11 +13,11 @@ import java.util.Optional;
 import java.util.OptionalInt;
 
 public final class TextureToTextureConverter
-    extends BaseTextureConverter<HorizonForbiddenWest.Texture>
-    implements Converter<HorizonForbiddenWest.Texture, Texture, ForbiddenWestGame> {
+    extends BaseTextureConverter<HFW.Texture>
+    implements Converter<HFW.Texture, Texture, HFWGame> {
 
     @Override
-    public Optional<Texture> convert(HorizonForbiddenWest.Texture object, ForbiddenWestGame game) {
+    public Optional<Texture> convert(HFW.Texture object, HFWGame game) {
         var format = mapFormat(object.header().pixelFormat().unwrap()).orElse(null);
         var type = mapType(object.header().type().unwrap()).orElse(null);
         if (format == null || type == null) {

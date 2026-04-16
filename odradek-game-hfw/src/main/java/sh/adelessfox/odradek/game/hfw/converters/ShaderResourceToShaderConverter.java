@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.game.hfw.converters;
 
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.EProgramType;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ShaderResource;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.EProgramType;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ShaderResource;
 import sh.adelessfox.odradek.game.hfw.rtti.data.HwShader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.HwShaderProgram;
 import sh.adelessfox.odradek.graphics.Program;
@@ -16,9 +16,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-public class ShaderResourceToShaderConverter implements Converter<ShaderResource, Shader, ForbiddenWestGame> {
+public class ShaderResourceToShaderConverter implements Converter<ShaderResource, Shader, HFWGame> {
     @Override
-    public Optional<Shader> convert(ShaderResource object, ForbiddenWestGame game) {
+    public Optional<Shader> convert(ShaderResource object, HFWGame game) {
         HwShader shader;
 
         try {

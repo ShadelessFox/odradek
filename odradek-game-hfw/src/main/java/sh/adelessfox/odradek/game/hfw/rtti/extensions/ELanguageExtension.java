@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ELanguage;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.ELanguage;
 
 import java.util.Comparator;
 import java.util.List;

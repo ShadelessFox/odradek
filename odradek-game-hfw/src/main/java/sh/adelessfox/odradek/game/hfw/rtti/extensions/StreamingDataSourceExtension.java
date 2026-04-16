@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingDataSource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW.StreamingDataSource;
 
 public interface StreamingDataSourceExtension {
     default int fileId() {
