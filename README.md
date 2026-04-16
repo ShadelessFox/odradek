@@ -60,7 +60,7 @@ and set **___Shared VM options___** to `--enable-preview`.
 </details>
 
 <details>
-<summary>Cannot resolve symbol 'HorizonForbiddenWest'</summary>
+<summary>Cannot resolve symbol 'HFW'</summary>
 IntelliJ IDEA refuses to provide code analysis for generated RTTI classes due to the enormous size of the generated
 code, and all references will be highlighted in _red_. The project will still compile and launch just fine.
 

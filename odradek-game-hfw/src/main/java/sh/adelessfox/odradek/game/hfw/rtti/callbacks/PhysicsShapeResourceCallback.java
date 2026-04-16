@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.PhysicsMaterial;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.shape.Shape;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.PhysicsShapeResource;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhysicsShapeResourceCallback implements ExtraBinaryDataCallback<PhysicsShapeResource> {
+public class PhysicsShapeResourceCallback implements ExtraBinaryDataCallback<HFW.PhysicsShapeResource> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, PhysicsShapeResource object) throws IOException {
+    public void deserialize(BinaryReader reader, TypeFactory factory, HFW.PhysicsShapeResource object) throws IOException {
         var shapeMap = new ArrayList<Shape>();
         shapeMap.add(null);
 

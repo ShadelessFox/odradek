@@ -1,12 +1,12 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data.ref;
 
-import sh.adelessfox.odradek.game.ObjectHolder;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.util.Iterator;
 
-public record Ref<T extends TypedObject>(ObjectId objectId, T object) implements ObjectHolder<T> {
+public record Ref<T extends TypedObject>(ObjectId objectId, T object) implements ObjectWithIdHolder<T> {
     public static <T extends TypedObject> Iterable<T> unwrap(Iterable<Ref<T>> iterable) {
         return () -> unwrap(iterable.iterator());
     }

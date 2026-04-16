@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.ui;
 
-import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.util.Reflections;
 

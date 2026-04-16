@@ -3,8 +3,8 @@ package sh.adelessfox.odradek.game.hfw.converters.scene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.math.Matrix4f;
@@ -15,14 +15,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
 
-abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWestGame> {
+abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
 
     static Mesh convertMesh(
-        List<Ref<HorizonForbiddenWest.ShadingGroup>> shadingGroups,
-        List<Ref<HorizonForbiddenWest.PrimitiveResource>> primitiveResources,
-        HorizonForbiddenWest.StreamingDataSource dataSource,
-        ForbiddenWestGame game
+        List<Ref<HFW.ShadingGroup>> shadingGroups,
+        List<Ref<HFW.PrimitiveResource>> primitiveResources,
+        HFW.StreamingDataSource dataSource,
+        HFWGame game
     ) {
         var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
         var primitives = new ArrayList<Primitive>(primitiveResources.size());
@@ -55,7 +55,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         return Mesh.of(primitives);
     }
 
-    static Mesh convertHairMesh(HorizonForbiddenWest.HairSkinnedMesh mesh, ForbiddenWestGame game) {
+    static Mesh convertHairMesh(HFW.HairSkinnedMesh mesh, HFWGame game) {
         var vertexArray = mesh.skinnedVertexArray().get();
         var vertexAccessors = buildVertexAccessors(vertexArray, null);
 
@@ -79,7 +79,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         ));
     }
 
-    private static Accessor buildHairJointsAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
+    private static Accessor buildHairJointsAccessor(HFW.DataBufferResource buffer) {
         var accessor = buildBufferAccessor(buffer);
         var view = accessor.asShortView();
 
@@ -99,7 +99,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         return Accessor.of(output.flip(), new Type.I16(4, true, false), accessor.count());
     }
 
-    private static Accessor buildBufferAccessor(HorizonForbiddenWest.DataBufferResource buffer) {
+    private static Accessor buildBufferAccessor(HFW.DataBufferResource buffer) {
         if (buffer.isStreaming()) {
             throw new UnsupportedOperationException("Streaming buffers are not supported");
         }
@@ -118,7 +118,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         };
     }
 
-    static Matrix4f toMat4(HorizonForbiddenWest.Mat34 matrix) {
+    static Matrix4f toMat4(HFW.Mat34 matrix) {
         return new Matrix4f(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
             matrix.row0().y(), matrix.row1().y(), matrix.row2().y(), 0.f,
@@ -127,7 +127,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
         );
     }
 
-    static Matrix4f toMat4(HorizonForbiddenWest.WorldTransform transform) {
+    static Matrix4f toMat4(HFW.WorldTransform transform) {
         var rot = transform.orientation();
         var pos = transform.position();
         return new Matrix4f(
@@ -139,7 +139,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
     }
 
     private static Map<Semantic, Accessor> buildVertexAccessors(
-        HorizonForbiddenWest.VertexArrayResource object,
+        HFW.VertexArrayResource object,
         ByteBuffer buffer
     ) {
         var accessors = new HashMap<Semantic, Accessor>();
@@ -252,7 +252,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, ForbiddenWes
     }
 
     private static Accessor buildIndexAccessor(
-        HorizonForbiddenWest.IndexArrayResource object,
+        HFW.IndexArrayResource object,
         ByteBuffer buffer,
         int startIndex,
         int endIndex

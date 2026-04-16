@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.ui.renderers;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.*;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -11,34 +11,34 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 import java.util.Optional;
 import java.util.Set;
 
-public final class GeometryRenderer implements Renderer.OfObject<TypedObject, ForbiddenWestGame> {
+public final class GeometryRenderer implements Renderer.OfObject<TypedObject, HFWGame> {
     private static final Set<Class<?>> TYPES = Set.of(
-        IVec2.class, Vec2.class, Vec2Pack.class,
-        IVec3.class, Vec3.class, Vec3Pack.class,
-        IVec4.class, Vec4.class, Vec4Pack.class,
-        ISize.class, FSize.class,
-        IRect.class, FRect.class,
-        IRange.class, FRange.class
+        HFW.IVec2.class, HFW.Vec2.class, HFW.Vec2Pack.class,
+        HFW.IVec3.class, HFW.Vec3.class, HFW.Vec3Pack.class,
+        HFW.IVec4.class, HFW.Vec4.class, HFW.Vec4Pack.class,
+        HFW.ISize.class, HFW.FSize.class,
+        HFW.IRect.class, HFW.FRect.class,
+        HFW.IRange.class, HFW.FRange.class
     );
 
     @Override
-    public Optional<StyledText> styledText(TypeInfo info, TypedObject object, ForbiddenWestGame game) {
+    public Optional<StyledText> styledText(TypeInfo info, TypedObject object, HFWGame game) {
         return switch (object) {
-            case IVec2 vec -> vec(vec.x(), vec.y());
-            case IVec3 vec -> vec(vec.x(), vec.y(), vec.z());
-            case IVec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
-            case Vec2 vec -> vec(vec.x(), vec.y());
-            case Vec3 vec -> vec(vec.x(), vec.y(), vec.z());
-            case Vec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
-            case Vec2Pack vec -> vec(vec.x(), vec.y());
-            case Vec3Pack vec -> vec(vec.x(), vec.y(), vec.z());
-            case Vec4Pack vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
-            case ISize size -> size(size.width(), size.height());
-            case FSize size -> size(size.width(), size.height());
-            case IRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
-            case FRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
-            case IRange range -> range(range.min(), range.max());
-            case FRange range -> range(range.min(), range.max());
+            case HFW.IVec2 vec -> vec(vec.x(), vec.y());
+            case HFW.IVec3 vec -> vec(vec.x(), vec.y(), vec.z());
+            case HFW.IVec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
+            case HFW.Vec2 vec -> vec(vec.x(), vec.y());
+            case HFW.Vec3 vec -> vec(vec.x(), vec.y(), vec.z());
+            case HFW.Vec4 vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
+            case HFW.Vec2Pack vec -> vec(vec.x(), vec.y());
+            case HFW.Vec3Pack vec -> vec(vec.x(), vec.y(), vec.z());
+            case HFW.Vec4Pack vec -> vec(vec.x(), vec.y(), vec.z(), vec.w());
+            case HFW.ISize size -> size(size.width(), size.height());
+            case HFW.FSize size -> size(size.width(), size.height());
+            case HFW.IRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
+            case HFW.FRect rect -> rect(rect.left(), rect.top(), rect.right(), rect.bottom());
+            case HFW.IRange range -> range(range.min(), range.max());
+            case HFW.FRange range -> range(range.min(), range.max());
             default -> Optional.empty();
         };
     }

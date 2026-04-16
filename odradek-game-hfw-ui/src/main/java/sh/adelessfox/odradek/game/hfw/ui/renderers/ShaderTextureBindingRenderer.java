@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.hfw.ui.renderers;
 
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ShaderTextureBinding;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureBindingPacking;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.Renderer;
@@ -10,9 +10,9 @@ import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
 
-public class ShaderTextureBindingRenderer implements Renderer.OfObject<ShaderTextureBinding, ForbiddenWestGame> {
+public class ShaderTextureBindingRenderer implements Renderer.OfObject<HFW.ShaderTextureBinding, HFWGame> {
     @Override
-    public Optional<StyledText> styledText(TypeInfo info, ShaderTextureBinding object, ForbiddenWestGame game) {
+    public Optional<StyledText> styledText(TypeInfo info, HFW.ShaderTextureBinding object, HFWGame game) {
         var builder = StyledText.builder();
 
         switch (TextureBindingPacking.of(object.packedData())) {

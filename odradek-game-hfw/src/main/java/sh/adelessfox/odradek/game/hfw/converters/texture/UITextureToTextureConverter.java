@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.game.hfw.converters.texture;
 
 import sh.adelessfox.odradek.compression.Decompressor;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
@@ -13,11 +13,11 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public final class UITextureToTextureConverter
-    extends BaseTextureConverter<HorizonForbiddenWest.UITexture>
-    implements Converter<HorizonForbiddenWest.UITexture, Texture, ForbiddenWestGame> {
+    extends BaseTextureConverter<HFW.UITexture>
+    implements Converter<HFW.UITexture, Texture, HFWGame> {
 
     @Override
-    public Optional<Texture> convert(HorizonForbiddenWest.UITexture object, ForbiddenWestGame game) {
+    public Optional<Texture> convert(HFW.UITexture object, HFWGame game) {
         if (object.animated()) {
             return convertTextureFrames(object.largeTextureFrames());
         } else {
@@ -25,7 +25,7 @@ public final class UITextureToTextureConverter
         }
     }
 
-    private static Optional<Texture> convertTextureFrames(HorizonForbiddenWest.UITextureFramesInfo object) {
+    private static Optional<Texture> convertTextureFrames(HFW.UITextureFramesInfo object) {
         var format = mapFormat(object.pixelFormat().unwrap()).orElse(null);
         if (format == null) {
             return Optional.empty();
@@ -53,13 +53,13 @@ public final class UITextureToTextureConverter
         ));
     }
 
-    private static Optional<Texture> convertTexture(HorizonForbiddenWest.TextureInfo object) {
+    private static Optional<Texture> convertTexture(HFW.TextureInfo object) {
         var format = mapFormat(object.header().pixelFormat().unwrap()).orElse(null);
         if (format == null) {
             return Optional.empty();
         }
 
-        assert object.header().type() == HorizonForbiddenWest.ETextureType._2D;
+        assert object.header().type() == HFW.ETextureType._2D;
         assert object.header().numMips() == 1;
         assert object.header().numSurfaces() == 0;
         assert object.data().streamedMips() == 0;
@@ -75,7 +75,7 @@ public final class UITextureToTextureConverter
         ));
     }
 
-    private static Duration mapFrequency(HorizonForbiddenWest.EUpdateFrequency frequency) {
+    private static Duration mapFrequency(HFW.EUpdateFrequency frequency) {
         double hz = switch (frequency) {
             case _0 -> 7.49;
             case _1 -> 14.99;

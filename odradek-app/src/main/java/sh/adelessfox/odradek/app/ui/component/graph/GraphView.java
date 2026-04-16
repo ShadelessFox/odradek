@@ -9,10 +9,9 @@ import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectSupplier;
-import sh.adelessfox.odradek.game.ds2.game.DS2Game;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectSupplier;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -36,14 +35,14 @@ public class GraphView implements View<JComponent>, ToolPanel {
     private static final Logger log = LoggerFactory.getLogger(GraphView.class);
 
     private final EventBus eventBus;
-    private final Game game;
+    private final DecimaGame game;
 
     private final StructuredTree<GraphStructure> tree;
     private final JPanel panel;
     private final ValidationPopup filterValidationPopup;
 
     @Inject
-    GraphView(EventBus eventBus, Game game) {
+    GraphView(EventBus eventBus, DecimaGame game) {
         this.eventBus = eventBus;
         this.game = game;
 
@@ -158,7 +157,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
     }
 
     private StructuredTree<GraphStructure> createGraphTree() {
-        var tree = new StructuredTree<>(new GraphStructure.Graph(((DS2Game) game).getStreamingGraph()));
+        var tree = new StructuredTree<>(new GraphStructure.Graph(game.streamingGraph()));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new TreeLabelProvider<>() {
@@ -189,7 +188,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
                 eventBus.publish(new MainEvent.ShowObject(new ObjectId(
-                    groupObject.group().groupID(),
+                    groupObject.group().id(),
                     groupObject.index())
                 ));
             }

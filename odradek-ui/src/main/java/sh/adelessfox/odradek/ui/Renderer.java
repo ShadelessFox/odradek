@@ -41,17 +41,13 @@ public sealed interface Renderer<T, G extends Game>
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
             return Reflections.getGenericInterfaceArgument(getClass(), OfObject.class, 0);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         default Class<G> gameType() {
-            return Reflections.getGenericInterface(getClass(), OfObject.class)
-                .map(iface -> (Class<G>) Reflections.getRawType(iface.getActualTypeArguments()[1]))
-                .orElseThrow();
+            return Reflections.getGenericInterfaceArgument(getClass(), OfObject.class, 1);
         }
     }
 
@@ -69,19 +65,13 @@ public sealed interface Renderer<T, G extends Game>
         boolean supports(ClassTypeInfo info, ClassAttrInfo attr);
 
         @Override
-        @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
-            return Reflections.getGenericInterface(getClass(), OfAttribute.class)
-                .map(iface -> (Class<T>) Reflections.getRawType(iface.getActualTypeArguments()[0]))
-                .orElseThrow();
+            return Reflections.getGenericInterfaceArgument(getClass(), OfAttribute.class, 0);
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         default Class<G> gameType() {
-            return Reflections.getGenericInterface(getClass(), OfAttribute.class)
-                .map(iface -> (Class<G>) Reflections.getRawType(iface.getActualTypeArguments()[1]))
-                .orElseThrow();
+            return Reflections.getGenericInterfaceArgument(getClass(), OfAttribute.class, 1);
         }
     }
 

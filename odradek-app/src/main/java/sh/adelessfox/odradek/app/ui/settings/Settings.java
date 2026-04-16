@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.settings;
 import com.google.gson.annotations.JsonAdapter;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
 import sh.adelessfox.odradek.app.ui.settings.gson.EditorStateAdapter;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
 
 import java.util.List;

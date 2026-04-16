@@ -1,12 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.converters;
 
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.game.hfw.game.ForbiddenWestGame;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetChannel;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.ETextureSetType;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureSetEntry;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.TextureSetTextureDesc;
+import sh.adelessfox.odradek.game.hfw.game.HFWGame;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPacking;
 import sh.adelessfox.odradek.game.hfw.rtti.data.TextureSetPackingChannel;
 import sh.adelessfox.odradek.texture.Channel;
@@ -17,10 +13,10 @@ import sh.adelessfox.odradek.texture.TextureSet;
 import java.util.Optional;
 
 public class TextureSetToTextureSetConverter
-    implements Converter<HorizonForbiddenWest.TextureSet, TextureSet, ForbiddenWestGame> {
+    implements Converter<HFW.TextureSet, TextureSet, HFWGame> {
 
     @Override
-    public Optional<TextureSet> convert(HorizonForbiddenWest.TextureSet object, ForbiddenWestGame game) {
+    public Optional<TextureSet> convert(HFW.TextureSet object, HFWGame game) {
         var sourceTextures = object.textureDesc().stream()
             .map(TextureSetToTextureSetConverter::mapSourceTexture)
             .flatMap(Optional::stream)
@@ -37,14 +33,14 @@ public class TextureSetToTextureSetConverter
         ));
     }
 
-    private static Optional<TextureSet.SourceTexture> mapSourceTexture(TextureSetTextureDesc desc) {
+    private static Optional<TextureSet.SourceTexture> mapSourceTexture(HFW.TextureSetTextureDesc desc) {
         var name = desc.path().isEmpty() ? desc.textureType().toString() : desc.path().substring("work:".length());
         var type = mapTextureSetType(desc.textureType().unwrap());
         var colorSpace = desc.gammaSpace() ? TextureColorSpace.SRGB : TextureColorSpace.LINEAR;
         return Optional.of(new TextureSet.SourceTexture(name, type, colorSpace));
     }
 
-    private static Optional<TextureSet.PackedTexture> mapPackedTexture(TextureSetEntry entry, ForbiddenWestGame game) {
+    private static Optional<TextureSet.PackedTexture> mapPackedTexture(HFW.TextureSetEntry entry, HFWGame game) {
         var texture = Converter.convert(entry.texture().get(), Texture.class, game).orElse(null);
         if (texture == null) {
             return Optional.empty();
@@ -70,7 +66,7 @@ public class TextureSetToTextureSetConverter
         );
     }
 
-    private static Channel mapTextureSetChannel(ETextureSetChannel channel) {
+    private static Channel mapTextureSetChannel(HFW.ETextureSetChannel channel) {
         return switch (channel) {
             case R -> Channel.R;
             case G -> Channel.G;
@@ -79,7 +75,7 @@ public class TextureSetToTextureSetConverter
         };
     }
 
-    private static String mapTextureSetType(ETextureSetType type) {
+    private static String mapTextureSetType(HFW.ETextureSetType type) {
         return type.toString();
     }
 }

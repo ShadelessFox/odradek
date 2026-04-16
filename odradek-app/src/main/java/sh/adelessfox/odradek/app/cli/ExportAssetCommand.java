@@ -7,8 +7,8 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class ExportAssetCommand extends AbstractCommand {
     private Path output;
 
     @Override
-    void execute(Game game) {
+    void execute(DecimaGame game) {
         if (format == null) {
             log.info("No format specified for export; supported formats are: {}", supportedFormats());
             return;

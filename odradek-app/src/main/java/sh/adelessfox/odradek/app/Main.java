@@ -9,7 +9,7 @@ import picocli.CommandLine.Option;
 import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
-import sh.adelessfox.odradek.game.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;

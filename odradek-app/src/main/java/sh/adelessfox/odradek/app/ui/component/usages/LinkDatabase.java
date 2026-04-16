@@ -1,15 +1,12 @@
-package sh.adelessfox.odradek.game.hfw.game;
+package sh.adelessfox.odradek.app.ui.component.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.LinkProvider;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.StreamingGroupData;
-import sh.adelessfox.odradek.game.hfw.storage.StreamingGraphResource;
-import sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.hashing.HashCode;
-import sh.adelessfox.odradek.hashing.HashFunction;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.io.BytesBinaryWriter;
@@ -18,6 +15,7 @@ import sh.adelessfox.odradek.rtti.data.TypePath;
 import sh.adelessfox.odradek.rtti.data.TypeVisitor;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -25,23 +23,26 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 
-public final class LinkDatabase implements LinkProvider {
+final class LinkDatabase implements Closeable {
+    record Link(int groupId, int objectIndex, TypePath path) {
+    }
+
     private static final Logger log = LoggerFactory.getLogger(LinkDatabase.class);
 
     private static final int FILE_MAGIC = 'G' | 'R' << 8 | 'P' << 16 | 'H' << 24;
     private static final int FILE_VERSION = 1;
 
-    private final ForbiddenWestGame game;
+    private final DecimaGame game;
     private final BinaryReader reader;
     private final int[] offsets;
 
-    private LinkDatabase(ForbiddenWestGame game, BinaryReader reader, int[] offsets) {
+    private LinkDatabase(DecimaGame game, BinaryReader reader, int[] offsets) {
         this.game = game;
         this.reader = reader;
         this.offsets = offsets;
     }
 
-    public static LinkDatabase open(ForbiddenWestGame game, Path path) throws IOException {
+    static LinkDatabase open(DecimaGame game, Path path) throws IOException {
         var reader = BinaryReader.open(path);
         try {
             int magic = reader.readInt();
@@ -59,7 +60,7 @@ public final class LinkDatabase implements LinkProvider {
                 throw new IllegalArgumentException("Link table checksum mismatch");
             }
 
-            int count = game.getStreamingGraph().types().size();
+            int count = game.streamingGraph().types().size();
             var offsets = reader.readInts(count);
             return new LinkDatabase(game, reader, offsets);
         } catch (Exception e) {
@@ -68,13 +69,12 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    public static void build(
-        ForbiddenWestGame game,
+    static void build(
+        DecimaGame game,
         Path path,
         BiConsumer<Integer, Integer> progress
     ) throws IOException {
-        var graph = game.getStreamingGraph();
-        var reader = game.getStreamingReader();
+        var graph = game.streamingGraph();
 
         int objects = graph.types().size();
         var links = IntStream.range(0, objects)
@@ -86,13 +86,13 @@ public final class LinkDatabase implements LinkProvider {
             var group = graph.groups().get(i);
             progress.accept(i + 1, graph.groups().size());
 
-            var info = visitGroup(group, reader);
+            var info = visitGroup(group, game);
             for (int j = 0; j < info.objects().size(); j++) {
                 var object = info.objects().get(j);
-                for (LinkProvider.Link link : object.out()) {
+                for (Link link : object.out()) {
                     var targetGroup = graph.group(link.groupId());
                     int targetObject = targetGroup.typeStart() + link.objectIndex();
-                    links.get(targetObject).add(PackedLink.pack(group.groupID(), j, link.path()));
+                    links.get(targetObject).add(PackedLink.pack(group.id(), j, link.path()));
                 }
             }
         }
@@ -119,16 +119,12 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    public static HashCode computeHash(ForbiddenWestGame game) throws IOException {
-        var graph = game.getStreamingGraph();
-        var system = game.getStreamingSystem();
-        var linkTable = system.getFileData(Math.toIntExact(graph.linkTableID()), 0, graph.linkTableSize());
-        return HashFunction.murmur3().hash(linkTable);
+    public static HashCode computeHash(DecimaGame game) {
+        return game.streamingGraph().checksum();
     }
 
-    @Override
-    public List<LinkProvider.Link> getIncomingLinks(ObjectId target) throws IOException {
-        var graph = game.getStreamingGraph();
+    public List<Link> getIncomingLinks(ObjectId target) throws IOException {
+        var graph = game.streamingGraph();
         var group = graph.group(target.groupId());
         int index = group.typeStart() + target.objectIndex();
 
@@ -139,24 +135,22 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    @Override
     public List<Link> getOutgoingLinks(ObjectId source) throws IOException {
         var object = game.readObject(source.groupId(), source.objectIndex());
         var info = visitObject(object);
         return info.out();
     }
 
-    @Override
     public void close() throws IOException {
         reader.close();
     }
 
-    private static GroupInfo visitGroup(StreamingGroupData group, StreamingObjectReader reader) throws IOException {
-        var result = reader.readGroup(group.groupID());
-        var objects = new ArrayList<ObjectInfo>(group.numObjects());
+    private static GroupInfo visitGroup(StreamingGraph.Group group, DecimaGame game) throws IOException {
+        var result = game.readGroup(group.id());
+        var objects = new ArrayList<ObjectInfo>(group.types().size());
 
-        for (int i = 0; i < group.numObjects(); i++) {
-            objects.add(visitObject(result.objects().get(i).object()));
+        for (int i = 0; i < group.types().size(); i++) {
+            objects.add(visitObject(result.get(i)));
         }
 
         return new GroupInfo(group, objects);
@@ -187,12 +181,12 @@ public final class LinkDatabase implements LinkProvider {
         return new ObjectInfo(links);
     }
 
-    private static LinkProvider.Link readLink(StreamingGraphResource graph, BinaryReader reader) throws IOException {
+    private static Link readLink(StreamingGraph graph, BinaryReader reader) throws IOException {
         int groupId = readVarInt(reader);
         int objectIndex = readVarInt(reader);
-        var objectType = graph.types().get(graph.group(groupId).typeStart() + objectIndex);
+        var objectType = graph.group(groupId).types().get(objectIndex);
         var path = readPath(objectType, reader);
-        return new LinkProvider.Link(groupId, objectIndex, path);
+        return new Link(groupId, objectIndex, path);
     }
 
     private static void writeLink(PackedLink link, BinaryWriter writer) throws IOException {
@@ -262,7 +256,7 @@ public final class LinkDatabase implements LinkProvider {
         writer.writeByte((byte) value);
     }
 
-    private record ObjectInfo(List<LinkProvider.Link> out) {
+    private record ObjectInfo(List<Link> out) {
         private ObjectInfo {
             out = List.copyOf(out);
         }
@@ -273,7 +267,7 @@ public final class LinkDatabase implements LinkProvider {
         }
     }
 
-    private record GroupInfo(StreamingGroupData data, List<ObjectInfo> objects) {
+    private record GroupInfo(StreamingGraph.Group group, List<ObjectInfo> objects) {
         private GroupInfo {
             objects = List.copyOf(objects);
         }

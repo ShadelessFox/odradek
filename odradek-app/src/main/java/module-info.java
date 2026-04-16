@@ -11,10 +11,11 @@ module odradek.app {
     requires jakarta.inject;
     requires java.desktop;
     requires odradek.core;
-    requires odradek.game;
+    requires odradek.game.decima;
+    requires odradek.game.ds2.ui;
     requires odradek.game.ds2;
-    requires odradek.game.hfw;
     requires odradek.game.hfw.ui;
+    requires odradek.game.hfw;
     requires odradek.rtti;
     requires odradek.ui;
     requires org.slf4j;

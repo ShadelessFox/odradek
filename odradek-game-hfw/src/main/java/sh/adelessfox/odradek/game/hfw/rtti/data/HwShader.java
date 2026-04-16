@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 
 import java.io.IOException;
@@ -9,7 +9,7 @@ import java.util.List;
 public record HwShader(
     int unk00,
     int unk04,
-    HorizonForbiddenWest.EProgramTypeMask programTypeMask,
+    HFW.EProgramTypeMask programTypeMask,
     int unk0C,
     int unk10,
     List<HwShaderProgram> programs,
@@ -22,7 +22,7 @@ public record HwShader(
     public static HwShader read(BinaryReader reader) throws IOException {
         var unk00 = reader.readInt();
         var unk04 = reader.readInt();
-        var programTypeMask = HorizonForbiddenWest.EProgramTypeMask.valueOf(reader.readInt());
+        var programTypeMask = HFW.EProgramTypeMask.valueOf(reader.readInt());
         var unk0C = reader.readInt();
         var unk10 = reader.readInt();
         var programs = reader.readObjects(reader.readInt(), HwShaderProgram::read);

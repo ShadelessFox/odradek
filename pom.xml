@@ -21,6 +21,7 @@
         <module>odradek-export-json</module>
         <module>odradek-export-png</module>
         <module>odradek-export-wave</module>
+        <module>odradek-game-decima</module>
         <module>odradek-game-ds2-ui</module>
         <module>odradek-game-ds2</module>
         <module>odradek-game-hfw-ui</module>

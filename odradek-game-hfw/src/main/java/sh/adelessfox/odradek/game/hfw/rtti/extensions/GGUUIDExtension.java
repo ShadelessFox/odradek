@@ -1,12 +1,12 @@
 package sh.adelessfox.odradek.game.hfw.rtti.extensions;
 
-import sh.adelessfox.odradek.game.hfw.rtti.HorizonForbiddenWest.GGUUID;
+import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 
 import java.util.HexFormat;
 
 public interface GGUUIDExtension {
     default String toDisplayString() {
-        var object = (GGUUID) this;
+        var object = (HFW.GGUUID) this;
         var builder = new StringBuilder(36);
         var format = HexFormat.of();
 

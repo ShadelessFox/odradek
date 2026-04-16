@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.cli;
 
 import picocli.CommandLine.Option;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -13,15 +14,15 @@ abstract class AbstractCommand implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        try (Game game = createGame(source)) {
+        try (var game = createGame(source)) {
             execute(game);
             return null;
         }
     }
 
-    abstract void execute(Game game) throws IOException;
+    abstract void execute(DecimaGame game) throws IOException;
 
-    private Game createGame(Path path) throws IOException {
-        return Game.load(path);
+    private DecimaGame createGame(Path path) throws IOException {
+        return (DecimaGame) Game.load(path);
     }
 }

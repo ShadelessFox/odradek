@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app.ui.component.bookmarks;
 
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.game.ObjectId;
-import sh.adelessfox.odradek.game.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.Comparator;
