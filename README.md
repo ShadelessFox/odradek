@@ -7,23 +7,19 @@
 This is a reincarnation of [Decima Workshop](https://github.com/ShadelessFox/decima), a modding tool
 for Horizon Zero Dawn and Death Stranding.
 
-Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attempt to come up with something that could be useful for modders.
+> [!TIP]
+> Prebuilt binaries can be downloaded from [Actions](https://github.com/ShadelessFox/odradek/actions/workflows/build.yml).
 
-> [!IMPORTANT]
-> 
-> A separate build targeting **Death Stranding 2** is now available [here](https://github.com/ShadelessFox/odradek/releases/tag/v1.0).
+Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attempt to come up with something that could be useful for modders.
 
 ### Features
 - Preview for static and skinned models; export to `.cast`
 - Preview for regular and animated textures; export to `.dds`, `.png`
-- Audio playback; export to `.wav`
+- Audio playback; export to `.wav`, `.wem` (for Wwise audio), `.at9` (for Atrac9 audio)
 - Rich object inspector that utilizes type information
 - Command-line interface with the export functionality fully exposed
 
 ### Building
-
-> [!TIP]
-> Prebuilt binaries can be downloaded from [Actions](https://github.com/ShadelessFox/odradek/actions/workflows/build.yml).
 
 #### Prerequisites
 
@@ -41,6 +37,7 @@ Ready-to-use distributions can be found under the `odradek-app/target/dist` dire
 
 <details>
 <summary>Module sh.adelessfox.atrac9j not found</summary>
+
 Make sure you cloned the repository with the `--recursive` flag, or run the following command in the root directory of the project:
 
 ```bash
@@ -53,6 +50,7 @@ Then refresh the Maven project in IntelliJ IDEA and make sure `sh.adelessfox:atr
 
 <details>
 <summary>Preview features are not enabled</summary>
+
 You will need to supply a compiler flag  in IntelliJ IDEA's settings to make this error go away.
 
 Go to _File | Settings | Build, Execution, Deployment | Compiler_
@@ -60,7 +58,8 @@ and set **___Shared VM options___** to `--enable-preview`.
 </details>
 
 <details>
-<summary>Cannot resolve symbol 'HFW'</summary>
+<summary>Cannot resolve symbol 'HFW' / 'DS2'</summary>
+
 IntelliJ IDEA refuses to provide code analysis for generated RTTI classes due to the enormous size of the generated
 code, and all references will be highlighted in _red_. The project will still compile and launch just fine.
 

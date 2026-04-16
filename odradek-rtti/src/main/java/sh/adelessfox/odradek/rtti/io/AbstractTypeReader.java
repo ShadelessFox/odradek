@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.rtti.io;
 
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
@@ -18,6 +19,7 @@ public abstract class AbstractTypeReader {
             case ClassTypeInfo t -> readCompound(t, reader, factory);
             case ContainerTypeInfo t -> readContainer(t, reader, factory);
             case PointerTypeInfo t -> readPointer(t, reader, factory);
+            case BitSetTypeInfo t -> throw new NotImplementedException(); // TODO;
         };
     }
 

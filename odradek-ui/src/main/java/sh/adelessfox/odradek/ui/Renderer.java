@@ -40,8 +40,14 @@ public sealed interface Renderer<T, G extends Game>
             return supportedType().isAssignableFrom(info.type());
         }
 
+        @Override
         default Class<T> supportedType() {
             return Reflections.getGenericInterfaceArgument(getClass(), OfObject.class, 0);
+        }
+
+        @Override
+        default Class<G> gameType() {
+            return Reflections.getGenericInterfaceArgument(getClass(), OfObject.class, 1);
         }
     }
 
@@ -56,8 +62,16 @@ public sealed interface Renderer<T, G extends Game>
          * @param attr class attribute info
          * @return {@code true} if this renderer supports the given attribute
          */
-        default boolean supports(ClassTypeInfo info, ClassAttrInfo attr) {
-            return false;
+        boolean supports(ClassTypeInfo info, ClassAttrInfo attr);
+
+        @Override
+        default Class<T> supportedType() {
+            return Reflections.getGenericInterfaceArgument(getClass(), OfAttribute.class, 0);
+        }
+
+        @Override
+        default Class<G> gameType() {
+            return Reflections.getGenericInterfaceArgument(getClass(), OfAttribute.class, 1);
         }
     }
 
@@ -71,19 +85,19 @@ public sealed interface Renderer<T, G extends Game>
     }
 
     @SuppressWarnings("unchecked")
-    static <T, G extends Game> Optional<OfObject<T, G>> renderer(TypeInfo info) {
+    static <T, G extends Game> Optional<OfObject<T, G>> renderer(TypeInfo info, G game) {
         return renderers()
             .gather(Gatherers.instanceOf(OfObject.class))
-            .filter(r -> r.supports(info))
+            .filter(r -> r.gameType().isInstance(game) && r.supports(info))
             .map(r -> (OfObject<T, G>) r)
             .findFirst();
     }
 
     @SuppressWarnings("unchecked")
-    static <T, G extends Game> Optional<OfAttribute<T, G>> renderer(ClassTypeInfo parent, ClassAttrInfo attr) {
+    static <T, G extends Game> Optional<OfAttribute<T, G>> renderer(ClassTypeInfo parent, ClassAttrInfo attr, G game) {
         return renderers()
             .gather(Gatherers.instanceOf(OfAttribute.class))
-            .filter(r -> r.supports(parent, attr))
+            .filter(r -> r.gameType().isInstance(game) && r.supports(parent, attr))
             .map(r -> (OfAttribute<T, G>) r)
             .findFirst();
     }
@@ -119,4 +133,8 @@ public sealed interface Renderer<T, G extends Game>
     default Optional<StyledText> styledText(TypeInfo info, T object, G game) {
         return Optional.empty();
     }
+
+    Class<T> supportedType();
+
+    Class<G> gameType();
 }

@@ -5,28 +5,39 @@ import sh.adelessfox.odradek.audio.container.wave.WaveFmtChunk;
 import sh.adelessfox.odradek.io.BinaryReader;
 
 import java.io.IOException;
+import java.util.OptionalInt;
 
 public final class WwiseFmtChunk extends WaveFmtChunk {
     public static final Id<WwiseFmtChunk> ID = new Id<>("fmt ", WwiseFmtChunk.class);
 
-    private final int sampleCount;
+    private final OptionalInt sampleCount;
 
     private WwiseFmtChunk(BinaryReader reader) throws IOException {
         super(reader);
 
-        int size = Short.toUnsignedInt(reader.readShort());
+        var size = Short.toUnsignedInt(reader.readShort());
         var end = reader.position() + size;
-        if (size >= 2) {
-            reader.skip(2); // ushort ext_unk;
-        }
-        if (size >= 6) {
-            reader.skip(4); // uint subtype;
-        }
-        if (size == 24) {
-            reader.skip(16); // ubyte sig_unk[16];
-        }
 
-        sampleCount = reader.readInt();
+        sampleCount = switch (formatTag()) {
+            case 0xFFFF -> {
+                // Vorbis
+                if (size >= 6) {
+                    reader.skip(6);
+                } else if (size >= 2) {
+                    reader.skip(2);
+                }
+                if (size == 24) {
+                    reader.skip(16); // ubyte sig_unk[16];
+                }
+                yield OptionalInt.of(reader.readInt());
+            }
+            case 0xFFFE -> {
+                // PCM
+                yield OptionalInt.empty();
+            }
+            default -> throw new IOException("Unknown Wwise fmt chunk format tag: " + formatTag());
+        };
+
         reader.position(end);
     }
 
@@ -34,7 +45,7 @@ public final class WwiseFmtChunk extends WaveFmtChunk {
         return (reader, _) -> new WwiseFmtChunk(reader);
     }
 
-    public int sampleCount() {
+    public OptionalInt sampleCount() {
         return sampleCount;
     }
 }

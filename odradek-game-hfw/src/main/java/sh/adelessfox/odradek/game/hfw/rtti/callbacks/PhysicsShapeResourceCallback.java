@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
+import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.PhysicsMaterial;
+import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.shape.Shape;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.middleware.jolt.physics.collision.PhysicsMaterial;
-import sh.adelessfox.odradek.middleware.jolt.physics.collision.shape.Shape;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -21,8 +21,8 @@ public class PhysicsShapeResourceCallback implements ExtraBinaryDataCallback<HFW
         var materialMap = new ArrayList<PhysicsMaterial>();
         materialMap.add(null);
 
-        // FIXME: Skipped for now
-        var shape = restoreFromBinaryState(reader, shapeMap, materialMap);
+        // NOTE: Deserialized and thrown away; to serialize back, must be stored somewhere
+        restoreFromBinaryState(reader, shapeMap, materialMap);
     }
 
     private static Shape restoreFromBinaryState(
@@ -51,7 +51,7 @@ public class PhysicsShapeResourceCallback implements ExtraBinaryDataCallback<HFW
         var materials = new PhysicsMaterial[reader.readInt()];
         for (int i = 0; i < materials.length; i++) {
             int materialId = reader.readInt();
-            if (materialId == ~0) {
+            if (materialId == -1) {
                 continue;
             }
             if (materialId < materialMap.size()) {
@@ -67,5 +67,4 @@ public class PhysicsShapeResourceCallback implements ExtraBinaryDataCallback<HFW
 
         return shape;
     }
-
 }

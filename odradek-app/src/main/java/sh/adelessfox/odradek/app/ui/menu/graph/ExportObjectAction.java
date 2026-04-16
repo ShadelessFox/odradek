@@ -126,7 +126,7 @@ public class ExportObjectAction extends Action {
             chooser.setSelectedFile(path);
         }
 
-        if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) {
+        if (chooser.showSaveDialog(JOptionPane.getRootFrame()) != JFileChooser.APPROVE_OPTION) {
             log.debug("Export cancelled by user");
             return;
         }

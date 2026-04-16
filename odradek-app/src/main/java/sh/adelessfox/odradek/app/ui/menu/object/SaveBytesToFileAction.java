@@ -27,7 +27,7 @@ public class SaveBytesToFileAction extends Action {
         chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         chooser.setSelectedFile(new File("output.bin"));
 
-        if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) {
+        if (chooser.showSaveDialog(JOptionPane.getRootFrame()) != JFileChooser.APPROVE_OPTION) {
             return;
         }
 

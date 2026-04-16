@@ -98,7 +98,7 @@ public class Main implements Callable<Void> {
         chooser.setDialogTitle("Choose game directory");
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(JOptionPane.getRootFrame()) == JFileChooser.APPROVE_OPTION) {
             return Optional.of(chooser.getSelectedFile().toPath());
         } else {
             return Optional.empty();

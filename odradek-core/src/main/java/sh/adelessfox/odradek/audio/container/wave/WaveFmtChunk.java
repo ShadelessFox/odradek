@@ -17,7 +17,7 @@ public class WaveFmtChunk implements RiffChunk {
     private final int avgBytesPerSec;
     private final int blockAlign;
     private final int bitsPerSample;
-    private final WaveFormatExtensible extension;
+    private final Object extension;
 
     public WaveFmtChunk(BinaryReader reader) throws IOException {
         formatTag = Short.toUnsignedInt(reader.readShort());
@@ -26,12 +26,7 @@ public class WaveFmtChunk implements RiffChunk {
         avgBytesPerSec = reader.readInt();
         blockAlign = Short.toUnsignedInt(reader.readShort());
         bitsPerSample = Short.toUnsignedInt(reader.readShort());
-
-        if (formatTag == WAVE_FORMAT_EXTENSIBLE) {
-            extension = readExtension(reader);
-        } else {
-            extension = null;
-        }
+        extension = readExtension(reader, formatTag);
     }
 
     public static RiffChunkReader<? extends WaveFmtChunk> reader() {
@@ -62,11 +57,11 @@ public class WaveFmtChunk implements RiffChunk {
         return bitsPerSample;
     }
 
-    public WaveFormatExtensible extension() {
+    public Object extension() {
         return extension;
     }
 
-    protected WaveFormatExtensible readExtension(BinaryReader reader) throws IOException {
-        return new WaveFormatExtensible(reader);
+    protected Object readExtension(BinaryReader reader, int format) throws IOException {
+        return null;
     }
 }

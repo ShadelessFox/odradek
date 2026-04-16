@@ -1,0 +1,16 @@
+package sh.adelessfox.odradek.game.ds2.rtti.callbacks;
+
+import sh.adelessfox.odradek.game.ds2.rtti.DS2;
+import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
+import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+
+import java.io.IOException;
+
+public class DebugMouseCursorPS4Callback implements ExtraBinaryDataCallback<DS2.DebugMouseCursorPS4> {
+    @Override
+    public void deserialize(BinaryReader reader, TypeFactory factory, DS2.DebugMouseCursorPS4 object) throws IOException {
+        object.stride(reader.readInt());
+        object.data(reader.readBytes(reader.readInt()));
+    }
+}

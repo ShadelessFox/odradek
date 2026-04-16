@@ -4,10 +4,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public abstract sealed class HashFunction
-    permits Crc32Function, Fnv1aFunction, Murmur3Function, Md5Function {
+    permits Crc32Function, Fnv132Function, Fnv1a64Function, Md5Function, Murmur3Function {
 
-    public static HashFunction fnv1a() {
-        return Fnv1aFunction.FNV1A;
+    public static HashFunction fnv1_32() {
+        return Fnv132Function.FNV1;
+    }
+
+    public static HashFunction fnv1a_64() {
+        return Fnv1a64Function.FNV1A;
     }
 
     public static HashFunction crc32c() {

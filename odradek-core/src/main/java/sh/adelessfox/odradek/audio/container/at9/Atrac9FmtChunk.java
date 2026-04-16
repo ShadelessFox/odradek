@@ -24,7 +24,10 @@ public final class Atrac9FmtChunk extends WaveFmtChunk {
     }
 
     @Override
-    protected WaveFormatExtensible readExtension(BinaryReader reader) throws IOException {
-        return new Atrac9FormatExtensible(reader);
+    protected WaveFormatExtensible readExtension(BinaryReader reader, int format) throws IOException {
+        if (format == WAVE_FORMAT_EXTENSIBLE) {
+            return new Atrac9FormatExtensible(reader);
+        }
+        return null;
     }
 }

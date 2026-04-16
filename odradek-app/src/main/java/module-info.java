@@ -12,6 +12,8 @@ module odradek.app {
     requires java.desktop;
     requires odradek.core;
     requires odradek.game.decima;
+    requires odradek.game.ds2.ui;
+    requires odradek.game.ds2;
     requires odradek.game.hfw.ui;
     requires odradek.game.hfw;
     requires odradek.rtti;
