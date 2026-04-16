@@ -85,7 +85,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         Map<Integer, GroupResult> groups,
         boolean readSubgroups
     ) throws IOException {
-        var subGroups = new ArrayList<GroupResult>(group.subGroups().count());
+        var subGroups = new ArrayList<GroupResult>(group.subGroups().size());
         if (readSubgroups) {
             for (StreamingGraph.Group subGroup : group.subGroups()) {
                 subGroups.add(readGroup(subGroup, groups, true));
@@ -105,7 +105,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     private GroupResult readSingleGroup(StreamingGraph.Group group) throws IOException {
-        var objects = new ArrayList<TypedObject>(group.types().count());
+        var objects = new ArrayList<TypedObject>(group.types().size());
         for (ClassTypeInfo type : group.types()) {
             objects.add(factory.newInstance(type));
         }

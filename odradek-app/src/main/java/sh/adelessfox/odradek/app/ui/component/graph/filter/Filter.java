@@ -33,7 +33,7 @@ public sealed interface Filter {
         @Override
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group -> FilterResult.of(group.group().subGroups().count() > 0);
+                case GraphStructure.Group group -> FilterResult.of(!group.group().subGroups().isEmpty());
                 default -> FilterResult.NOT_APPLICABLE;
             };
         }

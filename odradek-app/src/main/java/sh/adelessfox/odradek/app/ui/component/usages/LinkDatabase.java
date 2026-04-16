@@ -91,7 +91,7 @@ final class LinkDatabase implements Closeable {
                 var object = info.objects().get(j);
                 for (Link link : object.out()) {
                     var targetGroup = graph.group(link.groupId());
-                    int targetObject = targetGroup.types().start() + link.objectIndex();
+                    int targetObject = targetGroup.typeStart() + link.objectIndex();
                     links.get(targetObject).add(PackedLink.pack(group.id(), j, link.path()));
                 }
             }
@@ -126,7 +126,7 @@ final class LinkDatabase implements Closeable {
     public List<Link> getIncomingLinks(ObjectId target) throws IOException {
         var graph = game.streamingGraph();
         var group = graph.group(target.groupId());
-        int index = group.types().start() + target.objectIndex();
+        int index = group.typeStart() + target.objectIndex();
 
         synchronized (reader) {
             return reader
@@ -147,9 +147,9 @@ final class LinkDatabase implements Closeable {
 
     private static GroupInfo visitGroup(StreamingGraph.Group group, DecimaGame game) throws IOException {
         var result = game.readGroup(group.id());
-        var objects = new ArrayList<ObjectInfo>(group.types().count());
+        var objects = new ArrayList<ObjectInfo>(group.types().size());
 
-        for (int i = 0; i < group.types().count(); i++) {
+        for (int i = 0; i < group.types().size(); i++) {
             objects.add(visitObject(result.get(i)));
         }
 
