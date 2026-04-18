@@ -69,6 +69,7 @@ import java.math.BigInteger;
         @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
         @Extension(type = "ELanguage", extension = ELanguageExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
+        @Extension(type = "LocalizedSimpleSoundResource", extension = LocalizedSimpleSoundResourceExtension.class),
         @Extension(type = "LocalizedTextResource", extension = LocalizedTextResourceExtension.class),
         @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class),
@@ -96,6 +97,7 @@ module odradek.game.ds2 {
     exports sh.adelessfox.odradek.game.ds2.storage;
 
     provides sh.adelessfox.odradek.game.Converter with
+        sh.adelessfox.odradek.game.ds2.converters.audio.LocalizedSimpleSoundResourceToAudioConverter,
         sh.adelessfox.odradek.game.ds2.converters.audio.WwiseWemResourceToAudioConverter,
         sh.adelessfox.odradek.game.ds2.converters.scene.MeshToSceneConverter,
         sh.adelessfox.odradek.game.ds2.converters.texture.TextureToTextureConverter,
