@@ -99,7 +99,6 @@ module odradek.game.hfw {
     exports sh.adelessfox.odradek.game.hfw.rtti.extensions;
     exports sh.adelessfox.odradek.game.hfw.rtti;
     exports sh.adelessfox.odradek.game.hfw.storage;
-    exports sh.adelessfox.odradek.game.hfw;
 
     provides sh.adelessfox.odradek.game.Converter with
         sh.adelessfox.odradek.game.hfw.converters.audio.SimpleSoundResourceToAudioConverter,

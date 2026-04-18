@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.game.hfw;
+package sh.adelessfox.odradek.game.decima.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
