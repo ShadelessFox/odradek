@@ -5,6 +5,7 @@ import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.ui.Disposable;
+import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.StyledComponent;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -39,7 +40,7 @@ final class AudioPlayer extends JPanel implements Disposable {
         progress.addMouseMotionListener(handler);
 
         waveform = new AudioWaveform(pcm16);
-        waveform.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
+        waveform.setBorder(LineBorder.of());
 
         var playAction = new PlayAction();
 

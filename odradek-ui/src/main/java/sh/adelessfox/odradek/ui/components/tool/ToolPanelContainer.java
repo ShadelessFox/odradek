@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.components.tool;
 
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.Focusable;
+import sh.adelessfox.odradek.ui.components.LineBorder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -147,8 +148,8 @@ public final class ToolPanelContainer extends JComponent {
 
     private static JPanel createButtonPane(Placement placement) {
         var border = switch (placement) {
-            case LEFT -> BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("Component.borderColor"));
-            case RIGHT -> BorderFactory.createMatteBorder(0, 1, 0, 0, UIManager.getColor("Component.borderColor"));
+            case LEFT -> LineBorder.of().withThickness(0, 0, 0, 1);
+            case RIGHT -> LineBorder.of().withThickness(0, 1, 0, 0);
         };
 
         var panel = new JPanel();

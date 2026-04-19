@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui;
 
-import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
@@ -75,11 +75,7 @@ public final class Application {
             FlatUIDefaultsInspector.install("ctrl shift alt Y");
         }
 
-        if (params.enableDarkTheme()) {
-            FlatDarkLaf.setup();
-        } else {
-            FlatLightLaf.setup();
-        }
+        FlatLightLaf.setup();
 
         var frame = new JFrame();
         frame.add(component.presenter().getRoot());
@@ -99,7 +95,12 @@ public final class Application {
         });
 
         // Ensure settings are initialized and loaded after everything else
-        component.settings();
+        Settings settings = component.settings();
+
+        settings.theme().ifPresent(theme -> {
+            FlatLaf.setup(theme.createLookAndFeel());
+            FlatLaf.updateUI();
+        });
 
         // And now we can show the frame
         frame.setVisible(true);
@@ -143,6 +144,10 @@ public final class Application {
 
     public EventBus events() {
         return component.events();
+    }
+
+    public Settings settings() {
+        return component.settings();
     }
 
     public boolean isDebugMode() {
