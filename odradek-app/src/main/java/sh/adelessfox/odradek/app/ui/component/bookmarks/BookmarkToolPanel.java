@@ -42,6 +42,7 @@ public class BookmarkToolPanel implements ToolPanel {
     public JComponent createComponent() {
         tree = new StructuredTree<>(new BookmarkStructure.Root(repository));
         tree.setShowsRootHandles(true);
+        tree.setRootVisible(false);
         tree.setLabelProvider(new BookmarkLabelProvider());
         tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
