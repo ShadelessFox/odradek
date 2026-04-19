@@ -8,7 +8,7 @@ This is a reincarnation of [Decima Workshop](https://github.com/ShadelessFox/dec
 for Horizon Zero Dawn and Death Stranding.
 
 > [!TIP]
-> Prebuilt binaries can be downloaded from [Actions](https://github.com/ShadelessFox/odradek/actions/workflows/build.yml).
+> Nightly prebuilt binaries can be downloaded from [workflows](https://nightly.link/ShadelessFox/odradek/workflows/build/master).
 
 Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attempt to come up with something that could be useful for modders.
 
