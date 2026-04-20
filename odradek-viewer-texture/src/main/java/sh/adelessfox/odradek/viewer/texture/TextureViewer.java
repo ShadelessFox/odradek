@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.viewer.texture;
 
-import com.formdev.flatlaf.FlatClientProperties;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
@@ -65,7 +64,7 @@ public final class TextureViewer implements Viewer {
         populateChannelActions(imageToolbar, imageView);
 
         // To visually separate it from the toolbar
-        imagePane.putClientProperty(FlatClientProperties.STYLE, "border: 1,0,0,0, $Component.borderColor");
+        imagePane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")));
 
         var panel = new JPanel();
         panel.setLayout(new BorderLayout());

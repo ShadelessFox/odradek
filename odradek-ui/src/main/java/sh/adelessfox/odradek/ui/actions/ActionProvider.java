@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.ui.actions;
 import java.util.List;
 
 public interface ActionProvider {
-    List<? extends Action> create(ActionContext context);
+    List<Action> create(ActionContext context);
 
     /**
      * Whether the submenu items should be numbered with mnemonics.

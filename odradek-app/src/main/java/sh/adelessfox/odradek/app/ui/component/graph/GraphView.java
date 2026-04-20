@@ -15,7 +15,6 @@ import sh.adelessfox.odradek.game.decima.ObjectSupplier;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
@@ -139,9 +138,10 @@ public class GraphView implements View<JComponent>, ToolPanel {
              - To include groups that have <i>child groups</i>, use <code>has:subgroups</code>.
             </html>
             """);
-        filterField.setBorder(LineBorder.of()
-            .withThickness(0, 0, 1, 0)
-            .withInsets(6, 8, 5, 8));
+        filterField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
+            BorderFactory.createEmptyBorder(6, 8, 6, 8)
+        ));
 
         Runnable callback = () -> eventBus.publish(new GraphViewEvent.UpdateFilter(
             filterField.getText(),

@@ -1,5 +1,3 @@
-import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
-
 module odradek.app {
     requires ch.qos.logback.classic;
     requires ch.qos.logback.core;
@@ -50,14 +48,12 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.component.bookmarks.menu.RenameBookmarkAction,
         sh.adelessfox.odradek.app.ui.component.usages.menu.ShowUsagesAction,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
-        MainMenu.View,
+        sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,
         sh.adelessfox.odradek.app.ui.menu.main.file.OpenGraphAction,
         sh.adelessfox.odradek.app.ui.menu.main.file.OpenObjectAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.ReportAnIssueAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.AboutAction,
-        sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction,
-        sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction.Placeholder,
         sh.adelessfox.odradek.app.ui.menu.graph.CopyIdToClipboardAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,
