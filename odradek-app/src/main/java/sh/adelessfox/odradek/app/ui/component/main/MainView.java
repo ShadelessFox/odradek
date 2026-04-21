@@ -12,6 +12,7 @@ import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
+import java.awt.*;
 
 @Singleton
 public class MainView implements View<JComponent> {
@@ -19,7 +20,7 @@ public class MainView implements View<JComponent> {
     public static final String BOOKMARKS_PANEL_ID = "bookmarks";
     public static final String USAGES_PANEL_ID = "usages";
 
-    private final ToolPanelContainer root;
+    private final JPanel root;
 
     @Inject
     MainView(
@@ -29,18 +30,38 @@ public class MainView implements View<JComponent> {
         EditorManager editorManager,
         EventBus eventBus
     ) {
-        root = new ToolPanelContainer(ToolPanelContainer.Placement.LEFT);
-        root.addPrimaryPanel(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
-        root.addSecondaryPanel(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
-        root.addSecondaryPanel(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel);
-        root.setContent(editorManager.getRoot());
-        root.showPanel(GRAPH_PANEL_ID);
+        var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus);
+        var bottom = buildBottom();
 
-        eventBus.subscribe(MainEvent.ShowPanel.class, event -> root.showPanel(event.id()));
+        root = new JPanel(new BorderLayout());
+        root.add(center);
+        root.add(bottom, BorderLayout.SOUTH);
     }
 
     @Override
     public JComponent getRoot() {
         return root;
+    }
+
+    private static JComponent buildCenter(
+        GraphPresenter graphPresenter,
+        BookmarkToolPanel bookmarkPanel,
+        UsagesToolPanel usagesPanel,
+        EditorManager editorManager,
+        EventBus eventBus
+    ) {
+        var center = new ToolPanelContainer(ToolPanelContainer.Placement.LEFT);
+        center.addPrimaryPanel(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
+        center.addSecondaryPanel(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
+        center.addSecondaryPanel(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel);
+        center.setContent(editorManager.getRoot());
+        center.showPanel(GRAPH_PANEL_ID);
+
+        eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.showPanel(event.id()));
+        return center;
+    }
+
+    private static JComponent buildBottom() {
+        return new JToolBar();
     }
 }

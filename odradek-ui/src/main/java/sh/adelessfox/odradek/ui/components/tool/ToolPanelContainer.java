@@ -36,7 +36,7 @@ public final class ToolPanelContainer extends JComponent {
 
     public ToolPanelContainer(Placement placement) {
         this.placement = placement;
-        this.buttonsPanel = createButtonPane(placement);
+        this.buttonsPanel = createButtonPane();
 
         setLayout(new BorderLayout());
         add(outerSplitter, BorderLayout.CENTER);
@@ -91,7 +91,7 @@ public final class ToolPanelContainer extends JComponent {
         int separatorIndex = buttonsPanel.getComponentCount();
         secondaryButtons.forEach(buttonsPanel::add);
         if (buttonsPanel.getComponentCount() != separatorIndex) {
-            buttonsPanel.add(new JSeparator(), "growx", separatorIndex);
+            buttonsPanel.add(new JSeparator(), "al center,w 16", separatorIndex);
         }
 
         panels.put(id, panel);
@@ -145,17 +145,8 @@ public final class ToolPanelContainer extends JComponent {
         }
     }
 
-    private static JPanel createButtonPane(Placement placement) {
-        var border = switch (placement) {
-            case LEFT -> BorderFactory.createMatteBorder(0, 0, 0, 1, UIManager.getColor("Component.borderColor"));
-            case RIGHT -> BorderFactory.createMatteBorder(0, 1, 0, 0, UIManager.getColor("Component.borderColor"));
-        };
-
-        var panel = new JPanel();
-        panel.setLayout(new MigLayout("ins 0,gap 0,wrap"));
-        panel.setBorder(border);
-
-        return panel;
+    private static JPanel createButtonPane() {
+        return new JPanel(new MigLayout("ins 0,gap 0,wrap"));
     }
 
     private static final class Splitter extends JComponent {

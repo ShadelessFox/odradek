@@ -31,6 +31,7 @@ public final class EditorStack extends FlatTabbedPane {
         this.manager = manager;
 
         setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+        setHasFullBorder(true);
         setTabsClosable(true);
         setTabCloseToolTipText("Close");
         setTabCloseCallback((_, index) -> manager.closeEditor(getEditorAt(index)));

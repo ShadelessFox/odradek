@@ -37,7 +37,11 @@ final class ToolPanelGroup {
                 throw new IllegalArgumentException("Panel doesn't belong to this group");
             }
             if (info.component == null) {
-                info.component = panel.createComponent();
+                var holder = new JPanel(new BorderLayout());
+                holder.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
+                holder.add(panel.createComponent());
+
+                info.component = holder;
                 container.add(info.component, info.id);
             }
             layout.show(container, info.id);
