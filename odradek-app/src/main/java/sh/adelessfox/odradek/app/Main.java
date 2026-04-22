@@ -1,5 +1,9 @@
 package sh.adelessfox.odradek.app;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.extras.FlatInspector;
+import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import com.sun.tools.attach.VirtualMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,13 +13,14 @@ import picocli.CommandLine.Option;
 import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
+import sh.adelessfox.odradek.app.ui.component.browser.BrowserDialog;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 @Command(
     name = "odradek",
@@ -25,7 +30,7 @@ import java.util.concurrent.Callable;
     },
     mixinStandardHelpOptions = true
 )
-public class Main implements Callable<Void> {
+public class Main implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     @Option(names = {"-s", "--source"}, description = "Path to the game's root directory where its executable resides")
@@ -44,7 +49,12 @@ public class Main implements Callable<Void> {
     }
 
     @Override
-    public Void call() throws Exception {
+    public void run() {
+        SwingUtilities.invokeLater(this::start);
+    }
+
+    private void start() {
+        setupUI();
         ensureSingleRunningInstance(getClass());
 
         var configPath = determineConfigPath("Odradek");
@@ -55,14 +65,35 @@ public class Main implements Callable<Void> {
             System.exit(1);
         }
 
-        Application.start(new ApplicationParameters(
-            configPath,
-            sourcePath,
-            darkTheme,
-            debugMode
-        ));
+        try {
+            Application.start(new ApplicationParameters(configPath, sourcePath, debugMode));
+        } catch (IOException e) {
+            log.error("Failed to start the application", e);
+            JOptionPane.showMessageDialog(
+                null,
+                "Failed to start the application: " + e.getMessage(),
+                "Odradek",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
-        return null;
+    private void setupUI() {
+        if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
+            // enable custom window decorations
+            JFrame.setDefaultLookAndFeelDecorated(true);
+            JDialog.setDefaultLookAndFeelDecorated(true);
+        }
+
+        if (debugMode) {
+            FlatInspector.install("ctrl shift alt X");
+            FlatUIDefaultsInspector.install("ctrl shift alt Y");
+        }
+
+        if (darkTheme) {
+            FlatDarkLaf.setup();
+        } else {
+            FlatLightLaf.setup();
+        }
     }
 
     private static void ensureSingleRunningInstance(Class<?> cls) {
@@ -94,14 +125,13 @@ public class Main implements Callable<Void> {
     }
 
     private static Optional<Path> chooseGameDirectory() {
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Choose game directory");
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        var dialog = new BrowserDialog();
+        dialog.setTitle("Choose game directory");
+        dialog.setSize(550, 300);
+        dialog.setLocationRelativeTo(null);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        dialog.setVisible(true);
 
-        if (chooser.showOpenDialog(JOptionPane.getRootFrame()) == JFileChooser.APPROVE_OPTION) {
-            return Optional.of(chooser.getSelectedFile().toPath());
-        } else {
-            return Optional.empty();
-        }
+        return dialog.getPath();
     }
 }

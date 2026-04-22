@@ -69,4 +69,9 @@ module odradek.app {
 
     provides sh.adelessfox.odradek.ui.Viewer.Provider with
         sh.adelessfox.odradek.app.ui.editors.ObjectViewer.Provider;
+
+    provides sh.adelessfox.odradek.app.util.GameLocator
+        with sh.adelessfox.odradek.app.util.steam.SteamGameLocator;
+
+    uses sh.adelessfox.odradek.app.util.GameLocator;
 }

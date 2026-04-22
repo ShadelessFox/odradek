@@ -44,9 +44,19 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
 
     private void setup() {
         addMouseListener(new MouseAdapter() {
+            int lastRow = -1;
+
             @Override
             public void mousePressed(MouseEvent e) {
-                if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() % getToggleClickCount() == 0) {
+                lastRow = getRowForLocation(e.getX(), e.getY());
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)
+                    && e.getClickCount() % getToggleClickCount() == 0
+                    && getRowForLocation(e.getX(), e.getY()) == lastRow
+                ) {
                     notifyTreeAction(e, TreeActionListener::treePathClicked);
                 }
             }
@@ -224,7 +234,11 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         }
     }
 
-    private void notifyTreeAction(TreePath path, EventObject event, BiConsumer<TreeActionListener, TreeActionEvent> consumer) {
+    private void notifyTreeAction(
+        TreePath path,
+        EventObject event,
+        BiConsumer<TreeActionListener, TreeActionEvent> consumer
+    ) {
         consumer.accept(actionListeners.broadcast(), new TreeActionEvent(event, path, getRowForPath(path)));
     }
 
@@ -250,7 +264,15 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         }
 
         @Override
-        protected void customizeCellRenderer(JTree tree, T value, boolean selected, boolean expanded, boolean focused, boolean leaf, int row) {
+        protected void customizeCellRenderer(
+            JTree tree,
+            T value,
+            boolean selected,
+            boolean expanded,
+            boolean focused,
+            boolean leaf,
+            int row
+        ) {
             @SuppressWarnings("unchecked")
             var element = (T) getElement(value);
             var text = labelProvider.getStyledText(element).orElse(null);
@@ -262,7 +284,15 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         }
 
         @Override
-        public Icon getIcon(JTree tree, T value, boolean selected, boolean expanded, boolean focused, boolean leaf, int row) {
+        public Icon getIcon(
+            JTree tree,
+            T value,
+            boolean selected,
+            boolean expanded,
+            boolean focused,
+            boolean leaf,
+            int row
+        ) {
             @SuppressWarnings("unchecked")
             var element = (T) getElement(value);
             return labelProvider.getIcon(element).orElse(null);

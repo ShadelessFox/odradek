@@ -1,9 +1,5 @@
 package sh.adelessfox.odradek.app.ui;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
-import com.formdev.flatlaf.extras.FlatInspector;
-import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
@@ -17,7 +13,6 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Dialogs;
-import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -63,23 +58,6 @@ public final class Application {
             log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
             Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
         });
-
-        if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
-            // enable custom window decorations
-            JFrame.setDefaultLookAndFeelDecorated(true);
-            JDialog.setDefaultLookAndFeelDecorated(true);
-        }
-
-        if (params.enableDebugMode()) {
-            FlatInspector.install("ctrl shift alt X");
-            FlatUIDefaultsInspector.install("ctrl shift alt Y");
-        }
-
-        if (params.enableDarkTheme()) {
-            FlatDarkLaf.setup();
-        } else {
-            FlatLightLaf.setup();
-        }
 
         var frame = new JFrame();
         frame.add(component.presenter().getRoot());
