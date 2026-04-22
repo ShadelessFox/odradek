@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.ui.components.tree.TreeActionEvent;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 
 import javax.swing.*;
+import java.awt.event.KeyEvent;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -26,11 +27,11 @@ public final class BrowserDialog extends JDialog {
         var pane = new JScrollPane(tree);
         pane.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
 
-        var openButton = createButton("Open", 'O', this::openPressed);
+        var openButton = createButton("Open", KeyEvent.VK_O, this::openPressed);
         openButton.setEnabled(false);
 
-        var browseButton = createButton("Browse", 'B', this::browsePressed);
-        var exitButton = createButton("Exit", 'E', this::exitPressed);
+        var browseButton = createButton("Browse", KeyEvent.VK_B, this::browsePressed);
+        var exitButton = createButton("Exit", KeyEvent.VK_X, this::exitPressed);
 
         tree.addActionListener(new TreeActionListener() {
             @Override
