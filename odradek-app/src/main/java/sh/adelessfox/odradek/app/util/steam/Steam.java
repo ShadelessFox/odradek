@@ -27,7 +27,7 @@ final class Steam {
                         log.warn("Failed to parse appmanifest at {}: {}", manifestPath, manifest.unwrapError());
                         continue;
                     }
-                    var appState = manifest.unwrap().getAsJsonObject("AppState");
+                    var appState = manifest.unwrap().get("AppState").getAsObject();
                     var installDir = folderPath.resolve("common", appState.get("installdir").getAsString());
                     if (Files.exists(installDir)) {
                         paths.add(installDir);
@@ -50,8 +50,8 @@ final class Steam {
             return List.of();
         }
         var folders = new ArrayList<Path>();
-        for (var entry : libraryFolders.unwrap().getAsJsonObject("libraryfolders").entrySet()) {
-            var folder = entry.getValue().getAsJsonObject();
+        for (var entry : libraryFolders.unwrap().get("libraryfolders").getAsObject().entrySet()) {
+            var folder = entry.getValue().getAsObject();
             var folderPath = Path.of(folder.get("path").getAsString());
             if (Files.exists(folderPath)) {
                 folders.add(folderPath.resolve("steamapps"));

@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.util.steam.vdf;
 
-import com.google.gson.JsonObject;
 import sh.adelessfox.odradek.parsing.AbstractParser;
 import sh.adelessfox.odradek.parsing.util.ReaderSource;
 import sh.adelessfox.odradek.util.Result;
@@ -16,13 +15,13 @@ public final class VdfParser extends AbstractParser<VdfToken, VdfError, VdfLexer
         super(lexer);
     }
 
-    public static Result<JsonObject, VdfError> parse(Path path) throws IOException {
+    public static Result<VdfObject, VdfError> parse(Path path) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(path)) {
             return new VdfParser(new VdfLexer(new ReaderSource(reader))).parse();
         }
     }
 
-    Result<JsonObject, VdfError> parse() {
+    Result<VdfObject, VdfError> parse() {
         return parseObject(VdfToken.End.class::isInstance);
     }
 
@@ -37,8 +36,8 @@ public final class VdfParser extends AbstractParser<VdfToken, VdfError, VdfLexer
         };
     }
 
-    private Result<JsonObject, VdfError> parseObject(Predicate<VdfToken> end) {
-        var object = new JsonObject();
+    private Result<VdfObject, VdfError> parseObject(Predicate<VdfToken> end) {
+        var object = new VdfObject();
         while (true) {
             switch (next()) {
                 case Result.Error<?, VdfError> error -> {
@@ -53,8 +52,8 @@ public final class VdfParser extends AbstractParser<VdfToken, VdfError, VdfLexer
                         return value.map(_ -> null);
                     }
                     switch (value.unwrap()) {
-                        case String v -> object.addProperty(key.value(), v);
-                        case JsonObject v -> object.add(key.value(), v);
+                        case String v -> object.add(key.value(), new VdfString(v));
+                        case VdfObject v -> object.add(key.value(), v);
                         default -> throw new IllegalStateException();
                     }
                 }
