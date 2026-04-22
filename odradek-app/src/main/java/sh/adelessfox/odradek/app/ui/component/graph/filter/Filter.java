@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.component.graph.filter;
 
 import sh.adelessfox.odradek.app.ui.component.graph.GraphStructure;
+import sh.adelessfox.odradek.parsing.util.StringSource;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.util.Result;
 
@@ -8,7 +9,7 @@ import java.util.Set;
 
 public sealed interface Filter {
     static Result<Filter, FilterError> parse(String input) {
-        return FilterParser.parse(input);
+        return new FilterParser(new FilterLexer(new StringSource(input))).parse();
     }
 
     FilterResult test(GraphStructure structure, Set<FilterOption> options);
@@ -17,8 +18,7 @@ public sealed interface Filter {
         @Override
         public FilterResult test(GraphStructure structure, Set<FilterOption> options) {
             return switch (structure) {
-                case GraphStructure.Group group when group.filterable() ->
-                    FilterResult.of(group.group().id() == id);
+                case GraphStructure.Group group when group.filterable() -> FilterResult.of(group.group().id() == id);
                 default -> FilterResult.NOT_APPLICABLE;
             };
         }

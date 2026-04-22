@@ -1,17 +1,18 @@
 package sh.adelessfox.odradek.app.util.steam.vdf;
 
-sealed interface VdfToken {
-    int offset();
+import sh.adelessfox.odradek.parsing.Location;
+import sh.adelessfox.odradek.parsing.Token;
 
-    record Text(String value, int offset) implements VdfToken {
+sealed interface VdfToken extends Token {
+    record Text(String value, Location location) implements VdfToken {
     }
 
-    record Open(int offset) implements VdfToken {
+    record Open(Location location) implements VdfToken {
     }
 
-    record Close(int offset) implements VdfToken {
+    record Close(Location location) implements VdfToken {
     }
 
-    record End(int offset) implements VdfToken {
+    record End(Location location) implements VdfToken {
     }
 }

@@ -64,6 +64,6 @@ public class GraphPresenter implements Presenter<GraphView> {
         }
         return Filter.parse(input)
             .map(filter -> Optional.<Predicate<GraphStructure>>of(structure -> filter.test(structure, options) != FilterResult.FAIL))
-            .mapError(error -> "%s at %d".formatted(error.message(), error.offset()));
+            .mapError(error -> "%s at %s".formatted(error.message(), error.location()));
     }
 }

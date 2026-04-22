@@ -1,46 +1,44 @@
 package sh.adelessfox.odradek.app.ui.component.graph.filter;
 
+import sh.adelessfox.odradek.parsing.AbstractParser;
+import sh.adelessfox.odradek.parsing.Location;
 import sh.adelessfox.odradek.util.Result;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
-
-public final class FilterParser {
-    private FilterParser() {
+final class FilterParser extends AbstractParser<FilterToken, FilterError, FilterLexer> {
+    FilterParser(FilterLexer lexer) {
+        super(lexer);
     }
 
-    static Result<Filter, FilterError> parse(String input) {
-        return tokenize(input).flatMap(FilterParser::parse);
-    }
-
-    private static Result<Filter, FilterError> parse(List<FilterToken> tokens) {
-        var pending = new ArrayDeque<>(tokens);
-        var result = parseInfix(pending);
+    Result<Filter, FilterError> parse() {
+        var result = parseInfix();
         if (result.isError()) {
             return result;
         }
-        FilterToken end = pending.remove();
-        if (!(end instanceof FilterToken.End)) {
-            return Result.error(new FilterError("Unexpected token " + end.toDisplayString(), end.offset()));
-        }
-        return result;
+        return switch (next()) {
+            case Result.Ok(var tok) when tok instanceof FilterToken.End -> result;
+            case Result.Ok(var tok) ->
+                Result.error(new FilterError("Unexpected token " + tok.toDisplayString(), tok.location()));
+            case Result.Error<?, FilterError> error -> error.map(_ -> null);
+        };
     }
 
-    private static Result<Filter, FilterError> parseInfix(Queue<FilterToken> tokens) {
-        return parseInfix(tokens, 0);
+    private Result<Filter, FilterError> parseInfix() {
+        return parseInfix(0);
     }
 
-    private static Result<Filter, FilterError> parseInfix(Queue<FilterToken> tokens, int rbp) {
-        var left = parsePrefix(tokens);
+    private Result<Filter, FilterError> parseInfix(int rbp) {
+        var left = parsePrefix();
         if (left.isError()) {
             return left;
         }
 
         var result = left.unwrap();
         while (true) {
-            if (!(tokens.element() instanceof FilterToken.Infix infix)) {
+            var op = peek();
+            if (op.isError()) {
+                return op.map(_ -> null);
+            }
+            if (!(op.unwrap() instanceof FilterToken.Infix infix)) {
                 break;
             }
 
@@ -49,9 +47,9 @@ public final class FilterParser {
                 break;
             }
 
-            tokens.remove();
+            next();
 
-            var right = parseInfix(tokens, lbp);
+            var right = parseInfix(lbp);
             if (right.isError()) {
                 return right;
             }
@@ -65,11 +63,16 @@ public final class FilterParser {
         return Result.ok(result);
     }
 
-    private static Result<Filter, FilterError> parsePrefix(Queue<FilterToken> tokens) {
-        if (tokens.element() instanceof FilterToken.Prefix prefix) {
-            tokens.remove();
+    private Result<Filter, FilterError> parsePrefix() {
+        var peek = peek();
+        if (peek.isError()) {
+            return peek.map(_ -> null);
+        }
 
-            var right = parseInfix(tokens, prefix.precedence());
+        if (peek.unwrap() instanceof FilterToken.Prefix prefix) {
+            next();
+
+            var right = parseInfix(prefix.precedence());
             if (right.isError()) {
                 return right;
             }
@@ -79,52 +82,56 @@ public final class FilterParser {
             };
         }
 
-        return parsePrimary(tokens);
+        return parsePrimary();
     }
 
-    private static Result<Filter, FilterError> parsePrimary(Queue<FilterToken> tokens) {
-        var token = tokens.remove();
-        return switch (token) {
+    private Result<Filter, FilterError> parsePrimary() {
+        var token = next();
+        if (token.isError()) {
+            return token.map(_ -> null);
+        }
+        return switch (token.unwrap()) {
             // [key] ':' [value]
-            case FilterToken.Name(var key, int offset) -> {
-                var colon = tokens.remove();
-                if (!(colon instanceof FilterToken.Colon)) {
-                    yield Result.error(new FilterError(
-                        "Expected ':' after name but found " + colon.toDisplayString(),
-                        colon.offset()
-                    ));
+            case FilterToken.Name(var key, var location) -> {
+                var colon = expect(
+                    FilterToken.Colon.class::isInstance,
+                    t -> new FilterError("Expected ':' after name but found " + t.toDisplayString(), t.location()));
+                if (colon.isError()) {
+                    yield colon.map(_ -> null);
                 }
-                var value = tokens.remove();
-                yield parseKey(key, offset, value);
+                var value = next();
+                if (value.isError()) {
+                    yield value.map(_ -> null);
+                }
+                yield parseKey(key, location, value.unwrap());
             }
             // '(' [expr] ')'
             case FilterToken.Open _ -> {
-                var inner = parseInfix(tokens);
+                var inner = parseInfix();
                 if (inner.isError()) {
                     yield inner;
                 }
-                var close = tokens.remove();
-                if (!(close instanceof FilterToken.Close)) {
-                    yield Result.error(new FilterError(
-                        "Expected closing parenthesis but found " + close.toDisplayString(),
-                        close.offset()
-                    ));
+                var close = expect(
+                    FilterToken.Close.class::isInstance,
+                    t -> new FilterError("Expected closing parenthesis but found " + t.toDisplayString(), t.location()));
+                if (close.isError()) {
+                    yield close.map(_ -> null);
                 }
                 yield inner;
             }
-            case FilterToken.End _ -> Result.error(new FilterError("Unexpected end of input", token.offset()));
-            default -> Result.error(new FilterError("Unexpected token " + token.toDisplayString(), token.offset()));
+            case FilterToken.End t -> Result.error(new FilterError("Unexpected end of input", t.location()));
+            case FilterToken t ->
+                Result.error(new FilterError("Unexpected token " + t.toDisplayString(), t.location()));
         };
     }
 
-    private static Result<Filter, FilterError> parseKey(String key, int offset, FilterToken value) {
+    private Result<Filter, FilterError> parseKey(String key, Location location, FilterToken value) {
         return switch (key) {
             case "group" -> {
                 if (!(value instanceof FilterToken.Number(var id, _))) {
                     yield Result.error(new FilterError(
                         "Expected group ID after ':' but found " + value.toDisplayString(),
-                        value.offset()
-                    ));
+                        value.location()));
                 }
                 yield Result.ok(new Filter.GroupId(id));
             }
@@ -132,8 +139,7 @@ public final class FilterParser {
                 if (!(value instanceof FilterToken.Name(var name, _))) {
                     yield Result.error(new FilterError(
                         "Expected type name after ':' but found " + value.toDisplayString(),
-                        value.offset()
-                    ));
+                        value.location()));
                 }
                 yield Result.ok(new Filter.GroupType(name));
             }
@@ -141,84 +147,16 @@ public final class FilterParser {
                 if (!(value instanceof FilterToken.Name(var what, _))) {
                     yield Result.error(new FilterError(
                         "Expected criteria name after ':' but found " + value.toDisplayString(),
-                        value.offset()
-                    ));
+                        value.location()));
                 }
                 yield switch (what) {
                     case "subgroups" -> Result.ok(new Filter.GroupHasSubgroups());
                     case "supergroups" -> Result.ok(new Filter.GroupHasSupergroups());
                     case "roots" -> Result.ok(new Filter.GroupHasRoots());
-                    default -> Result.error(new FilterError("Unknown 'has' criteria '" + what + "'", value.offset()));
+                    default -> Result.error(new FilterError("Unknown 'has' criteria '" + what + "'", value.location()));
                 };
             }
-            default -> Result.error(new FilterError("Unknown criteria key '" + key + "'", offset));
+            default -> Result.error(new FilterError("Unknown criteria key '" + key + "'", location));
         };
-    }
-
-    static Result<List<FilterToken>, FilterError> tokenize(String input) {
-        var tokens = new ArrayList<FilterToken>();
-        for (int offset = 0; offset < input.length(); offset++) {
-            char ch = input.charAt(offset);
-            if (Character.isWhitespace(ch)) {
-                continue;
-            }
-            if (ch == '(') {
-                tokens.add(new FilterToken.Open(offset));
-            } else if (ch == ')') {
-                tokens.add(new FilterToken.Close(offset));
-            } else if (ch == ':') {
-                tokens.add(new FilterToken.Colon(offset));
-            } else if (isNameStart(ch)) {
-                int start = offset;
-                while (offset < input.length() - 1) {
-                    if (!isNamePart(input.charAt(offset + 1))) {
-                        break;
-                    }
-                    offset++;
-                }
-                var value = input.substring(start, offset + 1);
-                switch (value) {
-                    case "and" -> tokens.add(new FilterToken.And(start));
-                    case "or" -> tokens.add(new FilterToken.Or(start));
-                    case "not" -> tokens.add(new FilterToken.Not(start));
-                    default -> tokens.add(new FilterToken.Name(value, start));
-                }
-            } else if (isNumberStart(ch)) {
-                int start = offset;
-                while (offset < input.length() - 1) {
-                    if (!isNumberPart(input.charAt(offset + 1))) {
-                        break;
-                    }
-                    offset++;
-                }
-                int value;
-                try {
-                    value = Integer.parseInt(input.substring(start, offset + 1));
-                } catch (NumberFormatException e) {
-                    return Result.error(new FilterError(e.getMessage(), start));
-                }
-                tokens.add(new FilterToken.Number(value, start));
-            } else {
-                return Result.error(new FilterError("Unexpected character '" + ch + "'", offset));
-            }
-        }
-        tokens.add(new FilterToken.End(input.length()));
-        return Result.ok(List.copyOf(tokens));
-    }
-
-    private static boolean isNameStart(char ch) {
-        return Character.isJavaIdentifierStart(ch);
-    }
-
-    private static boolean isNamePart(char ch) {
-        return Character.isJavaIdentifierPart(ch);
-    }
-
-    private static boolean isNumberStart(char ch) {
-        return ch >= '0' && ch <= '9';
-    }
-
-    private static boolean isNumberPart(char ch) {
-        return ch >= '0' && ch <= '9';
     }
 }

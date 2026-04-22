@@ -1,8 +1,10 @@
 package sh.adelessfox.odradek.app.util.steam.vdf;
 
-public record VdfError(String message, int offset) {
+import sh.adelessfox.odradek.parsing.Location;
+
+public record VdfError(String message, Location location) {
     @Override
     public String toString() {
-        return message + " at offset " + offset;
+        return message + " at " + location;
     }
 }

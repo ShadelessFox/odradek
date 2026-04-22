@@ -44,7 +44,7 @@ final class Steam {
             log.warn("Steam libraryfolders.vdf not found at {}", libraryFoldersPath);
             return List.of();
         }
-        var libraryFolders = VdfParser.parse(Files.readString(libraryFoldersPath));
+        var libraryFolders = VdfParser.parse(libraryFoldersPath);
         if (libraryFolders.isError()) {
             log.warn("Failed to parse libraryfolders.vdf: {}", libraryFolders.unwrapError());
             return List.of();
