@@ -22,11 +22,10 @@ public final class TextureSetPngExporter implements Exporter.OfMultipleOutputs<T
                 continue;
             }
 
-            var surface = unpacked.surfaces().getFirst();
             var name = Filenames.withSuffix(Filenames.filename(source.path()), ".png");
             var channel = provider.channel(name);
 
-            PngWriterHelper.write(surface, unpacked.format(), channel);
+            PngWriterHelper.writeSingle(unpacked, channel);
         }
     }
 

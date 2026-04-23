@@ -1,24 +1,55 @@
 package sh.adelessfox.odradek.export.png;
 
-import sh.adelessfox.odradek.export.png.format.PngColorType;
-import sh.adelessfox.odradek.export.png.format.PngFormat;
-import sh.adelessfox.odradek.export.png.format.PngWriter;
-import sh.adelessfox.odradek.texture.Surface;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.export.png.format.*;
+import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
+import sh.adelessfox.odradek.texture.TextureType;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
 
 final class PngWriterHelper {
+    private static final Logger log = LoggerFactory.getLogger(PngWriterHelper.class);
+
     private PngWriterHelper() {
     }
 
-    static void write(Surface surface, TextureFormat format, WritableByteChannel channel) throws IOException {
-        var desiredFormat = PngWriterHelper.pickDesiredFormat(format);
-        var pngFormat = PngWriterHelper.mapPngFormat(surface.width(), surface.height(), desiredFormat);
+    static void writeSingle(Texture texture, WritableByteChannel channel) throws IOException {
+        if (texture.type() != TextureType.SURFACE) {
+            log.warn(
+                "Texture of type {} can't be properly exported as PNG, " +
+                    "just the first surface will be exported", texture.type());
+        }
+
+        var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
+        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat);
 
         try (var writer = PngWriter.of(pngFormat, channel)) {
-            writer.write(surface.convert(format, desiredFormat).data());
+            var surface = texture.surfaces().getFirst();
+            var data = surface.convert(texture.format(), desiredFormat).data();
+            flip(data, pngFormat.bytesPerPixel());
+            writer.write(data);
+        }
+    }
+
+    static void writeAnimated(
+        Texture texture,
+        WritableByteChannel channel
+    ) throws IOException {
+        var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
+        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat);
+
+        int frames = texture.surfaces().size();
+        var duration = texture.duration().orElseThrow();
+
+        try (var writer = PngWriter.ofAnimated(pngFormat, frames, 0, channel)) {
+            for (var surface : texture.surfaces()) {
+                var data = surface.convert(texture.format(), desiredFormat).data();
+                flip(data, pngFormat.bytesPerPixel());
+                writer.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
+            }
         }
     }
 
@@ -67,5 +98,24 @@ final class PngWriterHelper {
             case TextureFormat.R16G16B16A16_UNORM -> new PngFormat(width, height, new PngColorType.Greyscale(true, 16));
             default -> throw new IllegalArgumentException("Unexpected texture format: " + format);
         };
+    }
+
+    private static void flip(byte[] array, int bpp) {
+        if (bpp == 2) {
+            for (int i = 0; i < array.length; i += 2) {
+                swap(array, i, i + 1);
+            }
+        } else if (bpp == 4) {
+            for (int i = 0; i < array.length; i += 4) {
+                swap(array, i/**/, i + 3);
+                swap(array, i + 1, i + 2);
+            }
+        }
+    }
+
+    private static void swap(byte[] arr, int i, int j) {
+        byte temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
     }
 }
