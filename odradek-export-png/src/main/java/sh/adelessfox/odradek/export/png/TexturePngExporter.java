@@ -2,11 +2,12 @@ package sh.adelessfox.odradek.export.png;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.export.png.format.*;
+import sh.adelessfox.odradek.export.png.format.PngBlendMethod;
+import sh.adelessfox.odradek.export.png.format.PngDisposeMethod;
+import sh.adelessfox.odradek.export.png.format.PngWriter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
-import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureType;
 
 import java.io.IOException;
@@ -18,36 +19,33 @@ public final class TexturePngExporter implements Exporter.OfSingleOutput<Texture
 
     @Override
     public void export(Texture object, WritableByteChannel channel) throws IOException {
-        var format = new PngFormat(object.width(), object.height(), PngColorType.RGBA8);
-
         if (object.duration().isPresent()) {
-            writeAnimated(object, channel, format);
+            writeAnimated(object, channel);
         } else {
             if (object.type() != TextureType.SURFACE) {
-                log.warn("Texture of type {} can't be properly exported as PNG, " +
-                    "just the first surface will be exported", object.type());
+                log.warn(
+                    "Texture of type {} can't be properly exported as PNG, " +
+                        "just the first surface will be exported", object.type());
             }
-            writeSingle(object, channel, format);
+            writeSingle(object, channel);
         }
     }
 
-    private static void writeSingle(Texture texture, WritableByteChannel channel, PngFormat format) throws IOException {
-        var surface = texture.surfaces().getFirst();
-        var converted = surface.convert(texture.format(), TextureFormat.R8G8B8A8_UNORM);
-
-        try (var writer = PngWriter.of(format, channel)) {
-            writer.write(converted.data());
-        }
+    private void writeSingle(Texture texture, WritableByteChannel channel) throws IOException {
+        PngWriterHelper.write(texture.surfaces().getFirst(), texture.format(), channel);
     }
 
-    private static void writeAnimated(Texture texture, WritableByteChannel channel, PngFormat format) throws IOException {
+    private static void writeAnimated(Texture texture, WritableByteChannel channel) throws IOException {
+        var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
+        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat);
+
         int frames = texture.surfaces().size();
         var duration = texture.duration().orElseThrow();
 
-        try (var writer = PngWriter.ofAnimated(format, frames, 0, channel)) {
+        try (var writer = PngWriter.ofAnimated(pngFormat, frames, 0, channel)) {
             for (Surface surface : texture.surfaces()) {
                 writer.write(
-                    surface.convert(texture.format(), TextureFormat.R8G8B8A8_UNORM).data(),
+                    surface.convert(texture.format(), desiredFormat).data(),
                     duration,
                     PngDisposeMethod.BACKGROUND,
                     PngBlendMethod.SOURCE);

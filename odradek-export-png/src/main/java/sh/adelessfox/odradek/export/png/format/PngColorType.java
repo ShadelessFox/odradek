@@ -1,8 +1,6 @@
 package sh.adelessfox.odradek.export.png.format;
 
 public sealed interface PngColorType {
-    TrueColor RGBA8 = new TrueColor(true, 8);
-
     record Greyscale(boolean alpha, int bitDepth) implements PngColorType {
         public Greyscale {
             if (bitDepth != 8 && bitDepth != 16) {
