@@ -1,11 +1,13 @@
 package sh.adelessfox.odradek.texture;
 
 import be.twofold.tinybcdec.BlockDecoder;
-import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.util.Handles;
 
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -98,11 +100,14 @@ final class TextureConverter {
 
     private static Optional<Converter> tonemap(TextureFormat srcFormat) {
         Converter operator = switch (srcFormat) {
-            case R16G16B16_SFLOAT ->
+            case R16G16B16_SFLOAT,
+                 R16G16B16_UNORM ->
                 new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8_UNORM), TextureFormat.R8G8B8_UNORM);
-            case R16G16B16A16_SFLOAT ->
+            case R16G16B16A16_SFLOAT,
+                 R16G16B16A16_UNORM ->
                 new Converter(surface -> tonemapF16(surface, TextureFormat.R8G8B8A8_UNORM), TextureFormat.R8G8B8A8_UNORM);
-            case R16_UNORM ->
+            case R16_SFLOAT,
+                 R16_UNORM ->
                 new Converter(surface -> tonemapUnorm16(surface, TextureFormat.R8_UNORM), TextureFormat.R8_UNORM);
             case R32_SFLOAT ->
                 new Converter(surface -> tonemapF32(surface, TextureFormat.R8_UNORM), TextureFormat.R8_UNORM);
@@ -147,11 +152,33 @@ final class TextureConverter {
                 case 3 -> TextureFormat.R8G8B8_UNORM;
                 default -> srcFormat;
             };
+            case R16G16_UNORM -> switch(channels.size()) {
+                case 1 -> TextureFormat.R16_UNORM;
+                case 2 -> srcFormat;
+                default -> null;
+            };
+            case R16G16B16_UNORM -> switch(channels.size()) {
+                case 1 -> TextureFormat.R16_UNORM;
+                case 2 -> TextureFormat.R16G16_UNORM;
+                case 3 -> srcFormat;
+                default -> null;
+            };
+            case R16G16_SFLOAT -> switch(channels.size()) {
+                case 1 -> TextureFormat.R16_SFLOAT;
+                case 2 -> srcFormat;
+                default -> null;
+            };
             case R16G16B16_SFLOAT -> switch(channels.size()) {
                 case 1 -> TextureFormat.R16_SFLOAT;
                 case 2 -> TextureFormat.R16G16_SFLOAT;
                 case 3 -> srcFormat;
                 default -> null;
+            };
+            case R16G16B16A16_UNORM -> switch(channels.size()) {
+                case 1 -> TextureFormat.R16_UNORM;
+                case 2 -> TextureFormat.R16G16_UNORM;
+                case 3 -> TextureFormat.R16G16B16_UNORM;
+                default -> srcFormat;
             };
             case R16G16B16A16_SFLOAT -> switch(channels.size()) {
                 case 1 -> TextureFormat.R16_SFLOAT;
