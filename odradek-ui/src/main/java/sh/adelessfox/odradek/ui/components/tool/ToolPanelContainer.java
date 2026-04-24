@@ -146,7 +146,7 @@ public final class ToolPanelContainer extends JComponent {
     }
 
     private static JPanel createButtonPane() {
-        return new JPanel(new MigLayout("ins 0,gap 0,wrap"));
+        return new JPanel(new MigLayout("ins 0 4 0 4,gap 4,wrap"));
     }
 
     private static final class Splitter extends JComponent {

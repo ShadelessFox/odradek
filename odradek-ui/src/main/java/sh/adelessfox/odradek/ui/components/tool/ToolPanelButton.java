@@ -16,7 +16,6 @@ final class ToolPanelButton extends JComponent {
 
     // Styles
     private Dimension size;
-    private Insets insets;
     private int arc;
     private Color defaultColor;
     private Color selectionColor;
@@ -44,7 +43,6 @@ final class ToolPanelButton extends JComponent {
         super.updateUI();
 
         size = UIManager.getDimension("ToolPanelButton.size");
-        insets = UIManager.getInsets("ToolPanelButton.margin");
         arc = UIManager.getInt("ToolPanelButton.arc");
         defaultColor = UIManager.getColor("ToolPanelButton.background");
         selectionColor = UIManager.getColor("ToolPanelButton.selectedBackground");
@@ -59,13 +57,7 @@ final class ToolPanelButton extends JComponent {
             FlatUIUtils.setRenderingHints(g2);
 
             g2.setColor(getColor());
-            g2.fillRoundRect(
-                insets.left,
-                insets.top,
-                size.width - insets.left - insets.right,
-                size.height - insets.top - insets.bottom,
-                arc,
-                arc);
+            g2.fillRoundRect(0, 0, size.width, size.height, arc, arc);
 
             if (icon != null) {
                 icon.paintIcon(
