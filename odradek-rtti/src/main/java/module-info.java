@@ -11,5 +11,6 @@ module odradek.rtti {
     exports sh.adelessfox.odradek.rtti.factory;
     exports sh.adelessfox.odradek.rtti.generator;
     exports sh.adelessfox.odradek.rtti.io;
+    exports sh.adelessfox.odradek.rtti.util;
     exports sh.adelessfox.odradek.rtti;
 }

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.rtti.data;
+package sh.adelessfox.odradek.rtti.util;
 
 import sh.adelessfox.odradek.rtti.ClassAttrInfo;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;

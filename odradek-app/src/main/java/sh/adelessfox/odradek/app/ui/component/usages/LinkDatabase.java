@@ -11,9 +11,9 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.io.BytesBinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
-import sh.adelessfox.odradek.rtti.data.TypePath;
-import sh.adelessfox.odradek.rtti.data.TypeVisitor;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.rtti.util.PathTypeVisitor;
+import sh.adelessfox.odradek.rtti.util.TypePath;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -158,26 +158,23 @@ final class LinkDatabase implements Closeable {
 
     private static ObjectInfo visitObject(TypedObject object) {
         var links = new ArrayList<Link>();
-        var visitor = new TypeVisitor() {
+        var visitor = new PathTypeVisitor<RuntimeException>() {
             @Override
-            protected void visitContainer(ContainerTypeInfo typeInfo, Object object, TypePath.Builder builder) {
-                if (typeInfo.itemType() instanceof AtomTypeInfo) {
-                    return;
+            public void visitContainer(ContainerTypeInfo typeInfo, Object object1, TypePath.Builder builder) {
+                if (!(typeInfo.itemType() instanceof AtomTypeInfo)) {
+                    super.visitContainer(typeInfo, object1, builder);
                 }
-                super.visitContainer(typeInfo, object, builder);
             }
 
             @Override
-            protected void visitPointer(PointerTypeInfo typeInfo, Object object, TypePath.Builder builder) {
-                if (object instanceof ObjectIdHolder holder) {
+            public void visitPointer(PointerTypeInfo typeInfo, Object object1, TypePath.Builder builder) {
+                if (object1 instanceof ObjectIdHolder holder) {
                     var objectId = holder.objectId();
                     links.add(new Link(objectId.groupId(), objectId.objectIndex(), builder.build()));
                 }
             }
         };
-
-        visitor.visit(object.getType(), object);
-
+        visitor.visit(object);
         return new ObjectInfo(links);
     }
 

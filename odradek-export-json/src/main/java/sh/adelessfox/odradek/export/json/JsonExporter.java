@@ -3,10 +3,11 @@ package sh.adelessfox.odradek.export.json;
 import com.google.gson.FormattingStyle;
 import com.google.gson.Strictness;
 import com.google.gson.stream.JsonWriter;
-import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.rtti.data.Value;
+import sh.adelessfox.odradek.rtti.util.SimpleTypeVisitor;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -23,7 +24,7 @@ public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
             writer.setHtmlSafe(false);
             writer.setFormattingStyle(FormattingStyle.PRETTY);
 
-            write(writer, object.getType(), object, true);
+            new JsonVisitor().visit(object, writer);
         }
     }
 
@@ -47,40 +48,63 @@ public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
         return Optional.of("fugue:json");
     }
 
-    private static void write(JsonWriter writer, TypeInfo info, Object object, boolean root) throws IOException {
-        switch (info) {
-            case AtomTypeInfo _ -> {
-                if (object instanceof Number number) {
-                    writer.value(number);
-                } else {
-                    writer.value(String.valueOf(object));
-                }
-            }
-            case ClassTypeInfo clazz -> {
-                writer.beginObject();
-                if (root) {
-                    writer.name("$type").value(info.name());
-                }
-                for (ClassAttrInfo attr : clazz.serializedAttrs()) {
-                    writer.name(attr.name());
-                    write(writer, attr.type(), clazz.get(attr, object), false);
-                }
-                writer.endObject();
-            }
-            case ContainerTypeInfo _ when object instanceof byte[] bytes -> {
-                writer.value(Base64.getEncoder().encodeToString(bytes));
-            }
-            case ContainerTypeInfo container -> {
-                writer.beginArray();
-                for (int i = 0, length = container.length(object); i < length; i++) {
-                    write(writer, container.itemType(), container.get(object, i), false);
-                }
-                writer.endArray();
-            }
-            case EnumTypeInfo _, PointerTypeInfo _ -> {
+    private static final class JsonVisitor extends SimpleTypeVisitor<JsonWriter, IOException> {
+        @Override
+        public void visitAtom(AtomTypeInfo info, Object object, JsonWriter writer) throws IOException {
+            if (object instanceof Number number) {
+                writer.value(number);
+            } else {
                 writer.value(String.valueOf(object));
             }
-            case BitSetTypeInfo _ -> throw new NotImplementedException(); // TODO
+        }
+
+        @Override
+        public void visitClass(ClassTypeInfo info, Object object, JsonWriter writer) throws IOException {
+            writer.beginObject();
+            super.visitClass(info, object, writer);
+            writer.endObject();
+        }
+
+        @Override
+        public void visitClassAttr(
+            ClassTypeInfo info,
+            ClassAttrInfo attr,
+            Object object,
+            JsonWriter writer
+        ) throws IOException {
+            writer.name(attr.name());
+            super.visitClassAttr(info, attr, object, writer);
+        }
+
+        @Override
+        public void visitContainer(ContainerTypeInfo info, Object object, JsonWriter writer) throws IOException {
+            if (object instanceof byte[] bytes) {
+                writer.value(Base64.getEncoder().encodeToString(bytes));
+            } else {
+                writer.beginArray();
+                super.visitContainer(info, object, writer);
+                writer.endArray();
+            }
+        }
+
+        @Override
+        public void visitContainerItem(
+            ContainerTypeInfo info,
+            Object object,
+            int index,
+            JsonWriter writer
+        ) throws IOException {
+            super.visitContainerItem(info, object, index, writer);
+        }
+
+        @Override
+        public void visitEnum(EnumTypeInfo info, Value<?> object, JsonWriter writer) throws IOException {
+            writer.value(String.valueOf(object));
+        }
+
+        @Override
+        public void visitPointer(PointerTypeInfo info, Object object, JsonWriter writer) throws IOException {
+            writer.value(String.valueOf(object));
         }
     }
 }
