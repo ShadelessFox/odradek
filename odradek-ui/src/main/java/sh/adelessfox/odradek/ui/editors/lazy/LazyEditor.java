@@ -13,6 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 
 public final class LazyEditor implements Editor {
     public static class Provider implements Editor.Provider {
@@ -128,13 +129,13 @@ public final class LazyEditor implements Editor {
                 manager.openEditor(LazyEditor.this, get());
             } catch (InterruptedException | CancellationException e) {
                 manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
-            } catch (Throwable e) {
-                log.error("Unable to open editor for '{}'", input.getName(), e);
+            } catch (ExecutionException e) {
+                log.error("Unable to open editor for '{}'", input.getName(), e.getCause());
                 manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
                 Dialogs.showExceptionDialog(
                     JOptionPane.getRootFrame(),
                     "Unable to open editor for '%s'".formatted(input.getName()),
-                    e);
+                    e.getCause());
             }
         }
     }
