@@ -1,17 +1,24 @@
 package sh.adelessfox.odradek.app.util.steam.vdf;
 
-public sealed interface VdfElement permits VdfObject, VdfString {
-    default VdfObject getAsObject() {
-        return switch (this) {
-            case VdfObject o -> o;
-            default -> throw new IllegalStateException("Not an object: " + this);
-        };
+import java.io.IOException;
+
+public abstract sealed class VdfElement permits VdfObject, VdfString {
+    public VdfObject getAsObject() {
+        throw new IllegalStateException("Not an object: " + this);
     }
 
-    default String getAsString() {
-        return switch (this) {
-            case VdfString s -> s.toString();
-            default -> throw new IllegalStateException("Not a string: " + this);
-        };
+    public String getAsString() {
+        throw new IllegalStateException("Not a string: " + this);
+    }
+
+    @Override
+    public String toString() {
+        try {
+            var buf = new StringBuilder();
+            VdfWriter.write(this, buf);
+            return buf.toString();
+        } catch (IOException e) {
+            throw new AssertionError(e);
+        }
     }
 }

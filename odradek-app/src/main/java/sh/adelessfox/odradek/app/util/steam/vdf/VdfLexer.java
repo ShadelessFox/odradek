@@ -38,15 +38,10 @@ final class VdfLexer extends AbstractLexer<VdfToken, VdfError> {
             if (ch == '\\') {
                 int escape = source.next();
                 switch (escape) {
-                    case '"' -> buffer.append('"');
-                    case '?' -> buffer.append('?');
-                    case 'b' -> buffer.append('\b');
-                    case 'f' -> buffer.append('\f');
                     case 'n' -> buffer.append('\n');
-                    case 'r' -> buffer.append('\r');
                     case 't' -> buffer.append('\t');
-                    case '\'' -> buffer.append('\'');
                     case '\\' -> buffer.append('\\');
+                    case '\"' -> buffer.append('\"');
                     default -> {
                         return Result.error(new VdfError("Invalid escape sequence \\" + (char) escape, location()));
                     }
@@ -64,7 +59,7 @@ final class VdfLexer extends AbstractLexer<VdfToken, VdfError> {
         var buffer = new StringBuilder().appendCodePoint(ch);
         while (!source.isEof()) {
             int next = source.peek();
-            if (Character.isWhitespace(next) || next == '"') {
+            if (Character.isWhitespace(next) || next == '"' || next == '{' || next == '}') {
                 break;
             }
             buffer.appendCodePoint(source.next());

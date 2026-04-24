@@ -1,6 +1,8 @@
 package sh.adelessfox.odradek.app.util.steam.vdf;
 
-public final class VdfString implements VdfElement {
+import java.util.Objects;
+
+public final class VdfString extends VdfElement {
     private final String value;
 
     public VdfString(String value) {
@@ -8,7 +10,18 @@ public final class VdfString implements VdfElement {
     }
 
     @Override
-    public String toString() {
+    public String getAsString() {
         return value;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        return object instanceof VdfString vdfString
+            && Objects.equals(value, vdfString.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(value);
     }
 }
