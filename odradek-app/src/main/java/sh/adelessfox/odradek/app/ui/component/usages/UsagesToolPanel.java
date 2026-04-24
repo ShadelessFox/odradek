@@ -53,6 +53,7 @@ public final class UsagesToolPanel implements ToolPanel {
     private int queueIndex;
 
     private LinkDatabase database;
+    private StructuredTree<UsagesStructure> tree;
     private ObjectId pendingObjectId;
 
     @Inject
@@ -120,12 +121,12 @@ public final class UsagesToolPanel implements ToolPanel {
 
     @Override
     public boolean isFocused() {
-        return false;
+        return tree.isFocusOwner();
     }
 
     @Override
     public void setFocus() {
-        // do nothing
+        tree.requestFocusInWindow();
     }
 
     private JComponent createInitialView(EventBus eventBus) {
@@ -168,7 +169,7 @@ public final class UsagesToolPanel implements ToolPanel {
     }
 
     private JComponent createTreeView(EventBus eventBus, DecimaGame game) {
-        var tree = new StructuredTree<UsagesStructure>();
+        tree = new StructuredTree<UsagesStructure>();
         tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
         tree.setRootVisible(false);
