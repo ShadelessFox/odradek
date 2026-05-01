@@ -12,7 +12,6 @@ import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvid
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
-import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -70,7 +69,6 @@ public class ExportObjectAction extends Action {
         return exporters(context).findAny().isPresent();
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
         var game = context.get(DataKeys.GAME, DecimaGame.class).orElse(null);
         if (game == null) {
@@ -99,7 +97,7 @@ public class ExportObjectAction extends Action {
 
         return converters.keySet().stream()
             .flatMap(converter -> Exporter.exporters(converter.outputType())
-                .map(exporter -> new Batch(selection, converter, exporter)))
+                .map(exporter -> new Batch<>(selection, converter, exporter)))
             .map(pipeline -> (Batch<?>) pipeline)
             .sorted(Comparator.comparing(pipeline -> pipeline.exporter().name()));
     }
@@ -119,7 +117,7 @@ public class ExportObjectAction extends Action {
 
         if (singleFile) {
             var exporter1 = (Exporter.OfSingleOutput<?>) exporter;
-            var name = makeObjectName(batch.objects().getFirst(), exporter1);
+            var name = makeObjectName(batch.objects().getFirst(), game, exporter1);
             var path = lastPath != null ? lastPath.resolve(name).toFile() : new File(name);
 
             chooser.setDialogTitle("Specify output name");
@@ -145,7 +143,7 @@ public class ExportObjectAction extends Action {
 
         lastPath = singleFile ? output.getParent() : output;
 
-        for (ObjectTypeHolder selection : batch.objects()) {
+        for (ObjectIdHolder selection : batch.objects()) {
             try {
                 var object = game.readObject(selection.objectId());
                 var type = object.getType();
@@ -158,7 +156,7 @@ public class ExportObjectAction extends Action {
 
                 switch (exporter) {
                     case Exporter.OfSingleOutput<T> e -> {
-                        var path = singleFile ? output : output.resolve(makeObjectName(selection, e));
+                        var path = singleFile ? output : output.resolve(makeObjectName(selection, game, e));
                         try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
                             e.export(converted.get(), channel);
                             log.debug("Exported object {} ({}) to {}", object, type, path);
@@ -168,7 +166,7 @@ public class ExportObjectAction extends Action {
                         }
                     }
                     case Exporter.OfMultipleOutputs<T> e -> {
-                        var path = output.resolve(makeObjectName(selection));
+                        var path = output.resolve(makeObjectName(selection, game));
                         try (var provider = new DefaultOutputProvider(path)) {
                             e.export(converted.get(), provider);
                         }
@@ -177,7 +175,7 @@ public class ExportObjectAction extends Action {
 
                 exported++;
             } catch (Exception e) {
-                log.error("Failed to export object {} ({})", selection.objectId(), selection.objectType(), e);
+                log.error("Failed to export object {} ({})", selection.objectId(), selection.objectType(game), e);
                 Dialogs.showExceptionDialog(
                     JOptionPane.getRootFrame(),
                     "Unable to export object " + selection.objectId(),
@@ -202,18 +200,18 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private static String makeObjectName(ObjectTypeHolder object) {
+    private static String makeObjectName(ObjectIdHolder object, DecimaGame game) {
         return "%s_%s_%s".formatted(
-            object.objectType(),
+            object.objectType(game),
             object.objectId().groupId(),
             object.objectId().objectIndex());
     }
 
-    private static String makeObjectName(ObjectTypeHolder object, Exporter.OfSingleOutput<?> exporter) {
-        return makeObjectName(object) + '.' + exporter.extension();
+    private static String makeObjectName(ObjectIdHolder object, DecimaGame game, Exporter.OfSingleOutput<?> exporter) {
+        return makeObjectName(object, game) + '.' + exporter.extension();
     }
 
-    private record Batch<R>(List<ObjectTypeHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
+    private record Batch<R>(List<ObjectIdHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
     }
 
     private static final class GroupAction extends Action implements ActionProvider {
