@@ -12,6 +12,17 @@ for Horizon Zero Dawn and Death Stranding.
 
 Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attempt to come up with something that could be useful for modders.
 
+### Supported games
+
+| Name                   | Version      | Platform |
+|------------------------|--------------|----------|
+| Horizon Forbidden West | **1.5.80.0** | **PC**   |
+| Death Stranding 2      | **1.6.72.0** | **PC**   |
+
+> [!IMPORTANT]
+> The **latest** build of Odradek from **master** branch is guaranteed to work against versions listed above.
+> Before reporting issues, please make sure you're running the latest version of both the game and Odradek.
+
 ### Features
 - Preview for static and skinned models; export to `.cast`
 - Preview for regular and animated textures; export to `.dds`, `.png`
@@ -76,6 +87,6 @@ Then restart the IDE.
 ## License
 This project is licensed under the GPL-3.0 license.
 
-This project is not sponsored by or related to Guerrilla Games, Kojima Productions, Sony Interactive Entertainment, or others.
+This project is not sponsored by or related to Guerrilla Games, Kojima Productions, Sony Interactive Entertainment, 505 Games, or others.
 
 Source code and all software made with Decima engine belong to their developers.
