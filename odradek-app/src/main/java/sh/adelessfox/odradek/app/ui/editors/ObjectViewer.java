@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -73,7 +74,7 @@ public final class ObjectViewer implements Viewer {
                     var input = new ObjectEditorInput(game, typedObject, holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }
-                case sh.adelessfox.odradek.game.decima.ObjectIdHolder holder -> {
+                case ObjectIdHolder holder -> {
                     var input = new ObjectEditorInputLazy(holder.objectId());
                     Application.getInstance().editors().openEditor(input);
                 }
@@ -243,7 +244,7 @@ public final class ObjectViewer implements Viewer {
     private static void getTypeHierarchy0(StringBuilder buf, TypeInfo info, int level) {
         if (level > 0) {
             buf.append("<br>&nbsp;");
-            buf.append("&nbsp;&nbsp;&nbsp;&nbsp;".repeat(level - 1));
+            buf.repeat("&nbsp;&nbsp;&nbsp;&nbsp;", level - 1);
             buf.append("╰ ");
         }
 

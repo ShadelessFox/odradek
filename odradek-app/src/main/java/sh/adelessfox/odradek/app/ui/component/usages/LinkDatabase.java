@@ -136,7 +136,7 @@ final class LinkDatabase implements Closeable {
     }
 
     public List<Link> getOutgoingLinks(ObjectId source) throws IOException {
-        var object = game.readObject(source.groupId(), source.objectIndex());
+        var object = game.readObject(source);
         var info = visitObject(object);
         return info.out();
     }

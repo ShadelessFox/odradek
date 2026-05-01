@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.ui.menu.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorMenu;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
@@ -10,6 +11,8 @@ import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -30,9 +33,10 @@ import java.util.stream.Stream;
 import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", icon = "fugue:blue-document-export", keystroke = "ctrl E")
+@ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_EXPORT)
+@ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_EXPORT)
 @ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_EXPORT)
 @ActionContribution(parent = MainMenu.File.ID, group = MenuIds.GROUP_EXPORT)
-@ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_EXPORT)
 @ActionContribution(parent = ObjectEditorMenu.TOOLBAR_ID)
 public class ExportObjectAction extends Action {
     public static final String ID = "sh.adelessfox.odradek.app.menu.graph.ExportObjectAction";
@@ -68,9 +72,14 @@ public class ExportObjectAction extends Action {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Stream<? extends Batch<?>> exporters(ActionContext context) {
+        var game = context.get(DataKeys.GAME, DecimaGame.class).orElse(null);
+        if (game == null) {
+            return Stream.empty();
+        }
+
         var selection = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(sh.adelessfox.odradek.game.decima.ObjectSupplier.class))
+            .gather(Gatherers.instanceOf(ObjectIdHolder.class))
             .toList();
 
         if (selection.isEmpty()) {
@@ -78,7 +87,7 @@ public class ExportObjectAction extends Action {
         }
 
         var types = selection.stream()
-            .map(sh.adelessfox.odradek.game.decima.ObjectSupplier::objectType)
+            .map(holder -> holder.objectType(game))
             .distinct()
             .toList();
 
@@ -136,9 +145,9 @@ public class ExportObjectAction extends Action {
 
         lastPath = singleFile ? output.getParent() : output;
 
-        for (sh.adelessfox.odradek.game.decima.ObjectSupplier selection : batch.objects()) {
+        for (ObjectTypeHolder selection : batch.objects()) {
             try {
-                var object = selection.readObject(game);
+                var object = game.readObject(selection.objectId());
                 var type = object.getType();
 
                 var converted = batch.converter().convert(object, game);
@@ -193,18 +202,18 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private static String makeObjectName(sh.adelessfox.odradek.game.decima.ObjectSupplier object) {
+    private static String makeObjectName(ObjectTypeHolder object) {
         return "%s_%s_%s".formatted(
             object.objectType(),
             object.objectId().groupId(),
             object.objectId().objectIndex());
     }
 
-    private static String makeObjectName(sh.adelessfox.odradek.game.decima.ObjectSupplier object, Exporter.OfSingleOutput<?> exporter) {
+    private static String makeObjectName(ObjectTypeHolder object, Exporter.OfSingleOutput<?> exporter) {
         return makeObjectName(object) + '.' + exporter.extension();
     }
 
-    private record Batch<R>(List<sh.adelessfox.odradek.game.decima.ObjectSupplier> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
+    private record Batch<R>(List<ObjectTypeHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
     }
 
     private static final class GroupAction extends Action implements ActionProvider {

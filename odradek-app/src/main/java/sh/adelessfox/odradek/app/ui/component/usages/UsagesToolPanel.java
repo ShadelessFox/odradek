@@ -169,7 +169,7 @@ public final class UsagesToolPanel implements ToolPanel {
     }
 
     private JComponent createTreeView(EventBus eventBus, DecimaGame game) {
-        tree = new StructuredTree<UsagesStructure>();
+        tree = new StructuredTree<>();
         tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
         tree.setRootVisible(false);

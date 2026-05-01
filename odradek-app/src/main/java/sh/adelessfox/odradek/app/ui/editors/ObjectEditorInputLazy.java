@@ -17,7 +17,7 @@ public record ObjectEditorInputLazy(
     @Override
     public EditorInput loadRealInput() throws Exception {
         var game = Application.getInstance().game();
-        var object = game.readObject(objectId.groupId(), objectId.objectIndex());
+        var object = game.readObject(objectId);
         return new ObjectEditorInput(game, object, objectId);
     }
 

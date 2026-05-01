@@ -50,7 +50,7 @@ public class ExportAssetCommand extends AbstractCommand {
 
             TypedObject object;
             try {
-                object = game.readObject(id.groupId(), id.objectIndex());
+                object = game.readObject(id);
             } catch (IOException e) {
                 log.error("  Error during read; skipping", e);
                 continue;

@@ -43,4 +43,29 @@ public final class Handles {
         var handle = order == ByteOrder.LITTLE_ENDIAN ? asDoubleLE : asDoubleBE;
         return (double) handle.get(array, index);
     }
+
+    public static void setShort(byte[] array, int index, short value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? asShortLE : asShortBE;
+        handle.set(array, index, value);
+    }
+
+    public static void setInt(byte[] array, int index, int value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? asIntLE : asIntBE;
+        handle.set(array, index, value);
+    }
+
+    public static void setLong(byte[] array, int index, long value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? asLongLE : asLongBE;
+        handle.set(array, index, value);
+    }
+
+    public static void setFloat(byte[] array, int index, float value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? asFloatLE : asFloatBE;
+        handle.set(array, index, value);
+    }
+
+    public static void setDouble(byte[] array, int index, double value, ByteOrder order) {
+        var handle = order == ByteOrder.LITTLE_ENDIAN ? asDoubleLE : asDoubleBE;
+        handle.set(array, index, value);
+    }
 }

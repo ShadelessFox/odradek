@@ -1,12 +1,13 @@
 package sh.adelessfox.odradek.app.ui.component.graph;
 
-import sh.adelessfox.odradek.game.decima.*;
+import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
+import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
-import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -449,7 +450,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         StreamingGraph.Group group,
         int indexAndIncludeGroupId
     )
-        implements GraphStructure, ObjectSupplier, ObjectIdHolder {
+        implements GraphStructure, ObjectTypeHolder, ObjectIdHolder {
         public GroupObject(
             StreamingGraph graph,
             StreamingGraph.Group group,
@@ -466,11 +467,6 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
 
         boolean includeGroupId() {
             return indexAndIncludeGroupId < 0;
-        }
-
-        @Override
-        public TypedObject readObject(DecimaGame game) throws IOException {
-            return game.readObject(group.id(), index());
         }
 
         @Override

@@ -6,5 +6,7 @@ public interface ObjectHolder<T> extends Supplier<T> {
     T object();
 
     @Override
-    T get();
+    default T get() {
+        return object();
+    }
 }

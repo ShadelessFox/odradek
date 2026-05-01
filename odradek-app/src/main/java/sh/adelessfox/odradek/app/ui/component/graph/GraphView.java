@@ -11,7 +11,7 @@ import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.game.decima.ObjectSupplier;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -197,9 +197,9 @@ public class GraphView implements View<JComponent>, ToolPanel {
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override
             public Optional<TypedObject> getObject(JTree tree, Object value) {
-                var holder = (ObjectSupplier) value;
+                var holder = (ObjectIdHolder) value;
                 try {
-                    return Optional.of(holder.readObject(game));
+                    return Optional.of(game.readObject(holder.objectId()));
                 } catch (IOException e) {
                     log.error("Failed to read object for preview", e);
                 }
@@ -208,8 +208,8 @@ public class GraphView implements View<JComponent>, ToolPanel {
 
             @Override
             public Optional<TypeInfo> getType(JTree tree, Object value) {
-                if (value instanceof ObjectSupplier provider) {
-                    return Optional.of(provider.objectType());
+                if (value instanceof ObjectIdHolder provider) {
+                    return Optional.of(provider.objectType(game));
                 }
                 return Optional.empty();
             }
