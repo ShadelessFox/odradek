@@ -16,7 +16,7 @@ import java.util.stream.Gatherer;
 import java.util.stream.IntStream;
 
 /**
- * A concrete implementation of {@link javax.swing.tree.TreeModel} that uses
+ * A concrete implementation of {@link TreeModel} that uses
  * a {@link TreeStructure} to populate the tree.
  * <p>
  * It supports filtering of the elements in the tree using a {@link Predicate}

@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.scene;
 
 import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.math.BoundingBox;
-import sh.adelessfox.odradek.math.Matrix4f;
+import wtf.reversed.toolbox.math.Bounds;
+import wtf.reversed.toolbox.math.Matrix4;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -12,7 +12,7 @@ public record Node(
     Optional<Mesh> mesh,
     Optional<Skin> skin,
     List<Node> children,
-    Matrix4f matrix
+    Matrix4 matrix
 ) {
     public Node {
         children = List.copyOf(children);
@@ -31,11 +31,11 @@ public record Node(
             Optional.empty(),
             Optional.empty(),
             children,
-            Matrix4f.identity()));
+            Matrix4.IDENTITY));
     }
 
     public static Node of(Mesh mesh) {
-        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Matrix4f.identity());
+        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Matrix4.IDENTITY);
     }
 
     public Node add(Node child) {
@@ -44,23 +44,23 @@ public record Node(
         return new Node(name, mesh, skin, children, matrix);
     }
 
-    public Node transform(Matrix4f transform) {
-        return new Node(name, mesh, skin, children, matrix.mul(transform));
+    public Node transform(Matrix4 transform) {
+        return new Node(name, mesh, skin, children, matrix.multiply(transform));
     }
 
     public void accept(NodeVisitor visitor) {
         accept(visitor, matrix);
     }
 
-    private void accept(NodeVisitor visitor, Matrix4f transform) {
+    private void accept(NodeVisitor visitor, Matrix4 transform) {
         if (visitor.visit(this, transform)) {
             for (var child : children) {
-                child.accept(visitor, transform.mul(child.matrix));
+                child.accept(visitor, transform.multiply(child.matrix));
             }
         }
     }
 
-    public Optional<BoundingBox> computeBoundingBox() {
+    public Optional<Bounds> computeBoundingBox() {
         var bbox1 = mesh.stream()
             .map(Mesh::computeBoundingBox);
 
@@ -69,7 +69,7 @@ public record Node(
             .flatMap(Optional::stream);
 
         return Stream.concat(bbox1, bbox2)
-            .reduce(BoundingBox::encapsulate)
+            .reduce(Bounds::combine)
             .map(bbox -> bbox.transform(matrix));
     }
 
@@ -94,7 +94,7 @@ public record Node(
         private String name;
         private Mesh mesh;
         private Skin skin;
-        private Matrix4f matrix = Matrix4f.identity();
+        private Matrix4 matrix = Matrix4.IDENTITY;
 
         private Builder() {
         }
@@ -114,11 +114,11 @@ public record Node(
             return this;
         }
 
-        public Matrix4f matrix() {
+        public Matrix4 matrix() {
             return matrix;
         }
 
-        public Builder matrix(Matrix4f matrix) {
+        public Builder matrix(Matrix4 matrix) {
             this.matrix = matrix;
             return this;
         }

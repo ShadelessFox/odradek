@@ -1,11 +1,11 @@
 package sh.adelessfox.odradek.geometry;
 
-import sh.adelessfox.odradek.math.BoundingBox;
-import sh.adelessfox.odradek.math.Vector3f;
+import wtf.reversed.toolbox.math.Bounds;
+import wtf.reversed.toolbox.math.Vector3;
 
 import java.util.Map;
 
-public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vector3f color) {
+public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vector3 color) {
     public Primitive {
         validateIndices(indices);
         validatePositions(vertices);
@@ -18,10 +18,10 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vect
         return vertices.get(Semantic.POSITION);
     }
 
-    public BoundingBox computeBoundingBox() {
+    public Bounds computeBoundingBox() {
         var indices = indices().asIntView();
         var positions = positions().asFloatView();
-        var bbox = BoundingBox.empty();
+        var builder = Bounds.builder();
 
         for (int i = 0; i < indices().count(); i++) {
             int index = indices.get(i, 0);
@@ -29,10 +29,10 @@ public record Primitive(Accessor indices, Map<Semantic, Accessor> vertices, Vect
             float y = positions.get(index, 1);
             float z = positions.get(index, 2);
 
-            bbox = bbox.encapsulate(x, y, z);
+            builder.add(x, y, z);
         }
 
-        return bbox;
+        return builder.build();
     }
 
     private static void validateIndices(Accessor indices) {

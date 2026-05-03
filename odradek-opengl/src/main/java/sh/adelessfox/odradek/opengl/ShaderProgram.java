@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.opengl;
 
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.system.MemoryStack;
-import sh.adelessfox.odradek.math.Matrix4f;
-import sh.adelessfox.odradek.math.Vector3f;
+import wtf.reversed.toolbox.math.Matrix4;
+import wtf.reversed.toolbox.math.Vector3;
 
 import java.nio.FloatBuffer;
 import java.util.HashMap;
@@ -51,16 +51,17 @@ public final class ShaderProgram implements GLObject.Bindable<ShaderProgram> {
         glUniform1f(uniformLocation(name), value);
     }
 
-    public void set(String name, Vector3f value) {
+    public void set(String name, Vector3 value) {
         ensureBound();
         glUniform3f(uniformLocation(name), value.x(), value.y(), value.z());
     }
 
-    public void set(String name, Matrix4f value) {
+    public void set(String name, Matrix4 value) {
         ensureBound();
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            FloatBuffer buffer = stack.mallocFloat(Matrix4f.BYTES / Float.BYTES);
-            GL20.glUniformMatrix4fv(uniformLocation(name), false, value.get(buffer).flip());
+            FloatBuffer buffer = stack.mallocFloat(Matrix4.BYTES / Float.BYTES);
+            value.toBufferUnsafe(buffer);
+            GL20.glUniformMatrix4fv(uniformLocation(name), false, buffer.flip());
         }
     }
 

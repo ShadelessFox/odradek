@@ -6,10 +6,7 @@ import sh.adelessfox.odradek.geometry.Accessor;
 import sh.adelessfox.odradek.geometry.Primitive;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.geometry.Type;
-import sh.adelessfox.odradek.math.BoundingBox;
 import sh.adelessfox.odradek.math.Frustum;
-import sh.adelessfox.odradek.math.Matrix4f;
-import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.rhi.AddressMode;
 import sh.adelessfox.odradek.rhi.FilterMode;
@@ -19,6 +16,9 @@ import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
+import wtf.reversed.toolbox.math.Bounds;
+import wtf.reversed.toolbox.math.Matrix4;
+import wtf.reversed.toolbox.math.Vector3;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -143,7 +143,7 @@ public final class RenderMeshesPass implements RenderPass {
         return flags;
     }
 
-    private GpuNode uploadNode(Node node, Matrix4f transform) {
+    private GpuNode uploadNode(Node node, Matrix4 transform) {
         var primitives = node.mesh().stream()
             .flatMap(mesh -> mesh.primitives().stream())
             .map(this::uploadPrimitive)
@@ -152,7 +152,7 @@ public final class RenderMeshesPass implements RenderPass {
 
         var bbox = node.computeBoundingBox()
             .map(b -> b.transform(transform))
-            .orElse(BoundingBox.empty());
+            .orElse(Bounds.EMPTY);
 
         return new GpuNode(primitives, transform, bbox);
     }
@@ -233,12 +233,12 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private void cacheNodeRecursively(Node node, Matrix4f transform) {
+    private void cacheNodeRecursively(Node node, Matrix4 transform) {
         if (node.mesh().isPresent()) {
             nodes.add(uploadNode(node, transform));
         }
         for (Node child : node.children()) {
-            cacheNodeRecursively(child, transform.mul(child.matrix()));
+            cacheNodeRecursively(child, transform.multiply(child.matrix()));
         }
     }
 
@@ -251,7 +251,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuNode(List<GpuPrimitive> primitives, Matrix4f transform, BoundingBox bbox) {
+    private record GpuNode(List<GpuPrimitive> primitives, Matrix4 transform, Bounds bbox) {
         void dispose() {
             for (GpuPrimitive primitive : primitives) {
                 primitive.dispose();
@@ -259,7 +259,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3f color, Set<Semantic> semantics) {
+    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3 color, Set<Semantic> semantics) {
         private GpuPrimitive {
             semantics = Set.copyOf(semantics);
         }

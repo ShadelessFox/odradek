@@ -2,8 +2,6 @@ package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Primitive;
-import sh.adelessfox.odradek.math.Matrix4f;
-import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
@@ -11,6 +9,8 @@ import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
+import wtf.reversed.toolbox.math.Matrix4;
+import wtf.reversed.toolbox.math.Vector3;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -127,38 +127,38 @@ public class OverlayRenderPass implements RenderPass {
         });
     }
 
-    private void renderBoundingBox(Mesh mesh, Matrix4f transform) {
+    private void renderBoundingBox(Mesh mesh, Matrix4 transform) {
         for (Primitive primitive : mesh.primitives()) {
             debug.aabb(primitive.computeBoundingBox().transform(transform), primitive.color());
         }
     }
 
-    private void renderSkin(Skin skin, Matrix4f transform, Camera camera) {
-        var matrices = new ArrayList<Matrix4f>(skin.joints().size());
+    private void renderSkin(Skin skin, Matrix4 transform, Camera camera) {
+        var matrices = new ArrayList<Matrix4>(skin.joints().size());
 
         for (Joint joint : skin.joints()) {
-            Matrix4f jointMatrix;
-            Matrix4f parentMatrix;
+            Matrix4 jointMatrix;
+            Matrix4 parentMatrix;
 
             if (joint.parent().isPresent()) {
                 parentMatrix = matrices.get(joint.parent().getAsInt());
-                jointMatrix = parentMatrix.mul(joint.matrix());
+                jointMatrix = parentMatrix.multiply(joint.matrix());
             } else {
                 parentMatrix = null;
-                jointMatrix = transform.mul(joint.matrix());
+                jointMatrix = transform.multiply(joint.matrix());
             }
 
             var position = jointMatrix.toTranslation();
 
             if (parentMatrix != null) {
-                debug.line(parentMatrix.toTranslation(), position, new Vector3f(0, 1, 0), false);
+                debug.line(parentMatrix.toTranslation(), position, new Vector3(0, 1, 0), false);
             }
 
             var distance = position.distance(camera.position());
-            debug.point(position, new Vector3f(1, 0, 1), 2.0f / distance, false);
+            debug.point(position, new Vector3(1, 0, 1), 2.0f / distance, false);
 
             if (skin.joints().size() <= MAX_JOINTS_TO_DISPLAY_NAMES_FOR) {
-                debug.projectedText(joint.name(), position, camera, new Vector3f(1, 1, 1), 4.0f / distance);
+                debug.projectedText(joint.name(), position, camera, new Vector3(1, 1, 1), 4.0f / distance);
             }
 
             matrices.add(jointMatrix);

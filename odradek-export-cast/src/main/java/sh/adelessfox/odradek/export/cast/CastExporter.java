@@ -5,11 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.geometry.*;
-import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
+import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
 import java.nio.*;
@@ -31,7 +31,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
             .setAuthor("ShadelessFox");
 
         for (Node node : object.nodes()) {
-            exportNode(node, Matrix4f.identity(), root);
+            exportNode(node, Matrix4.IDENTITY, root);
         }
 
         try {
@@ -61,7 +61,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
         return Optional.of("fugue:paint-can");
     }
 
-    private static void exportNode(Node node, Matrix4f transform, CastNodes.Root root) {
+    private static void exportNode(Node node, Matrix4 transform, CastNodes.Root root) {
         node.mesh().ifPresent(mesh -> {
             var pos = transform.toTranslation();
             var rot = transform.toRotation();
@@ -79,7 +79,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
         });
 
         for (Node child : node.children()) {
-            exportNode(child, transform.mul(child.matrix()), root);
+            exportNode(child, transform.multiply(child.matrix()), root);
         }
     }
 

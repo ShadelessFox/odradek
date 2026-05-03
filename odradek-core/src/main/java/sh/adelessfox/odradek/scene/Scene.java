@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.scene;
 
-import sh.adelessfox.odradek.math.BoundingBox;
+import wtf.reversed.toolbox.math.Bounds;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,10 +20,10 @@ public record Scene(List<Node> nodes) {
         }
     }
 
-    public Optional<BoundingBox> computeBoundingBox() {
+    public Optional<Bounds> computeBoundingBox() {
         return nodes.stream()
             .map(Node::computeBoundingBox)
             .flatMap(Optional::stream)
-            .reduce(BoundingBox::encapsulate);
+            .reduce(Bounds::combine);
     }
 }

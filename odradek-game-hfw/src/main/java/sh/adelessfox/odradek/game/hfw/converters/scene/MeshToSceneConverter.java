@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.game.hfw.game.HFWGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimJointTransform;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.rtti.TypeInfo;
@@ -15,6 +14,7 @@ import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
+import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
 import java.util.*;
@@ -111,14 +111,14 @@ public final class MeshToSceneConverter
                         joints.add(new Joint(
                             OptionalInt.empty(),
                             "strand%d_%d".formatted(i, j),
-                            Matrix4f.translation(vertex.x(), vertex.y(), vertex.z())
+                            Matrix4.fromTranslation(vertex.x(), vertex.y(), vertex.z())
                         ));
                     } else {
                         var prev = strand.vertices().get(k - 1);
                         joints.add(new Joint(
                             OptionalInt.of(joints.size() - 1),
                             "strand%d_%d_%d".formatted(i, j, k),
-                            Matrix4f.translation(vertex.x() - prev.x(), vertex.y() - prev.y(), vertex.z() - prev.z())
+                            Matrix4.fromTranslation(vertex.x() - prev.x(), vertex.y() - prev.y(), vertex.z() - prev.z())
                         ));
                     }
                 }
@@ -353,7 +353,7 @@ public final class MeshToSceneConverter
         HFWGame game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
-        var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
+        var matrix = transform != null ? toMat4(transform) : Matrix4.IDENTITY;
 
         return child.map(c -> c.transform(matrix));
     }

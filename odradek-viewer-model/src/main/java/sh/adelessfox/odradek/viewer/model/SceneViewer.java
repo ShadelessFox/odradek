@@ -1,8 +1,6 @@
 package sh.adelessfox.odradek.viewer.model;
 
 import sh.adelessfox.odradek.game.Game;
-import sh.adelessfox.odradek.math.BoundingBox;
-import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
@@ -11,6 +9,8 @@ import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.GridRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.OverlayRenderPass;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderMeshesPass;
+import wtf.reversed.toolbox.math.Bounds;
+import wtf.reversed.toolbox.math.Vector3;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,12 +36,12 @@ public record SceneViewer(Scene scene) implements Viewer {
 
     @Override
     public JComponent createComponent() {
-        Vector3f center = scene.computeBoundingBox()
-            .map(BoundingBox::center)
-            .orElse(Vector3f.zero());
+        Vector3 center = scene.computeBoundingBox()
+            .map(Bounds::center)
+            .orElse(Vector3.ZERO);
 
         Camera camera = new Camera(30.f, 0.01f, 1000.f);
-        camera.position(center.sub(1.0f, -1.0f, -1.0f));
+        camera.position(center.subtract(new Vector3(1.0f, -1.0f, -1.0f)));
 
         ViewportContext context = new ViewportContext();
         context.setShowVertexUVs(true);

@@ -7,9 +7,9 @@ import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
-import sh.adelessfox.odradek.math.Matrix4f;
-import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.scene.Scene;
+import wtf.reversed.toolbox.math.Matrix4;
+import wtf.reversed.toolbox.math.Vector3;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -53,8 +53,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         return Mesh.of(primitives);
     }
 
-    static Matrix4f toMat4(DS2.Mat34 matrix) {
-        return new Matrix4f(
+    static Matrix4 toMat4(DS2.Mat34 matrix) {
+        return new Matrix4(
             matrix.row0().x(), matrix.row1().x(), matrix.row2().x(), 0.f,
             matrix.row0().y(), matrix.row1().y(), matrix.row2().y(), 0.f,
             matrix.row0().z(), matrix.row1().z(), matrix.row2().z(), 0.f,
@@ -62,10 +62,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         );
     }
 
-    static Matrix4f toMat4(DS2.WorldTransform transform) {
+    static Matrix4 toMat4(DS2.WorldTransform transform) {
         var rot = transform.orientation();
         var pos = transform.position();
-        return new Matrix4f(
+        return new Matrix4(
             rot.col0().x(), rot.col0().y(), rot.col0().z(), 0.f,
             rot.col1().x(), rot.col1().y(), rot.col1().z(), 0.f,
             rot.col2().x(), rot.col2().y(), rot.col2().z(), 0.f,
@@ -233,9 +233,9 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         return Accessor.of(buffer.flip(), 0, new Type.F32(accessor.componentCount()), accessor.count());
     }
 
-    private static Vector3f computePrimitiveColor(int hash) {
+    private static Vector3 computePrimitiveColor(int hash) {
         var random = new Random(hash);
-        return new Vector3f(
+        return new Vector3(
             random.nextFloat(0.5f, 1.0f),
             random.nextFloat(0.5f, 1.0f),
             random.nextFloat(0.5f, 1.0f)

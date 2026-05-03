@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.math.Matrix4f;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimJointTransform;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.rtti.TypeInfo;
@@ -15,6 +14,7 @@ import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
+import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
 import java.util.*;
@@ -378,7 +378,7 @@ public final class MeshToSceneConverter
         DS2Game game
     ) {
         var child = convertNodeIfAbsent(context, resource, game);
-        var matrix = transform != null ? toMat4(transform) : Matrix4f.identity();
+        var matrix = transform != null ? toMat4(transform) : Matrix4.IDENTITY;
 
         return child.map(c -> c.transform(matrix));
     }
