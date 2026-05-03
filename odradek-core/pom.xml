@@ -13,13 +13,13 @@
     <dependencies>
         <!-- External dependencies -->
         <dependency>
-            <groupId>at.yawk.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-        </dependency>
-        <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>tinybcdec</artifactId>
             <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>wtf.reversed</groupId>
+            <artifactId>reversed-toolbox</artifactId>
         </dependency>
     </dependencies>
 </project>

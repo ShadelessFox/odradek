@@ -5,13 +5,13 @@ import org.lwjgl.BufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.Type;
-import sh.adelessfox.odradek.math.*;
 import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.rhi.AddressMode;
 import sh.adelessfox.odradek.rhi.FilterMode;
 import sh.adelessfox.odradek.rhi.SamplerDescriptor;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
+import wtf.reversed.toolbox.math.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -42,7 +42,7 @@ final class DebugRenderer {
     private final List<Line> lines = new ArrayList<>(MAX_LINES);
     private final List<Point> points = new ArrayList<>(MAX_POINTS);
     private final List<Text> texts = new ArrayList<>(MAX_TEXTS);
-    private final Map<Integer, Glyph> glyphs = new HashMap<>();
+    private final Map<Integer, Font.Glyph> glyphs = new HashMap<>();
 
     private final Font msdfFont;
     private final Texture msdfTexture;
@@ -71,7 +71,7 @@ final class DebugRenderer {
             FilterMode.LINEAR,
             FilterMode.LINEAR
         ));
-        for (Glyph glyph : msdfFont.glyphs()) {
+        for (Font.Glyph glyph : msdfFont.glyphs()) {
             glyphs.put(glyph.unicode(), glyph);
         }
 
@@ -119,7 +119,7 @@ final class DebugRenderer {
                 int width = viewport.getFramebufferWidth();
                 int height = viewport.getFramebufferHeight();
 
-                msdfProgram.set("u_transform", Matrix4f.ortho2D(0, width, height, 0));
+                msdfProgram.set("u_transform", Matrix4.orthographic(0, width, height, 0, 0, 1));
                 msdfProgram.set("u_msdf", msdfSampler);
                 msdfProgram.set("u_distance_range", (float) msdfFont.atlas().distanceRange() / msdfFont.atlas().width());
 
@@ -130,11 +130,11 @@ final class DebugRenderer {
         depthTest.restore();
     }
 
-    public void point(Vector3f position, Vector3f color, float size) {
+    public void point(Vector3 position, Vector3 color, float size) {
         point(position, color, size, true);
     }
 
-    public void point(Vector3f position, Vector3f color, float size, boolean depthTest) {
+    public void point(Vector3 position, Vector3 color, float size, boolean depthTest) {
         point(position.x(), position.y(), position.z(), color.x(), color.y(), color.z(), size, depthTest);
     }
 
@@ -147,11 +147,11 @@ final class DebugRenderer {
         points.add(new Point(x, y, z, r, g, b, size, depthTest));
     }
 
-    public void line(Vector3f from, Vector3f to, Vector3f color) {
+    public void line(Vector3 from, Vector3 to, Vector3 color) {
         line(from, to, color, true);
     }
 
-    public void line(Vector3f from, Vector3f to, Vector3f color, boolean depthTest) {
+    public void line(Vector3 from, Vector3 to, Vector3 color, boolean depthTest) {
         line(from.x(), from.y(), from.z(), to.x(), to.y(), to.z(), color.x(), color.y(), color.z(), depthTest);
     }
 
@@ -164,11 +164,11 @@ final class DebugRenderer {
         lines.add(new Line(x1, y1, z1, x2, y2, z2, r, g, b, depthTest));
     }
 
-    public void box(Vector3f[] points, Vector3f color) {
+    public void box(Vector3[] points, Vector3 color) {
         box(points, color, true);
     }
 
-    public void box(Vector3f[] points, Vector3f color, boolean depthTest) {
+    public void box(Vector3[] points, Vector3 color, boolean depthTest) {
         for (int i = 0; i < 4; i++) {
             line(points[i], points[(i + 1) % 4], color, depthTest);
             line(points[i + 4], points[(i + 1) % 4 + 4], color, depthTest);
@@ -176,34 +176,34 @@ final class DebugRenderer {
         }
     }
 
-    public void aabb(BoundingBox bbox, Vector3f color) {
+    public void aabb(Bounds bbox, Vector3 color) {
         aabb(bbox.min(), bbox.max(), color, true);
     }
 
-    public void aabb(Vector3f min, Vector3f max, Vector3f color) {
+    public void aabb(Vector3 min, Vector3 max, Vector3 color) {
         aabb(min, max, color, true);
     }
 
-    public void aabb(Vector3f min, Vector3f max, Vector3f color, boolean depthTest) {
-        final Vector3f[] points = {
-            new Vector3f(min.x(), min.y(), min.z()),
-            new Vector3f(max.x(), min.y(), min.z()),
-            new Vector3f(max.x(), max.y(), min.z()),
-            new Vector3f(min.x(), max.y(), min.z()),
-            new Vector3f(min.x(), min.y(), max.z()),
-            new Vector3f(max.x(), min.y(), max.z()),
-            new Vector3f(max.x(), max.y(), max.z()),
-            new Vector3f(min.x(), max.y(), max.z()),
+    public void aabb(Vector3 min, Vector3 max, Vector3 color, boolean depthTest) {
+        final Vector3[] points = {
+            new Vector3(min.x(), min.y(), min.z()),
+            new Vector3(max.x(), min.y(), min.z()),
+            new Vector3(max.x(), max.y(), min.z()),
+            new Vector3(min.x(), max.y(), min.z()),
+            new Vector3(min.x(), min.y(), max.z()),
+            new Vector3(max.x(), min.y(), max.z()),
+            new Vector3(max.x(), max.y(), max.z()),
+            new Vector3(min.x(), max.y(), max.z()),
         };
 
         box(points, color, depthTest);
     }
 
-    public void cross(Vector3f center, float length) {
+    public void cross(Vector3 center, float length) {
         cross(center, length, true);
     }
 
-    public void cross(Vector3f center, float length, boolean depthTest) {
+    public void cross(Vector3 center, float length, boolean depthTest) {
         float cx = center.x();
         float cy = center.y();
         float cz = center.z();
@@ -214,12 +214,12 @@ final class DebugRenderer {
         line(cx, cy, cz - hl, cx, cy, cz + hl, 0, 0, 1, depthTest);
     }
 
-    public void projectedText(String text, Vector3f position, Camera camera, Vector3f color, float scale) {
+    public void projectedText(String text, Vector3 position, Camera camera, Vector3 color, float scale) {
         projectedText(text, position.x(), position.y(), position.z(), camera.projectionView(), color.x(), color.y(), color.z(), scale);
     }
 
-    public void projectedText(String text, float x, float y, float z, Matrix4f projection, float r, float g, float b, float scale) {
-        Vector4f clip = new Vector4f(x, y, z, 1.0f).transform(projection);
+    public void projectedText(String text, float x, float y, float z, Matrix4 projection, float r, float g, float b, float scale) {
+        Vector4 clip = new Vector4(x, y, z, 1.0f).transform(projection);
 
         // Skip if the point is behind the camera or outside the screen
         if (Math.abs(clip.w()) < 1e-6 || clip.z() < -clip.w() || clip.z() > clip.w()) {
@@ -232,7 +232,7 @@ final class DebugRenderer {
         text(text, nx, ny, r, g, b, scale, true, false);
     }
 
-    public void billboardText(String text, Vector2f position, Vector3f color, float scale) {
+    public void billboardText(String text, Vector2 position, Vector3 color, float scale) {
         billboardText(text, position.x(), position.y(), color.x(), color.y(), color.z(), scale);
     }
 
@@ -429,17 +429,16 @@ final class DebugRenderer {
     }
 
     private record Font(Atlas atlas, Metrics metrics, Glyph[] glyphs) {
-    }
+        record Atlas(int distanceRange, int width, int height) {
+        }
 
-    private record Atlas(int distanceRange, int width, int height) {
-    }
+        record Metrics(float lineHeight, float ascender, float descender) {
+        }
 
-    private record Metrics(float lineHeight, float ascender, float descender) {
-    }
+        record Glyph(int unicode, float advance, Bounds planeBounds, Bounds atlasBounds) {
+        }
 
-    private record Glyph(int unicode, float advance, Bounds planeBounds, Bounds atlasBounds) {
-    }
-
-    private record Bounds(float left, float top, float right, float bottom) {
+        record Bounds(float left, float top, float right, float bottom) {
+        }
     }
 }

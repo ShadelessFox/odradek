@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.game.decima;
 
-import sh.adelessfox.odradek.hashing.HashCode;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import wtf.reversed.toolbox.hash.HashCode;
 
 import java.util.Iterator;
 import java.util.List;

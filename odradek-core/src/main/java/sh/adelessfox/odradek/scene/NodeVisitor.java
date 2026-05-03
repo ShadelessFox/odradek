@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.scene;
 
-import sh.adelessfox.odradek.math.Matrix4f;
+import wtf.reversed.toolbox.math.Matrix4;
 
 @FunctionalInterface
 public interface NodeVisitor {
@@ -11,5 +11,5 @@ public interface NodeVisitor {
      * @param transform the accumulated transform
      * @return {@code true} to continue visiting child nodes, {@code false} to skip them
      */
-    boolean visit(Node node, Matrix4f transform);
+    boolean visit(Node node, Matrix4 transform);
 }

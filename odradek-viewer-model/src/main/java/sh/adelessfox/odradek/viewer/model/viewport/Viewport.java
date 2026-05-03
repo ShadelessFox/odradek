@@ -2,13 +2,13 @@ package sh.adelessfox.odradek.viewer.model.viewport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.math.Vector2f;
-import sh.adelessfox.odradek.math.Vector3f;
 import sh.adelessfox.odradek.opengl.awt.GLCanvas;
 import sh.adelessfox.odradek.opengl.awt.GLData;
 import sh.adelessfox.odradek.opengl.awt.GLEventListener;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderPass;
+import wtf.reversed.toolbox.math.Vector2;
+import wtf.reversed.toolbox.math.Vector3;
 
 import javax.swing.*;
 import java.awt.*;
@@ -158,14 +158,14 @@ public final class Viewport extends JComponent implements GLEventListener {
         this.camera = camera;
     }
 
-    public Vector3f getCameraOrigin() {
+    public Vector3 getCameraOrigin() {
         return camera.forward().fma(cameraDistance, camera.position());
     }
 
-    public void setCameraOrigin(Vector3f origin) {
+    public void setCameraOrigin(Vector3 origin) {
         Objects.requireNonNull(camera, "camera is not set");
         camera.lookAt(origin);
-        cameraDistance = camera.position().sub(origin).length();
+        cameraDistance = camera.position().subtract(origin).length();
     }
 
     public Scene getScene() {
@@ -217,7 +217,7 @@ public final class Viewport extends JComponent implements GLEventListener {
         context.setShowCameraOrigin(false);
 
         var sensitivity = 1.0f;
-        var mouseDelta = input.mousePositionDelta().mul(sensitivity);
+        var mouseDelta = input.mousePositionDelta().multiply(sensitivity);
         var wheelDelta = input.mouseWheelDelta() * sensitivity * 0.1f;
 
         if (input.isMouseDown(MouseEvent.BUTTON1)) {
@@ -237,12 +237,12 @@ public final class Viewport extends JComponent implements GLEventListener {
     private void updateCameraZoom(float newDistance) {
         float delta = newDistance - cameraDistance;
         if (delta != 0.0f) {
-            camera.position(camera.position().sub(camera.forward().mul(delta)));
+            camera.position(camera.position().subtract(camera.forward().multiply(delta)));
             cameraDistance = newDistance;
         }
     }
 
-    private void updateFlyCamera(float dt, Vector2f mouse) {
+    private void updateFlyCamera(float dt, Vector2 mouse) {
         float speed = cameraSpeed * dt;
         if (input.isKeyDown(KeyEvent.VK_SHIFT)) {
             speed *= 5.0f;
@@ -252,18 +252,18 @@ public final class Viewport extends JComponent implements GLEventListener {
         }
 
         var position = camera.position();
-        var forward = camera.forward().mul(speed);
-        var right = camera.right().mul(speed);
+        var forward = camera.forward().multiply(speed);
+        var right = camera.right().multiply(speed);
 
         // Horizontal movement
         if (input.isKeyDown(KeyEvent.VK_W)) {
             position = position.add(forward);
         }
         if (input.isKeyDown(KeyEvent.VK_A)) {
-            position = position.sub(right);
+            position = position.subtract(right);
         }
         if (input.isKeyDown(KeyEvent.VK_S)) {
-            position = position.sub(forward);
+            position = position.subtract(forward);
         }
         if (input.isKeyDown(KeyEvent.VK_D)) {
             position = position.add(right);
@@ -271,26 +271,26 @@ public final class Viewport extends JComponent implements GLEventListener {
 
         // Vertical movement
         if (input.isKeyDown(KeyEvent.VK_Q)) {
-            position = position.sub(0.0f, 0.0f, speed);
+            position = position.subtract(new Vector3(0.0f, 0.0f, speed));
         }
         if (input.isKeyDown(KeyEvent.VK_E)) {
-            position = position.add(0.0f, 0.0f, speed);
+            position = position.add(new Vector3(0.0f, 0.0f, speed));
         }
 
         camera.position(position);
         camera.rotate(mouse.x(), mouse.y());
     }
 
-    private void updatePanCamera(float dt, Vector2f mouse) {
+    private void updatePanCamera(float dt, Vector2 mouse) {
         var speed = (float) (Math.sqrt(cameraDistance) * dt);
-        camera.move(camera.right().mul(mouse.x() * speed).negate());
-        camera.move(camera.up().mul(mouse.y() * speed));
+        camera.move(camera.right().multiply(mouse.x() * speed).negate());
+        camera.move(camera.up().multiply(mouse.y() * speed));
     }
 
-    private void updateOrbitCamera(Vector2f mouse) {
+    private void updateOrbitCamera(Vector2 mouse) {
         var target = camera.forward();
         camera.rotate(mouse.x(), mouse.y());
-        var distance = target.sub(camera.forward()).mul(cameraDistance);
+        var distance = target.subtract(camera.forward()).multiply(cameraDistance);
         camera.move(distance);
     }
     // endregion

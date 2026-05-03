@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.geometry;
 
-import sh.adelessfox.odradek.math.BoundingBox;
+import wtf.reversed.toolbox.math.Bounds;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +21,10 @@ public record Mesh(Optional<String> name, List<Primitive> primitives) {
         return of(List.of(primitive));
     }
 
-    public BoundingBox computeBoundingBox() {
+    public Bounds computeBoundingBox() {
         return primitives.stream()
             .map(Primitive::computeBoundingBox)
-            .reduce(BoundingBox::encapsulate)
+            .reduce(Bounds::combine)
             .orElseThrow();
     }
 }

@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.viewer.model.viewport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.math.Vector2f;
+import wtf.reversed.toolbox.math.Vector2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,8 +57,8 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
         return mouseState.contains(button);
     }
 
-    public Vector2f mousePositionDelta() {
-        return new Vector2f(mouseDelta.x, mouseDelta.y);
+    public Vector2 mousePositionDelta() {
+        return new Vector2(mouseDelta.x, mouseDelta.y);
     }
 
     public float mouseWheelDelta() {

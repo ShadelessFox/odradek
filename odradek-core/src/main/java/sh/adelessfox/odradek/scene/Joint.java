@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.scene;
 
-import sh.adelessfox.odradek.math.Matrix4f;
+import wtf.reversed.toolbox.math.Matrix4;
 
 import java.util.OptionalInt;
 
@@ -11,5 +11,5 @@ import java.util.OptionalInt;
  * @param name   The name of the joint.
  * @param matrix The transform of the joint relative to its parent.
  */
-public record Joint(OptionalInt parent, String name, Matrix4f matrix) {
+public record Joint(OptionalInt parent, String name, Matrix4 matrix) {
 }

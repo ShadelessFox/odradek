@@ -79,26 +79,22 @@ public final class DS2Game implements DecimaGame {
 
     public byte[] readDataSource(DS2.StreamingDataSource dataSource) {
         try {
-            return getDataSourceData(dataSource);
+            return readDataSourceData(dataSource);
         } catch (IOException e) {
             // FIXME: Throwing unchecked exceptions is not ideal. Think about proper exception handling
             throw new UncheckedIOException(e);
         }
     }
 
-    public byte[] getDataSourceData(DS2.StreamingDataSource dataSource) throws IOException {
-        return getDataSourceData(dataSource, dataSource.offset(), dataSource.length());
+    public byte[] readDataSourceData(DS2.StreamingDataSource dataSource) throws IOException {
+        return readDataSourceData(dataSource, dataSource.offset(), dataSource.length());
     }
 
-    public byte[] getDataSourceData(
-        DS2.StreamingDataSource dataSource,
-        int offset,
-        int length
-    ) throws IOException {
-        return getFileData(dataSource.fileId(), (long) dataSource.fileOffset() + offset, length);
+    public byte[] readDataSourceData(DS2.StreamingDataSource dataSource, int offset, int length) throws IOException {
+        return readFileData(dataSource.fileId(), (long) dataSource.fileOffset() + offset, length);
     }
 
-    private byte[] getFileData(int fileId, long offset, long length) throws IOException {
+    private byte[] readFileData(int fileId, long offset, long length) throws IOException {
         return readFile(streamingGraph.files().get(fileId), offset, length);
     }
 

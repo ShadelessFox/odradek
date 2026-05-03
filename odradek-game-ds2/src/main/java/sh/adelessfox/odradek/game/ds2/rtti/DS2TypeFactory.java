@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.ds2.rtti;
 
-import sh.adelessfox.odradek.hashing.HashFunction;
+import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.factory.AbstractTypeFactory;
 import sh.adelessfox.odradek.rtti.factory.TypeId;
@@ -18,7 +18,7 @@ public final class DS2TypeFactory extends AbstractTypeFactory {
     @Override
     protected TypeId computeTypeId(TypeInfo info) {
         var name = "00000001_" + info.name();
-        var hash = HashFunction.murmur3().hash(name).asLong();
+        var hash = DecimaHash.murmur3().hash(name).asLong();
         return DS2TypeId.of(hash);
     }
 
