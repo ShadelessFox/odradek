@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.middleware.jolt.core;
 
-import sh.adelessfox.odradek.hashing.HashFunction;
+import wtf.reversed.toolbox.hash.HashFunction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -64,7 +64,7 @@ public class Factory {
 
     @SuppressWarnings("UseHashCodeMethodInspection")
     private static int computeHash(String name) {
-        var hash = HashFunction.fnv1a_64().hash(name).asLong();
+        var hash = HashFunction.fnv1a64().hash(name).asLong();
         return (int) (hash ^ (hash >>> 32));
     }
 }

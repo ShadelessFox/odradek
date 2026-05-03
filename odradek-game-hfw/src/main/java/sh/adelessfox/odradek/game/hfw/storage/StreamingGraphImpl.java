@@ -2,15 +2,16 @@ package sh.adelessfox.odradek.game.hfw.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeId;
-import sh.adelessfox.odradek.hashing.HashCode;
-import sh.adelessfox.odradek.hashing.HashFunction;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.hash.HashCode;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -94,7 +95,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
 
     @Override
     public HashCode checksum() {
-        return HashFunction.murmur3().hash(linkTable);
+        return DecimaHash.murmur3().hash(Bytes.wrap(linkTable));
     }
 
     @Override

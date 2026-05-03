@@ -1,12 +1,13 @@
 package sh.adelessfox.odradek.game.hfw.rtti;
 
-import sh.adelessfox.odradek.hashing.HashFunction;
+import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
 import java.lang.invoke.VarHandle;
@@ -118,7 +119,8 @@ public class HFWTypeReader extends AbstractTypeReader {
         }
         var hash = reader.readInt();
         var data = reader.readBytes(length);
-        if (hash != HashFunction.crc32c().hash(data).asInt()) {
+        int actual = DecimaHash.crc32().hash(Bytes.wrap(data)).asInt() & 0x7fffffff;
+        if (hash != actual) {
             throw new IllegalArgumentException("String is corrupted - mismatched checksum");
         }
         return new String(data, StandardCharsets.UTF_8);

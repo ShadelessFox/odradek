@@ -20,6 +20,8 @@ module odradek.app {
     requires odradek.ui;
     requires org.slf4j;
 
+    requires wtf.reversed.toolbox;
+
     // VirtualMachine.list()
     requires jdk.attach;
 
