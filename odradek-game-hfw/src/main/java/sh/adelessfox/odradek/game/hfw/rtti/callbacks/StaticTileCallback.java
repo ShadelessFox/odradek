@@ -12,7 +12,7 @@ public class StaticTileCallback implements ExtraBinaryDataCallback<HFW.StaticTil
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, HFW.StaticTile object) throws IOException {
         object.unk01(reader.readBytes(reader.readInt() * 20));
-        object.unk02(reader.readObjects(reader.readInt(), r -> HFWTypeReader.readCompound(HFW.Mat44.class, r, factory)));
+        object.unk02(reader.readBytes(reader.readInt() * 64));
         object.unk03(reader.readBytes(reader.readInt() * 12));
         object.unk04(reader.readBytes(reader.readInt() * 16));
         object.unk05(reader.readObjects(reader.readInt(), r -> HFWTypeReader.readCompound(HFW.Mat34.class, r, factory)));

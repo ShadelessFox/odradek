@@ -120,7 +120,7 @@
 		"StaticTileExtension": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
 				{"name": "Unk01", "type": "Array_uint8", "offset": 0, "flags": 0},
-				{"name": "Unk02", "type": "Array_Mat44", "offset": 0, "flags": 0},
+				{"name": "Unk02", "type": "Array_uint8", "offset": 0, "flags": 0},
 				{"name": "Unk03", "type": "Array_uint8", "offset": 0, "flags": 0},
 				{"name": "Unk04", "type": "Array_uint8", "offset": 0, "flags": 0},
 				{"name": "Unk05", "type": "Array_Mat34", "offset": 0, "flags": 0}
