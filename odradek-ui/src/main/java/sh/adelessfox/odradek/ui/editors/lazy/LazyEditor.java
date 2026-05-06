@@ -129,13 +129,17 @@ public final class LazyEditor implements Editor {
                 manager.openEditor(LazyEditor.this, get());
             } catch (InterruptedException | CancellationException e) {
                 manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
-            } catch (ExecutionException e) {
-                log.error("Unable to open editor for '{}'", input.getName(), e.getCause());
+            } catch (Throwable e) {
+                // TODO: A non-ExecutionException exception can only be thrown during
+                //  the initialization of the editor itself, not its input. It really
+                //  should be handled by the EditorManager itself.
+                var cause = e instanceof ExecutionException ? e.getCause() : e;
+                log.error("Unable to open editor for '{}'", input.getName(), cause);
                 manager.openEditor(LazyEditor.this, input.canLoadImmediately(false));
                 Dialogs.showExceptionDialog(
                     JOptionPane.getRootFrame(),
                     "Unable to open editor for '%s'".formatted(input.getName()),
-                    e.getCause());
+                    cause);
             }
         }
     }
