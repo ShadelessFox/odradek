@@ -186,7 +186,6 @@
                         <javaOption>--enable-native-access=org.lwjgl.jawt</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl.opengl</javaOption>
                         <javaOption>--enable-native-access=org.lwjgl</javaOption>
-                        <javaOption>--enable-native-access=org.lz4.java</javaOption>
                         <!-- Allows usage of java.lang.StableValue -->
                         <javaOption>--enable-preview</javaOption>
                         <!-- To make ChannelBinaryReader not close the underlying channel on interrupt -->
