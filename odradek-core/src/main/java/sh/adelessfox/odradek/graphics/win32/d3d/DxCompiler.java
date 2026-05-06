@@ -1,9 +1,9 @@
-package sh.adelessfox.odradek.viewer.shader.win32.d3d;
+package sh.adelessfox.odradek.graphics.win32.d3d;
 
-import sh.adelessfox.odradek.viewer.shader.win32.CLSID;
-import sh.adelessfox.odradek.viewer.shader.win32.GUID;
-import sh.adelessfox.odradek.viewer.shader.win32.IID;
-import sh.adelessfox.odradek.viewer.shader.win32.Win32Exception;
+import sh.adelessfox.odradek.graphics.win32.CLSID;
+import sh.adelessfox.odradek.graphics.win32.GUID;
+import sh.adelessfox.odradek.graphics.win32.IID;
+import sh.adelessfox.odradek.graphics.win32.Win32Exception;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;

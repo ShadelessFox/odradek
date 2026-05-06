@@ -30,6 +30,7 @@ module odradek.app {
     requires odradek.export.dds;
     requires odradek.export.json;
     requires odradek.export.png;
+    requires odradek.export.shader;
     requires odradek.export.wave;
 
     // Viewers

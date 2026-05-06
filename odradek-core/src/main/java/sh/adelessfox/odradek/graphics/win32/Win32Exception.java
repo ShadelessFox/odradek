@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.viewer.shader.win32;
+package sh.adelessfox.odradek.graphics.win32;
 
 public final class Win32Exception extends RuntimeException {
     private final int result;

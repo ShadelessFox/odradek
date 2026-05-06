@@ -1,19 +1,13 @@
 package sh.adelessfox.odradek.viewer.shader;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.ProgramType;
 import sh.adelessfox.odradek.graphics.Shader;
 import sh.adelessfox.odradek.ui.Viewer;
-import sh.adelessfox.odradek.viewer.shader.win32.d3d.DxCompiler;
-import sh.adelessfox.odradek.viewer.shader.win32.d3d.IDxcCompiler;
-import sh.adelessfox.odradek.viewer.shader.win32.d3d.IDxcUtils;
 
 import javax.swing.*;
-import java.lang.foreign.Arena;
-import java.lang.foreign.SymbolLookup;
+import java.util.List;
 import java.util.Optional;
 
 public record ShaderViewer(Shader shader, Game game) implements Viewer {
@@ -34,49 +28,34 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
         }
     }
 
-    private static final Logger log = LoggerFactory.getLogger(ShaderViewer.class);
-
     @Override
     public JComponent createComponent() {
-        try (Arena arena = Arena.ofConfined()) {
-            var lookup = SymbolLookup.libraryLookup("dxcompiler", arena);
-            var compiler = new DxCompiler(lookup);
+        var disassembled = shader.programs().stream()
+            .map(Program::disassemble)
+            .toList();
 
-            return createShaderPanel(shader, compiler);
-        } catch (Exception e) {
-            log.error("Unable to preview the shader", e);
-            return new JLabel("Ensure 'dxcompiler.dll' is placed next to the application executable. Refer to log for more details", SwingConstants.CENTER);
-        }
+        return createShaderPanel(shader, disassembled);
     }
 
-    private static JComponent createShaderPanel(Shader shader, DxCompiler compiler) {
+    private static JComponent createShaderPanel(Shader shader, List<String> disassembled) {
         var pane = new JTabbedPane();
-        for (Program program : shader.programs()) {
-            pane.add(toDisplayString(program.type()), createProgramPanel(program, compiler));
+        for (int i = 0; i < shader.programs().size(); i++) {
+            var program = shader.programs().get(i);
+            var text = disassembled.get(i);
+            pane.add(toDisplayString(program.type()), createProgramPanel(text));
         }
 
         return pane;
     }
 
-    private static JComponent createProgramPanel(Program program, DxCompiler compiler) {
+    private static JComponent createProgramPanel(String text) {
         var area = new JTextArea();
         area.setFont(UIManager.getFont("monospaced.font"));
         area.setEditable(false);
-        area.setText(disassemble(program, compiler));
+        area.setText(text);
         area.setCaretPosition(0);
 
         return new JScrollPane(area);
-    }
-
-    private static String disassemble(Program program, DxCompiler compiler) {
-        try (
-            var dxcUtils = compiler.createInstance(DxCompiler.CLSID_DxcUtils, IDxcUtils.IID_IDxcUtils);
-            var dxcCompiler = compiler.createInstance(DxCompiler.CLSID_DxcCompiler, IDxcCompiler.IID_IDxcCompiler);
-            var sourceBlob = dxcUtils.createBlob(program.blob(), 0);
-            var disassemblyBlob = dxcCompiler.disassemble(sourceBlob)
-        ) {
-            return disassemblyBlob.getBuffer().getString(0);
-        }
     }
 
     private static String toDisplayString(ProgramType type) {

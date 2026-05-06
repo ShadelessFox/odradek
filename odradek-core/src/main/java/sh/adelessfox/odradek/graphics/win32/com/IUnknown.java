@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.viewer.shader.win32.com;
+package sh.adelessfox.odradek.graphics.win32.com;
 
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemorySegment;

@@ -34,6 +34,9 @@ public sealed interface Exporter<T> {
              * Opens a channel for writing an output with the given name.
              * <p>
              * Calling this method multiple times with the same name is guaranteed to return the same channel.
+             * <p>
+             * Because the channel can be reused, it's not required to close it after writing; the provider
+             * will take care of closing all channels when the export is finished.
              *
              * @param name the name of the output, e.g. "diffuse" or "normal"
              * @return a channel for writing the output data

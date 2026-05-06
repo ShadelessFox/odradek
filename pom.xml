@@ -22,6 +22,7 @@
         <module>odradek-export-dds</module>
         <module>odradek-export-json</module>
         <module>odradek-export-png</module>
+        <module>odradek-export-shader</module>
         <module>odradek-export-wave</module>
         <module>odradek-game-decima</module>
         <module>odradek-game-ds2-ui</module>
@@ -159,6 +160,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-png</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-export-shader</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
