@@ -28,7 +28,6 @@ public interface Viewer extends Activable, Disposable {
             return Optional.empty();
         }
 
-        @SuppressWarnings("unchecked")
         default Class<T> supportedType() {
             return Reflections.getGenericInterfaceArgument(getClass(), Viewer.Provider.class, 0);
         }
