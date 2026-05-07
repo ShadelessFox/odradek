@@ -105,8 +105,10 @@
 		},
 		"ShaderResourceExtension": {
 			"kind": "compound", "version": 0, "flags": 0, "attrs": [
-				{"name": "Hash", "type": "MurmurHashValue", "offset": 0, "flags": 0},
-				{"name": "Data", "type": "Array_uint8", "offset": 0, "flags": 0}
+				{"name": "Size", "type": "uint32", "offset": 0, "flags": 0},
+				{"name": "Unk04", "type": "GGUUID", "offset": 0, "flags": 0},
+				{"name": "Unk14", "type": "GGUUID", "offset": 0, "flags": 0},
+				{"name": "Unk24", "type": "StreamingDataSource", "offset": 0, "flags": 0}
 			]
 		},
 		"IndexArrayResourceExtension": {
