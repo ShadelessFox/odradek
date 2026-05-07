@@ -181,6 +181,23 @@
 				{"name": "Mode", "type": "ESubtitleMode", "offset": 0, "flags": 0}
 			]
 		},
+		"EProgramTypeMask": {
+			"kind": "enum",
+			"size": 4,
+			"values": [
+				{"value": 4, "name": "VP"},
+				{"value": 2, "name": "GP"},
+				{"value": 8, "name": "FP"},
+				{"value": 1, "name": "CP"},
+				{"value": 15, "name": "All"},
+				{"value": 14, "name": "AllGraphics"},
+				{"value": 14, "name": "VP_GP_FP"},
+				{"value": 6, "name": "VP_GP"},
+				{"value": 12, "name": "VP_FP"},
+				{"value": 9, "name": "FP_CP"},
+				{"value": 0, "name": "None"}
+			]
+		},
 		"ESubtitleMode": {
 			"kind": "enum", "size": 1, "values": [
 				{"value": 0, "name": "Default"},

@@ -102,6 +102,7 @@ module odradek.game.ds2 {
         sh.adelessfox.odradek.game.ds2.converters.scene.MeshToSceneConverter,
         sh.adelessfox.odradek.game.ds2.converters.texture.TextureToTextureConverter,
         sh.adelessfox.odradek.game.ds2.converters.texture.UITextureToTextureConverter,
+        sh.adelessfox.odradek.game.ds2.converters.ShaderResourceToShaderConverter,
         sh.adelessfox.odradek.game.ds2.converters.StreamingDataSourceToBytesConverter,
         sh.adelessfox.odradek.game.ds2.converters.TextureSetToTextureSetConverter;
 
