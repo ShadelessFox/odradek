@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.io;
 
+import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.compress.Decompressor;
 
 import java.io.IOException;
@@ -33,8 +34,8 @@ public final class DirectStorageReader extends ChunkedBinaryReader {
     }
 
     @Override
-    protected void decompress(byte[] src, int srcLen, byte[] dst, int dstLen) throws IOException {
-        Decompressor.lz4Block().decompress(src, srcLen, dst, dstLen);
+    protected void decompress(byte[] src, int srcLen, byte[] dst, int dstLen) {
+        Decompressor.lz4Block().decompress(Bytes.wrap(src, 0, srcLen), Bytes.Mutable.wrap(dst, 0, dstLen));
     }
 
     @Override

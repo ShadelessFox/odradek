@@ -133,5 +133,5 @@ public abstract class ChunkedBinaryReader implements BinaryReader {
         reader.close();
     }
 
-    protected abstract void decompress(byte[] src, int srcLen, byte[] dst, int dstLen) throws IOException;
+    protected abstract void decompress(byte[] src, int srcLen, byte[] dst, int dstLen);
 }

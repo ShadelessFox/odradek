@@ -6,10 +6,9 @@ import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
+import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.compress.Decompressor;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -42,12 +41,7 @@ public final class UITextureToTextureConverter
             int length = (int) (span >>> 32);
             var buffer = new byte[object.size()];
 
-            try {
-                Decompressor.lz4Block().decompress(data, offset, length, buffer, 0, object.size());
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-
+            Decompressor.lz4Block().decompress(Bytes.wrap(data, offset, length), Bytes.Mutable.wrap(buffer, 0, object.size()));
             surfaces.add(new Surface(object.width(), object.height(), buffer));
         }
 
