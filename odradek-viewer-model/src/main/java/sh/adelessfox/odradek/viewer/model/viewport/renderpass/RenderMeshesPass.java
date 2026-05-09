@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.geometry.Accessor;
 import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.geometry.Type;
@@ -24,8 +23,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -158,59 +159,14 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private Optional<GpuPrimitive> uploadPrimitive(Mesh mesh) {
-        var buffers = new IdentityHashMap<ByteBuffer, List<VertexAttribute>>();
-
-        var vertices = mesh.vertices();
-        var indices = mesh.indices();
-
-        int location = 0;
-        var semantics = new HashSet<Semantic>();
-
-        for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL, Semantic.TEXTURE_0, Semantic.COLOR)) {
-            var accessor = vertices.get(semantic);
-            var location1 = location++;
-            if (accessor == null) {
-                continue;
-            }
-            if (!(accessor instanceof Accessor.OfBuffer buffer)) {
-                log.error("Unsupported accessor type for semantic {}: {}", semantic, accessor.getClass().getName());
-                continue;
-            }
-            var attributes = buffers.computeIfAbsent(buffer.buffer(), _ -> new ArrayList<>());
-            attributes.add(new VertexAttribute(location1, buffer.type(), 0, buffer.stride()));
-            semantics.add(semantic);
-        }
-
-        if (!semantics.contains(Semantic.POSITION)) {
-            log.error("Missing required vertex attribute: {}", Semantic.POSITION);
-            return Optional.empty();
-        }
-
         try (var vao = new VertexArray().bind()) {
-            int slot = 0;
-            for (var entry : buffers.entrySet()) {
-                var vbo = vao.createVertexBuffer(entry.getValue(), slot);
-                vbo.put(entry.getKey(), 0);
-                slot++;
-            }
-
-            if (!(indices instanceof Accessor.OfBuffer buffer)) {
-                log.error("Unsupported index accessor type: {}", indices.getClass().getName());
-                return Optional.empty();
-            }
+            var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(0, new Type.F32(3), 0, 12)), 0);
+            vbo.put(mesh.positions().asBuffer(), 0);
 
             var ibo = vao.createElementBuffer();
-            ibo.put(buffer.buffer(), 0);
+            ibo.put(mesh.indices().asBuffer(), 0);
 
-            var count = indices.count();
-            var type = switch (indices.type()) {
-                case Type.I8 _ -> GL_UNSIGNED_BYTE;
-                case Type.I16 _ -> GL_UNSIGNED_SHORT;
-                case Type.I32 _ -> GL_UNSIGNED_INT;
-                default -> throw new IllegalArgumentException("unsupported index type");
-            };
-
-            return Optional.of(new GpuPrimitive(count, type, vao, mesh.color(), semantics));
+            return Optional.of(new GpuPrimitive(mesh.indices().length(), GL_UNSIGNED_INT, vao, mesh.color(), Set.of()));
         }
     }
 

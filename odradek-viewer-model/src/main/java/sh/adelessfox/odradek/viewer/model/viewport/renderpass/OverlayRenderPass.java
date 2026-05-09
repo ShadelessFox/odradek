@@ -175,8 +175,8 @@ public class OverlayRenderPass implements RenderPass {
             scene.accept((node, _) -> {
                 node.mesh().ifPresent(mesh -> {
                     for (Mesh primitive : mesh.meshes()) {
-                        statistics.vertices += primitive.positions().count();
-                        statistics.faces += primitive.indices().count() / 3;
+                        statistics.vertices += primitive.positions().length() / 3;
+                        statistics.faces += primitive.indices().length() / 3;
                     }
                     statistics.meshes += 1;
                 });

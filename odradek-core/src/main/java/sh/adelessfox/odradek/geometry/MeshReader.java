@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.geometry;
 
 import wtf.reversed.toolbox.math.Vector3;
 
-import java.util.Map;
+import java.util.Optional;
 
 public final class MeshReader {
     private Accessor indices;
@@ -58,12 +58,16 @@ public final class MeshReader {
         if (positions == null) {
             throw new IllegalStateException("positions not set");
         }
-        Map<Semantic, Accessor> vertices = Map.of(
-            Semantic.POSITION, positions,
-            Semantic.NORMAL, normals,
-            Semantic.WEIGHTS, weights,
-            Semantic.JOINTS, joints
-        );
-        return new Mesh(indices, vertices, Vector3.ONE);
+        var indices = this.indices.toInts();
+        var positions = this.positions.toFloats();
+        var normals = this.normals != null ? this.normals.toFloats() : null;
+        var weights = this.weights != null ? this.weights.toFloats() : null;
+        var joints = this.joints != null ? this.joints.asIntView() : null;
+
+        return new Mesh(
+            indices,
+            positions,
+            Optional.ofNullable(normals),
+            Vector3.ONE);
     }
 }

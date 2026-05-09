@@ -4,11 +4,15 @@ import be.twofold.tinycast.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.geometry.*;
+import sh.adelessfox.odradek.geometry.Accessor;
+import sh.adelessfox.odradek.geometry.Mesh;
+import sh.adelessfox.odradek.geometry.Model;
+import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
+import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
@@ -85,41 +89,38 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
 
     private static void exportMesh(CastNodes.Model model, Model nodeModel) {
         for (Mesh mesh : nodeModel.meshes()) {
-            var vertices = mesh.vertices();
-            var indices = mesh.indices();
             var result = model.createMesh();
+            result.setFaceBuffer(mesh.indices().asBuffer());
+            result.setVertexPositionBuffer(mesh.positions().asBuffer());
 
-            // Vertices
-            vertices.forEach((semantic, accessor) -> {
-                switch (semantic) {
-                    case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
-                    case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
-                    case Semantic.Texture _ -> {
-                        result.addVertexUVBuffer(toUVBuffer(accessor));
-                        result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
-                    }
-                    case Semantic.Color _ -> {
-                        result.addVertexColorBufferI32(toIntColorBuffer(accessor));
-                        result.setColorLayerCount(result.getColorLayerCount().orElse(0) + 1);
-                    }
-                    case Semantic.Joints _, Semantic.Weights _ -> {
-                        // handled separately
-                    }
-                    default -> log.debug("Skipping unsupported vertex {}", semantic);
-                }
-            });
+            mesh.normals().map(Floats::asBuffer).ifPresent(result::setVertexNormalBuffer);
 
-            // Weights
-            var joints = vertices.get(Semantic.JOINTS);
-            var weights = vertices.get(Semantic.WEIGHTS);
-            if (joints != null && weights != null) {
-                result.setMaximumWeightInfluence(joints.componentCount());
-                result.setVertexWeightBoneBuffer(toBuffer(joints));
-                result.setVertexWeightValueBuffer(toFloatBuffer(weights));
-            }
+            // vertices.forEach((semantic, accessor) -> {
+            //     switch (semantic) {
+            //         case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
+            //         case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
+            //         case Semantic.Texture _ -> {
+            //             result.addVertexUVBuffer(toUVBuffer(accessor));
+            //             result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
+            //         }
+            //         case Semantic.Color _ -> {
+            //             result.addVertexColorBufferI32(toIntColorBuffer(accessor));
+            //             result.setColorLayerCount(result.getColorLayerCount().orElse(0) + 1);
+            //         }
+            //         case Semantic.Joints _, Semantic.Weights _ -> {
+            //             // handled separately
+            //         }
+            //         default -> log.debug("Skipping unsupported vertex {}", semantic);
+            //     }
+            // });
 
-            // Indices
-            result.setFaceBuffer(toBuffer(indices));
+            // var joints = vertices.get(Semantic.JOINTS);
+            // var weights = vertices.get(Semantic.WEIGHTS);
+            // if (joints != null && weights != null) {
+            //     result.setMaximumWeightInfluence(joints.componentCount());
+            //     result.setVertexWeightBoneBuffer(toBuffer(joints));
+            //     result.setVertexWeightValueBuffer(toFloatBuffer(weights));
+            // }
         }
     }
 

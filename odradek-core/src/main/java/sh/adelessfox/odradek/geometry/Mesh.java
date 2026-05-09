@@ -1,33 +1,35 @@
 package sh.adelessfox.odradek.geometry;
 
+import wtf.reversed.toolbox.collect.Floats;
+import wtf.reversed.toolbox.collect.Ints;
 import wtf.reversed.toolbox.math.Bounds;
 import wtf.reversed.toolbox.math.Vector3;
 
 import java.util.Map;
+import java.util.Optional;
 
-public record Mesh(Accessor indices, Map<Semantic, Accessor> vertices, Vector3 color) {
+public record Mesh(
+    Ints indices,
+    Floats positions,
+    Optional<Floats> normals,
+    Vector3 color
+) {
     public Mesh {
-        validateIndices(indices);
-        validatePositions(vertices);
-        validateWeights(vertices);
-
-        vertices = Map.copyOf(vertices);
-    }
-
-    public Accessor positions() {
-        return vertices.get(Semantic.POSITION);
+        // validateIndices(indices);
+        // validatePositions(vertices);
+        // validateWeights(vertices);
+        //
+        // vertices = Map.copyOf(vertices);
     }
 
     public Bounds computeBoundingBox() {
-        var indices = indices().asIntView();
-        var positions = positions().asFloatView();
         var builder = Bounds.builder();
 
-        for (int i = 0; i < indices().count(); i++) {
-            int index = indices.get(i, 0);
-            float x = positions.get(index, 0);
-            float y = positions.get(index, 1);
-            float z = positions.get(index, 2);
+        for (int i = 0; i < indices().length(); i++) {
+            int index = indices.get(i);
+            float x = positions.get(index * 3/**/);
+            float y = positions.get(index * 3 + 1);
+            float z = positions.get(index * 3 + 2);
 
             builder.add(x, y, z);
         }
