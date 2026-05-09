@@ -1,25 +1,54 @@
 package sh.adelessfox.odradek.geometry;
 
+import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.collect.Ints;
 import wtf.reversed.toolbox.math.Bounds;
 import wtf.reversed.toolbox.math.Vector3;
+import wtf.reversed.toolbox.util.Check;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Optional;
 
 public record Mesh(
     Ints indices,
     Floats positions,
     Optional<Floats> normals,
-    Vector3 color
+    Optional<Floats> tangents,
+    List<Floats> texCoords,
+    List<Bytes> colors,
+    Optional<Weights> weights,
+    Vector3 debugColor
 ) {
+    public record Weights(Floats values, Ints joints, int maxInfluence) {
+        public Weights {
+            if (values.length() != joints.length()) {
+                throw new IllegalArgumentException("weights values and joints must have the same length");
+            }
+            if (maxInfluence <= 0) {
+                throw new IllegalArgumentException("maximum influence must be greater than 0");
+            }
+        }
+    }
+
     public Mesh {
-        // validateIndices(indices);
-        // validatePositions(vertices);
-        // validateWeights(vertices);
-        //
-        // vertices = Map.copyOf(vertices);
+        int vertices = positions.length() / 3;
+        normals.ifPresent(floats -> check(floats.length(), vertices, 3));
+        tangents.ifPresent(floats -> check(floats.length(), vertices, 4));
+        texCoords.forEach(floats -> check(floats.length(), vertices, 2));
+        colors.forEach(bytes -> check(bytes.length(), vertices, 4));
+        weights.ifPresent(w -> {
+            check(w.values.length(), vertices, w.maxInfluence);
+            check(w.joints.length(), vertices, w.maxInfluence);
+        });
+
+        texCoords = List.copyOf(texCoords);
+        colors = List.copyOf(colors);
+    }
+
+    private static void check(int length, int count, int elementSize) {
+        Check.argument(length % elementSize == 0, "array length must be a multiple of elementSize");
+        Check.argument(length == count * elementSize, "array length must be equal to count * elementSize");
     }
 
     public Bounds computeBoundingBox() {
@@ -35,49 +64,5 @@ public record Mesh(
         }
 
         return builder.build();
-    }
-
-    private static void validateIndices(Accessor indices) {
-        if (indices.componentCount() != 1) {
-            throw new IllegalArgumentException("indices must have 1 component");
-        }
-        if (indices.type().normalized()) {
-            throw new IllegalArgumentException("indices must not be normalized");
-        }
-        if (!indices.type().unsigned()) {
-            throw new IllegalArgumentException("indices must be unsigned");
-        }
-        if (!(indices.type() instanceof Type.I8) &&
-            !(indices.type() instanceof Type.I16) &&
-            !(indices.type() instanceof Type.I32)
-        ) {
-            throw new IllegalArgumentException("indices must be of type I8, I16, or I32");
-        }
-    }
-
-    private static void validatePositions(Map<Semantic, Accessor> vertices) {
-        var positions = vertices.get(Semantic.POSITION);
-        if (positions == null) {
-            throw new IllegalArgumentException("vertices must contain POSITION semantic");
-        }
-        if (positions.componentCount() != 3) {
-            throw new IllegalArgumentException("POSITION accessor must have 3 components");
-        }
-    }
-
-    private static void validateWeights(Map<Semantic, Accessor> vertices) {
-        var weights = vertices.get(Semantic.WEIGHTS);
-        var joints = vertices.get(Semantic.JOINTS);
-        if (weights != null || joints != null) {
-            if (weights == null || joints == null) {
-                throw new IllegalArgumentException("vertices must contain both WEIGHTS and JOINTS semantics if either is present");
-            }
-            if (weights.count() != joints.count()) {
-                throw new IllegalArgumentException("WEIGHTS and JOINTS accessors must have the same count");
-            }
-            if (weights.componentCount() != joints.componentCount()) {
-                throw new IllegalArgumentException("WEIGHTS and JOINTS accessors must have the same component count");
-            }
-        }
     }
 }

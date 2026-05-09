@@ -42,6 +42,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             var indexArray = primitive.indexArray().get();
 
             var reader = new MeshReader();
+            reader.setDebugColor(computeRandomColor(primitive.hash() ^ primitive.hashCode()));
             readVertices(vertexArray, buffer, reader);
             readIndices(indexArray, buffer, primitive.startIndex(), primitive.endIndex(), reader);
 
@@ -57,9 +58,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
     static Model convertHairMesh(HFW.HairSkinnedMesh mesh, HFWGame game) {
         var reader = new MeshReader()
-            .positions(buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3))
-            .weights(buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()))
-            .joints(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
+            .setPositions(buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3))
+            .setWeights(buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()))
+            .setJoints(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()))
+            .setDebugColor(computeRandomColor(mesh.hashCode()));
 
         var vertexArray = mesh.skinnedVertexArray().get();
         readVertices(vertexArray, null, reader);
@@ -180,67 +182,28 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
                 var accessor = Accessor.of(view, offset, stride, type, count);
                 switch (element.element().unwrap()) {
-                    case Pos -> reader.positions(accessor);
-                    // case TangentBFlip -> Semantic.TANGENT_BFLIP;
-                    // case Tangent -> Semantic.TANGENT;
-                    // case Binormal -> Semantic.BINORMAL;
-                    case Normal -> reader.normals(accessor);
-                    // case Color -> Semantic.COLOR;
-                    // case UV0 -> Semantic.TEXTURE_0;
-                    // case UV1 -> Semantic.TEXTURE_1;
-                    // case UV2 -> Semantic.TEXTURE_2;
-                    case BlendWeights, BlendWeights2, BlendWeights3 -> {
-                        // NOTE elements are expected to be ordered
-                        weights.add(accessor);
-                    }
-                    case BlendIndices, BlendIndices2, BlendIndices3 -> {
-                        // NOTE elements are expected to be ordered
-                        joints.add(accessor);
-                    }
-                    default -> {
-                        log.warn("Skipping unsupported element (semantic: {})", element.element());
-                    }
+                    case Pos -> reader.setPositions(accessor);
+                    case Tangent -> reader.setTangents(accessor);
+                    case Normal -> reader.setNormals(accessor);
+                    case Color -> reader.addColor(accessor);
+                    case UV0, UV1, UV2, UV3, UV4, UV5, UV6 -> reader.addTexCoords(accessor);
+                    case BlendWeights, BlendWeights2, BlendWeights3 -> weights.add(accessor);
+                    case BlendIndices, BlendIndices2, BlendIndices3 -> joints.add(accessor);
+                    default -> log.warn("Skipping unsupported element (semantic: {})", element.element());
                 }
             }
         }
 
-        var weightsAccessor = switch (weights.size()) {
-            case 0 -> null;
-            case 1 -> weights.getFirst();
-            default -> Accessor.ofInterleaved(weights);
-        };
-
-        var jointsAccessor = switch (joints.size()) {
-            case 0 -> null;
-            case 1 -> joints.getFirst();
-            default -> Accessor.ofInterleaved(joints);
-        };
-
-        if (jointsAccessor != null && weightsAccessor == null) {
-            // Weights MAY be absent in case there's only one bone per vertex.
-            if (jointsAccessor.componentCount() != 1) {
-                throw new IllegalStateException("JOINTS accessor has " + jointsAccessor.componentCount()
-                    + " components, but WEIGHTS accessor is missing");
-            }
-
-            // Build a dummy WEIGHTS accessor with all weights set to 1.0f
-            weightsAccessor = Accessor.of(
-                ByteBuffer.allocate(Float.BYTES)
-                    .order(ByteOrder.LITTLE_ENDIAN)
-                    .putFloat(1.0f)
-                    .flip(),
-                0,
-                0,
-                new Type.F32(1),
-                jointsAccessor.count());
+        switch (weights.size()) {
+            case 0 -> { /* do nothing */ }
+            case 1 -> reader.setWeights(weights.getFirst());
+            default -> reader.setWeights(Accessor.ofInterleaved(weights));
         }
 
-        if (weightsAccessor != null) {
-            reader.weights(weightsAccessor);
-        }
-
-        if (jointsAccessor != null) {
-            reader.joints(jointsAccessor);
+        switch (joints.size()) {
+            case 0 -> { /* do nothing */ }
+            case 1 -> reader.setJoints(joints.getFirst());
+            default -> reader.setJoints(Accessor.ofInterleaved(joints));
         }
     }
 
@@ -269,30 +232,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         }
 
         var accessor = Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
-        reader.indices(accessor);
+        reader.setIndices(accessor);
     }
 
-    private static Accessor normalizeAccessor(Accessor accessor) {
-        var buffer = ByteBuffer
-            .allocate(accessor.count() * accessor.componentCount() * Float.BYTES)
-            .order(ByteOrder.LITTLE_ENDIAN);
-        var view = accessor.asFloatView();
-        var acc = new float[accessor.componentCount()];
-        for (int i = 0; i < accessor.count(); i++) {
-            float sum = 0;
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                float value = view.get(i, j);
-                acc[j] = view.get(i, j);
-                sum += value;
-            }
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.putFloat(acc[j] / sum);
-            }
-        }
-        return Accessor.of(buffer.flip(), 0, new Type.F32(accessor.componentCount()), accessor.count());
-    }
-
-    private static Vector3 computePrimitiveColor(int hash) {
+    private static Vector3 computeRandomColor(int hash) {
         var random = new Random(hash);
         return new Vector3(
             random.nextFloat(0.5f, 1.0f),

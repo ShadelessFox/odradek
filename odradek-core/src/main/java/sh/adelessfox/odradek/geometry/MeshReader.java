@@ -1,25 +1,32 @@
 package sh.adelessfox.odradek.geometry;
 
+import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.math.Vector3;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public final class MeshReader {
     private Accessor indices;
     private Accessor positions;
     private Accessor normals;
+    private Accessor tangents;
     private Accessor weights;
     private Accessor joints;
+    private Vector3 debugColor = Vector3.ONE;
+    private final List<Accessor> texCoords = new ArrayList<>();
+    private final List<Accessor> colors = new ArrayList<>();
 
-    public MeshReader indices(Accessor indices) {
+    public MeshReader setIndices(Accessor indices) {
         if (this.indices != null) {
-            throw new IllegalStateException("indices already set");
+            throw new IllegalStateException("bones already set");
         }
         this.indices = indices;
         return this;
     }
 
-    public MeshReader positions(Accessor positions) {
+    public MeshReader setPositions(Accessor positions) {
         if (this.positions != null) {
             throw new IllegalStateException("positions already set");
         }
@@ -27,7 +34,7 @@ public final class MeshReader {
         return this;
     }
 
-    public MeshReader normals(Accessor normals) {
+    public MeshReader setNormals(Accessor normals) {
         if (this.normals != null) {
             throw new IllegalStateException("normals already set");
         }
@@ -35,7 +42,15 @@ public final class MeshReader {
         return this;
     }
 
-    public MeshReader weights(Accessor weights) {
+    public MeshReader setTangents(Accessor tangents) {
+        if (this.tangents != null) {
+            throw new IllegalStateException("tangents already set");
+        }
+        this.tangents = tangents;
+        return this;
+    }
+
+    public MeshReader setWeights(Accessor weights) {
         if (this.weights != null) {
             throw new IllegalStateException("weights already set");
         }
@@ -43,7 +58,7 @@ public final class MeshReader {
         return this;
     }
 
-    public MeshReader joints(Accessor joints) {
+    public MeshReader setJoints(Accessor joints) {
         if (this.joints != null) {
             throw new IllegalStateException("joints already set");
         }
@@ -51,23 +66,72 @@ public final class MeshReader {
         return this;
     }
 
+    public MeshReader setDebugColor(Vector3 debugColor) {
+        this.debugColor = debugColor;
+        return this;
+    }
+
+    public MeshReader addTexCoords(Accessor texCoords) {
+        this.texCoords.add(texCoords);
+        return this;
+    }
+
+    public MeshReader addColor(Accessor color) {
+        this.colors.add(color);
+        return this;
+    }
+
     public Mesh read() {
         if (indices == null) {
-            throw new IllegalStateException("indices not set");
+            throw new IllegalStateException("bones not set");
         }
         if (positions == null) {
             throw new IllegalStateException("positions not set");
         }
-        var indices = this.indices.toInts();
-        var positions = this.positions.toFloats();
-        var normals = this.normals != null ? this.normals.toFloats() : null;
-        var weights = this.weights != null ? this.weights.toFloats() : null;
-        var joints = this.joints != null ? this.joints.asIntView() : null;
-
+        if (weights != null && joints == null) {
+            throw new IllegalStateException("weights set but joints not set");
+        }
         return new Mesh(
-            indices,
-            positions,
-            Optional.ofNullable(normals),
-            Vector3.ONE);
+            indices.toInts(),
+            positions.toFloats(),
+            Optional.ofNullable(normals).map(Accessor::toFloats),
+            Optional.ofNullable(tangents).map(Accessor::toFloats),
+            texCoords.stream().map(Accessor::toFloats).toList(),
+            colors.stream().map(Accessor::toBytes).toList(),
+            readWeights(),
+            debugColor);
+    }
+
+    private Optional<Mesh.Weights> readWeights() {
+        if (weights == null && joints == null) {
+            return Optional.empty();
+        }
+
+        Floats values;
+        if (weights != null) {
+            if (joints == null) {
+                throw new IllegalStateException("weights set but joints not set");
+            }
+            if (weights.componentCount() != joints.componentCount()) {
+                throw new IllegalStateException("weights and joints must have the same number of components");
+            }
+            if (weights.count() != joints.count()) {
+                throw new IllegalStateException("weights and joints must have the same count");
+            }
+            values = weights.toFloatsNormalized();
+        } else {
+            // Weights MAY be absent in case there's only one bone per vertex.
+            if (joints.componentCount() != 1) {
+                throw new IllegalStateException("JOINTS accessor has " + joints.componentCount()
+                    + " components, but WEIGHTS accessor is missing");
+            }
+            // Build a dummy WEIGHTS accessor with all weights set to 1.0f
+            values = Floats.Mutable.allocate(joints.count()).fill(1.0f);
+        }
+
+        var indices = joints.toInts();
+        var maximumInfluence = joints.componentCount();
+
+        return Optional.of(new Mesh.Weights(values, indices, maximumInfluence));
     }
 }

@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 public record Node(
     Optional<String> name,
-    Optional<Model> mesh,
+    Optional<Model> model,
     Optional<Skin> skin,
     List<Node> children,
     Matrix4 matrix
@@ -41,11 +41,11 @@ public record Node(
     public Node add(Node child) {
         var children = new ArrayList<>(this.children);
         children.add(child);
-        return new Node(name, mesh, skin, children, matrix);
+        return new Node(name, model, skin, children, matrix);
     }
 
     public Node transform(Matrix4 transform) {
-        return new Node(name, mesh, skin, children, matrix.multiply(transform));
+        return new Node(name, model, skin, children, matrix.multiply(transform));
     }
 
     public void accept(NodeVisitor visitor) {
@@ -61,7 +61,7 @@ public record Node(
     }
 
     public Optional<Bounds> computeBoundingBox() {
-        var bbox1 = mesh.stream()
+        var bbox1 = model.stream()
             .map(Model::computeBoundingBox);
 
         var bbox2 = children.stream()
@@ -104,7 +104,7 @@ public record Node(
             return this;
         }
 
-        public Builder mesh(Model model) {
+        public Builder model(Model model) {
             this.model = model;
             return this;
         }
@@ -155,7 +155,7 @@ public record Node(
             return "Node.Builder{" +
                 "children=" + children +
                 ", name='" + name + '\'' +
-                ", mesh=" + model +
+                ", model=" + model +
                 ", skin=" + skin +
                 ", matrix=" + matrix +
                 '}';

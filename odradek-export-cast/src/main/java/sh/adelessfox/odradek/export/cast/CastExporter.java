@@ -4,19 +4,20 @@ import be.twofold.tinycast.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.geometry.Accessor;
 import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Model;
-import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
+import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
@@ -66,7 +67,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
     }
 
     private static void exportNode(Node node, Matrix4 transform, CastNodes.Root root) {
-        node.mesh().ifPresent(mesh -> {
+        node.model().ifPresent(m -> {
             var pos = transform.toTranslation();
             var rot = transform.toRotation();
             var scl = transform.toScale();
@@ -79,7 +80,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
             node.name().ifPresent(model::setName);
             node.skin().ifPresent(skin -> exportSkeleton(model, skin));
 
-            exportMesh(model, mesh);
+            exportModel(model, m);
         });
 
         for (Node child : node.children()) {
@@ -87,40 +88,30 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
         }
     }
 
-    private static void exportMesh(CastNodes.Model model, Model nodeModel) {
+    private static void exportModel(CastNodes.Model model, Model nodeModel) {
         for (Mesh mesh : nodeModel.meshes()) {
             var result = model.createMesh();
             result.setFaceBuffer(mesh.indices().asBuffer());
             result.setVertexPositionBuffer(mesh.positions().asBuffer());
 
-            mesh.normals().map(Floats::asBuffer).ifPresent(result::setVertexNormalBuffer);
+            mesh.normals().ifPresent(normals -> result.setVertexNormalBuffer(normals.asBuffer()));
+            mesh.tangents().ifPresent(tangents -> result.setVertexTangentBuffer(mapTangentBuffer(tangents.asBuffer())));
 
-            // vertices.forEach((semantic, accessor) -> {
-            //     switch (semantic) {
-            //         case Semantic.Position _ -> result.setVertexPositionBuffer(toFloatBuffer(accessor));
-            //         case Semantic.Normal _ -> result.setVertexNormalBuffer(toFloatBuffer(accessor));
-            //         case Semantic.Texture _ -> {
-            //             result.addVertexUVBuffer(toUVBuffer(accessor));
-            //             result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
-            //         }
-            //         case Semantic.Color _ -> {
-            //             result.addVertexColorBufferI32(toIntColorBuffer(accessor));
-            //             result.setColorLayerCount(result.getColorLayerCount().orElse(0) + 1);
-            //         }
-            //         case Semantic.Joints _, Semantic.Weights _ -> {
-            //             // handled separately
-            //         }
-            //         default -> log.debug("Skipping unsupported vertex {}", semantic);
-            //     }
-            // });
+            for (Floats texCoords : mesh.texCoords()) {
+                result.addVertexUVBuffer(texCoords.asBuffer());
+                result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
+            }
 
-            // var joints = vertices.get(Semantic.JOINTS);
-            // var weights = vertices.get(Semantic.WEIGHTS);
-            // if (joints != null && weights != null) {
-            //     result.setMaximumWeightInfluence(joints.componentCount());
-            //     result.setVertexWeightBoneBuffer(toBuffer(joints));
-            //     result.setVertexWeightValueBuffer(toFloatBuffer(weights));
-            // }
+            for (Bytes colors : mesh.colors()) {
+                result.addVertexColorBufferI32(mapColorBuffer(colors.asBuffer()));
+                result.setColorLayerCount(result.getColorLayerCount().orElse(0) + 1);
+            }
+
+            mesh.weights().ifPresent(weights -> {
+                result.setMaximumWeightInfluence(weights.maxInfluence());
+                result.setVertexWeightBoneBuffer(weights.joints().asBuffer());
+                result.setVertexWeightValueBuffer(weights.values().asBuffer());
+            });
         }
     }
 
@@ -146,83 +137,18 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
         bone.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
     }
 
-    // region Buffers
-    private static Buffer toBuffer(Accessor accessor) {
-        return switch (accessor.type()) {
-            case Type.I8 _ -> toByteBuffer(accessor);
-            case Type.I16 _ -> toShortBuffer(accessor);
-            case Type.I32 _ -> toIntBuffer(accessor);
-            default -> throw new IllegalArgumentException("Unsupported component type: " + accessor.type());
-        };
-    }
-
-    private static ByteBuffer toByteBuffer(Accessor accessor) {
-        var buffer = ByteBuffer.allocate(accessor.count() * accessor.componentCount());
-        var view = accessor.asByteView();
-        for (int i = 0; i < accessor.count(); i++) {
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.put(view.get(i, j));
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static ShortBuffer toShortBuffer(Accessor accessor) {
-        var buffer = ShortBuffer.allocate(accessor.count() * accessor.componentCount());
-        var view = accessor.asShortView();
-        for (int i = 0; i < accessor.count(); i++) {
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.put(view.get(i, j));
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static IntBuffer toIntBuffer(Accessor accessor) {
-        var buffer = IntBuffer.allocate(accessor.count() * accessor.componentCount());
-        var view = accessor.asIntView();
-        for (int i = 0; i < accessor.count(); i++) {
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.put(view.get(i, j));
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static FloatBuffer toFloatBuffer(Accessor accessor) {
-        var buffer = FloatBuffer.allocate(accessor.count() * accessor.componentCount());
-        var view = accessor.asFloatView();
-        for (int i = 0; i < accessor.count(); i++) {
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.put(view.get(i, j));
-            }
-        }
-        return buffer.flip();
-    }
-
-    private static IntBuffer toIntColorBuffer(Accessor accessor) {
-        var buffer = IntBuffer.allocate(accessor.count());
-        var view = accessor.asByteView();
-        for (int i = 0; i < accessor.count(); i++) {
-            int r = Byte.toUnsignedInt(view.get(i, 0));
-            int g = Byte.toUnsignedInt(view.get(i, 1));
-            int b = Byte.toUnsignedInt(view.get(i, 2));
-            int a = Byte.toUnsignedInt(view.get(i, 3));
-            buffer.put((a << 24) | (b << 16) | (g << 8) | r);
-        }
-        return buffer.flip();
-    }
-
-    private static FloatBuffer toUVBuffer(Accessor accessor) {
-        assert accessor.componentCount() == 2;
-        var output = FloatBuffer.allocate(accessor.count() * 2);
-        var view = accessor.asFloatView();
-        for (int i = 0; i < accessor.count(); i++) {
-            float u = view.get(i, 0);
-            float v = 1.0f - view.get(i, 1);
-            output.put(u).put(v);
+    private static FloatBuffer mapTangentBuffer(FloatBuffer buffer) {
+        var limit = buffer.limit();
+        var output = FloatBuffer.allocate(limit * 3 / 4);
+        for (int i = 0, o = 0; i < limit; i += 4, o += 3) {
+            output.put(o/**/, buffer.get(i/**/));
+            output.put(o + 1, buffer.get(i + 1));
+            output.put(o + 2, buffer.get(i + 2));
         }
         return output.flip();
     }
-    // endregion
+
+    private static IntBuffer mapColorBuffer(ByteBuffer buffer) {
+        return buffer.asIntBuffer();
+    }
 }

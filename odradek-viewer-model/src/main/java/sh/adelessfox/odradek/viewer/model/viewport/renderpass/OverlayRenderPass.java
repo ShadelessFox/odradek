@@ -121,7 +121,7 @@ public class OverlayRenderPass implements RenderPass {
                 node.skin().ifPresent(skin -> renderSkin(skin, transform, camera));
             }
             if (context.isShowBounds()) {
-                node.mesh().ifPresent(mesh -> renderBoundingBox(mesh, transform));
+                node.model().ifPresent(model -> renderBoundingBox(model, transform));
             }
             return true;
         });
@@ -129,7 +129,7 @@ public class OverlayRenderPass implements RenderPass {
 
     private void renderBoundingBox(Model model, Matrix4 transform) {
         for (Mesh mesh : model.meshes()) {
-            debug.aabb(mesh.computeBoundingBox().transform(transform), mesh.color());
+            debug.aabb(mesh.computeBoundingBox().transform(transform), mesh.debugColor());
         }
     }
 
@@ -173,10 +173,10 @@ public class OverlayRenderPass implements RenderPass {
         static SceneStatistics collect(Scene scene) {
             var statistics = new SceneStatistics();
             scene.accept((node, _) -> {
-                node.mesh().ifPresent(mesh -> {
-                    for (Mesh primitive : mesh.meshes()) {
-                        statistics.vertices += primitive.positions().length() / 3;
-                        statistics.faces += primitive.indices().length() / 3;
+                node.model().ifPresent(model -> {
+                    for (Mesh mesh : model.meshes()) {
+                        statistics.vertices += mesh.positions().length() / 3;
+                        statistics.faces += mesh.indices().length() / 3;
                     }
                     statistics.meshes += 1;
                 });

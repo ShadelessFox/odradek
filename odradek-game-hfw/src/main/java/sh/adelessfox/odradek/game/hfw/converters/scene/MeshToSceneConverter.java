@@ -91,7 +91,7 @@ public final class MeshToSceneConverter
         var mesh = resource.geometry().meshLods().getFirst();
         var nodes = mesh.skinnedMeshes().stream()
             .map(m -> Node.builder()
-                .mesh(convertHairMesh(m, game))
+                .model(convertHairMesh(m, game))
                 .skin(skin)
                 .build())
             .toList();
@@ -284,7 +284,7 @@ public final class MeshToSceneConverter
             game
         );
         var node = Node.builder()
-            .mesh(mesh)
+            .model(mesh)
             .skin(skin)
             .build();
         return Optional.of(node);

@@ -23,10 +23,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
@@ -115,7 +112,7 @@ public final class RenderMeshesPass implements RenderPass {
         // if (!frustum.test(node.bbox())) {
         //     return;
         // }
-        for (GpuPrimitive primitive : node.primitives()) {
+        for (GpuMesh primitive : node.meshes()) {
             program.set("u_model", node.transform());
             program.set("u_color", primitive.color());
             program.set("u_texture", diffuseSampler);
@@ -127,7 +124,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    static int buildPrimitiveFlags(GpuPrimitive primitive, ViewportContext context) {
+    static int buildPrimitiveFlags(GpuMesh primitive, ViewportContext context) {
         int flags = 0;
         if (context.isShowWireframe()) {
             flags |= FLAG_WIREFRAME;
@@ -145,7 +142,7 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private GpuNode uploadNode(Node node, Matrix4 transform) {
-        var primitives = node.mesh().stream()
+        var meshes = node.model().stream()
             .flatMap(mesh -> mesh.meshes().stream())
             .map(this::uploadPrimitive)
             .flatMap(Optional::stream)
@@ -155,18 +152,40 @@ public final class RenderMeshesPass implements RenderPass {
             .map(b -> b.transform(transform))
             .orElse(Bounds.EMPTY);
 
-        return new GpuNode(primitives, transform, bbox);
+        return new GpuNode(meshes, transform, bbox);
     }
 
-    private Optional<GpuPrimitive> uploadPrimitive(Mesh mesh) {
+    private Optional<GpuMesh> uploadPrimitive(Mesh mesh) {
         try (var vao = new VertexArray().bind()) {
-            var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(0, new Type.F32(3), 0, 12)), 0);
-            vbo.put(mesh.positions().asBuffer(), 0);
+            var indices = vao.createElementBuffer();
+            indices.put(mesh.indices().asBuffer(), 0);
 
-            var ibo = vao.createElementBuffer();
-            ibo.put(mesh.indices().asBuffer(), 0);
+            var positions = vao.createVertexBuffer(List.of(new VertexAttribute(0, new Type.F32(3), 0, 12)), 0);
+            positions.put(mesh.positions().asBuffer(), 0);
 
-            return Optional.of(new GpuPrimitive(mesh.indices().length(), GL_UNSIGNED_INT, vao, mesh.color(), Set.of()));
+            var semantics = new HashSet<Semantic>();
+            mesh.normals().ifPresent(normals -> {
+                var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(1, new Type.F32(3), 0, 12)), 1);
+                vbo.put(normals.asBuffer(), 0);
+                semantics.add(Semantic.NORMAL);
+            });
+            if (!mesh.texCoords().isEmpty()) {
+                var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(2, new Type.F32(2), 0, 8)), 2);
+                vbo.put(mesh.texCoords().getFirst().asBuffer(), 0);
+                semantics.add(Semantic.TEXTURE_0);
+            }
+            if (!mesh.colors().isEmpty()) {
+                var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(3, new Type.I8(4, true, false), 0, 4)), 3);
+                vbo.put(mesh.colors().getFirst().asBuffer(), 0);
+                semantics.add(Semantic.COLOR);
+            }
+
+            return Optional.of(new GpuMesh(
+                mesh.indices().length(),
+                GL_UNSIGNED_INT,
+                vao,
+                mesh.debugColor(),
+                semantics));
         }
     }
 
@@ -190,7 +209,7 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void cacheNodeRecursively(Node node, Matrix4 transform) {
-        if (node.mesh().isPresent()) {
+        if (node.model().isPresent()) {
             nodes.add(uploadNode(node, transform));
         }
         for (Node child : node.children()) {
@@ -207,16 +226,16 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuNode(List<GpuPrimitive> primitives, Matrix4 transform, Bounds bbox) {
+    private record GpuNode(List<GpuMesh> meshes, Matrix4 transform, Bounds bbox) {
         void dispose() {
-            for (GpuPrimitive primitive : primitives) {
-                primitive.dispose();
+            for (GpuMesh mesh : meshes) {
+                mesh.dispose();
             }
         }
     }
 
-    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3 color, Set<Semantic> semantics) {
-        private GpuPrimitive {
+    private record GpuMesh(int count, int type, VertexArray vao, Vector3 color, Set<Semantic> semantics) {
+        private GpuMesh {
             semantics = Set.copyOf(semantics);
         }
 

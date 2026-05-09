@@ -131,6 +131,29 @@ public sealed interface Accessor {
         return floats;
     }
 
+    default Floats toFloatsNormalized() {
+        int count = count();
+        int componentCount = componentCount();
+        var accumulator = new float[componentCount];
+
+        var view = asFloatView();
+        var floats = Floats.Mutable.allocate(count * componentCount);
+
+        for (int i = 0; i < count; i++) {
+            float sum = 0;
+            for (int j = 0; j < componentCount; j++) {
+                float value = view.get(i, j);
+                accumulator[j] = view.get(i, j);
+                sum += value;
+            }
+            for (int j = 0; j < componentCount; j++) {
+                floats.set(i * componentCount + j, accumulator[j] / sum);
+            }
+        }
+
+        return floats;
+    }
+
     default ByteView asByteView() {
         return switch (type()) {
             case Type.I8 x -> ByteView.of(this, x);
