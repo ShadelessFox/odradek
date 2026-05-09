@@ -20,9 +20,9 @@ public record Scene(List<Node> nodes) {
         }
     }
 
-    public Optional<Bounds> computeBoundingBox() {
+    public Optional<Bounds> computeBounds() {
         return nodes.stream()
-            .map(Node::computeBoundingBox)
+            .map(Node::computeBounds)
             .flatMap(Optional::stream)
             .reduce(Bounds::combine);
     }

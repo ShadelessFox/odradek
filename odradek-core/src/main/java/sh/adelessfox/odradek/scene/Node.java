@@ -60,12 +60,12 @@ public record Node(
         }
     }
 
-    public Optional<Bounds> computeBoundingBox() {
+    public Optional<Bounds> computeBounds() {
         var bbox1 = model.stream()
-            .map(Model::computeBoundingBox);
+            .map(Model::computeBounds);
 
         var bbox2 = children.stream()
-            .map(Node::computeBoundingBox)
+            .map(Node::computeBounds)
             .flatMap(Optional::stream);
 
         return Stream.concat(bbox1, bbox2)

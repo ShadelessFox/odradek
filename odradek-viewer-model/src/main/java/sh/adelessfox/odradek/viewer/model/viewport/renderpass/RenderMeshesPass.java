@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.geometry.Type;
@@ -28,8 +26,6 @@ import java.util.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public final class RenderMeshesPass implements RenderPass {
-    private static final Logger log = LoggerFactory.getLogger(RenderMeshesPass.class);
-
     private static final int FLAG_HAS_NORMAL = 1;
     private static final int FLAG_HAS_UV = 1 << 1;
     private static final int FLAG_HAS_COLOR = 1 << 2;
@@ -148,7 +144,7 @@ public final class RenderMeshesPass implements RenderPass {
             .flatMap(Optional::stream)
             .toList();
 
-        var bbox = node.computeBoundingBox()
+        var bbox = node.computeBounds()
             .map(b -> b.transform(transform))
             .orElse(Bounds.EMPTY);
 
@@ -184,7 +180,7 @@ public final class RenderMeshesPass implements RenderPass {
                 mesh.indices().length(),
                 GL_UNSIGNED_INT,
                 vao,
-                mesh.debugColor(),
+                computeRandomColor(mesh.hashCode()),
                 semantics));
         }
     }
@@ -224,6 +220,15 @@ public final class RenderMeshesPass implements RenderPass {
             }
             return ImageIO.read(is);
         }
+    }
+
+    private static Vector3 computeRandomColor(int seed) {
+        var random = new Random(seed);
+        return new Vector3(
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f)
+        );
     }
 
     private record GpuNode(List<GpuMesh> meshes, Matrix4 transform, Bounds bbox) {

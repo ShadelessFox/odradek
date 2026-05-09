@@ -4,7 +4,6 @@ import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.collect.Ints;
 import wtf.reversed.toolbox.math.Bounds;
-import wtf.reversed.toolbox.math.Vector3;
 import wtf.reversed.toolbox.util.Check;
 
 import java.util.List;
@@ -17,8 +16,7 @@ public record Mesh(
     Optional<Floats> tangents,
     List<Floats> texCoords,
     List<Bytes> colors,
-    Optional<Weights> weights,
-    Vector3 debugColor
+    Optional<Weights> weights
 ) {
     public record Weights(Floats values, Ints joints, int maxInfluence) {
         public Weights {
@@ -51,7 +49,7 @@ public record Mesh(
         Check.argument(length == count * elementSize, "array length must be equal to count * elementSize");
     }
 
-    public Bounds computeBoundingBox() {
+    public Bounds computeBounds() {
         var builder = Bounds.builder();
 
         for (int i = 0; i < indices().length(); i++) {

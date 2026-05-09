@@ -21,9 +21,9 @@ public record Model(Optional<String> name, List<Mesh> meshes) {
         return of(List.of(mesh));
     }
 
-    public Bounds computeBoundingBox() {
+    public Bounds computeBounds() {
         return meshes.stream()
-            .map(Mesh::computeBoundingBox)
+            .map(Mesh::computeBounds)
             .reduce(Bounds::combine)
             .orElseThrow();
     }

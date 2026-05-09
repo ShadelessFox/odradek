@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.geometry;
 
 import wtf.reversed.toolbox.collect.Floats;
-import wtf.reversed.toolbox.math.Vector3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ public final class MeshReader {
     private Accessor tangents;
     private Accessor weights;
     private Accessor joints;
-    private Vector3 debugColor = Vector3.ONE;
     private final List<Accessor> texCoords = new ArrayList<>();
     private final List<Accessor> colors = new ArrayList<>();
 
@@ -66,11 +64,6 @@ public final class MeshReader {
         return this;
     }
 
-    public MeshReader setDebugColor(Vector3 debugColor) {
-        this.debugColor = debugColor;
-        return this;
-    }
-
     public MeshReader addTexCoords(Accessor texCoords) {
         this.texCoords.add(texCoords);
         return this;
@@ -98,8 +91,7 @@ public final class MeshReader {
             Optional.ofNullable(tangents).map(Accessor::toFloats),
             texCoords.stream().map(Accessor::toFloats).toList(),
             colors.stream().map(Accessor::toBytes).toList(),
-            readWeights(),
-            debugColor);
+            readWeights());
     }
 
     private Optional<Mesh.Weights> readWeights() {

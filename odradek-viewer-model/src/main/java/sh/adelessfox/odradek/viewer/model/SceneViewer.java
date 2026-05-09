@@ -36,7 +36,7 @@ public record SceneViewer(Scene scene) implements Viewer {
 
     @Override
     public JComponent createComponent() {
-        Vector3 center = scene.computeBoundingBox()
+        Vector3 center = scene.computeBounds()
             .map(Bounds::center)
             .orElse(Vector3.ZERO);
 

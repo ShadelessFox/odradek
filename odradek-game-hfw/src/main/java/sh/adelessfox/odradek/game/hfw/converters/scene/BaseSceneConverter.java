@@ -9,13 +9,11 @@ import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.scene.Scene;
 import wtf.reversed.toolbox.math.Matrix4;
-import wtf.reversed.toolbox.math.Vector3;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
@@ -42,7 +40,6 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             var indexArray = primitive.indexArray().get();
 
             var reader = new MeshReader();
-            reader.setDebugColor(computeRandomColor(primitive.hash() ^ primitive.hashCode()));
             readVertices(vertexArray, buffer, reader);
             readIndices(indexArray, buffer, primitive.startIndex(), primitive.endIndex(), reader);
 
@@ -60,8 +57,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         var reader = new MeshReader()
             .setPositions(buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3))
             .setWeights(buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()))
-            .setJoints(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()))
-            .setDebugColor(computeRandomColor(mesh.hashCode()));
+            .setJoints(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
 
         var vertexArray = mesh.skinnedVertexArray().get();
         readVertices(vertexArray, null, reader);
@@ -233,15 +229,6 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
         var accessor = Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
         reader.setIndices(accessor);
-    }
-
-    private static Vector3 computeRandomColor(int hash) {
-        var random = new Random(hash);
-        return new Vector3(
-            random.nextFloat(0.5f, 1.0f),
-            random.nextFloat(0.5f, 1.0f),
-            random.nextFloat(0.5f, 1.0f)
-        );
     }
 
     private static ByteBuffer readBufferAligned(ByteBuffer buffer, int count, int stride) {
