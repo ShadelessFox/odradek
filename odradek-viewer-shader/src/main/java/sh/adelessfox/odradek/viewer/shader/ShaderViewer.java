@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.ProgramType;
 import sh.adelessfox.odradek.graphics.Shader;
 import sh.adelessfox.odradek.ui.Viewer;
+import sh.adelessfox.odradek.ui.components.SearchTextArea;
 
 import javax.swing.*;
 import java.util.List;
@@ -49,13 +50,14 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
     }
 
     private static JComponent createProgramPanel(String text) {
-        var area = new JTextArea();
+        var searchArea = new SearchTextArea();
+        var area = searchArea.getTextArea();
         area.setFont(UIManager.getFont("monospaced.font"));
         area.setEditable(false);
         area.setText(text);
         area.setCaretPosition(0);
 
-        return new JScrollPane(area);
+        return searchArea;
     }
 
     private static String toDisplayString(ProgramType type) {
