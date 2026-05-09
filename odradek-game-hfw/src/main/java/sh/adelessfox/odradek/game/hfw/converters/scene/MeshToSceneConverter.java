@@ -257,7 +257,7 @@ public final class MeshToSceneConverter
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
-        var mesh = convertMesh(
+        var mesh = convertModel(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
             resource.meshDescription().streamingDataSource(),
@@ -277,7 +277,7 @@ public final class MeshToSceneConverter
             return Optional.empty();
         }
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
-        var mesh = convertMesh(
+        var mesh = convertModel(
             resource.shadingGroups(),
             resource.primitives(),
             resource.streamingDataSource(),

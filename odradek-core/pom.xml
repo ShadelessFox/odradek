@@ -21,9 +21,5 @@
             <groupId>wtf.reversed</groupId>
             <artifactId>reversed-toolbox</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.immutables</groupId>
-            <artifactId>value</artifactId>
-        </dependency>
     </dependencies>
 </project>

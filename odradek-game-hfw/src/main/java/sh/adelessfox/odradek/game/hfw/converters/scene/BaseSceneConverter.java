@@ -13,19 +13,21 @@ import wtf.reversed.toolbox.math.Vector3;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
 
-    static Model convertMesh(
+    static Model convertModel(
         List<Ref<HFW.ShadingGroup>> shadingGroups,
         List<Ref<HFW.PrimitiveResource>> primitiveResources,
         HFW.StreamingDataSource dataSource,
         HFWGame game
     ) {
         var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
-        var primitives = new ArrayList<Mesh>(primitiveResources.size());
+        var meshes = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
 
@@ -37,46 +39,35 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             }
 
             var vertexArray = primitive.vertexArray().get();
-            var vertexAccessors = buildVertexAccessors(vertexArray, buffer);
-
             var indexArray = primitive.indexArray().get();
-            var indexAccessor = buildIndexAccessor(indexArray, buffer, primitive.startIndex(), primitive.endIndex());
 
-            primitives.add(new Mesh(
-                indexAccessor,
-                vertexAccessors,
-                computePrimitiveColor(primitive.hash() ^ primitive.hashCode())));
+            var reader = new MeshReader();
+            readVertices(vertexArray, buffer, reader);
+            readIndices(indexArray, buffer, primitive.startIndex(), primitive.endIndex(), reader);
+
+            meshes.add(reader.read());
         }
 
         if (buffer.hasRemaining()) {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
-        return Model.of(primitives);
+        return Model.of(meshes);
     }
 
     static Model convertHairMesh(HFW.HairSkinnedMesh mesh, HFWGame game) {
+        var reader = new MeshReader()
+            .positions(buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3))
+            .weights(buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()))
+            .joints(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
+
         var vertexArray = mesh.skinnedVertexArray().get();
-        var vertexAccessors = buildVertexAccessors(vertexArray, null);
+        readVertices(vertexArray, null, reader);
 
         var indexArray = mesh.skinnedIndexArray().get();
-        var indexAccessor = buildIndexAccessor(indexArray, null, 0, indexArray.count());
+        readIndices(indexArray, null, 0, indexArray.count(), reader);
 
-        vertexAccessors.put(
-            Semantic.POSITION,
-            buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3));
-        vertexAccessors.put(
-            Semantic.JOINTS,
-            buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
-        vertexAccessors.put(
-            Semantic.WEIGHTS,
-            buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
-
-        return Model.of(new Mesh(
-            indexAccessor,
-            vertexAccessors,
-            computePrimitiveColor(mesh.hashCode())
-        ));
+        return Model.of(reader.read());
     }
 
     private static Accessor buildHairJointsAccessor(HFW.DataBufferResource buffer) {
@@ -138,12 +129,13 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         );
     }
 
-    private static Map<Semantic, Accessor> buildVertexAccessors(
+    private static void readVertices(
         HFW.VertexArrayResource object,
-        ByteBuffer buffer
+        ByteBuffer buffer,
+        MeshReader reader
     ) {
-        var accessors = new HashMap<Semantic, Accessor>();
-        var interleaved = new HashMap<Semantic, List<Accessor>>();
+        var weights = new ArrayList<Accessor>();
+        var joints = new ArrayList<Accessor>();
         var count = object.count();
 
         for (var stream : object.streams()) {
@@ -174,7 +166,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
                     case X10Y10Z10W2Normalized -> new Type.X10Y10Z10W2(components, false, true);
                     case X10Y10Z10W2UNorm -> new Type.X10Y10Z10W2(components, true, true);
                     default -> {
-                        log.warn("Skipping unsupported element (semantic: {}, format: {})",
+                        log.warn(
+                            "Skipping unsupported element (semantic: {}, format: {})",
                             element.element(),
                             element.storageType());
                         yield null;
@@ -186,76 +179,77 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
                 }
 
                 var accessor = Accessor.of(view, offset, stride, type, count);
-                var semantic = switch (element.element().unwrap()) {
-                    case Pos -> Semantic.POSITION;
-                    case TangentBFlip -> Semantic.TANGENT_BFLIP;
-                    case Tangent -> Semantic.TANGENT;
-                    case Binormal -> Semantic.BINORMAL;
-                    case Normal -> Semantic.NORMAL;
-                    case Color -> Semantic.COLOR;
-                    case UV0 -> Semantic.TEXTURE_0;
-                    case UV1 -> Semantic.TEXTURE_1;
-                    case UV2 -> Semantic.TEXTURE_2;
+                switch (element.element().unwrap()) {
+                    case Pos -> reader.positions(accessor);
+                    // case TangentBFlip -> Semantic.TANGENT_BFLIP;
+                    // case Tangent -> Semantic.TANGENT;
+                    // case Binormal -> Semantic.BINORMAL;
+                    case Normal -> reader.normals(accessor);
+                    // case Color -> Semantic.COLOR;
+                    // case UV0 -> Semantic.TEXTURE_0;
+                    // case UV1 -> Semantic.TEXTURE_1;
+                    // case UV2 -> Semantic.TEXTURE_2;
                     case BlendWeights, BlendWeights2, BlendWeights3 -> {
                         // NOTE elements are expected to be ordered
-                        interleaved.computeIfAbsent(Semantic.WEIGHTS, _ -> new ArrayList<>()).add(accessor);
-                        yield null;
+                        weights.add(accessor);
                     }
                     case BlendIndices, BlendIndices2, BlendIndices3 -> {
                         // NOTE elements are expected to be ordered
-                        interleaved.computeIfAbsent(Semantic.JOINTS, _ -> new ArrayList<>()).add(accessor);
-                        yield null;
+                        joints.add(accessor);
                     }
                     default -> {
                         log.warn("Skipping unsupported element (semantic: {})", element.element());
-                        yield null;
                     }
-                };
-
-                if (semantic != null) {
-                    accessors.put(semantic, accessor);
                 }
             }
         }
 
-        interleaved.forEach(((semantic, value) -> {
-            if (value.size() == 1) {
-                accessors.put(semantic, value.getFirst());
-            } else {
-                accessors.put(semantic, Accessor.ofInterleaved(value));
-            }
-        }));
+        var weightsAccessor = switch (weights.size()) {
+            case 0 -> null;
+            case 1 -> weights.getFirst();
+            default -> Accessor.ofInterleaved(weights);
+        };
 
-        accessors.replaceAll((semantic, accessor) -> switch (semantic) {
-            case Semantic.Weights _ -> normalizeAccessor(accessor);
-            default -> accessor;
-        });
+        var jointsAccessor = switch (joints.size()) {
+            case 0 -> null;
+            case 1 -> joints.getFirst();
+            default -> Accessor.ofInterleaved(joints);
+        };
 
-        if (accessors.containsKey(Semantic.JOINTS) && !accessors.containsKey(Semantic.WEIGHTS)) {
+        if (jointsAccessor != null && weightsAccessor == null) {
             // Weights MAY be absent in case there's only one bone per vertex.
-            var joints = accessors.get(Semantic.JOINTS);
-            if (joints.componentCount() != 1) {
-                throw new IllegalStateException("JOINTS accessor has " + joints.componentCount()
+            if (jointsAccessor.componentCount() != 1) {
+                throw new IllegalStateException("JOINTS accessor has " + jointsAccessor.componentCount()
                     + " components, but WEIGHTS accessor is missing");
             }
 
             // Build a dummy WEIGHTS accessor with all weights set to 1.0f
-            var weights = ByteBuffer.allocate(Float.BYTES)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .putFloat(1.0f)
-                .flip();
-            var accessor = Accessor.of(weights, 0, 0, new Type.F32(1), joints.count());
-            accessors.put(Semantic.WEIGHTS, accessor);
+            weightsAccessor = Accessor.of(
+                ByteBuffer.allocate(Float.BYTES)
+                    .order(ByteOrder.LITTLE_ENDIAN)
+                    .putFloat(1.0f)
+                    .flip(),
+                0,
+                0,
+                new Type.F32(1),
+                jointsAccessor.count());
         }
 
-        return accessors;
+        if (weightsAccessor != null) {
+            reader.weights(weightsAccessor);
+        }
+
+        if (jointsAccessor != null) {
+            reader.joints(jointsAccessor);
+        }
     }
 
-    private static Accessor buildIndexAccessor(
+    private static void readIndices(
         HFW.IndexArrayResource object,
         ByteBuffer buffer,
         int startIndex,
-        int endIndex
+        int endIndex,
+        MeshReader reader
     ) {
         var type = switch (object.format().unwrap()) {
             case Index16 -> new Type.I16(1, true, false);
@@ -274,7 +268,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
                 .order(ByteOrder.LITTLE_ENDIAN);
         }
 
-        return Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
+        var accessor = Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
+        reader.indices(accessor);
     }
 
     private static Accessor normalizeAccessor(Accessor accessor) {
