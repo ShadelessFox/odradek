@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.scene;
 
-import sh.adelessfox.odradek.geometry.Mesh;
+import sh.adelessfox.odradek.geometry.Model;
 import wtf.reversed.toolbox.math.Bounds;
 import wtf.reversed.toolbox.math.Matrix4;
 
@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 public record Node(
     Optional<String> name,
-    Optional<Mesh> mesh,
+    Optional<Model> mesh,
     Optional<Skin> skin,
     List<Node> children,
     Matrix4 matrix
@@ -34,8 +34,8 @@ public record Node(
             Matrix4.IDENTITY));
     }
 
-    public static Node of(Mesh mesh) {
-        return new Node(Optional.empty(), Optional.of(mesh), Optional.empty(), List.of(), Matrix4.IDENTITY);
+    public static Node of(Model model) {
+        return new Node(Optional.empty(), Optional.of(model), Optional.empty(), List.of(), Matrix4.IDENTITY);
     }
 
     public Node add(Node child) {
@@ -62,7 +62,7 @@ public record Node(
 
     public Optional<Bounds> computeBoundingBox() {
         var bbox1 = mesh.stream()
-            .map(Mesh::computeBoundingBox);
+            .map(Model::computeBoundingBox);
 
         var bbox2 = children.stream()
             .map(Node::computeBoundingBox)
@@ -92,7 +92,7 @@ public record Node(
 
         private final List<NodeOrBuilder> children = new ArrayList<>();
         private String name;
-        private Mesh mesh;
+        private Model model;
         private Skin skin;
         private Matrix4 matrix = Matrix4.IDENTITY;
 
@@ -104,8 +104,8 @@ public record Node(
             return this;
         }
 
-        public Builder mesh(Mesh mesh) {
-            this.mesh = mesh;
+        public Builder mesh(Model model) {
+            this.model = model;
             return this;
         }
 
@@ -144,7 +144,7 @@ public record Node(
         public Node build() {
             return new Node(
                 Optional.ofNullable(name),
-                Optional.ofNullable(mesh),
+                Optional.ofNullable(model),
                 Optional.ofNullable(skin),
                 children.stream().map(NodeOrBuilder::toNode).toList(),
                 matrix);
@@ -155,7 +155,7 @@ public record Node(
             return "Node.Builder{" +
                 "children=" + children +
                 ", name='" + name + '\'' +
-                ", mesh=" + mesh +
+                ", mesh=" + model +
                 ", skin=" + skin +
                 ", matrix=" + matrix +
                 '}';

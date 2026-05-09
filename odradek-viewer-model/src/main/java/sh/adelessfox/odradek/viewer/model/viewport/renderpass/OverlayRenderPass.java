@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.geometry.Primitive;
+import sh.adelessfox.odradek.geometry.Model;
 import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
@@ -127,9 +127,9 @@ public class OverlayRenderPass implements RenderPass {
         });
     }
 
-    private void renderBoundingBox(Mesh mesh, Matrix4 transform) {
-        for (Primitive primitive : mesh.primitives()) {
-            debug.aabb(primitive.computeBoundingBox().transform(transform), primitive.color());
+    private void renderBoundingBox(Model model, Matrix4 transform) {
+        for (Mesh mesh : model.meshes()) {
+            debug.aabb(mesh.computeBoundingBox().transform(transform), mesh.color());
         }
     }
 
@@ -174,7 +174,7 @@ public class OverlayRenderPass implements RenderPass {
             var statistics = new SceneStatistics();
             scene.accept((node, _) -> {
                 node.mesh().ifPresent(mesh -> {
-                    for (Primitive primitive : mesh.primitives()) {
+                    for (Mesh primitive : mesh.meshes()) {
                         statistics.vertices += primitive.positions().count();
                         statistics.faces += primitive.indices().count() / 3;
                     }

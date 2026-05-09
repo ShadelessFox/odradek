@@ -18,14 +18,14 @@ import java.util.*;
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
 
-    static Mesh convertMesh(
+    static Model convertMesh(
         List<Ref<DS2.ShadingGroup>> shadingGroups,
         List<Ref<DS2.PrimitiveResource>> primitiveResources,
         DS2.StreamingDataSource dataSource,
         DS2Game game
     ) {
         var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
-        var primitives = new ArrayList<Primitive>(primitiveResources.size());
+        var primitives = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
 
@@ -40,7 +40,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
             var indexArray = primitive.indexArray().get();
             var indexAccessor = buildIndexAccessor(indexArray, buffer, primitive.startIndex(), primitive.endIndex());
 
-            primitives.add(new Primitive(
+            primitives.add(new Mesh(
                 indexAccessor,
                 vertexAccessors,
                 computePrimitiveColor(primitive.hash() ^ primitive.hashCode())));
@@ -50,7 +50,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
-        return Mesh.of(primitives);
+        return Model.of(primitives);
     }
 
     static Matrix4 toMat4(DS2.Mat34 matrix) {

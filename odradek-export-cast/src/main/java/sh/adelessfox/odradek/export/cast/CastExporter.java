@@ -83,10 +83,10 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
         }
     }
 
-    private static void exportMesh(CastNodes.Model model, Mesh nodeMesh) {
-        for (Primitive primitive : nodeMesh.primitives()) {
-            var vertices = primitive.vertices();
-            var indices = primitive.indices();
+    private static void exportMesh(CastNodes.Model model, Model nodeModel) {
+        for (Mesh mesh : nodeModel.meshes()) {
+            var vertices = mesh.vertices();
+            var indices = mesh.indices();
             var result = model.createMesh();
 
             // Vertices

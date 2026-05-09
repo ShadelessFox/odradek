@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.geometry.Accessor;
-import sh.adelessfox.odradek.geometry.Primitive;
+import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.math.Frustum;
@@ -145,7 +145,7 @@ public final class RenderMeshesPass implements RenderPass {
 
     private GpuNode uploadNode(Node node, Matrix4 transform) {
         var primitives = node.mesh().stream()
-            .flatMap(mesh -> mesh.primitives().stream())
+            .flatMap(mesh -> mesh.meshes().stream())
             .map(this::uploadPrimitive)
             .flatMap(Optional::stream)
             .toList();
@@ -157,11 +157,11 @@ public final class RenderMeshesPass implements RenderPass {
         return new GpuNode(primitives, transform, bbox);
     }
 
-    private Optional<GpuPrimitive> uploadPrimitive(Primitive primitive) {
+    private Optional<GpuPrimitive> uploadPrimitive(Mesh mesh) {
         var buffers = new IdentityHashMap<ByteBuffer, List<VertexAttribute>>();
 
-        var vertices = primitive.vertices();
-        var indices = primitive.indices();
+        var vertices = mesh.vertices();
+        var indices = mesh.indices();
 
         int location = 0;
         var semantics = new HashSet<Semantic>();
@@ -210,7 +210,7 @@ public final class RenderMeshesPass implements RenderPass {
                 default -> throw new IllegalArgumentException("unsupported index type");
             };
 
-            return Optional.of(new GpuPrimitive(count, type, vao, primitive.color(), semantics));
+            return Optional.of(new GpuPrimitive(count, type, vao, mesh.color(), semantics));
         }
     }
 

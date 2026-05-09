@@ -1,30 +1,81 @@
 package sh.adelessfox.odradek.geometry;
 
 import wtf.reversed.toolbox.math.Bounds;
+import wtf.reversed.toolbox.math.Vector3;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-public record Mesh(Optional<String> name, List<Primitive> primitives) {
+public record Mesh(Accessor indices, Map<Semantic, Accessor> vertices, Vector3 color) {
     public Mesh {
-        if (primitives.isEmpty()) {
-            throw new IllegalArgumentException("mesh must consist of at least one primitive");
-        }
-        primitives = List.copyOf(primitives);
+        validateIndices(indices);
+        validatePositions(vertices);
+        validateWeights(vertices);
+
+        vertices = Map.copyOf(vertices);
     }
 
-    public static Mesh of(List<Primitive> primitives) {
-        return new Mesh(Optional.empty(), primitives);
-    }
-
-    public static Mesh of(Primitive primitive) {
-        return of(List.of(primitive));
+    public Accessor positions() {
+        return vertices.get(Semantic.POSITION);
     }
 
     public Bounds computeBoundingBox() {
-        return primitives.stream()
-            .map(Primitive::computeBoundingBox)
-            .reduce(Bounds::combine)
-            .orElseThrow();
+        var indices = indices().asIntView();
+        var positions = positions().asFloatView();
+        var builder = Bounds.builder();
+
+        for (int i = 0; i < indices().count(); i++) {
+            int index = indices.get(i, 0);
+            float x = positions.get(index, 0);
+            float y = positions.get(index, 1);
+            float z = positions.get(index, 2);
+
+            builder.add(x, y, z);
+        }
+
+        return builder.build();
+    }
+
+    private static void validateIndices(Accessor indices) {
+        if (indices.componentCount() != 1) {
+            throw new IllegalArgumentException("indices must have 1 component");
+        }
+        if (indices.type().normalized()) {
+            throw new IllegalArgumentException("indices must not be normalized");
+        }
+        if (!indices.type().unsigned()) {
+            throw new IllegalArgumentException("indices must be unsigned");
+        }
+        if (!(indices.type() instanceof Type.I8) &&
+            !(indices.type() instanceof Type.I16) &&
+            !(indices.type() instanceof Type.I32)
+        ) {
+            throw new IllegalArgumentException("indices must be of type I8, I16, or I32");
+        }
+    }
+
+    private static void validatePositions(Map<Semantic, Accessor> vertices) {
+        var positions = vertices.get(Semantic.POSITION);
+        if (positions == null) {
+            throw new IllegalArgumentException("vertices must contain POSITION semantic");
+        }
+        if (positions.componentCount() != 3) {
+            throw new IllegalArgumentException("POSITION accessor must have 3 components");
+        }
+    }
+
+    private static void validateWeights(Map<Semantic, Accessor> vertices) {
+        var weights = vertices.get(Semantic.WEIGHTS);
+        var joints = vertices.get(Semantic.JOINTS);
+        if (weights != null || joints != null) {
+            if (weights == null || joints == null) {
+                throw new IllegalArgumentException("vertices must contain both WEIGHTS and JOINTS semantics if either is present");
+            }
+            if (weights.count() != joints.count()) {
+                throw new IllegalArgumentException("WEIGHTS and JOINTS accessors must have the same count");
+            }
+            if (weights.componentCount() != joints.componentCount()) {
+                throw new IllegalArgumentException("WEIGHTS and JOINTS accessors must have the same component count");
+            }
+        }
     }
 }

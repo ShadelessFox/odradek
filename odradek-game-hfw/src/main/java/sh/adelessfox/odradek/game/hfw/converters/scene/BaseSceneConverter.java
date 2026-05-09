@@ -18,14 +18,14 @@ import java.util.*;
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
 
-    static Mesh convertMesh(
+    static Model convertMesh(
         List<Ref<HFW.ShadingGroup>> shadingGroups,
         List<Ref<HFW.PrimitiveResource>> primitiveResources,
         HFW.StreamingDataSource dataSource,
         HFWGame game
     ) {
         var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
-        var primitives = new ArrayList<Primitive>(primitiveResources.size());
+        var primitives = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
 
@@ -42,7 +42,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             var indexArray = primitive.indexArray().get();
             var indexAccessor = buildIndexAccessor(indexArray, buffer, primitive.startIndex(), primitive.endIndex());
 
-            primitives.add(new Primitive(
+            primitives.add(new Mesh(
                 indexAccessor,
                 vertexAccessors,
                 computePrimitiveColor(primitive.hash() ^ primitive.hashCode())));
@@ -52,10 +52,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
-        return Mesh.of(primitives);
+        return Model.of(primitives);
     }
 
-    static Mesh convertHairMesh(HFW.HairSkinnedMesh mesh, HFWGame game) {
+    static Model convertHairMesh(HFW.HairSkinnedMesh mesh, HFWGame game) {
         var vertexArray = mesh.skinnedVertexArray().get();
         var vertexAccessors = buildVertexAccessors(vertexArray, null);
 
@@ -72,7 +72,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             Semantic.WEIGHTS,
             buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()));
 
-        return Mesh.of(new Primitive(
+        return Model.of(new Mesh(
             indexAccessor,
             vertexAccessors,
             computePrimitiveColor(mesh.hashCode())
