@@ -9,23 +9,23 @@ import sh.adelessfox.odradek.game.ds2.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.scene.Scene;
 import wtf.reversed.toolbox.math.Matrix4;
-import wtf.reversed.toolbox.math.Vector3;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
 
-    static Mesh convertMesh(
+    static Model convertMesh(
         List<Ref<DS2.ShadingGroup>> shadingGroups,
         List<Ref<DS2.PrimitiveResource>> primitiveResources,
         DS2.StreamingDataSource dataSource,
         DS2Game game
     ) {
         var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
-        var primitives = new ArrayList<Primitive>(primitiveResources.size());
+        var primitives = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
 
@@ -35,22 +35,20 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
             }
 
             var vertexArray = primitive.vertexArray().get();
-            var vertexAccessors = buildVertexAccessors(vertexArray, buffer);
-
             var indexArray = primitive.indexArray().get();
-            var indexAccessor = buildIndexAccessor(indexArray, buffer, primitive.startIndex(), primitive.endIndex());
 
-            primitives.add(new Primitive(
-                indexAccessor,
-                vertexAccessors,
-                computePrimitiveColor(primitive.hash() ^ primitive.hashCode())));
+            var reader = new MeshReader();
+            readVertices(vertexArray, buffer, reader);
+            readIndices(indexArray, buffer, primitive.startIndex(), primitive.endIndex(), reader);
+
+            primitives.add(reader.read());
         }
 
         if (buffer.hasRemaining()) {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
-        return Mesh.of(primitives);
+        return Model.of(primitives);
     }
 
     static Matrix4 toMat4(DS2.Mat34 matrix) {
@@ -73,12 +71,13 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         );
     }
 
-    private static Map<Semantic, Accessor> buildVertexAccessors(
+    private static void readVertices(
         DS2.VertexArrayResource object,
-        ByteBuffer buffer
+        ByteBuffer buffer,
+        MeshReader reader
     ) {
-        var accessors = new HashMap<Semantic, Accessor>();
-        var interleaved = new HashMap<Semantic, List<Accessor>>();
+        var weights = new ArrayList<Accessor>();
+        var joints = new ArrayList<Accessor>();
         var count = object.count();
 
         for (var stream : object.streams()) {
@@ -122,76 +121,38 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
                 }
 
                 var accessor = Accessor.of(view, offset, stride, type, count);
-                var semantic = switch (element.element().unwrap()) {
-                    case Pos -> Semantic.POSITION;
-                    case TangentBFlip -> Semantic.TANGENT_BFLIP;
-                    case Tangent -> Semantic.TANGENT;
-                    case Binormal -> Semantic.BINORMAL;
-                    case Normal -> Semantic.NORMAL;
-                    case Color -> Semantic.COLOR;
-                    case UV0 -> Semantic.TEXTURE_0;
-                    case UV1 -> Semantic.TEXTURE_1;
-                    case UV2 -> Semantic.TEXTURE_2;
-                    case BlendWeights, BlendWeights2, BlendWeights3 -> {
-                        // NOTE elements are expected to be ordered
-                        interleaved.computeIfAbsent(Semantic.WEIGHTS, _ -> new ArrayList<>()).add(accessor);
-                        yield null;
-                    }
-                    case BlendIndices, BlendIndices2, BlendIndices3 -> {
-                        // NOTE elements are expected to be ordered
-                        interleaved.computeIfAbsent(Semantic.JOINTS, _ -> new ArrayList<>()).add(accessor);
-                        yield null;
-                    }
-                    default -> {
-                        log.warn("Skipping unsupported element (semantic: {})", element.element());
-                        yield null;
-                    }
-                };
-
-                if (semantic != null) {
-                    accessors.put(semantic, accessor);
+                switch (element.element().unwrap()) {
+                    case Pos -> reader.setPositions(accessor);
+                    case Tangent -> reader.setTangents(accessor);
+                    case Normal -> reader.setNormals(accessor);
+                    case Color -> reader.addColor(accessor);
+                    case UV0, UV1, UV2, UV3, UV4, UV5, UV6 -> reader.addTexCoords(accessor);
+                    case BlendWeights, BlendWeights2, BlendWeights3 -> weights.add(accessor);
+                    case BlendIndices, BlendIndices2, BlendIndices3 -> joints.add(accessor);
+                    default -> log.warn("Skipping unsupported element (semantic: {})", element.element());
                 }
             }
         }
 
-        interleaved.forEach(((semantic, value) -> {
-            if (value.size() == 1) {
-                accessors.put(semantic, value.getFirst());
-            } else {
-                accessors.put(semantic, Accessor.ofInterleaved(value));
-            }
-        }));
-
-        accessors.replaceAll((semantic, accessor) -> switch (semantic) {
-            case Semantic.Weights _ -> normalizeAccessor(accessor);
-            default -> accessor;
-        });
-
-        if (accessors.containsKey(Semantic.JOINTS) && !accessors.containsKey(Semantic.WEIGHTS)) {
-            // Weights MAY be absent in case there's only one bone per vertex.
-            var joints = accessors.get(Semantic.JOINTS);
-            if (joints.componentCount() != 1) {
-                throw new IllegalStateException("JOINTS accessor has " + joints.componentCount()
-                    + " components, but WEIGHTS accessor is missing");
-            }
-
-            // Build a dummy WEIGHTS accessor with all weights set to 1.0f
-            var weights = ByteBuffer.allocate(Float.BYTES)
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .putFloat(1.0f)
-                .flip();
-            var accessor = Accessor.of(weights, 0, 0, new Type.F32(1), joints.count());
-            accessors.put(Semantic.WEIGHTS, accessor);
+        switch (weights.size()) {
+            case 0 -> { /* do nothing */ }
+            case 1 -> reader.setWeights(weights.getFirst());
+            default -> reader.setWeights(Accessor.ofInterleaved(weights));
         }
 
-        return accessors;
+        switch (joints.size()) {
+            case 0 -> { /* do nothing */ }
+            case 1 -> reader.setJoints(joints.getFirst());
+            default -> reader.setJoints(Accessor.ofInterleaved(joints));
+        }
     }
 
-    private static Accessor buildIndexAccessor(
+    private static void readIndices(
         DS2.IndexArrayResource object,
         ByteBuffer buffer,
         int startIndex,
-        int endIndex
+        int endIndex,
+        MeshReader reader
     ) {
         var type = switch (object.format().unwrap()) {
             case Index16 -> new Type.I16(1, true, false);
@@ -210,36 +171,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
                 .order(ByteOrder.LITTLE_ENDIAN);
         }
 
-        return Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
-    }
-
-    private static Accessor normalizeAccessor(Accessor accessor) {
-        var buffer = ByteBuffer
-            .allocate(accessor.count() * accessor.componentCount() * Float.BYTES)
-            .order(ByteOrder.LITTLE_ENDIAN);
-        var view = accessor.asFloatView();
-        var acc = new float[accessor.componentCount()];
-        for (int i = 0; i < accessor.count(); i++) {
-            float sum = 0;
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                float value = view.get(i, j);
-                acc[j] = view.get(i, j);
-                sum += value;
-            }
-            for (int j = 0; j < accessor.componentCount(); j++) {
-                buffer.putFloat(acc[j] / sum);
-            }
-        }
-        return Accessor.of(buffer.flip(), 0, new Type.F32(accessor.componentCount()), accessor.count());
-    }
-
-    private static Vector3 computePrimitiveColor(int hash) {
-        var random = new Random(hash);
-        return new Vector3(
-            random.nextFloat(0.5f, 1.0f),
-            random.nextFloat(0.5f, 1.0f),
-            random.nextFloat(0.5f, 1.0f)
-        );
+        var accessor = Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
+        reader.setIndices(accessor);
     }
 
     private static ByteBuffer readBuffer(ByteBuffer buffer, int count, int stride) {

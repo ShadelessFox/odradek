@@ -1,9 +1,6 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.geometry.Accessor;
-import sh.adelessfox.odradek.geometry.Primitive;
+import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.math.Frustum;
@@ -24,14 +21,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import static org.lwjgl.opengl.GL11.*;
 
 public final class RenderMeshesPass implements RenderPass {
-    private static final Logger log = LoggerFactory.getLogger(RenderMeshesPass.class);
-
     private static final int FLAG_HAS_NORMAL = 1;
     private static final int FLAG_HAS_UV = 1 << 1;
     private static final int FLAG_HAS_COLOR = 1 << 2;
@@ -114,7 +108,7 @@ public final class RenderMeshesPass implements RenderPass {
         // if (!frustum.test(node.bbox())) {
         //     return;
         // }
-        for (GpuPrimitive primitive : node.primitives()) {
+        for (GpuMesh primitive : node.meshes()) {
             program.set("u_model", node.transform());
             program.set("u_color", primitive.color());
             program.set("u_texture", diffuseSampler);
@@ -126,7 +120,7 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    static int buildPrimitiveFlags(GpuPrimitive primitive, ViewportContext context) {
+    static int buildPrimitiveFlags(GpuMesh primitive, ViewportContext context) {
         int flags = 0;
         if (context.isShowWireframe()) {
             flags |= FLAG_WIREFRAME;
@@ -144,73 +138,50 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private GpuNode uploadNode(Node node, Matrix4 transform) {
-        var primitives = node.mesh().stream()
-            .flatMap(mesh -> mesh.primitives().stream())
+        var meshes = node.model().stream()
+            .flatMap(mesh -> mesh.meshes().stream())
             .map(this::uploadPrimitive)
             .flatMap(Optional::stream)
             .toList();
 
-        var bbox = node.computeBoundingBox()
+        var bbox = node.computeBounds()
             .map(b -> b.transform(transform))
             .orElse(Bounds.EMPTY);
 
-        return new GpuNode(primitives, transform, bbox);
+        return new GpuNode(meshes, transform, bbox);
     }
 
-    private Optional<GpuPrimitive> uploadPrimitive(Primitive primitive) {
-        var buffers = new IdentityHashMap<ByteBuffer, List<VertexAttribute>>();
-
-        var vertices = primitive.vertices();
-        var indices = primitive.indices();
-
-        int location = 0;
-        var semantics = new HashSet<Semantic>();
-
-        for (Semantic semantic : List.of(Semantic.POSITION, Semantic.NORMAL, Semantic.TEXTURE_0, Semantic.COLOR)) {
-            var accessor = vertices.get(semantic);
-            var location1 = location++;
-            if (accessor == null) {
-                continue;
-            }
-            if (!(accessor instanceof Accessor.OfBuffer buffer)) {
-                log.error("Unsupported accessor type for semantic {}: {}", semantic, accessor.getClass().getName());
-                continue;
-            }
-            var attributes = buffers.computeIfAbsent(buffer.buffer(), _ -> new ArrayList<>());
-            attributes.add(new VertexAttribute(location1, buffer.type(), 0, buffer.stride()));
-            semantics.add(semantic);
-        }
-
-        if (!semantics.contains(Semantic.POSITION)) {
-            log.error("Missing required vertex attribute: {}", Semantic.POSITION);
-            return Optional.empty();
-        }
-
+    private Optional<GpuMesh> uploadPrimitive(Mesh mesh) {
         try (var vao = new VertexArray().bind()) {
-            int slot = 0;
-            for (var entry : buffers.entrySet()) {
-                var vbo = vao.createVertexBuffer(entry.getValue(), slot);
-                vbo.put(entry.getKey(), 0);
-                slot++;
+            var indices = vao.createElementBuffer();
+            indices.put(mesh.indices().asBuffer(), 0);
+
+            var positions = vao.createVertexBuffer(List.of(new VertexAttribute(0, new Type.F32(3), 0, 12)), 0);
+            positions.put(mesh.positions().asBuffer(), 0);
+
+            var semantics = new HashSet<Semantic>();
+            mesh.normals().ifPresent(normals -> {
+                var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(1, new Type.F32(3), 0, 12)), 1);
+                vbo.put(normals.asBuffer(), 0);
+                semantics.add(Semantic.NORMAL);
+            });
+            if (!mesh.texCoords().isEmpty()) {
+                var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(2, new Type.F32(2), 0, 8)), 2);
+                vbo.put(mesh.texCoords().getFirst().asBuffer(), 0);
+                semantics.add(Semantic.TEXTURE_0);
+            }
+            if (!mesh.colors().isEmpty()) {
+                var vbo = vao.createVertexBuffer(List.of(new VertexAttribute(3, new Type.I8(4, true, false), 0, 4)), 3);
+                vbo.put(mesh.colors().getFirst().asBuffer(), 0);
+                semantics.add(Semantic.COLOR);
             }
 
-            if (!(indices instanceof Accessor.OfBuffer buffer)) {
-                log.error("Unsupported index accessor type: {}", indices.getClass().getName());
-                return Optional.empty();
-            }
-
-            var ibo = vao.createElementBuffer();
-            ibo.put(buffer.buffer(), 0);
-
-            var count = indices.count();
-            var type = switch (indices.type()) {
-                case Type.I8 _ -> GL_UNSIGNED_BYTE;
-                case Type.I16 _ -> GL_UNSIGNED_SHORT;
-                case Type.I32 _ -> GL_UNSIGNED_INT;
-                default -> throw new IllegalArgumentException("unsupported index type");
-            };
-
-            return Optional.of(new GpuPrimitive(count, type, vao, primitive.color(), semantics));
+            return Optional.of(new GpuMesh(
+                mesh.indices().length(),
+                GL_UNSIGNED_INT,
+                vao,
+                computeRandomColor(mesh.hashCode()),
+                semantics));
         }
     }
 
@@ -234,7 +205,7 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void cacheNodeRecursively(Node node, Matrix4 transform) {
-        if (node.mesh().isPresent()) {
+        if (node.model().isPresent()) {
             nodes.add(uploadNode(node, transform));
         }
         for (Node child : node.children()) {
@@ -251,16 +222,25 @@ public final class RenderMeshesPass implements RenderPass {
         }
     }
 
-    private record GpuNode(List<GpuPrimitive> primitives, Matrix4 transform, Bounds bbox) {
+    private static Vector3 computeRandomColor(int seed) {
+        var random = new Random(seed);
+        return new Vector3(
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f)
+        );
+    }
+
+    private record GpuNode(List<GpuMesh> meshes, Matrix4 transform, Bounds bbox) {
         void dispose() {
-            for (GpuPrimitive primitive : primitives) {
-                primitive.dispose();
+            for (GpuMesh mesh : meshes) {
+                mesh.dispose();
             }
         }
     }
 
-    private record GpuPrimitive(int count, int type, VertexArray vao, Vector3 color, Set<Semantic> semantics) {
-        private GpuPrimitive {
+    private record GpuMesh(int count, int type, VertexArray vao, Vector3 color, Set<Semantic> semantics) {
+        private GpuMesh {
             semantics = Set.copyOf(semantics);
         }
 

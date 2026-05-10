@@ -91,7 +91,7 @@ public final class MeshToSceneConverter
         var mesh = resource.geometry().meshLods().getFirst();
         var nodes = mesh.skinnedMeshes().stream()
             .map(m -> Node.builder()
-                .mesh(convertHairMesh(m, game))
+                .model(convertHairMesh(m, game))
                 .skin(skin)
                 .build())
             .toList();
@@ -257,7 +257,7 @@ public final class MeshToSceneConverter
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
-        var mesh = convertMesh(
+        var mesh = convertModel(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
             resource.meshDescription().streamingDataSource(),
@@ -277,14 +277,14 @@ public final class MeshToSceneConverter
             return Optional.empty();
         }
         var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
-        var mesh = convertMesh(
+        var mesh = convertModel(
             resource.shadingGroups(),
             resource.primitives(),
             resource.streamingDataSource(),
             game
         );
         var node = Node.builder()
-            .mesh(mesh)
+            .model(mesh)
             .skin(skin)
             .build();
         return Optional.of(node);

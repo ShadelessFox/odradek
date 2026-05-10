@@ -1,22 +1,22 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.geometry.Primitive;
+import sh.adelessfox.odradek.geometry.Model;
 import sh.adelessfox.odradek.scene.Joint;
+import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skin;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportContext;
 import sh.adelessfox.odradek.viewer.model.viewport.ViewportInput;
+import wtf.reversed.toolbox.math.Bounds;
 import wtf.reversed.toolbox.math.Matrix4;
 import wtf.reversed.toolbox.math.Vector3;
 
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -24,26 +24,17 @@ public class OverlayRenderPass implements RenderPass {
     private static final int MAX_JOINTS_TO_DISPLAY_NAMES_FOR = 128;
 
     private static final List<Toggle> toggles = List.of(
-        new Toggle("Show wireframe", KeyEvent.VK_1,
-            ViewportContext::isShowWireframe,
-            ViewportContext::setShowWireframe),
-        new Toggle("Show vertex UVs", KeyEvent.VK_2,
-            ViewportContext::isShowVertexUVs,
-            ViewportContext::setShowVertexUVs),
-        new Toggle("Show vertex colors", KeyEvent.VK_3,
-            ViewportContext::isShowVertexColors,
-            ViewportContext::setShowVertexColors),
-        new Toggle("Show bounds", KeyEvent.VK_4,
-            ViewportContext::isShowBounds,
-            ViewportContext::setShowBounds),
-        new Toggle("Show skins", KeyEvent.VK_5,
-            ViewportContext::isShowSkins,
-            ViewportContext::setShowSkins)
+        new Toggle("Show wireframe", KeyEvent.VK_1, ViewportContext::isShowWireframe, ViewportContext::setShowWireframe),
+        new Toggle("Show vertex UVs", KeyEvent.VK_2, ViewportContext::isShowVertexUVs, ViewportContext::setShowVertexUVs),
+        new Toggle("Show vertex colors", KeyEvent.VK_3, ViewportContext::isShowVertexColors, ViewportContext::setShowVertexColors),
+        new Toggle("Show bounds", KeyEvent.VK_4, ViewportContext::isShowBounds, ViewportContext::setShowBounds),
+        new Toggle("Show skins", KeyEvent.VK_5, ViewportContext::isShowSkins, ViewportContext::setShowSkins)
     );
 
     private DebugRenderer debug;
     private Scene scene;
     private SceneStatistics statistics;
+    private final List<OverlayNode> nodes = new ArrayList<>();
 
     @Override
     public void init() throws IOException {
@@ -74,9 +65,10 @@ public class OverlayRenderPass implements RenderPass {
             if (this.scene != scene) {
                 this.scene = scene;
                 this.statistics = SceneStatistics.collect(scene);
+                cacheSceneNodes(scene);
             }
 
-            renderScene(scene, camera, context);
+            renderNodes(camera, context);
             renderInformation(context, statistics, camera);
         }
 
@@ -112,24 +104,19 @@ public class OverlayRenderPass implements RenderPass {
         debug.billboardText(text.toString(), 10, 10, 1.0f, 1.0f, 1.0f, 10.0f);
     }
 
-    private void renderScene(Scene scene, Camera camera, ViewportContext context) {
+    private void renderNodes(Camera camera, ViewportContext context) {
         if (!context.isShowSkins() && !context.isShowBounds()) {
             return;
         }
-        scene.accept((node, transform) -> {
+        for (OverlayNode node : nodes) {
             if (context.isShowSkins()) {
-                node.skin().ifPresent(skin -> renderSkin(skin, transform, camera));
+                node.skin().ifPresent(skin -> renderSkin(skin, node.transform(), camera));
             }
             if (context.isShowBounds()) {
-                node.mesh().ifPresent(mesh -> renderBoundingBox(mesh, transform));
+                for (OverlayMesh mesh : node.meshes()) {
+                    debug.aabb(mesh.bounds().transform(node.transform()), mesh.color());
+                }
             }
-            return true;
-        });
-    }
-
-    private void renderBoundingBox(Mesh mesh, Matrix4 transform) {
-        for (Primitive primitive : mesh.primitives()) {
-            debug.aabb(primitive.computeBoundingBox().transform(transform), primitive.color());
         }
     }
 
@@ -165,6 +152,33 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
+    private void cacheSceneNodes(Scene scene) {
+        nodes.clear();
+        for (Node node : scene.nodes()) {
+            cacheNodeRecursively(node, node.matrix());
+        }
+    }
+
+    private void cacheNodeRecursively(Node node, Matrix4 transform) {
+        var meshes = node.model().map(Model::meshes).orElse(List.of());
+        var overlayMeshes = meshes.stream()
+            .map(mesh -> new OverlayMesh(mesh, mesh.computeBounds(), computeRandomColor(mesh.hashCode())))
+            .toList();
+        nodes.add(new OverlayNode(node.skin(), overlayMeshes, transform));
+        for (Node child : node.children()) {
+            cacheNodeRecursively(child, transform.multiply(child.matrix()));
+        }
+    }
+
+    private static Vector3 computeRandomColor(int seed) {
+        var random = new Random(seed);
+        return new Vector3(
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f),
+            random.nextFloat(0.5f, 1.0f)
+        );
+    }
+
     private static final class SceneStatistics {
         private long vertices;
         private long faces;
@@ -173,10 +187,10 @@ public class OverlayRenderPass implements RenderPass {
         static SceneStatistics collect(Scene scene) {
             var statistics = new SceneStatistics();
             scene.accept((node, _) -> {
-                node.mesh().ifPresent(mesh -> {
-                    for (Primitive primitive : mesh.primitives()) {
-                        statistics.vertices += primitive.positions().count();
-                        statistics.faces += primitive.indices().count() / 3;
+                node.model().ifPresent(model -> {
+                    for (Mesh mesh : model.meshes()) {
+                        statistics.vertices += mesh.positions().length() / 3;
+                        statistics.faces += mesh.indices().length() / 3;
                     }
                     statistics.meshes += 1;
                 });
@@ -195,5 +209,11 @@ public class OverlayRenderPass implements RenderPass {
         void toggle(ViewportContext context) {
             set.accept(context, !get.test(context));
         }
+    }
+
+    private record OverlayNode(Optional<Skin> skin, List<OverlayMesh> meshes, Matrix4 transform) {
+    }
+
+    private record OverlayMesh(Mesh mesh, Bounds bounds, Vector3 color) {
     }
 }

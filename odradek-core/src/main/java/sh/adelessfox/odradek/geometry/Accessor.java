@@ -1,5 +1,9 @@
 package sh.adelessfox.odradek.geometry;
 
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.collect.Floats;
+import wtf.reversed.toolbox.collect.Ints;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
@@ -93,6 +97,62 @@ public sealed interface Accessor {
      * @throws UnsupportedOperationException if the new component count is greater than the current component count
      */
     Accessor resize(int componentCount);
+
+    default Bytes toBytes() {
+        var view = asByteView();
+        var bytes = Bytes.Mutable.allocate(count() * componentCount());
+        for (int i = 0; i < count(); i++) {
+            for (int j = 0; j < componentCount(); j++) {
+                bytes.set(i * componentCount() + j, view.get(i, j));
+            }
+        }
+        return bytes;
+    }
+
+    default Ints toInts() {
+        var view = asIntView();
+        var ints = Ints.Mutable.allocate(count() * componentCount());
+        for (int i = 0; i < count(); i++) {
+            for (int j = 0; j < componentCount(); j++) {
+                ints.set(i * componentCount() + j, view.get(i, j));
+            }
+        }
+        return ints;
+    }
+
+    default Floats toFloats() {
+        var view = asFloatView();
+        var floats = Floats.Mutable.allocate(count() * componentCount());
+        for (int i = 0; i < count(); i++) {
+            for (int j = 0; j < componentCount(); j++) {
+                floats.set(i * componentCount() + j, view.get(i, j));
+            }
+        }
+        return floats;
+    }
+
+    default Floats toFloatsNormalized() {
+        int count = count();
+        int componentCount = componentCount();
+        var accumulator = new float[componentCount];
+
+        var view = asFloatView();
+        var floats = Floats.Mutable.allocate(count * componentCount);
+
+        for (int i = 0; i < count; i++) {
+            float sum = 0;
+            for (int j = 0; j < componentCount; j++) {
+                float value = view.get(i, j);
+                accumulator[j] = view.get(i, j);
+                sum += value;
+            }
+            for (int j = 0; j < componentCount; j++) {
+                floats.set(i * componentCount + j, accumulator[j] / sum);
+            }
+        }
+
+        return floats;
+    }
 
     default ByteView asByteView() {
         return switch (type()) {

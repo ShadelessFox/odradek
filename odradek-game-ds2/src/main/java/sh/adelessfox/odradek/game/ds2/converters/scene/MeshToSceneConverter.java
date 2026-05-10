@@ -314,7 +314,7 @@ public final class MeshToSceneConverter
             game
         );
         var node = Node.builder()
-            .mesh(mesh)
+            .model(mesh)
             .skin(skin)
             .build();
         return Optional.of(node);
