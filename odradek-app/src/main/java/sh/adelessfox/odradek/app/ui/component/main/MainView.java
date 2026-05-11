@@ -31,10 +31,12 @@ public class MainView implements View<JComponent> {
         EventBus eventBus
     ) {
         var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus);
+        var right = buildRight();
         var bottom = buildBottom();
 
         root = new JPanel(new BorderLayout());
         root.add(center);
+        root.add(right, BorderLayout.EAST);
         root.add(bottom, BorderLayout.SOUTH);
     }
 
@@ -61,7 +63,11 @@ public class MainView implements View<JComponent> {
         return center;
     }
 
-    private static JComponent buildBottom() {
-        return new JToolBar();
+    private static Component buildRight() {
+        return Box.createHorizontalStrut(5);
+    }
+
+    private static Component buildBottom() {
+        return Box.createVerticalStrut(5);
     }
 }
