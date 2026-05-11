@@ -98,7 +98,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
             mesh.tangents().ifPresent(tangents -> result.setVertexTangentBuffer(mapTangentBuffer(tangents.asBuffer())));
 
             for (Floats texCoords : mesh.texCoords()) {
-                result.addVertexUVBuffer(texCoords.asBuffer());
+                result.addVertexUVBuffer(mapUvBuffer(texCoords.asBuffer()));
                 result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
             }
 
@@ -144,6 +144,17 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
             output.put(o/**/, buffer.get(i/**/));
             output.put(o + 1, buffer.get(i + 1));
             output.put(o + 2, buffer.get(i + 2));
+        }
+        return output.flip();
+    }
+
+    private static FloatBuffer mapUvBuffer(FloatBuffer buffer) {
+        var limit = buffer.limit();
+        var output = FloatBuffer.allocate(limit);
+        for (int i = 0; i < buffer.limit(); i += 2) {
+            float u = buffer.get(i/**/);
+            float v = buffer.get(i + 1);
+            output.put(u).put(1.0f - v);
         }
         return output.flip();
     }
