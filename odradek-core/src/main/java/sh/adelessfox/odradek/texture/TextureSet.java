@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.texture;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -43,12 +42,6 @@ public record TextureSet(
             .toList();
     }
 
-    public Optional<SourceTexture> findSourceTexture(String type) {
-        return sourceTextures.stream()
-            .filter(st -> st.type().equals(type))
-            .findFirst();
-    }
-
     public Optional<PackedTexture> findPackedTexture(String type) {
         return packedTextures.stream()
             .filter(pt -> pt.packing().contains(type))
@@ -58,11 +51,6 @@ public record TextureSet(
     public Optional<Texture> unpack(SourceTexture source) {
         var packed = findPackedTexture(source.type());
         return packed.map(p -> unpack(source, p));
-    }
-
-    public Optional<Texture> unpack(String type) {
-        var source = findSourceTexture(type).orElseThrow(() -> new NoSuchElementException(type));
-        return unpack(source);
     }
 
     private static Texture unpack(SourceTexture sourceTexture, PackedTexture packedTexture) {

@@ -190,6 +190,21 @@ final class TextureConverter {
         };
 
         UnpackOperation operation = switch (srcFormat) {
+            case R8G8_UNORM -> switch (channels.size()) {
+                case 1 -> {
+                    var r = channels.get(Channel.R).ordinal();
+                    yield (src, srcPos, dst, dstPos) -> dst[dstPos/**/] = src[srcPos + r];
+                }
+                case 2 -> {
+                    var r = channels.get(Channel.R).ordinal();
+                    var g = channels.get(Channel.G).ordinal();
+                    yield (src, srcPos, dst, dstPos) -> {
+                        dst[dstPos/**/] = src[srcPos + r];
+                        dst[dstPos + 1] = src[srcPos + g];
+                    };
+                }
+                default -> null;
+            };
             case R8G8B8A8_UNORM -> switch (channels.size()) {
                 case 1 -> {
                     var r = channels.get(Channel.R).ordinal();
