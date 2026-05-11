@@ -5,10 +5,9 @@ import com.formdev.flatlaf.ui.FlatUIUtils;
 import javax.swing.*;
 import javax.swing.tree.TreeCellRenderer;
 import java.awt.*;
-import java.util.EnumSet;
 import java.util.Objects;
 
-public abstract class StyledTreeCellRenderer<T> extends StyledComponent implements TreeCellRenderer {
+public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer implements TreeCellRenderer {
     private JTree tree;
     private boolean selected;
 
@@ -34,46 +33,56 @@ public abstract class StyledTreeCellRenderer<T> extends StyledComponent implemen
 
     @SuppressWarnings("unchecked")
     @Override
-    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean focused) {
-        clear();
-
+    public Component getTreeCellRendererComponent(
+        JTree tree,
+        Object value,
+        boolean selected,
+        boolean expanded,
+        boolean leaf,
+        int row,
+        boolean focused
+    ) {
         this.tree = tree;
         this.selected = selected;
 
-        Icon icon = getIcon(tree, (T) value, selected, expanded, focused, leaf, row);
+        if (selected) {
+            setBackground(backgroundSelectionColor);
+            setForeground(foregroundSelectionColor);
+        } else {
+            setBackground(backgroundNonSelectionColor);
+            setForeground(foregroundNonSelectionColor);
+        }
 
+        Icon icon = getIcon(tree, (T) value, selected, expanded, focused, leaf, row);
         if (icon != null && !tree.isEnabled()) {
             icon = Objects.requireNonNullElse(UIManager.getLookAndFeel().getDisabledIcon(tree, icon), icon);
         }
 
-        setBackground(selected ? backgroundSelectionColor : backgroundNonSelectionColor);
-        setForeground(selected ? foregroundSelectionColor : foregroundNonSelectionColor);
         setLeadingIcon(icon);
         setFont(tree.getFont());
-
-        customizeCellRenderer(tree, (T) value, selected, expanded, focused, leaf, row);
-
+        setText(getText(tree, (T) value, selected, expanded, focused, leaf, row));
         return this;
     }
 
     @Override
-    public void append(StyledFragment fragment) {
-        if (selected && isFocused()) {
-            var flags = EnumSet.noneOf(StyledFlag.class);
-            flags.addAll(fragment.flags());
-            flags.remove(StyledFlag.GRAYED);
-
-            var newFragment = fragment
-                .withForeground(getForeground())
-                .withFlags(flags);
-
-            super.append(newFragment);
-        } else {
-            super.append(fragment);
-        }
+    protected boolean isSelected() {
+        return selected;
     }
 
-    public Icon getIcon(JTree tree, T value, boolean selected, boolean expanded, boolean focused, boolean leaf, int row) {
+    @Override
+    protected boolean isFocused() {
+        return FlatUIUtils.isPermanentFocusOwner(tree);
+    }
+
+    protected Icon getIcon(
+        JTree tree,
+        T value,
+        boolean selected,
+        boolean expanded,
+        boolean focused,
+        boolean leaf,
+        int row
+    ) {
         if (leaf) {
             return UIManager.getIcon("Tree.leafIcon");
         } else if (expanded) {
@@ -83,9 +92,13 @@ public abstract class StyledTreeCellRenderer<T> extends StyledComponent implemen
         }
     }
 
-    private boolean isFocused() {
-        return FlatUIUtils.isPermanentFocusOwner(tree);
-    }
-
-    protected abstract void customizeCellRenderer(JTree tree, T value, boolean selected, boolean expanded, boolean focused, boolean leaf, int row);
+    protected abstract StyledText getText(
+        JTree tree,
+        T value,
+        boolean selected,
+        boolean expanded,
+        boolean focused,
+        boolean leaf,
+        int row
+    );
 }

@@ -12,12 +12,18 @@ import java.util.function.Consumer;
  * @param fragments a list of fragments this styled text consists of
  */
 public record StyledText(List<StyledFragment> fragments) {
+    private static final StyledText EMPTY = new StyledText(List.of());
+
     public StyledText {
         fragments = List.copyOf(fragments);
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    public static StyledText of() {
+        return EMPTY;
     }
 
     public static StyledText of(String text) {
@@ -65,5 +71,4 @@ public record StyledText(List<StyledFragment> fragments) {
             return Optional.of(new StyledText(segments));
         }
     }
-
 }

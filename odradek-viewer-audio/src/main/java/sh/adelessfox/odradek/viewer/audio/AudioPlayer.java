@@ -6,7 +6,7 @@ import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.odradek.ui.components.StyledComponent;
-import sh.adelessfox.odradek.ui.components.StyledFragment;
+import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.util.Fugue;
 import sh.adelessfox.odradek.util.Futures;
 
@@ -105,8 +105,7 @@ final class AudioPlayer extends JPanel implements Disposable {
         progress.setValue((int) (value * progress.getMaximum()));
         progress.repaint(); // somehow is required ...
 
-        label.clear();
-        label.append(StyledFragment.regular("%s / %s".formatted(formatDuration(position), formatDuration(duration))));
+        label.setText(StyledText.of("%s / %s".formatted(formatDuration(position), formatDuration(duration))));
         label.repaint();
     }
 

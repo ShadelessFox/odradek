@@ -6,16 +6,12 @@ import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class StyledComponent extends JComponent {
     private static final boolean DEBUG_OVERLAY = false;
 
-    private final List<StyledFragment> fragments = new ArrayList<>(3);
-
+    private StyledText text = StyledText.of();
     private Icon leadingIcon;
     private Icon trailingIcon;
     private Insets padding;
@@ -28,27 +24,15 @@ public class StyledComponent extends JComponent {
         updateUI();
     }
 
-    public final void append(String text) {
-        append(StyledFragment.regular(text));
+    public StyledText getText() {
+        return text;
     }
 
-    public final void append(String text, Consumer<StyledFragment.Builder> handler) {
-        var builder = StyledFragment.builder();
-        handler.accept(builder);
-        append(builder.build(text));
-    }
-
-    public void append(StyledFragment fragment) {
-        synchronized (fragments) {
-            fragments.add(fragment);
-        }
-    }
-
-    public void clear() {
-        synchronized (fragments) {
-            fragments.clear();
-            leadingIcon = null;
-            trailingIcon = null;
+    public void setText(StyledText text) {
+        if (!this.text.equals(text)) {
+            this.text = text;
+            revalidate();
+            repaint();
         }
     }
 
@@ -122,11 +106,9 @@ public class StyledComponent extends JComponent {
 
     @Override
     public String toString() {
-        synchronized (fragments) {
-            return fragments.stream()
-                .map(Objects::toString)
-                .reduce("", String::concat);
-        }
+        return text.fragments().stream()
+            .map(Objects::toString)
+            .reduce("", String::concat);
     }
 
     private void doPaint(Graphics2D g) {
@@ -180,24 +162,22 @@ public class StyledComponent extends JComponent {
         Rectangle area = computePaintArea();
         Font font = getBaseFont();
 
-        synchronized (fragments) {
-            for (StyledFragment fragment : fragments) {
-                var fragmentFont = computeFragmentFont(fragment, font);
-                var fragmentBaseline = area.y + area.height - getFontMetrics(fragmentFont).getDescent();
-                var fragmentWidth = computeFragmentWidth(fragment, fragmentFont);
-                var fragmentColor = computeFragmentForeground(fragment);
+        for (StyledFragment fragment : text.fragments()) {
+            var fragmentFont = computeFragmentFont(fragment, font);
+            var fragmentBaseline = area.y + area.height - getFontMetrics(fragmentFont).getDescent();
+            var fragmentWidth = computeFragmentWidth(fragment, fragmentFont);
+            var fragmentColor = computeFragmentForeground(fragment);
 
-                if (DEBUG_OVERLAY) {
-                    g.setColor(Color.LIGHT_GRAY);
-                    g.drawRect((int) offset, area.y, (int) fragmentWidth - 1, area.height - 1);
-                }
-
-                g.setFont(fragmentFont);
-                g.setColor(fragmentColor);
-                g.drawString(fragment.text(), offset, fragmentBaseline);
-
-                offset = offset + fragmentWidth;
+            if (DEBUG_OVERLAY) {
+                g.setColor(Color.LIGHT_GRAY);
+                g.drawRect((int) offset, area.y, (int) fragmentWidth - 1, area.height - 1);
             }
+
+            g.setFont(fragmentFont);
+            g.setColor(fragmentColor);
+            g.drawString(fragment.text(), offset, fragmentBaseline);
+
+            offset = offset + fragmentWidth;
         }
 
         return (int) offset - startOffset;
@@ -276,10 +256,8 @@ public class StyledComponent extends JComponent {
         width += padding.left + insets.left;
         width += padding.right + insets.right;
 
-        synchronized (fragments) {
-            for (StyledFragment fragment : fragments) {
-                width += computeFragmentWidth(fragment, computeFragmentFont(fragment, font));
-            }
+        for (StyledFragment fragment : text.fragments()) {
+            width += computeFragmentWidth(fragment, computeFragmentFont(fragment, font));
         }
 
         if (leadingIcon != null) {

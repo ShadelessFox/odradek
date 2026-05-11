@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.ui.components.tree;
 
 import com.formdev.flatlaf.util.UIScale;
-import sh.adelessfox.odradek.ui.components.StyledFragment;
+import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.StyledTreeCellRenderer;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -9,7 +9,6 @@ import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 import sh.adelessfox.odradek.ui.util.Listeners;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.*;
@@ -189,9 +188,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         if (this.labelProvider != labelProvider) {
             this.labelProvider = labelProvider;
 
-            if (labelProvider instanceof StyledTreeLabelProvider<?> p) {
-                setCellRenderer(new StyledLabelProviderTreeCellRenderer<>(p));
-            } else if (labelProvider != null) {
+            if (labelProvider != null) {
                 setCellRenderer(new LabelProviderTreeCellRenderer<>(labelProvider));
             } else {
                 setCellRenderer(null);
@@ -256,15 +253,15 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         return value;
     }
 
-    private static class StyledLabelProviderTreeCellRenderer<T> extends StyledTreeCellRenderer<T> {
-        private final StyledTreeLabelProvider<T> labelProvider;
+    private static class LabelProviderTreeCellRenderer<T> extends StyledTreeCellRenderer<T> {
+        private final TreeLabelProvider<T> labelProvider;
 
-        public StyledLabelProviderTreeCellRenderer(StyledTreeLabelProvider<T> labelProvider) {
+        public LabelProviderTreeCellRenderer(TreeLabelProvider<T> labelProvider) {
             this.labelProvider = labelProvider;
         }
 
         @Override
-        protected void customizeCellRenderer(
+        protected StyledText getText(
             JTree tree,
             T value,
             boolean selected,
@@ -275,16 +272,15 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         ) {
             @SuppressWarnings("unchecked")
             var element = (T) getElement(value);
-            var text = labelProvider.getStyledText(element).orElse(null);
-            if (text != null) {
-                for (StyledFragment segment : text.fragments()) {
-                    append(segment);
-                }
-            }
+            var text = switch (labelProvider) {
+                case StyledTreeLabelProvider<T> p -> p.getStyledText(element);
+                case TreeLabelProvider<T> p -> p.getText(element).map(StyledText::of);
+            };
+            return text.orElse(StyledText.of());
         }
 
         @Override
-        public Icon getIcon(
+        protected Icon getIcon(
             JTree tree,
             T value,
             boolean selected,
@@ -296,42 +292,6 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             @SuppressWarnings("unchecked")
             var element = (T) getElement(value);
             return labelProvider.getIcon(element).orElse(null);
-        }
-    }
-
-    private static class LabelProviderTreeCellRenderer<T> extends DefaultTreeCellRenderer {
-        private final TreeLabelProvider<T> labelProvider;
-
-        LabelProviderTreeCellRenderer(TreeLabelProvider<T> labelProvider) {
-            this.labelProvider = labelProvider;
-        }
-
-        @Override
-        public Component getTreeCellRendererComponent(
-            JTree tree,
-            Object value,
-            boolean sel,
-            boolean expanded,
-            boolean leaf,
-            int row,
-            boolean hasFocus
-        ) {
-            super.getTreeCellRendererComponent(tree, null, sel, expanded, leaf, row, hasFocus);
-
-            @SuppressWarnings("unchecked")
-            var element = (T) getElement(value);
-
-            var text = labelProvider.getText(element).orElse(null);
-            setText(text);
-
-            var icon = labelProvider.getIcon(element).orElse(null);
-            if (icon == null || tree.isEnabled()) {
-                setIcon(icon);
-            } else {
-                setDisabledIcon(Objects.requireNonNullElse(UIManager.getLookAndFeel().getDisabledIcon(tree, icon), icon));
-            }
-
-            return this;
         }
     }
 }
