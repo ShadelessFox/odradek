@@ -104,7 +104,8 @@ module odradek.game.ds2 {
         sh.adelessfox.odradek.game.ds2.converters.texture.UITextureToTextureConverter,
         sh.adelessfox.odradek.game.ds2.converters.ShaderResourceToShaderConverter,
         sh.adelessfox.odradek.game.ds2.converters.StreamingDataSourceToBytesConverter,
-        sh.adelessfox.odradek.game.ds2.converters.TextureSetToTextureSetConverter;
+        sh.adelessfox.odradek.game.ds2.converters.TextureSetToTextureSetConverter,
+        sh.adelessfox.odradek.game.ds2.converters.ModelToModelBundleConverter;
 
     provides sh.adelessfox.odradek.game.Game.Provider with
         sh.adelessfox.odradek.game.ds2.game.DS2Game.Provider;
