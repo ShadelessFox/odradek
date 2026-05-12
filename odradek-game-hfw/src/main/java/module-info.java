@@ -113,4 +113,7 @@ module odradek.game.hfw {
 
     provides Game.Provider with
         sh.adelessfox.odradek.game.hfw.game.HFWGame.Provider;
+
+    provides sh.adelessfox.odradek.game.decima.ContainerTypeRegistry with
+        sh.adelessfox.odradek.game.hfw.game.HFWContainerTypeRegistry;
 }

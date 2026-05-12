@@ -50,6 +50,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.component.bookmarks.menu.ToggleBookmarkAction,
         sh.adelessfox.odradek.app.ui.component.bookmarks.menu.RenameBookmarkAction,
         sh.adelessfox.odradek.app.ui.component.usages.menu.ShowUsagesAction,
+        sh.adelessfox.odradek.app.ui.component.usages.menu.FindContainingModelAction,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Edit,
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.Help,
@@ -77,4 +78,5 @@ module odradek.app {
         with sh.adelessfox.odradek.app.util.steam.SteamGameLocator;
 
     uses sh.adelessfox.odradek.app.util.GameLocator;
+    uses sh.adelessfox.odradek.game.decima.ContainerTypeRegistry;
 }
