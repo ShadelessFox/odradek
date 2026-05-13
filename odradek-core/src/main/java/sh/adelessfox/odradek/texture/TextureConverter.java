@@ -12,10 +12,12 @@ final class TextureConverter {
     }
 
     static Texture convert(Texture texture, TextureFormat target, Operation... ops) {
+        if (texture.format() == target && ops.length == 0) {
+            return texture;
+        }
         var surfaces = texture.surfaces().stream()
             .map(surface -> convert(surface, target, ops))
             .toList();
-
         return new Texture(
             target,
             texture.kind(),
@@ -29,6 +31,9 @@ final class TextureConverter {
     }
 
     static Surface convert(Surface surface, TextureFormat target, Operation... ops) {
+        if (surface.format() == target && ops.length == 0) {
+            return surface;
+        }
         return Processor.process(surface, target, List.of(ops));
     }
 
