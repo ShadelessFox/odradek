@@ -29,7 +29,7 @@ final class PngWriterHelper {
         try (var writer = PngWriter.of(pngFormat, channel)) {
             var surface = texture.surfaces().getFirst();
             var data = surface.convert(desiredFormat).data();
-            flip(data, pngFormat.bytesPerPixel());
+            flip(data, pngFormat.bytesPerChannel());
             writer.write(data);
         }
     }
@@ -103,12 +103,12 @@ final class PngWriterHelper {
         };
     }
 
-    private static void flip(byte[] array, int bpp) {
-        if (bpp == 2) {
+    private static void flip(byte[] array, int bytesPerChannel) {
+        if (bytesPerChannel == 2) {
             for (int i = 0; i < array.length; i += 2) {
                 swap(array, i, i + 1);
             }
-        } else if (bpp == 4) {
+        } else if (bytesPerChannel == 4) {
             for (int i = 0; i < array.length; i += 4) {
                 swap(array, i/**/, i + 3);
                 swap(array, i + 1, i + 2);

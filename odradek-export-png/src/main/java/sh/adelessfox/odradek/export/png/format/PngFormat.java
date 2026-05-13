@@ -14,6 +14,10 @@ public record PngFormat(
         }
     }
 
+    public int bytesPerChannel() {
+        return colorType.bitDepth() / Byte.SIZE;
+    }
+
     public int bytesPerPixel() {
         return colorType.channels() * colorType.bitDepth() / Byte.SIZE;
     }
