@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.texture;
 
-import sh.adelessfox.odradek.NotImplementedException;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -72,6 +70,10 @@ public record Texture(
                 throw new IllegalArgumentException("Surface data size does not match expected size: "
                     + surface.data().length + " != " + size);
             }
+            if (surface.format() != format) {
+                throw new IllegalArgumentException("Surface format does not match texture format: "
+                    + surface.format() + " != " + format);
+            }
         }
         surfaces = List.copyOf(surfaces);
     }
@@ -89,20 +91,20 @@ public record Texture(
     }
 
     /**
-     * Unpacks the texture data into a new texture with the specified channel mappings.
+     * Permutes the channel data of the texture according to the specified mappings.
      * <p>
      * The channel mappings specify which channels to extract from the source
      * data and how to map them to the target texture. The target texture will
      * have a format determined by the presence of the red, green, blue, and
      * alpha channels in the mappings.
      */
-    public Texture unpack(
+    public Texture permutes(
         Optional<Channel> red,
         Optional<Channel> green,
         Optional<Channel> blue,
         Optional<Channel> alpha
     ) {
-        return TextureConverter.unpack(this, red, green, blue, alpha);
+        return TextureConverter.permute(this, red, green, blue, alpha);
     }
 
     public Texture convert(TextureFormat targetFormat) {

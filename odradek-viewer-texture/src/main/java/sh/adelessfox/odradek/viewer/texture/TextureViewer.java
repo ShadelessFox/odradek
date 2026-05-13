@@ -49,7 +49,7 @@ public final class TextureViewer implements Viewer {
     @Override
     public JComponent createComponent() {
         var surfaces = texture.surfaces().stream()
-            .map(s -> s.convert(texture.format(), new Surface.Converter.AWT()))
+            .map(s -> s.convert(new Surface.Converter.AWT()))
             // vvv pick either the very first mip, or all frames if it's an animated texture
             .limit(texture.duration().isPresent() ? Long.MAX_VALUE : 1)
             .toList();

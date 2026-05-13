@@ -60,7 +60,7 @@ public record TextureSet(
         var alpha = unpackChannel(packedTexture.packing().alpha(), sourceTexture.type());
 
         return packedTexture.texture()
-            .unpack(red, green, blue, alpha)
+            .permutes(red, green, blue, alpha)
             .withColorSpace(sourceTexture.colorSpace());
     }
 

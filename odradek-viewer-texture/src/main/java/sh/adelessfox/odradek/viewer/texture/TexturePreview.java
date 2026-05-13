@@ -45,7 +45,7 @@ public final class TexturePreview implements Preview {
         return texture.surfaces().stream()
             .dropWhile(s -> s.width() > MAX_PREVIEW_SIZE || s.height() > MAX_PREVIEW_SIZE)
             .findFirst().orElseGet(() -> texture.surfaces().getLast())
-            .convert(texture.format(), new Surface.Converter.AWT());
+            .convert(new Surface.Converter.AWT());
     }
 
     private static String formatDescription(Texture texture) {

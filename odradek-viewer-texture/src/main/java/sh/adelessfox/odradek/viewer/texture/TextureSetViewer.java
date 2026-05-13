@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.viewer.texture;
 
+import com.formdev.flatlaf.extras.components.FlatSplitPane;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.TextureSet;
@@ -12,12 +13,14 @@ import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.viewer.texture.component.CompactFileProvider;
 import sh.adelessfox.odradek.viewer.texture.component.FilePath;
 import sh.adelessfox.odradek.viewer.texture.component.FileStructure;
-import sh.adelessfox.odradek.viewer.texture.view.Channel;
 import sh.adelessfox.odradek.viewer.texture.view.ImagePanel;
 import sh.adelessfox.odradek.viewer.texture.view.ImageView;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.TreeSet;
 
 public final class TextureSetViewer implements Viewer {
     private StructuredTree<FileStructure> tree;
@@ -50,9 +53,10 @@ public final class TextureSetViewer implements Viewer {
     public JComponent createComponent() {
         this.imageView = new ImageView();
 
-        var panel = new JSplitPane();
+        var panel = new FlatSplitPane();
         panel.setLeftComponent(new JScrollPane(createTextureTree()));
         panel.setRightComponent(new ImagePanel(imageView));
+        panel.setStyle("style: grip");
 
         return panel;
     }
@@ -116,48 +120,16 @@ public final class TextureSetViewer implements Viewer {
     }
 
     private void show(TextureSet.SourceTexture sourceTexture) {
-        var packedTexture = textureSet.packedTextures().stream()
-            .filter(pt -> pt.packing().contains(sourceTexture.type()))
-            .findFirst().orElse(null);
-
-        if (packedTexture != null) {
-            var texture = packedTexture.texture();
+        var texture = textureSet.unpack(sourceTexture).orElse(null);
+        if (texture != null) {
             var surface = texture.surfaces().getFirst();
-            var image = surface.convert(texture.format(), new Surface.Converter.AWT());
+            var image = surface.convert(new Surface.Converter.AWT());
 
             imageView.setImage(image);
-            imageView.setChannels(determineChannelsUsed(sourceTexture, packedTexture));
             imageView.setZoomToFit(true);
             imageView.fit();
         } else {
             imageView.setImage(null);
         }
-    }
-
-    private static Set<Channel> determineChannelsUsed(
-        TextureSet.SourceTexture sourceTexture,
-        TextureSet.PackedTexture packedTexture
-    ) {
-        var packing = packedTexture.packing();
-        var channels = EnumSet.noneOf(Channel.class);
-
-        if (packingMatches(packing.red(), sourceTexture.type())) {
-            channels.add(Channel.R);
-        }
-        if (packingMatches(packing.green(), sourceTexture.type())) {
-            channels.add(Channel.G);
-        }
-        if (packingMatches(packing.blue(), sourceTexture.type())) {
-            channels.add(Channel.B);
-        }
-        if (packingMatches(packing.alpha(), sourceTexture.type())) {
-            channels.add(Channel.A);
-        }
-
-        return channels;
-    }
-
-    private static boolean packingMatches(Optional<TextureSet.PackingChannel> packing, String type) {
-        return packing.filter(x -> x.type().equals(type)).isPresent();
     }
 }

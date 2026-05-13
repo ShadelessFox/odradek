@@ -28,7 +28,7 @@ final class PngWriterHelper {
 
         try (var writer = PngWriter.of(pngFormat, channel)) {
             var surface = texture.surfaces().getFirst();
-            var data = surface.convert(texture.format(), desiredFormat).data();
+            var data = surface.convert(desiredFormat).data();
             flip(data, pngFormat.bytesPerPixel());
             writer.write(data);
         }
@@ -46,7 +46,7 @@ final class PngWriterHelper {
 
         try (var writer = PngWriter.ofAnimated(pngFormat, frames, 0, channel)) {
             for (var surface : texture.surfaces()) {
-                var data = surface.convert(texture.format(), desiredFormat).data();
+                var data = surface.convert(desiredFormat).data();
                 flip(data, pngFormat.bytesPerPixel());
                 writer.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
             }
@@ -80,11 +80,14 @@ final class PngWriterHelper {
                  R16G16_SFLOAT,
                  R16G16B16_UNORM,
                  R16G16B16_SFLOAT,
+                 R32G32_SFLOAT,
+                 R32G32B32_SFLOAT,
                  BC6_UNORM,
                  BC6_SNORM -> TextureFormat.R16G16B16_UNORM;
 
             case R16G16B16A16_UNORM,
-                 R16G16B16A16_SFLOAT -> TextureFormat.R16G16B16A16_UNORM;
+                 R16G16B16A16_SFLOAT,
+                 R32G32B32A32_SFLOAT -> TextureFormat.R16G16B16A16_UNORM;
         };
     }
 

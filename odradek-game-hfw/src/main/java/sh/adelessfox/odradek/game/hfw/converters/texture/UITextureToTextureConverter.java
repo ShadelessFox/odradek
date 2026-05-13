@@ -42,7 +42,7 @@ public final class UITextureToTextureConverter
             var buffer = new byte[object.size()];
 
             Decompressor.lz4Block().decompress(Bytes.wrap(data, offset, length), Bytes.Mutable.wrap(buffer, 0, object.size()));
-            surfaces.add(new Surface(object.width(), object.height(), buffer));
+            surfaces.add(new Surface(object.width(), object.height(), format, buffer));
         }
 
         return Optional.of(Texture.ofAnimated2D(

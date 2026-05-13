@@ -1,4 +1,5 @@
 module odradek.viewer.texture {
+    requires com.formdev.flatlaf.extras;
     requires com.miglayout.swing;
     requires java.desktop;
     requires odradek.core;
