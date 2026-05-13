@@ -26,16 +26,16 @@ final class DdsWriter {
     }
 
     private static void writeData(Texture texture, WritableByteChannel channel) throws IOException {
-        if (texture.type() == TextureType.VOLUME) {
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
             // The order in which surfaces are stored matches the order DDS uses.
             for (Surface surface : texture.surfaces()) {
                 channel.write(ByteBuffer.wrap(surface.data()));
             }
         } else {
             int mips = texture.mips();
-            int elements = switch (texture.type()) {
-                case ARRAY -> texture.arraySize().orElseThrow();
-                case CUBEMAP -> 6;
+            int elements = switch (texture.kind()) {
+                case TEXTURE_2D_ARRAY -> texture.arraySize().orElseThrow();
+                case CUBE_MAP -> 6;
                 default -> 1;
             };
             for (int element = 0; element < elements; element++) {
@@ -103,7 +103,7 @@ final class DdsWriter {
         if (texture.mips() > 0) {
             flags |= DdsHeader.DDS_HEADER_FLAGS_MIPMAP;
         }
-        if (texture.type() == TextureType.VOLUME) {
+        if (texture.kind() == TextureKind.TEXTURE_3D) {
             flags |= DdsHeader.DDS_HEADER_FLAGS_VOLUME;
         }
         if (texture.format().isCompressed()) {
@@ -119,23 +119,23 @@ final class DdsWriter {
         if (texture.mips() > 1) {
             flags |= DdsHeader.DDS_SURFACE_FLAGS_MIPMAP;
         }
-        if (texture.type() == TextureType.CUBEMAP) {
+        if (texture.kind() == TextureKind.CUBE_MAP) {
             flags |= DdsHeader.DDS_SURFACE_FLAGS_CUBEMAP;
         }
         return flags;
     }
 
     private static int computeCaps2Flags(Texture texture) {
-        return switch (texture.type()) {
-            case CUBEMAP -> DdsHeader.DDS_CUBEMAP_ALLFACES;
-            case VOLUME -> DdsHeader.DDS_VOLUME;
+        return switch (texture.kind()) {
+            case CUBE_MAP -> DdsHeader.DDS_CUBEMAP_ALLFACES;
+            case TEXTURE_3D -> DdsHeader.DDS_VOLUME;
             default -> 0;
         };
     }
 
     private static int computeMiscFlags(Texture texture) {
-        return switch (texture.type()) {
-            case CUBEMAP -> DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE;
+        return switch (texture.kind()) {
+            case CUBE_MAP -> DdsHeaderDxt10.DDS_RESOURCE_MISC_TEXTURECUBE;
             default -> 0;
         };
     }
@@ -183,9 +183,9 @@ final class DdsWriter {
     }
 
     private static int mapDimension(Texture texture) {
-        return switch (texture.type()) {
-            case SURFACE, ARRAY, CUBEMAP -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D;
-            case VOLUME -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE3D;
+        return switch (texture.kind()) {
+            case TEXTURE_2D, TEXTURE_2D_ARRAY, CUBE_MAP -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE2D;
+            case TEXTURE_3D -> DdsHeaderDxt10.DDS_DIMENSION_TEXTURE3D;
         };
     }
 }

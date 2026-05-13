@@ -18,7 +18,7 @@ final class TextureConverter {
 
         return new Texture(
             target,
-            texture.type(),
+            texture.kind(),
             texture.colorSpace(),
             surfaces,
             texture.mips(),

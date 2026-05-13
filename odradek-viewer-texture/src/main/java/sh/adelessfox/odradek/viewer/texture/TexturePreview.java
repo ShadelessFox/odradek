@@ -49,12 +49,12 @@ public final class TexturePreview implements Preview {
     }
 
     private static String formatDescription(Texture texture) {
-        var type = switch (texture.type()) {
-            case SURFACE -> "2D";
-            case VOLUME -> "3D";
-            case ARRAY -> texture.duration().isPresent() ? "2D (Animated)" : "2D (Array)";
-            case CUBEMAP -> "Cube Map";
+        var kind = switch (texture.kind()) {
+            case TEXTURE_2D -> "2D";
+            case TEXTURE_3D -> "3D";
+            case TEXTURE_2D_ARRAY -> texture.duration().isPresent() ? "2D (Animated)" : "2D (Array)";
+            case CUBE_MAP -> "Cube Map";
         };
-        return "%dx%d, %s, %s".formatted(texture.width(), texture.height(), texture.format(), type);
+        return "%dx%d, %s, %s".formatted(texture.width(), texture.height(), texture.format(), kind);
     }
 }

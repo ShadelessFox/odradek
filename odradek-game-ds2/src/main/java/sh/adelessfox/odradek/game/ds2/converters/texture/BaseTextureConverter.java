@@ -8,7 +8,7 @@ import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
-import sh.adelessfox.odradek.texture.TextureType;
+import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.util.Optional;
 
@@ -42,12 +42,12 @@ abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, D
         });
     }
 
-    protected static Optional<TextureType> mapType(DS2.ETextureType type) {
+    protected static Optional<TextureKind> mapType(DS2.ETextureType type) {
         return Optional.ofNullable(switch (type) {
-            case _2D -> TextureType.SURFACE;
-            case _2DArray -> TextureType.ARRAY;
-            case _3D -> TextureType.VOLUME;
-            case CubeMap -> TextureType.CUBEMAP;
+            case _2D -> TextureKind.TEXTURE_2D;
+            case _2DArray -> TextureKind.TEXTURE_2D_ARRAY;
+            case _3D -> TextureKind.TEXTURE_3D;
+            case CubeMap -> TextureKind.CUBE_MAP;
             default -> {
                 log.debug("Unsupported texture type: {}", type);
                 yield null;

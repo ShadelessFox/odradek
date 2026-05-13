@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.export.png.format.*;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
-import sh.adelessfox.odradek.texture.TextureType;
+import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -17,10 +17,10 @@ final class PngWriterHelper {
     }
 
     static void writeSingle(Texture texture, WritableByteChannel channel) throws IOException {
-        if (texture.type() != TextureType.SURFACE) {
+        if (texture.kind() != TextureKind.TEXTURE_2D) {
             log.warn(
                 "Texture of type {} can't be properly exported as PNG, " +
-                    "just the first surface will be exported", texture.type());
+                    "just the first surface will be exported", texture.kind());
         }
 
         var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());

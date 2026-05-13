@@ -5,7 +5,7 @@ import sh.adelessfox.odradek.game.hfw.game.HFWGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
-import sh.adelessfox.odradek.texture.TextureType;
+import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -40,9 +40,9 @@ public final class TextureToTextureConverter
             int mipHeight = Math.max(height >> mip, format.block().height());
 
             int elements = switch (type) {
-                case ARRAY -> numSurfaces;
-                case VOLUME -> 1 << Math.max(0, numSurfaces - mip);
-                case CUBEMAP -> 6;
+                case TEXTURE_2D_ARRAY -> numSurfaces;
+                case TEXTURE_3D -> 1 << Math.max(0, numSurfaces - mip);
+                case CUBE_MAP -> 6;
                 default -> 1;
             };
 
@@ -70,8 +70,8 @@ public final class TextureToTextureConverter
             mapColorSpace(object.header().colorSpace().unwrap()),
             surfaces,
             numMipmaps,
-            type == TextureType.VOLUME ? OptionalInt.of(1 << numSurfaces) : OptionalInt.empty(),
-            type == TextureType.ARRAY ? OptionalInt.of(numSurfaces) : OptionalInt.empty(),
+            type == TextureKind.TEXTURE_3D ? OptionalInt.of(1 << numSurfaces) : OptionalInt.empty(),
+            type == TextureKind.TEXTURE_2D_ARRAY ? OptionalInt.of(numSurfaces) : OptionalInt.empty(),
             Optional.empty()
         ));
     }

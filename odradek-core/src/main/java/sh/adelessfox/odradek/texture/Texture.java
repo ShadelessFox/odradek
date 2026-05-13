@@ -23,21 +23,21 @@ import java.util.OptionalInt;
  * </ul>
  *
  * @param format     The format of the texture
- * @param type       The type of the texture
+ * @param kind       The type of the texture
  * @param colorSpace The color space of the texture
  * @param surfaces   The list of all surfaces in the texture
  * @param mips       The number of mipmaps in the texture, including the <i>main</i> images.
- * @param depth      The depth of the texture, in pixels, if {@link #type()} is {@link TextureType#VOLUME},
+ * @param depth      The depth of the texture, in pixels, if {@link #kind()} is {@link TextureKind#TEXTURE_3D},
  *                   or {@link OptionalInt#empty()} if the texture is not a volume texture
- * @param arraySize  The number of elements in the texture if {@link #type()} is {@link TextureType#ARRAY},
+ * @param arraySize  The number of elements in the texture if {@link #kind()} is {@link TextureKind#TEXTURE_2D_ARRAY},
  *                   or {@link OptionalInt#empty()} if the texture is not an array texture
- * @param duration   The duration of the texture animation, if the texture is animated; only {@link TextureType#ARRAY}
+ * @param duration   The duration of the texture animation, if the texture is animated; only {@link TextureKind#TEXTURE_2D_ARRAY}
  *                   could be animated. Frame count is determined by {@link #arraySize()}. If the texture is not animated,
  *                   this is {@link Optional#empty()}.
  */
 public record Texture(
     TextureFormat format,
-    TextureType type,
+    TextureKind kind,
     TextureColorSpace colorSpace,
     List<Surface> surfaces,
     int mips,
@@ -52,13 +52,13 @@ public record Texture(
         if (mips < 1) {
             throw new IllegalArgumentException("Mipmaps must be at least 1");
         }
-        if (type == TextureType.VOLUME != depth.isPresent()) {
+        if (kind == TextureKind.TEXTURE_3D != depth.isPresent()) {
             throw new IllegalArgumentException("Depth must be present for volume textures");
         }
-        if (type == TextureType.ARRAY != arraySize.isPresent()) {
+        if (kind == TextureKind.TEXTURE_2D_ARRAY != arraySize.isPresent()) {
             throw new IllegalArgumentException("Array size must be present for array textures");
         }
-        if (type != TextureType.ARRAY && duration.isPresent()) {
+        if (kind != TextureKind.TEXTURE_2D_ARRAY && duration.isPresent()) {
             throw new IllegalArgumentException("Only array textures can be animated");
         }
         if (duration.isPresent() && !duration.get().isPositive()) {
@@ -83,11 +83,11 @@ public record Texture(
     }
 
     public static Texture of2D(TextureFormat format, TextureColorSpace colorSpace, List<Surface> surfaces, int mips) {
-        return new Texture(format, TextureType.SURFACE, colorSpace, surfaces, mips, OptionalInt.empty(), OptionalInt.empty(), Optional.empty());
+        return new Texture(format, TextureKind.TEXTURE_2D, colorSpace, surfaces, mips, OptionalInt.empty(), OptionalInt.empty(), Optional.empty());
     }
 
     public static Texture ofAnimated2D(TextureFormat format, TextureColorSpace colorSpace, List<Surface> surfaces, int frames, Duration duration) {
-        return new Texture(format, TextureType.ARRAY, colorSpace, surfaces, 1, OptionalInt.empty(), OptionalInt.of(frames), Optional.of(duration));
+        return new Texture(format, TextureKind.TEXTURE_2D_ARRAY, colorSpace, surfaces, 1, OptionalInt.empty(), OptionalInt.of(frames), Optional.of(duration));
     }
 
     /**
@@ -115,7 +115,7 @@ public record Texture(
         if (colorSpace() == colorSpace) {
             return this;
         }
-        return new Texture(format, type, colorSpace, surfaces, mips, depth, arraySize, duration);
+        return new Texture(format, kind, colorSpace, surfaces, mips, depth, arraySize, duration);
     }
 
     public int width() {
