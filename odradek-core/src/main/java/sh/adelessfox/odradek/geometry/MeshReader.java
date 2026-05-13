@@ -64,8 +64,8 @@ public final class MeshReader {
         return this;
     }
 
-    public MeshReader addTexCoords(Accessor texCoords) {
-        this.texCoords.add(texCoords);
+    public MeshReader addTexCoord(Accessor texCoord) {
+        this.texCoords.add(texCoord);
         return this;
     }
 

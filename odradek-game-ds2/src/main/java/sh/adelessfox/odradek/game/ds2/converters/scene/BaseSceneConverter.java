@@ -126,7 +126,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
                     case Tangent -> reader.setTangents(accessor);
                     case Normal -> reader.setNormals(accessor);
                     case Color -> reader.addColor(accessor);
-                    case UV0, UV1, UV2, UV3, UV4, UV5, UV6 -> reader.addTexCoords(accessor);
+                    case UV0, UV1, UV2, UV3, UV4, UV5, UV6 -> reader.addTexCoord(accessor);
                     case BlendWeights, BlendWeights2, BlendWeights3 -> weights.add(accessor);
                     case BlendIndices, BlendIndices2, BlendIndices3 -> joints.add(accessor);
                     default -> log.warn("Skipping unsupported element (semantic: {})", element.element());

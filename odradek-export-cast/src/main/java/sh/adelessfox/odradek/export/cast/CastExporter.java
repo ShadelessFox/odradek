@@ -97,8 +97,8 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
             mesh.normals().ifPresent(normals -> result.setVertexNormalBuffer(normals.asBuffer()));
             mesh.tangents().ifPresent(tangents -> result.setVertexTangentBuffer(mapTangentBuffer(tangents.asBuffer())));
 
-            for (Floats texCoords : mesh.texCoords()) {
-                result.addVertexUVBuffer(mapUvBuffer(texCoords.asBuffer()));
+            for (Floats texCoord : mesh.texCoords()) {
+                result.addVertexUVBuffer(mapUvBuffer(texCoord.asBuffer()));
                 result.setUVLayerCount(result.getUVLayerCount().orElse(0) + 1);
             }
 
