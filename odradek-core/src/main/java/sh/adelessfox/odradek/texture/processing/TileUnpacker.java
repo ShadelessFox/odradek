@@ -59,7 +59,7 @@ public interface TileUnpacker {
 
     private static Surface decompress(Surface src) {
         var decoder = switch (src.format()) {
-            case BC1_UNORM -> BlockDecoder.bc1(true);
+            case BC1_UNORM -> BlockDecoder.bc1(false);
             case BC2_UNORM -> BlockDecoder.bc2();
             case BC3_UNORM -> BlockDecoder.bc3();
             case BC4_UNORM -> BlockDecoder.bc4(false);
