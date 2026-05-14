@@ -16,6 +16,7 @@ import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
+import sh.adelessfox.odradek.ui.util.ProgressMonitor;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
@@ -113,6 +114,15 @@ public class ExportObjectAction extends Action {
 
     private static <T> void exportBatch(Batch<T> batch, DecimaGame game) {
         var singleFile = batch.objects().size() == 1 && batch.exporter() instanceof Exporter.OfSingleOutput<?>;
+        var output = chooseOutputPath(batch, game, singleFile);
+
+        if (output != null) {
+            lastPath = singleFile ? output.getParent() : output;
+            new ExportWorker<>(batch, game, output, singleFile).execute();
+        }
+    }
+
+    private static Path chooseOutputPath(Batch<?> batch, DecimaGame game, boolean singleFile) {
         var chooser = new JFileChooser();
 
         if (singleFile) {
@@ -135,82 +145,10 @@ public class ExportObjectAction extends Action {
 
         if (chooser.showSaveDialog(JOptionPane.getRootFrame()) != JFileChooser.APPROVE_OPTION) {
             log.debug("Export cancelled by user");
-            return;
+            return null;
         }
 
-        var output = chooser.getSelectedFile().toPath();
-
-        lastPath = singleFile ? output.getParent() : output;
-
-        var counter = new AtomicInteger();
-        batch.objects().parallelStream()
-            .gather(Gatherers.groupingBy(holder -> holder.objectId().groupId()))
-            .forEach(group -> group.getValue().parallelStream()
-                .forEach(object -> {
-                    try {
-                        boolean success = export(object, batch.converter(), batch.exporter(), game, output, singleFile);
-                        if (success) {
-                            counter.incrementAndGet();
-                        }
-                    } catch (Exception e) {
-                        log.error("Failed to export object {} ({})", object.objectId(), object.objectType(game), e);
-                    }
-                }));
-
-        if (batch.objects().size() == counter.get()) {
-            JOptionPane.showMessageDialog(
-                JOptionPane.getRootFrame(),
-                "All selected objects were successfully exported.",
-                "Export successful",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(
-                JOptionPane.getRootFrame(),
-                "%d out of %d selected objects were successfully exported.\nFor more information, see the console output.".formatted(
-                    counter.get(),
-                    batch.objects().size()),
-                "Export completed",
-                JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    private static <T> boolean export(
-        ObjectIdHolder selection,
-        Converter<Object, T, Game> converter,
-        Exporter<T> exporter,
-        DecimaGame game,
-        Path output,
-        boolean singleFile
-    ) throws IOException {
-        var object = game.readObject(selection.objectId());
-        var type = object.getType();
-
-        var converted = converter.convert(object, game);
-        if (converted.isEmpty()) {
-            log.debug("Unable to convert object {} ({})", object, type);
-            return false;
-        }
-
-        switch (exporter) {
-            case Exporter.OfSingleOutput<T> e -> {
-                var path = singleFile ? output : output.resolve(makeObjectName(selection, game, e));
-                try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                    e.export(converted.get(), channel);
-                    log.debug("Exported object {} ({}) to {}", object, type, path);
-                } catch (Exception ex) {
-                    Files.delete(path);
-                    throw ex;
-                }
-            }
-            case Exporter.OfMultipleOutputs<T> e -> {
-                var path = output.resolve(makeObjectName(selection, game));
-                try (var provider = new DefaultOutputProvider(path)) {
-                    e.export(converted.get(), provider);
-                }
-            }
-        }
-
-        return true;
+        return chooser.getSelectedFile().toPath();
     }
 
     private static String makeObjectName(ObjectIdHolder object, DecimaGame game) {
@@ -241,6 +179,118 @@ public class ExportObjectAction extends Action {
 
         @Override
         public boolean isList() {
+            return true;
+        }
+    }
+
+    private static final class ExportWorker<T> extends SwingWorker<Integer, ObjectIdHolder> {
+        private final Batch<T> batch;
+        private final DecimaGame game;
+        private final Path output;
+        private final boolean singleFile;
+
+        private final AtomicInteger exported = new AtomicInteger();
+        private final ProgressMonitor monitor;
+
+        ExportWorker(Batch<T> batch, DecimaGame game, Path output, boolean singleFile) {
+            this.batch = batch;
+            this.game = game;
+            this.output = output;
+            this.singleFile = singleFile;
+            this.monitor = new ProgressMonitor(JOptionPane.getRootFrame(), "Exporting ...", 0, batch.objects().size());
+        }
+
+        @Override
+        protected Integer doInBackground() {
+            batch.objects().parallelStream()
+                .gather(Gatherers.groupingBy(holder -> holder.objectId().groupId()))
+                .forEach(group -> group.getValue().parallelStream()
+                    .forEach(this::export));
+            return exported.get();
+        }
+
+        @Override
+        protected void process(List<ObjectIdHolder> chunks) {
+            var object = chunks.getLast();
+            monitor.setText("Exporting %s (%s)".formatted(object.objectType(game), object.objectId()));
+            monitor.setProgress(exported.get());
+        }
+
+        @Override
+        protected void done() {
+            monitor.close();
+
+            if (batch.objects().size() == exported.get()) {
+                JOptionPane.showMessageDialog(
+                    JOptionPane.getRootFrame(),
+                    "All selected objects were successfully exported.",
+                    "Export successful",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(
+                    JOptionPane.getRootFrame(),
+                    "%d out of %d selected objects were successfully exported.\nFor more information, see the console output.".formatted(
+                        exported.get(),
+                        batch.objects().size()),
+                    "Export completed",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+        }
+
+        private void export(ObjectIdHolder object) {
+            if (monitor.isCanceled()) {
+                // Not quite a proper termination though, but works
+                return;
+            }
+
+            publish(object);
+
+            try {
+                boolean success = export(object, batch.converter(), batch.exporter(), game, output, singleFile);
+                if (success) {
+                    exported.incrementAndGet();
+                }
+            } catch (Exception e) {
+                log.error("Failed to export object {} ({})", object.objectId(), object.objectType(game), e);
+            }
+        }
+
+        private static <T> boolean export(
+            ObjectIdHolder selection,
+            Converter<Object, T, Game> converter,
+            Exporter<T> exporter,
+            DecimaGame game,
+            Path output,
+            boolean singleFile
+        ) throws IOException {
+            var object = game.readObject(selection.objectId());
+            var type = object.getType();
+
+            var converted = converter.convert(object, game);
+            if (converted.isEmpty()) {
+                log.debug("Unable to convert object {} ({})", object, type);
+                return false;
+            }
+
+            switch (exporter) {
+                case Exporter.OfSingleOutput<T> e -> {
+                    var path = singleFile ? output : output.resolve(makeObjectName(selection, game, e));
+                    try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
+                        e.export(converted.get(), channel);
+                        log.debug("Exported object {} ({}) to {}", object, type, path);
+                    } catch (Exception ex) {
+                        Files.delete(path);
+                        throw ex;
+                    }
+                }
+                case Exporter.OfMultipleOutputs<T> e -> {
+                    var path = output.resolve(makeObjectName(selection, game));
+                    try (var provider = new DefaultOutputProvider(path)) {
+                        e.export(converted.get(), provider);
+                    }
+                }
+            }
+
             return true;
         }
     }
