@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.decima.ContainerTypeRegistry;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
@@ -55,6 +56,7 @@ public final class UsagesToolPanel implements ToolPanel {
     private LinkDatabase database;
     private StructuredTree<UsagesStructure> tree;
     private ObjectId pendingObjectId;
+    private ObjectId pendingContainersObjectId;
 
     @Inject
     UsagesToolPanel(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
@@ -97,6 +99,10 @@ public final class UsagesToolPanel implements ToolPanel {
                         eventBus.publish(new Events.ShowObject(pendingObjectId, false));
                         pendingObjectId = null;
                     }
+                    if (pendingContainersObjectId != null) {
+                        eventBus.publish(new Events.ShowContainers(pendingContainersObjectId));
+                        pendingContainersObjectId = null;
+                    }
                 }
                 case Events.DatabaseNotLoaded e -> {
                     Dialogs.showExceptionDialog(panel, "Unable to load the link database", e.reason());
@@ -110,6 +116,10 @@ public final class UsagesToolPanel implements ToolPanel {
         appEventBus.subscribe(
             MainEvent.ShowUsages.class,
             event -> eventBus.publish(new Events.ShowObject(event.objectId(), true)));
+
+        appEventBus.subscribe(
+            MainEvent.ShowContainingModels.class,
+            event -> eventBus.publish(new Events.ShowContainers(event.objectId())));
 
         if (Files.exists(path)) {
             // Trigger loading immediately if database file already exists
@@ -191,6 +201,7 @@ public final class UsagesToolPanel implements ToolPanel {
         eventBus.subscribe(Events.ShowObject.class, event -> {
             if (database == null) {
                 pendingObjectId = event.objectId();
+                pendingContainersObjectId = null;
                 return;
             }
             tree.setModel(new StructuredTreeModel<>(new UsagesStructure.Root(database, event.objectId())));
@@ -198,6 +209,22 @@ public final class UsagesToolPanel implements ToolPanel {
             if (event.record()) {
                 addToQueue(event.objectId());
             }
+        });
+
+        eventBus.subscribe(Events.ShowContainers.class, event -> {
+            if (database == null) {
+                pendingContainersObjectId = event.objectId();
+                pendingObjectId = null;
+                return;
+            }
+            new FindContainersWorker(eventBus, database, game, event.objectId()).execute();
+        });
+
+        eventBus.subscribe(Events.ContainersFound.class, event -> {
+            tree.setModel(new StructuredTreeModel<>(
+                new UsagesStructure.ContainersRoot(event.objectId(), event.containers())));
+            tree.expand();
+            addToQueue(event.objectId());
         });
 
         var pane = new FlatScrollPane();
@@ -289,6 +316,12 @@ public final class UsagesToolPanel implements ToolPanel {
 
         record ShowObject(ObjectId objectId, boolean record) implements Events {
         }
+
+        record ShowContainers(ObjectId objectId) implements Events {
+        }
+
+        record ContainersFound(ObjectId objectId, List<ObjectId> containers) implements Events {
+        }
     }
 
     private static class LoadDatabaseWorker extends SwingWorker<LinkDatabase, Void> {
@@ -318,6 +351,44 @@ public final class UsagesToolPanel implements ToolPanel {
             } catch (ExecutionException e) {
                 log.debug("Failed to load link database", e.getCause());
                 eventBus.publish(new Events.DatabaseNotLoaded(e.getCause()));
+            }
+        }
+    }
+
+    private static class FindContainersWorker extends SwingWorker<List<ObjectId>, Void> {
+        private static final int MAX_DEPTH = 20;
+        private static final int MAX_RESULTS = 500;
+
+        private final EventBus eventBus;
+        private final LinkDatabase database;
+        private final DecimaGame game;
+        private final ObjectId objectId;
+
+        FindContainersWorker(EventBus eventBus, LinkDatabase database, DecimaGame game, ObjectId objectId) {
+            this.eventBus = eventBus;
+            this.database = database;
+            this.game = game;
+            this.objectId = objectId;
+        }
+
+        @Override
+        protected List<ObjectId> doInBackground() throws Exception {
+            var registry = ContainerTypeRegistry.lookup(game).orElse(null);
+            if (registry == null) {
+                log.warn("No ContainerTypeRegistry for game {} — cannot find containing models", game.getClass().getSimpleName());
+                return List.of();
+            }
+            return database.findContainingObjects(objectId, registry::isContainer, MAX_DEPTH, MAX_RESULTS);
+        }
+
+        @Override
+        protected void done() {
+            try {
+                eventBus.publish(new Events.ContainersFound(objectId, get()));
+            } catch (InterruptedException e) {
+                log.debug("Find containers interrupted", e);
+            } catch (ExecutionException e) {
+                log.error("Failed to find containing models for {}", objectId, e.getCause());
             }
         }
     }

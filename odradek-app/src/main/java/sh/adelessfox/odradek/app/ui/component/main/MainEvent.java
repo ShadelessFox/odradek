@@ -12,4 +12,7 @@ public sealed interface MainEvent extends Event {
 
     record ShowUsages(ObjectId objectId) implements MainEvent {
     }
+
+    record ShowContainingModels(ObjectId objectId) implements MainEvent {
+    }
 }

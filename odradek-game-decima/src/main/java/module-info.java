@@ -6,4 +6,6 @@ module odradek.game.decima {
 
     exports sh.adelessfox.odradek.game.decima.util;
     exports sh.adelessfox.odradek.game.decima;
+
+    uses sh.adelessfox.odradek.game.decima.ContainerTypeRegistry;
 }

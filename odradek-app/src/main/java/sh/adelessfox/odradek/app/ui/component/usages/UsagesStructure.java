@@ -33,21 +33,30 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
                     .filter(n -> !(n instanceof Links links && links.links().isEmpty()))
                     .toList();
             }
+            case ContainersRoot(var object, var containers) -> List.of(
+                new Objects(object),
+                new Containers(containers)
+            );
             case Objects(var object) -> List.of(new Object(object));
             case Object _ -> List.of();
             case Links(var type, var links) -> links.stream()
                 .map(link -> new Link(type, link))
                 .toList();
             case Link _ -> List.of();
+            case Containers(var containers) -> containers.stream()
+                .map(Container::new)
+                .toList();
+            case Container _ -> List.of();
         };
     }
 
     @Override
     default boolean hasChildren() {
         return switch (this) {
-            case Root _, Objects _ -> true;
+            case Root _, ContainersRoot _, Objects _ -> true;
             case Links(_, var links) -> !links.isEmpty();
-            case Link _, Object _ -> false;
+            case Containers(var containers) -> !containers.isEmpty();
+            case Link _, Object _, Container _ -> false;
         };
     }
 
@@ -57,6 +66,9 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
     }
 
     record Root(LinkDatabase provider, ObjectId object) implements UsagesStructure {
+    }
+
+    record ContainersRoot(ObjectId object, List<ObjectId> containers) implements UsagesStructure {
     }
 
     record Objects(ObjectId object) implements UsagesStructure {
@@ -92,5 +104,11 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
         public int hashCode() {
             return java.util.Objects.hash(type, link);
         }
+    }
+
+    record Containers(List<ObjectId> objects) implements UsagesStructure {
+    }
+
+    record Container(ObjectId objectId) implements UsagesStructure, ObjectIdHolder {
     }
 }

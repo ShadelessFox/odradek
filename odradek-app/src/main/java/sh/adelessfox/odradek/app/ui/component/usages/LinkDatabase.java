@@ -18,9 +18,13 @@ import wtf.reversed.toolbox.hash.HashCode;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 final class LinkDatabase implements Closeable {
@@ -82,11 +86,19 @@ final class LinkDatabase implements Closeable {
             .toList();
 
         log.debug("Scanning graph groups...");
+        int skipped = 0;
         for (int i = 0; i < graph.groups().size(); i++) {
             var group = graph.groups().get(i);
             progress.accept(i + 1, graph.groups().size());
 
-            var info = visitGroup(group, game);
+            GroupInfo info;
+            try {
+                info = visitGroup(group, game);
+            } catch (Exception e) {
+                skipped++;
+                log.warn("Skipping group {} due to read error: {}", group.id(), e.toString());
+                continue;
+            }
             for (int j = 0; j < info.objects().size(); j++) {
                 var object = info.objects().get(j);
                 for (Link link : object.out()) {
@@ -95,6 +107,9 @@ final class LinkDatabase implements Closeable {
                     links.get(targetObject).add(PackedLink.pack(group.id(), j, link.path()));
                 }
             }
+        }
+        if (skipped > 0) {
+            log.warn("Link database built with {} unreadable group(s) skipped", skipped);
         }
 
         log.debug("Serializing the database...");
@@ -139,6 +154,56 @@ final class LinkDatabase implements Closeable {
         var object = game.readObject(source);
         var info = visitObject(object);
         return info.out();
+    }
+
+    /**
+     * Reverse-BFS from {@code start} through incoming links, returning the first
+     * object encountered along each path whose type satisfies {@code isContainer}.
+     * The starting object itself is not considered a result even if it matches.
+     *
+     * @param start       the object to walk back from
+     * @param isContainer predicate identifying terminal "container" types
+     * @param maxDepth    maximum BFS depth (each hop is one incoming link)
+     * @param maxResults  upper bound on returned matches; traversal stops early
+     */
+    public List<ObjectId> findContainingObjects(
+        ObjectId start,
+        Predicate<ClassTypeInfo> isContainer,
+        int maxDepth,
+        int maxResults
+    ) throws IOException {
+        var graph = game.streamingGraph();
+        var visited = new HashSet<ObjectId>();
+        var queue = new ArrayDeque<Step>();
+        var results = new LinkedHashSet<ObjectId>();
+
+        visited.add(start);
+        queue.add(new Step(start, 0));
+
+        while (!queue.isEmpty() && results.size() < maxResults) {
+            var step = queue.poll();
+            if (step.depth > maxDepth) {
+                continue;
+            }
+            if (!step.objectId.equals(start)) {
+                var type = graph.group(step.objectId.groupId()).types().get(step.objectId.objectIndex());
+                if (isContainer.test(type)) {
+                    results.add(step.objectId);
+                    continue;
+                }
+            }
+            for (Link link : getIncomingLinks(step.objectId)) {
+                var parent = new ObjectId(link.groupId(), link.objectIndex());
+                if (visited.add(parent)) {
+                    queue.add(new Step(parent, step.depth + 1));
+                }
+            }
+        }
+
+        return List.copyOf(results);
+    }
+
+    private record Step(ObjectId objectId, int depth) {
     }
 
     public void close() throws IOException {
