@@ -182,7 +182,7 @@ public final class TextureViewer implements Viewer {
             case TEXTURE_2D_ARRAY -> texture.duration().isPresent() ? "2D (Animated)" : "2D (Array)";
             case CUBE_MAP -> "Cube Map";
         };
-        return "%dx%d (%s, %s)".formatted(texture.width(), texture.height(), kind, texture.format());
+        return "%dx%d, %s, %s".formatted(texture.width(), texture.height(), kind, texture.format());
     }
 
     private static class ToggleChannelButton extends FlatToggleButton {
