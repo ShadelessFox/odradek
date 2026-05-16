@@ -48,7 +48,7 @@ final class PngWriterHelper {
         try (var writer = PngWriter.ofAnimated(pngFormat, frames, 0, channel)) {
             for (var surface : texture.surfaces()) {
                 var data = surface.convert(desiredFormat).data();
-                flip(data, pngFormat.bytesPerPixel());
+                flip(data, pngFormat.bytesPerChannel());
                 writer.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
             }
         }
