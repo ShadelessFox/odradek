@@ -33,6 +33,7 @@ public final class TextureToTextureConverter
         int height = object.header().height() & 0x3FFF;
         int numMipmaps = Byte.toUnsignedInt(object.header().numMips());
         int numSurfaces = Short.toUnsignedInt(object.header().numSurfaces());
+        var colorSpace = mapColorSpace(object.header().colorSpace().unwrap());
 
         var surfaces = new ArrayList<Surface>();
         for (int mip = 0; mip < numMipmaps; mip++) {
@@ -47,7 +48,7 @@ public final class TextureToTextureConverter
             };
 
             for (int element = 0; element < elements; element++) {
-                var surface = Surface.create(mipWidth, mipHeight, format);
+                var surface = Surface.create(mipWidth, mipHeight, format, colorSpace);
 
                 if (mip >= object.data().streamedMips()) {
                     embeddedData.get(surface.data());
@@ -67,7 +68,7 @@ public final class TextureToTextureConverter
         return Optional.of(new Texture(
             format,
             type,
-            mapColorSpace(object.header().colorSpace().unwrap()),
+            colorSpace,
             surfaces,
             numMipmaps,
             type == TextureKind.TEXTURE_3D ? OptionalInt.of(1 << numSurfaces) : OptionalInt.empty(),

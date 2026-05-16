@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.export.png.format.*;
 import sh.adelessfox.odradek.texture.Texture;
+import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
 
@@ -24,7 +25,7 @@ final class PngWriterHelper {
         }
 
         var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
-        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat);
+        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat, texture.colorSpace());
 
         try (var writer = PngWriter.of(pngFormat, channel)) {
             var surface = texture.surfaces().getFirst();
@@ -39,7 +40,7 @@ final class PngWriterHelper {
         WritableByteChannel channel
     ) throws IOException {
         var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
-        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat);
+        var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat, texture.colorSpace());
 
         int frames = texture.surfaces().size();
         var duration = texture.duration().orElseThrow();
@@ -91,16 +92,21 @@ final class PngWriterHelper {
         };
     }
 
-    static PngFormat mapPngFormat(int width, int height, TextureFormat format) {
-        return switch (format) {
-            case TextureFormat.R8_UNORM -> new PngFormat(width, height, new PngColorType.Greyscale(false, 8));
-            case TextureFormat.R16_UNORM -> new PngFormat(width, height, new PngColorType.Greyscale(false, 16));
-            case TextureFormat.R8G8B8_UNORM -> new PngFormat(width, height, new PngColorType.TrueColor(false, 8));
-            case TextureFormat.R8G8B8A8_UNORM -> new PngFormat(width, height, new PngColorType.TrueColor(true, 8));
-            case TextureFormat.R16G16B16_UNORM -> new PngFormat(width, height, new PngColorType.TrueColor(false, 16));
-            case TextureFormat.R16G16B16A16_UNORM -> new PngFormat(width, height, new PngColorType.Greyscale(true, 16));
+    static PngFormat mapPngFormat(int width, int height, TextureFormat format, TextureColorSpace colorSpace) {
+        var pngColorType = switch (format) {
+            case TextureFormat.R8_UNORM -> new PngColorType.Greyscale(false, 8);
+            case TextureFormat.R16_UNORM -> new PngColorType.Greyscale(false, 16);
+            case TextureFormat.R8G8B8_UNORM -> new PngColorType.TrueColor(false, 8);
+            case TextureFormat.R8G8B8A8_UNORM -> new PngColorType.TrueColor(true, 8);
+            case TextureFormat.R16G16B16_UNORM -> new PngColorType.TrueColor(false, 16);
+            case TextureFormat.R16G16B16A16_UNORM -> new PngColorType.Greyscale(true, 16);
             default -> throw new IllegalArgumentException("Unexpected texture format: " + format);
         };
+        var pngColorSpace = switch (colorSpace) {
+            case LINEAR -> PngColorSpace.LINEAR;
+            case SRGB -> PngColorSpace.SRGB;
+        };
+        return new PngFormat(width, height, pngColorType, pngColorSpace);
     }
 
     private static void flip(byte[] array, int bytesPerChannel) {

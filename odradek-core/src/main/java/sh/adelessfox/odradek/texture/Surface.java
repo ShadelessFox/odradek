@@ -7,7 +7,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.nio.ByteOrder;
 
-public record Surface(int width, int height, TextureFormat format, byte[] data) {
+public record Surface(int width, int height, TextureFormat format, TextureColorSpace colorSpace, byte[] data) {
     public Surface {
         if (width <= 0) {
             throw new IllegalArgumentException("Width must be greater than 0");
@@ -21,18 +21,24 @@ public record Surface(int width, int height, TextureFormat format, byte[] data) 
         }
     }
 
-    public static Surface create(int width, int height, TextureFormat format) {
+    public static Surface create(int width, int height, TextureFormat format, TextureColorSpace colorSpace) {
         var size = format.block().surfaceSize(width, height);
         var data = new byte[size];
-        return new Surface(width, height, format, data);
+        return new Surface(width, height, format, colorSpace, data);
     }
 
-    public static Surface create(int width, int height, TextureFormat format, byte[] data) {
+    public static Surface create(
+        int width,
+        int height,
+        TextureFormat format,
+        TextureColorSpace colorSpace,
+        byte[] data
+    ) {
         var size = format.block().surfaceSize(width, height);
         if (size != data.length) {
             throw new IllegalArgumentException("Data size does not match the expected size for the given format and dimensions");
         }
-        return new Surface(width, height, format, data);
+        return new Surface(width, height, format, colorSpace, data);
     }
 
     public int offset(int x, int y, int z) {
@@ -40,7 +46,11 @@ public record Surface(int width, int height, TextureFormat format, byte[] data) 
     }
 
     public Surface convert(TextureFormat target) {
-        return TextureConverter.convert(this, target);
+        return TextureConverter.convert(this, target, colorSpace);
+    }
+
+    public Surface convert(TextureFormat target, TextureColorSpace colorSpace) {
+        return TextureConverter.convert(this, target, colorSpace);
     }
 
     public <T> T convert(Converter<T> converter) {

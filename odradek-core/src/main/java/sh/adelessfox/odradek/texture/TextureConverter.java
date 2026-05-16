@@ -11,17 +11,21 @@ final class TextureConverter {
     private TextureConverter() {
     }
 
-    static Texture convert(Texture texture, TextureFormat target, Operation... ops) {
-        if (texture.format() == target && ops.length == 0) {
+    static Texture convert(Texture texture, TextureFormat format, Operation... ops) {
+        return convert(texture, format, texture.colorSpace(), ops);
+    }
+
+    static Texture convert(Texture texture, TextureFormat format, TextureColorSpace colorSpace, Operation... ops) {
+        if (texture.format() == format && ops.length == 0) {
             return texture;
         }
         var surfaces = texture.surfaces().stream()
-            .map(surface -> convert(surface, target, ops))
+            .map(surface -> convert(surface, format, colorSpace, ops))
             .toList();
         return new Texture(
-            target,
+            format,
             texture.kind(),
-            texture.colorSpace(),
+            colorSpace,
             surfaces,
             texture.mips(),
             texture.depth(),
@@ -30,11 +34,15 @@ final class TextureConverter {
         );
     }
 
-    static Surface convert(Surface surface, TextureFormat target, Operation... ops) {
-        if (surface.format() == target && ops.length == 0) {
+    static Surface convert(Surface surface, TextureFormat format, Operation... ops) {
+        return convert(surface, format, surface.colorSpace(), ops);
+    }
+
+    static Surface convert(Surface surface, TextureFormat format, TextureColorSpace colorSpace, Operation... ops) {
+        if (surface.format() == format && ops.length == 0) {
             return surface;
         }
-        return Processor.process(surface, target, List.of(ops));
+        return Processor.process(surface, format, colorSpace, List.of(ops));
     }
 
     static Texture permute(

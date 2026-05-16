@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
@@ -19,6 +20,9 @@ public final class PngWriter implements Closeable {
     private static final int acTL = 'a' << 24 | 'c' << 16 | 'T' << 8 | 'L';
     private static final int fcTL = 'f' << 24 | 'c' << 16 | 'T' << 8 | 'L';
     private static final int fdAT = 'f' << 24 | 'd' << 16 | 'A' << 8 | 'T';
+    private static final int sRGB = 's' << 24 | 'R' << 16 | 'G' << 8 | 'B';
+    private static final int gAMA = 'g' << 24 | 'A' << 16 | 'M' << 8 | 'A';
+    private static final int tEXt = 't' << 24 | 'E' << 16 | 'X' << 8 | 't';
 
     private final PngFormat format;
     private final PngFilter filter;
@@ -116,6 +120,11 @@ public final class PngWriter implements Closeable {
     private void writeHeader() throws IOException {
         channel.write(ByteBuffer.wrap(SIGNATURE));
         writeIHDR();
+        if (format.colorSpace() == PngColorSpace.SRGB) {
+            writeSRGB();
+            writeGAMA();
+        }
+        writeTEXt("Software", "Odradek");
     }
 
     private void writeImage(byte[] image) throws IOException {
@@ -200,6 +209,35 @@ public final class PngWriter implements Closeable {
 
         writeChunk(fdAT, buffer);
         idatLength = 0;
+    }
+
+    private void writeSRGB() throws IOException {
+        var data = ByteBuffer.allocate(1)
+            .put((byte) 0) // rendering intent - perceptual
+            .flip();
+
+        writeChunk(sRGB, data);
+    }
+
+    private void writeGAMA() throws IOException {
+        var data = ByteBuffer.allocate(4)
+            .putInt(45455) // gamma value - 1/2.2
+            .flip();
+
+        writeChunk(gAMA, data);
+    }
+
+    private void writeTEXt(String keyword, String text) throws IOException {
+        var keywordBytes = keyword.getBytes(StandardCharsets.ISO_8859_1);
+        var textBytes = text.getBytes(StandardCharsets.ISO_8859_1);
+
+        var data = ByteBuffer.allocate(keywordBytes.length + 1 + textBytes.length)
+            .put(keywordBytes)
+            .put((byte) 0) // null separator
+            .put(textBytes)
+            .flip();
+
+        writeChunk(tEXt, data);
     }
 
     private void writeIEND() throws IOException {

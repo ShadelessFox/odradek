@@ -35,6 +35,9 @@ public final class UITextureToTextureConverter
         var spans = object.spans();
         var data = object.data();
 
+        // hardcoded in UITextureFrames::UITextureFrames
+        var colorSpace = TextureColorSpace.SRGB;
+
         var surfaces = new ArrayList<Surface>(spans.length);
         for (long span : spans) {
             int offset = (int) (span);
@@ -42,12 +45,12 @@ public final class UITextureToTextureConverter
             var buffer = new byte[object.size()];
 
             Decompressor.lz4Block().decompress(Bytes.wrap(data, offset, length), Bytes.Mutable.wrap(buffer, 0, object.size()));
-            surfaces.add(new Surface(object.width(), object.height(), format, buffer));
+            surfaces.add(new Surface(object.width(), object.height(), format, colorSpace, buffer));
         }
 
         return Optional.of(Texture.ofAnimated2D(
             format,
-            TextureColorSpace.SRGB, // hardcoded in UITextureFrames::UITextureFrames
+            colorSpace,
             surfaces,
             spans.length,
             mapFrequency(object.frequency().unwrap())
@@ -67,11 +70,12 @@ public final class UITextureToTextureConverter
 
         int width = object.header().width() & 0x3FFF;
         int height = object.header().height() & 0x3FFF;
-        var surface = Surface.create(width, height, format, object.data().embeddedData());
+        var colorSpace = mapColorSpace(object.header().colorSpace().unwrap());
+        var surface = Surface.create(width, height, format, colorSpace, object.data().embeddedData());
 
         return Optional.of(Texture.of2D(
             format,
-            mapColorSpace(object.header().colorSpace().unwrap()),
+            colorSpace,
             surface
         ));
     }

@@ -3,7 +3,8 @@ package sh.adelessfox.odradek.export.png.format;
 public record PngFormat(
     int width,
     int height,
-    PngColorType colorType
+    PngColorType colorType,
+    PngColorSpace colorSpace
 ) {
     public PngFormat {
         if (width <= 0) {

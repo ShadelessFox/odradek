@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.texture.processing;
 
 import sh.adelessfox.odradek.texture.Surface;
+import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.processing.ops.Operation;
 import wtf.reversed.toolbox.collect.Floats;
@@ -11,8 +12,13 @@ import java.util.stream.IntStream;
 public final class Processor {
     private static final int TILE_SIZE = 256;
 
-    public static Surface process(Surface source, TextureFormat format, List<? extends Operation> ops) {
-        var target = Surface.create(source.width(), source.height(), format);
+    public static Surface process(
+        Surface source,
+        TextureFormat format,
+        TextureColorSpace colorSpace,
+        List<? extends Operation> ops
+    ) {
+        var target = Surface.create(source.width(), source.height(), format, colorSpace);
         var unpacker = TileUnpacker.from(source);
         var packer = TilePacker.into(target);
         process(source.width(), source.height(), 1, unpacker, packer, ops);

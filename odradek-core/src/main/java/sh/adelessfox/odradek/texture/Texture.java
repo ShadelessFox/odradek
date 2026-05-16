@@ -24,7 +24,6 @@ import java.util.OptionalInt;
  *
  * @param format     The format of the texture
  * @param kind       The type of the texture
- * @param colorSpace The color space of the texture
  * @param surfaces   The list of all surfaces in the texture
  * @param mips       The number of mipmaps in the texture, including the <i>main</i> images.
  * @param depth      The depth of the texture, in pixels, if {@link #kind()} is {@link TextureKind#TEXTURE_3D},
@@ -74,6 +73,10 @@ public record Texture(
                 throw new IllegalArgumentException("Surface format does not match texture format: "
                     + surface.format() + " != " + format);
             }
+            if (surface.colorSpace() != colorSpace) {
+                throw new IllegalArgumentException("Surface color space does not match texture color space: "
+                    + surface.colorSpace() + " != " + colorSpace);
+            }
         }
         surfaces = List.copyOf(surfaces);
     }
@@ -109,13 +112,6 @@ public record Texture(
 
     public Texture convert(TextureFormat targetFormat) {
         return TextureConverter.convert(this, targetFormat);
-    }
-
-    public Texture withColorSpace(TextureColorSpace colorSpace) {
-        if (colorSpace() == colorSpace) {
-            return this;
-        }
-        return new Texture(format, kind, colorSpace, surfaces, mips, depth, arraySize, duration);
     }
 
     public int width() {

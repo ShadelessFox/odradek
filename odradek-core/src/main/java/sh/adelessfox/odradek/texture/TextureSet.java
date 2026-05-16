@@ -59,9 +59,7 @@ public record TextureSet(
         var blue = unpackChannel(packedTexture.packing().blue(), sourceTexture.type());
         var alpha = unpackChannel(packedTexture.packing().alpha(), sourceTexture.type());
 
-        return packedTexture.texture()
-            .permutes(red, green, blue, alpha)
-            .withColorSpace(sourceTexture.colorSpace());
+        return packedTexture.texture().permutes(red, green, blue, alpha);
     }
 
     private static Optional<Channel> unpackChannel(Optional<TextureSet.PackingChannel> channel, String type) {

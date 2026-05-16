@@ -1,6 +1,9 @@
 package sh.adelessfox.odradek.export.dds;
 
-import sh.adelessfox.odradek.texture.*;
+import sh.adelessfox.odradek.texture.Surface;
+import sh.adelessfox.odradek.texture.Texture;
+import sh.adelessfox.odradek.texture.TextureFormat;
+import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -141,44 +144,48 @@ final class DdsWriter {
     }
 
     private static int mapFormat(Texture texture) {
+        var colorSpace = texture.colorSpace();
         return switch (texture.format()) {
             // Uncompressed
-            case R8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8_UNORM);
-            case R8G8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8G8_UNORM);
-            case R8G8B8A8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM);
-            case B8G8R8A8_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM);
-            case R16_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R16_UNORM);
-            case R16G16B16A16_SFLOAT -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R16G16B16A16_FLOAT);
-            case R32_SFLOAT -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_R32_FLOAT);
+            case R8_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_R8_UNORM;
+            case R8G8_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_R8G8_UNORM;
+            case R8G8B8A8_UNORM -> switch (colorSpace) {
+                case LINEAR -> DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM;
+                case SRGB -> DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            };
+            case B8G8R8A8_UNORM -> switch (colorSpace) {
+                case LINEAR -> DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM;
+                case SRGB -> DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+            };
+            case R16_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_R16_UNORM;
+            case R16G16B16A16_SFLOAT -> DdsHeaderDxt10.DXGI_FORMAT_R16G16B16A16_FLOAT;
+            case R32_SFLOAT -> DdsHeaderDxt10.DXGI_FORMAT_R32_FLOAT;
 
             // Compressed
-            case BC1_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM);
-            case BC2_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM);
-            case BC3_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM);
+            case BC1_UNORM -> switch (colorSpace) {
+                case LINEAR -> DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM;
+                case SRGB -> DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM_SRGB;
+            };
+            case BC2_UNORM -> switch (colorSpace) {
+                case LINEAR -> DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM;
+                case SRGB -> DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM_SRGB;
+            };
+            case BC3_UNORM -> switch (colorSpace) {
+                case LINEAR -> DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM;
+                case SRGB -> DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM_SRGB;
+            };
             case BC4_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC4_UNORM;
             case BC4_SNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC4_SNORM;
             case BC5_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC5_UNORM;
             case BC5_SNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC5_SNORM;
             case BC6_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC6H_UF16;
             case BC6_SNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC6H_SF16;
-            case BC7_UNORM -> mapColorSpace(texture.colorSpace(), DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM);
+            case BC7_UNORM -> switch (colorSpace) {
+                case LINEAR -> DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM;
+                case SRGB -> DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM_SRGB;
+            };
 
             default -> throw new IllegalStateException("Unsupported texture format: " + texture.format());
-        };
-    }
-
-    private static int mapColorSpace(TextureColorSpace colorSpace, int format) {
-        if (colorSpace == TextureColorSpace.LINEAR) {
-            return format;
-        }
-        return switch (format) {
-            case DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-            case DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-            case DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC1_UNORM_SRGB;
-            case DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC2_UNORM_SRGB;
-            case DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC3_UNORM_SRGB;
-            case DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM -> DdsHeaderDxt10.DXGI_FORMAT_BC7_UNORM_SRGB;
-            default -> format;
         };
     }
 
