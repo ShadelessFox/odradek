@@ -1,9 +1,11 @@
 package sh.adelessfox.odradek.viewer.texture;
 
+import com.formdev.flatlaf.extras.components.FlatToggleButton;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.ui.Viewer;
+import sh.adelessfox.odradek.ui.util.Fugue;
 import sh.adelessfox.odradek.viewer.texture.view.Channel;
 import sh.adelessfox.odradek.viewer.texture.view.ImagePanel;
 import sh.adelessfox.odradek.viewer.texture.view.ImageView;
@@ -73,7 +75,11 @@ public final class TextureViewer implements Viewer {
 
         texture.duration().ifPresent(duration -> {
             var slider = new JSlider(0, surfaces.size() - 1);
-            var animate = new JCheckBox("Animate", this.animate);
+            slider.setMaximumSize(new Dimension(100, 20));
+
+            var animate = new JToggleButton(Fugue.getIcon("control"), this.animate);
+            animate.setToolTipText("Animate");
+            animate.setSelectedIcon(Fugue.getIcon("control-pause"));
 
             imageToolbar.addSeparator();
             imageToolbar.add(animate);
@@ -101,6 +107,10 @@ public final class TextureViewer implements Viewer {
 
             timer.start();
         });
+
+        imageToolbar.addSeparator();
+        imageToolbar.add(Box.createHorizontalGlue());
+        imageToolbar.add(new JLabel(formatDescription(texture)));
 
         return panel;
     }
@@ -165,12 +175,28 @@ public final class TextureViewer implements Viewer {
         }
     }
 
-    private static class ToggleChannelButton extends JToggleButton {
+    static String formatDescription(Texture texture) {
+        var kind = switch (texture.kind()) {
+            case TEXTURE_2D -> "2D";
+            case TEXTURE_3D -> "3D";
+            case TEXTURE_2D_ARRAY -> texture.duration().isPresent() ? "2D (Animated)" : "2D (Array)";
+            case CUBE_MAP -> "Cube Map";
+        };
+        return "%dx%d (%s, %s)".formatted(texture.width(), texture.height(), kind, texture.format());
+    }
+
+    private static class ToggleChannelButton extends FlatToggleButton {
         private final Channel channel;
 
         ToggleChannelButton(Channel channel) {
-            super(channel.getName());
             this.channel = channel;
+            setText(channel.getName());
+            setStyle("toolbar.selectedBackground: #%06x".formatted(switch (channel) {
+                case R -> 0xff8080;
+                case G -> 0x80ff80;
+                case B -> 0x8080ff;
+                case A -> 0xaaaaaa;
+            }));
         }
 
         Channel getChannel() {

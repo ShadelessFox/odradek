@@ -35,7 +35,7 @@ public final class TexturePreview implements Preview {
 
         var panel = new JPanel();
         panel.setLayout(new MigLayout("ins panel,wrap"));
-        panel.add(new JLabel(formatDescription(texture)));
+        panel.add(new JLabel(TextureViewer.formatDescription(texture)));
         panel.add(new ImageViewport(view));
 
         return panel;
@@ -46,15 +46,5 @@ public final class TexturePreview implements Preview {
             .dropWhile(s -> s.width() > MAX_PREVIEW_SIZE || s.height() > MAX_PREVIEW_SIZE)
             .findFirst().orElseGet(() -> texture.surfaces().getLast())
             .convert(new Surface.Converter.AWT());
-    }
-
-    private static String formatDescription(Texture texture) {
-        var kind = switch (texture.kind()) {
-            case TEXTURE_2D -> "2D";
-            case TEXTURE_3D -> "3D";
-            case TEXTURE_2D_ARRAY -> texture.duration().isPresent() ? "2D (Animated)" : "2D (Array)";
-            case CUBE_MAP -> "Cube Map";
-        };
-        return "%dx%d, %s, %s".formatted(texture.width(), texture.height(), texture.format(), kind);
     }
 }
