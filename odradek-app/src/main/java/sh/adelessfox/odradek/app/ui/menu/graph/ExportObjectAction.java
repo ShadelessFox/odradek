@@ -11,7 +11,10 @@ import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -151,15 +154,16 @@ public class ExportObjectAction extends Action {
         return chooser.getSelectedFile().toPath();
     }
 
-    private static String makeObjectName(ObjectIdHolder object, DecimaGame game) {
-        return "%s_%s_%s".formatted(
-            object.objectType(game),
-            object.objectId().groupId(),
-            object.objectId().objectIndex());
+    private static String makeObjectName(ObjectIdHolder object, DecimaGame game, Exporter.OfSingleOutput<?> exporter) {
+        return makeObjectName(object.objectId(), object.objectType(game), exporter);
     }
 
-    private static String makeObjectName(ObjectIdHolder object, DecimaGame game, Exporter.OfSingleOutput<?> exporter) {
-        return makeObjectName(object, game) + '.' + exporter.extension();
+    private static String makeObjectName(ObjectId objectId, TypeInfo type, Exporter.OfSingleOutput<?> exporter) {
+        return makeObjectName(objectId, type) + '.' + exporter.extension();
+    }
+
+    private static String makeObjectName(ObjectId objectId, TypeInfo type) {
+        return "%s_%s_%s".formatted(type, objectId.groupId(), objectId.objectIndex());
     }
 
     private record Batch<R>(List<ObjectIdHolder> objects, Converter<Object, R, Game> converter, Exporter<R> exporter) {
@@ -183,7 +187,7 @@ public class ExportObjectAction extends Action {
         }
     }
 
-    private static final class ExportWorker<T> extends SwingWorker<Integer, ObjectIdHolder> {
+    private static final class ExportWorker<T> extends SwingWorker<Integer, String> {
         private final Batch<T> batch;
         private final DecimaGame game;
         private final Path output;
@@ -203,16 +207,16 @@ public class ExportObjectAction extends Action {
         @Override
         protected Integer doInBackground() {
             batch.objects().parallelStream()
-                .gather(Gatherers.groupingBy(holder -> holder.objectId().groupId()))
-                .forEach(group -> group.getValue().parallelStream()
-                    .forEach(this::export));
+                .map(ObjectIdHolder::objectId)
+                .gather(Gatherers.groupingBy(ObjectId::groupId))
+                .forEach(e -> exportGroup(e.getKey(), e.getValue()));
             return exported.get();
         }
 
         @Override
-        protected void process(List<ObjectIdHolder> chunks) {
-            var object = chunks.getLast();
-            monitor.setText("Exporting %s (%s)".formatted(object.objectType(game), object.objectId()));
+        protected void process(List<String> chunks) {
+            var status = chunks.getLast();
+            monitor.setText(status);
             monitor.setProgress(exported.get());
         }
 
@@ -237,61 +241,67 @@ public class ExportObjectAction extends Action {
             }
         }
 
-        private void export(ObjectIdHolder object) {
+        private void exportGroup(int groupId, List<ObjectId> selection) {
             if (monitor.isCanceled()) {
                 // Not quite a proper termination though, but works
                 return;
             }
 
-            publish(object);
+            publish("Reading group %d".formatted(groupId));
+
+            List<TypedObject> objects;
+            try {
+                objects = game.readGroup(groupId);
+            } catch (IOException e) {
+                log.error("Failed to read group {}", groupId, e);
+                return;
+            }
+
+            selection.parallelStream()
+                .forEach(id -> exportObject(id, objects.get(id.objectIndex())));
+        }
+
+        private void exportObject(ObjectId objectId, TypedObject object) {
+            if (monitor.isCanceled()) {
+                // Not quite a proper termination though, but works
+                return;
+            }
+
+            publish("Exporting %s (%s)".formatted(object.getType(), objectId));
 
             try {
-                boolean success = export(object, batch.converter(), batch.exporter(), game, output, singleFile);
-                if (success) {
-                    exported.incrementAndGet();
+                var converted = batch.converter().convert(object, game);
+                if (converted.isEmpty()) {
+                    log.debug("Unable to convert object {} ({})", object, object.getType());
+                    return;
                 }
+
+                export(objectId, converted.get(), object.getType());
+                exported.incrementAndGet();
             } catch (Exception e) {
-                log.error("Failed to export object {} ({})", object.objectId(), object.objectType(game), e);
+                log.error("Failed to export object {} ({})", objectId, object.getType(), e);
             }
         }
 
-        private static <T> boolean export(
-            ObjectIdHolder selection,
-            Converter<Object, T, Game> converter,
-            Exporter<T> exporter,
-            DecimaGame game,
-            Path output,
-            boolean singleFile
-        ) throws IOException {
-            var object = game.readObject(selection.objectId());
-            var type = object.getType();
-
-            var converted = converter.convert(object, game);
-            if (converted.isEmpty()) {
-                log.debug("Unable to convert object {} ({})", object, type);
-                return false;
-            }
-
-            switch (exporter) {
+        private void export(ObjectId objectId, T object, TypeInfo type) throws IOException {
+            switch (batch.exporter()) {
                 case Exporter.OfSingleOutput<T> e -> {
-                    var path = singleFile ? output : output.resolve(makeObjectName(selection, game, e));
+                    var path = singleFile ? output : output.resolve(makeObjectName(objectId, type, e));
                     try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                        e.export(converted.get(), channel);
-                        log.debug("Exported object {} ({}) to {}", object, type, path);
+                        e.export(object, channel);
+                        log.debug("Exported object {} ({}) to {}", objectId, type, path);
                     } catch (Exception ex) {
                         Files.delete(path);
                         throw ex;
                     }
                 }
                 case Exporter.OfMultipleOutputs<T> e -> {
-                    var path = output.resolve(makeObjectName(selection, game));
+                    var path = output.resolve(makeObjectName(objectId, type));
                     try (var provider = new DefaultOutputProvider(path)) {
-                        e.export(converted.get(), provider);
+                        e.export(object, provider);
                     }
                 }
             }
-
-            return true;
         }
     }
 }
