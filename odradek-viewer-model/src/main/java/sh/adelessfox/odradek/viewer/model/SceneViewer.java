@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.viewer.model;
 
+import com.formdev.flatlaf.extras.components.FlatToolBar;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -74,9 +75,10 @@ public record SceneViewer(Scene scene) implements Viewer {
     }
 
     private JToolBar createToolBar(Camera camera, ViewportContext context) {
-        var toolBar = new JToolBar();
+        var toolBar = new FlatToolBar();
         toolBar.add(createPopupButton("Camera", Fugue.getIcon("camera"), menu -> fillCameraPopupMenu(menu, camera, context)));
         toolBar.add(createPopupButton("Scene", Fugue.getIcon("tree"), menu -> fillScenePopupMenu(menu, context)));
+        toolBar.setStyle("background: @componentBackground");
         return toolBar;
     }
 

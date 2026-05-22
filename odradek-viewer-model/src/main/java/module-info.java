@@ -9,6 +9,7 @@ module odradek.viewer.model {
     requires odradek.opengl;
     requires odradek.ui;
     requires org.slf4j;
+    requires com.formdev.flatlaf.extras;
 
     opens sh.adelessfox.odradek.viewer.model.viewport.renderpass to com.google.gson;
 

@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.texture;
 
 import com.formdev.flatlaf.extras.components.FlatToggleButton;
+import com.formdev.flatlaf.extras.components.FlatToolBar;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
@@ -61,7 +62,8 @@ public final class TextureViewer implements Viewer {
         imageView.setZoomToFit(true);
 
         var imagePane = new ImagePanel(imageView);
-        var imageToolbar = new JToolBar();
+        var imageToolbar = new FlatToolBar();
+        imageToolbar.setStyle("background: @componentBackground");
 
         populateChannelActions(imageToolbar, imageView);
 

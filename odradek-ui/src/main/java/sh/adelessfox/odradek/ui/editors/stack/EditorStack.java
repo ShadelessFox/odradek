@@ -35,6 +35,7 @@ public final class EditorStack extends FlatTabbedPane {
         setTabsClosable(true);
         setTabCloseToolTipText("Close");
         setTabCloseCallback((_, index) -> manager.closeEditor(getEditorAt(index)));
+        setStyle("selectedBackground: @componentBackground");
 
         getModel().addChangeListener(_ -> {
             var newEditor = (EditorComponent) getSelectedComponent();

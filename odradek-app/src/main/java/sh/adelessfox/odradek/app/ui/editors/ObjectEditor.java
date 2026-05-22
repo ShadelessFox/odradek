@@ -117,6 +117,7 @@ public final class ObjectEditor implements Editor, ObjectTypeHolder, DataContext
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         pane.setLeadingComponent(Actions.createToolBar(ObjectEditorMenu.TOOLBAR_ID, this));
+        pane.setStyle("selectedBackground: @componentBackground");
         pane.addChangeListener(_ -> {
             if (lastViewer != null) {
                 lastViewer.deactivate();
