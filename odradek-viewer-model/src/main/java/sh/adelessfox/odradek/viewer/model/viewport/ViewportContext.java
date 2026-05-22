@@ -8,6 +8,11 @@ public final class ViewportContext {
     private boolean showVertexUVs;
     private boolean showWireframe;
 
+    private float cameraMouseSensitivity = 1.0f;
+    private float cameraSpeed = 5f;
+    private float cameraShiftMultiplier = 5f;
+    private float cameraCtrlMultiplier = 0.2f;
+
     public boolean isShowBounds() {
         return showBounds;
     }
@@ -54,5 +59,37 @@ public final class ViewportContext {
 
     public void setShowWireframe(boolean showWireframe) {
         this.showWireframe = showWireframe;
+    }
+
+    public float getCameraMouseSensitivity() {
+        return cameraMouseSensitivity;
+    }
+
+    public void setCameraMouseSensitivity(float cameraMouseSensitivity) {
+        this.cameraMouseSensitivity = cameraMouseSensitivity;
+    }
+
+    public float getCameraSpeed() {
+        return cameraSpeed;
+    }
+
+    public void setCameraSpeed(float cameraSpeed) {
+        this.cameraSpeed = cameraSpeed;
+    }
+
+    public float getCameraShiftMultiplier() {
+        return cameraShiftMultiplier;
+    }
+
+    public void setCameraShiftMultiplier(float cameraShiftMultiplier) {
+        this.cameraShiftMultiplier = cameraShiftMultiplier;
+    }
+
+    public float getCameraCtrlMultiplier() {
+        return cameraCtrlMultiplier;
+    }
+
+    public void setCameraCtrlMultiplier(float cameraCtrlMultiplier) {
+        this.cameraCtrlMultiplier = cameraCtrlMultiplier;
     }
 }
