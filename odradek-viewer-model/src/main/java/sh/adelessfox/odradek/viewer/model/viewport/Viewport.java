@@ -34,7 +34,6 @@ public final class Viewport extends JComponent implements GLEventListener {
     private final ViewportAnimator animator;
     private final ViewportContext context;
 
-    private float cameraSpeed = 5f;
     private float cameraDistance = 1f;
     private boolean initialized;
     private Instant lastUpdateTime;
@@ -216,12 +215,12 @@ public final class Viewport extends JComponent implements GLEventListener {
         camera.resize(getFramebufferWidth(), getFramebufferHeight());
         context.setShowCameraOrigin(false);
 
-        var sensitivity = 1.0f;
+        var sensitivity = context.getCameraMouseSensitivity();
         var mouseDelta = input.mousePositionDelta().multiply(sensitivity);
         var wheelDelta = input.mouseWheelDelta() * sensitivity * 0.1f;
 
         if (input.isMouseDown(MouseEvent.BUTTON1)) {
-            cameraSpeed = Math.clamp((float) Math.exp(Math.log(cameraSpeed) + wheelDelta), 0.1f, 100.0f);
+            context.setCameraSpeed(Math.clamp((float) Math.exp(Math.log(context.getCameraSpeed()) + wheelDelta), 0.1f, 100.0f));
             updateFlyCamera(dt, mouseDelta);
         } else if (input.isMouseDown(MouseEvent.BUTTON2)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
@@ -243,12 +242,12 @@ public final class Viewport extends JComponent implements GLEventListener {
     }
 
     private void updateFlyCamera(float dt, Vector2 mouse) {
-        float speed = cameraSpeed * dt;
+        float speed = context.getCameraSpeed() * dt;
         if (input.isKeyDown(KeyEvent.VK_SHIFT)) {
-            speed *= 5.0f;
+            speed *= context.getCameraShiftMultiplier();
         }
         if (input.isKeyDown(KeyEvent.VK_CONTROL)) {
-            speed /= 5.0f;
+            speed *= context.getCameraCtrlMultiplier();
         }
 
         var position = camera.position();

@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.actions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.ui.components.SplitButton;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.util.Icons;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
@@ -13,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Function;
@@ -42,7 +44,7 @@ public final class Actions {
     }
 
     public static JToolBar createToolBar(String id, DataContext context) {
-        var toolBar = new JToolBar();
+        var toolBar = new ActionToolBar();
         contributeGroups(toolBar, new ToolBarActionContributor(), id, new ActionContext(context, null, null));
         return toolBar;
     }
@@ -389,12 +391,13 @@ public final class Actions {
             super(descriptor, context);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public void actionPerformed(ActionEvent e) {
-            var popupMenu = createPopupMenu(component, descriptor.id(), context, includeSourceAction);
-            var selectionProvider = getSelectionProvider(component);
-            showPopupMenu(component, popupMenu, e, (SelectionProvider<JComponent, ?>) selectionProvider);
+            // Handled by ActionToolBar#createActionComponent
+        }
+
+        JPopupMenu createPopupMenu() {
+            return Actions.createPopupMenu(component, descriptor.id(), context, includeSourceAction);
         }
     }
 
@@ -622,5 +625,31 @@ public final class Actions {
         T createRadioItem(C component, AbstractMenuAction action);
 
         T createItem(C component, AbstractMenuAction action);
+    }
+
+    private static class ActionToolBar extends JToolBar {
+        @Override
+        protected JButton createActionComponent(javax.swing.Action a) {
+            if (a instanceof PopupMenuAction action) {
+                var button = new SplitButton() {
+                    @Override
+                    protected PropertyChangeListener createActionPropertyChangeListener(javax.swing.Action a) {
+                        PropertyChangeListener pcl = createActionChangeListener(this);
+                        if (pcl == null) {
+                            pcl = super.createActionPropertyChangeListener(a);
+                        }
+                        return pcl;
+                    }
+                };
+                button.setPopupMenu(action.createPopupMenu());
+                if (a.getValue(javax.swing.Action.SMALL_ICON) != null |
+                    a.getValue(javax.swing.Action.LARGE_ICON_KEY) != null
+                ) {
+                    button.setHideActionText(true);
+                }
+                return button;
+            }
+            return super.createActionComponent(a);
+        }
     }
 }

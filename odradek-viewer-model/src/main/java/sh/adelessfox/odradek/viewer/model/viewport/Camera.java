@@ -1,37 +1,37 @@
 package sh.adelessfox.odradek.viewer.model.viewport;
 
+import wtf.reversed.toolbox.math.FloatMath;
 import wtf.reversed.toolbox.math.Matrix4;
+import wtf.reversed.toolbox.math.Vector2;
 import wtf.reversed.toolbox.math.Vector3;
 
 public final class Camera {
-    private static final float PITCH_LIMIT = (float) Math.PI / 2 - 0.01f;
-    private static final Vector3 UP = new Vector3(0.f, 0.f, -1.f);
+    private static final float PITCH_LIMIT = FloatMath.PI_2 - 0.01f;
 
-    private int width, height;
-    private float x, y, z;
+    private Vector3 position;
+    private Vector2 viewport;
     private float fov;
-    private float near, far;
+    private float nearClip, farClip;
     private float yaw, pitch;
 
-    public Camera(float fov, float near, float far) {
+    public Camera(float fov, float nearClip, float farClip) {
         this.fov = fov;
-        this.near = near;
-        this.far = far;
+        this.nearClip = nearClip;
+        this.farClip = farClip;
     }
 
     public void rotate(float deltaX, float deltaY) {
-        yaw -= (float) (Math.PI * deltaX / width);
-        pitch -= (float) (Math.PI * deltaY / height);
+        yaw -= (float) (Math.PI * deltaX / viewport.x());
+        pitch -= (float) (Math.PI * deltaY / viewport.y());
         pitch = Math.clamp(pitch, -PITCH_LIMIT, PITCH_LIMIT);
     }
 
-    public void resize(int width, int height) {
-        this.width = width;
-        this.height = height;
+    public void resize(float width, float height) {
+        this.viewport = new Vector2(width, height);
     }
 
     public void lookAt(Vector3 target) {
-        Vector3 dir = target.subtract(new Vector3(x, y, z)).normalize();
+        Vector3 dir = target.subtract(position).normalize();
         yaw = (float) Math.atan2(dir.y(), dir.x());
         pitch = (float) Math.asin(dir.z());
         pitch = Math.clamp(pitch, -PITCH_LIMIT, PITCH_LIMIT);
@@ -42,30 +42,25 @@ public final class Camera {
     }
 
     public Matrix4 projection() {
-        var aspect = (float) width / height;
-        return Matrix4.perspective(fov, aspect, near, far);
+        return Matrix4.perspective((float) Math.toRadians(fov), viewport.x() / viewport.y(), nearClip, farClip);
     }
 
     public Matrix4 view() {
         var eye = position();
         var center = forward().add(eye);
-        return Matrix4.lookAt(eye, center, UP);
+        return Matrix4.lookAt(eye, center, Vector3.Z);
     }
 
     public Vector3 position() {
-        return new Vector3(x, y, z);
+        return position;
     }
 
     public void position(Vector3 position) {
-        this.x = position.x();
-        this.y = position.y();
-        this.z = position.z();
+        this.position = position;
     }
 
     public void move(Vector3 delta) {
-        this.x += delta.x();
-        this.y += delta.y();
-        this.z += delta.z();
+        this.position = position().add(delta);
     }
 
     public Vector3 up() {
@@ -86,11 +81,27 @@ public final class Camera {
         return new Vector3(x, y, 0);
     }
 
-    public float near() {
-        return near;
+    public float fov() {
+        return fov;
     }
 
-    public float far() {
-        return far;
+    public void fov(float fov) {
+        this.fov = fov;
+    }
+
+    public float nearClip() {
+        return nearClip;
+    }
+
+    public void nearClip(float near) {
+        this.nearClip = near;
+    }
+
+    public float farClip() {
+        return farClip;
+    }
+
+    public void farClip(float farClip) {
+        this.farClip = farClip;
     }
 }

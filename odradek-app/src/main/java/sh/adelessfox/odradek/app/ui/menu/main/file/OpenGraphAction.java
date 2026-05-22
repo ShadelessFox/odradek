@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 
-@ActionRegistration(text = "Open Streaming Graph", description = "Opens the streaming graph resource")
+@ActionRegistration(text = "Open Streaming Graph", description = "Open the streaming graph resource")
 @ActionContribution(parent = MainMenu.File.ID)
 public class OpenGraphAction extends Action {
     @Override
