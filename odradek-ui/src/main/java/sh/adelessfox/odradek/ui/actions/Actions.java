@@ -393,7 +393,10 @@ public final class Actions {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // Handled by ActionToolBar#createActionComponent
+            @SuppressWarnings("unchecked")
+            var selectionProvider = (SelectionProvider<JComponent, ?>) getSelectionProvider(component);
+            var popupMenu = createPopupMenu();
+            showPopupMenu(component, popupMenu, e, (SelectionProvider<JComponent, ?>) selectionProvider);
         }
 
         JPopupMenu createPopupMenu() {
@@ -594,7 +597,12 @@ public final class Actions {
 
         @Override
         public AbstractAction createPopupItem(JToolBar component, AbstractMenuAction action) {
-            return new PopupMenuAction(component, action.descriptor, action.context, false);
+            return new PopupMenuAction(component, action.descriptor, action.context, false) {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Do nothing, as the popup creation is handled by ActionToolBar#createActionComponent
+                }
+            };
         }
 
         @Override
