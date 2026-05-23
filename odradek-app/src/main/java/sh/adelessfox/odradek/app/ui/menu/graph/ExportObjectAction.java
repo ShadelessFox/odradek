@@ -19,6 +19,7 @@ import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
+import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.ui.util.ProgressMonitor;
 import sh.adelessfox.odradek.util.Gatherers;
 
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -223,6 +225,16 @@ public class ExportObjectAction extends Action {
         @Override
         protected void done() {
             monitor.close();
+
+            try {
+                // Just to catch any exceptions
+                get();
+            } catch (InterruptedException e) {
+                log.debug("Export interrupted", e);
+            } catch (ExecutionException e) {
+                log.error("Export failed", e.getCause());
+                Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), "An error occurred during export", e);
+            }
 
             if (batch.objects().size() == exported.get()) {
                 JOptionPane.showMessageDialog(
