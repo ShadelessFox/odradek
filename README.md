@@ -17,7 +17,7 @@ Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attem
 | Name                   | Version      | Platform |
 |------------------------|--------------|----------|
 | Horizon Forbidden West | **1.5.80.0** | **PC**   |
-| Death Stranding 2      | **1.7.76.0** | **PC**   |
+| Death Stranding 2      | **1.8.81.0** | **PC**   |
 
 > [!IMPORTANT]
 > The **latest** build of Odradek from **master** branch is guaranteed to work against versions listed above.
