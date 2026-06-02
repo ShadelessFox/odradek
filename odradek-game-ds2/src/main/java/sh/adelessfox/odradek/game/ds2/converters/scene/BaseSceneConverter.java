@@ -77,7 +77,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         MeshReader reader
     ) {
         var weights = new ArrayList<Accessor>();
-        var joints = new ArrayList<Accessor>();
+        var bones = new ArrayList<Accessor>();
         var count = object.count();
 
         for (var stream : object.streams()) {
@@ -128,7 +128,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
                     case Color -> reader.addColor(accessor);
                     case UV0, UV1, UV2, UV3, UV4, UV5, UV6 -> reader.addTexCoord(accessor);
                     case BlendWeights, BlendWeights2, BlendWeights3 -> weights.add(accessor);
-                    case BlendIndices, BlendIndices2, BlendIndices3 -> joints.add(accessor);
+                    case BlendIndices, BlendIndices2, BlendIndices3 -> bones.add(accessor);
                     default -> log.warn("Skipping unsupported element (semantic: {})", element.element());
                 }
             }
@@ -140,10 +140,10 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
             default -> reader.setWeights(Accessor.ofInterleaved(weights));
         }
 
-        switch (joints.size()) {
+        switch (bones.size()) {
             case 0 -> { /* do nothing */ }
-            case 1 -> reader.setBones(joints.getFirst());
-            default -> reader.setBones(Accessor.ofInterleaved(joints));
+            case 1 -> reader.setBones(bones.getFirst());
+            default -> reader.setBones(Accessor.ofInterleaved(bones));
         }
     }
 

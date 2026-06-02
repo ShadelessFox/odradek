@@ -78,11 +78,11 @@ public class OverlayRenderPass implements RenderPass {
     }
 
     private void renderNodes(Camera camera, ViewportContext context) {
-        if (!context.isShowSkins() && !context.isShowBounds()) {
+        if (!context.isShowSkeletons() && !context.isShowBounds()) {
             return;
         }
         for (OverlayNode node : nodes) {
-            if (context.isShowSkins()) {
+            if (context.isShowSkeletons()) {
                 node.skeleton().ifPresent(skeleton -> renderSkeleton(skeleton, node.transform(), camera));
             }
             if (context.isShowBounds()) {

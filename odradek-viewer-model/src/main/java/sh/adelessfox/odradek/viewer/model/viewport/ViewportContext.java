@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.viewer.model.viewport;
 public final class ViewportContext {
     private boolean showBounds;
     private boolean showCameraOrigin;
-    private boolean showSkins;
+    private boolean showSkeletons;
     private boolean showVertexColors;
     private boolean showVertexUVs;
     private boolean showWireframe;
@@ -29,12 +29,12 @@ public final class ViewportContext {
         this.showCameraOrigin = showCameraOrigin;
     }
 
-    public boolean isShowSkins() {
-        return showSkins;
+    public boolean isShowSkeletons() {
+        return showSkeletons;
     }
 
-    public void setShowSkins(boolean showSkins) {
-        this.showSkins = showSkins;
+    public void setShowSkeletons(boolean showSkeletons) {
+        this.showSkeletons = showSkeletons;
     }
 
     public boolean isShowVertexColors() {
