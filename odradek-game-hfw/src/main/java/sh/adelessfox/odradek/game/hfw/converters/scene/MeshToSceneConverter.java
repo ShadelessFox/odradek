@@ -86,13 +86,13 @@ public final class MeshToSceneConverter
     @SuppressWarnings("unused")
     private static Optional<Node> convertHairResource(Context context, HFW.HairResource resource, HFWGame game) {
         var pose = resource.geometry().poses().getFirst();
-        var skin = convertHairPose(pose);
+        var skeleton = convertHairPose(pose);
 
         var mesh = resource.geometry().meshLods().getFirst();
         var nodes = mesh.skinnedMeshes().stream()
             .map(m -> Node.builder()
                 .model(convertHairMesh(m, game))
-                .skin(skin)
+                .skeleton(skeleton)
                 .build())
             .toList();
 
@@ -200,13 +200,13 @@ public final class MeshToSceneConverter
         HFW.SkinnedModelResource resource,
         HFWGame game
     ) {
-        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
             .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
             .toList();
 
         var node = Node.builder()
-            .skin(skin)
+            .skeleton(skeleton)
             .children(parts)
             .build();
 
@@ -276,7 +276,7 @@ public final class MeshToSceneConverter
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
-        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var mesh = convertModel(
             resource.shadingGroups(),
             resource.primitives(),
@@ -285,7 +285,7 @@ public final class MeshToSceneConverter
         );
         var node = Node.builder()
             .model(mesh)
-            .skin(skin)
+            .skeleton(skeleton)
             .build();
         return Optional.of(node);
     }

@@ -83,7 +83,7 @@ public class OverlayRenderPass implements RenderPass {
         }
         for (OverlayNode node : nodes) {
             if (context.isShowSkins()) {
-                node.skin().ifPresent(skin -> renderSkin(skin, node.transform(), camera));
+                node.skeleton().ifPresent(skeleton -> renderSkeleton(skeleton, node.transform(), camera));
             }
             if (context.isShowBounds()) {
                 for (OverlayMesh mesh : node.meshes()) {
@@ -93,22 +93,22 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
-    private void renderSkin(Skeleton skeleton, Matrix4 transform, Camera camera) {
+    private void renderSkeleton(Skeleton skeleton, Matrix4 transform, Camera camera) {
         var matrices = new ArrayList<Matrix4>(skeleton.bones().size());
 
         for (Bone bone : skeleton.bones()) {
-            Matrix4 jointMatrix;
+            Matrix4 boneMatrix;
             Matrix4 parentMatrix;
 
             if (bone.parent().isPresent()) {
                 parentMatrix = matrices.get(bone.parent().getAsInt());
-                jointMatrix = parentMatrix.multiply(bone.matrix());
+                boneMatrix = parentMatrix.multiply(bone.matrix());
             } else {
                 parentMatrix = null;
-                jointMatrix = transform.multiply(bone.matrix());
+                boneMatrix = transform.multiply(bone.matrix());
             }
 
-            var position = jointMatrix.toTranslation();
+            var position = boneMatrix.toTranslation();
 
             if (parentMatrix != null) {
                 debug.line(parentMatrix.toTranslation(), position, new Vector3(0, 1, 0), false);
@@ -121,7 +121,7 @@ public class OverlayRenderPass implements RenderPass {
                 debug.projectedText(bone.name(), position, camera, new Vector3(1, 1, 1), 4.0f / distance);
             }
 
-            matrices.add(jointMatrix);
+            matrices.add(boneMatrix);
         }
     }
 
@@ -137,7 +137,7 @@ public class OverlayRenderPass implements RenderPass {
         var overlayMeshes = meshes.stream()
             .map(mesh -> new OverlayMesh(mesh, mesh.computeBounds(), computeRandomColor(mesh.hashCode())))
             .toList();
-        nodes.add(new OverlayNode(node.skin(), overlayMeshes, transform));
+        nodes.add(new OverlayNode(node.skeleton(), overlayMeshes, transform));
         for (Node child : node.children()) {
             cacheNodeRecursively(child, transform.multiply(child.matrix()));
         }
@@ -173,7 +173,7 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
-    private record OverlayNode(Optional<Skeleton> skin, List<OverlayMesh> meshes, Matrix4 transform) {
+    private record OverlayNode(Optional<Skeleton> skeleton, List<OverlayMesh> meshes, Matrix4 transform) {
     }
 
     private record OverlayMesh(Mesh mesh, Bounds bounds, Vector3 color) {

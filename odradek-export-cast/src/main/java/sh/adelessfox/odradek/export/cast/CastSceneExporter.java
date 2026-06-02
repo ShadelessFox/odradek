@@ -34,9 +34,10 @@ public final class CastSceneExporter
 
     private static void exportNode(Node node, Matrix4 transform, CastNodes.Root root) {
         node.model().ifPresent(m -> {
-            var pos = transform.toTranslation();
-            var rot = transform.toRotation();
-            var scl = transform.toScale();
+            var trs = transform.decompose();
+            var pos = trs.translation();
+            var rot = trs.rotation();
+            var scl = trs.scale();
 
             var model = root.createModel();
             model.setPosition(new Vec3(pos.x(), pos.y(), pos.z()));
@@ -44,7 +45,7 @@ public final class CastSceneExporter
             model.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
 
             node.name().ifPresent(model::setName);
-            node.skin().ifPresent(skin -> mapSkeleton(model.createSkeleton(), skin));
+            node.skeleton().ifPresent(skeleton -> mapSkeleton(model.createSkeleton(), skeleton));
 
             exportModel(model, m);
         });

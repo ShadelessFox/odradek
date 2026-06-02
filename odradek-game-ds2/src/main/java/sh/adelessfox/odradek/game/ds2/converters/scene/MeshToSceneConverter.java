@@ -228,13 +228,13 @@ public final class MeshToSceneConverter
         DS2.SkinnedModelResource resource,
         DS2Game game
     ) {
-        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
             .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
             .toList();
 
         var node = Node.builder()
-            .skin(skin)
+            .skeleton(skeleton)
             .children(parts)
             .build();
 
@@ -306,7 +306,7 @@ public final class MeshToSceneConverter
         //     log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
         //     return Optional.empty();
         // }
-        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var mesh = convertMesh(
             resource.shadingGroups(),
             resource.primitives(),
@@ -315,7 +315,7 @@ public final class MeshToSceneConverter
         );
         var node = Node.builder()
             .model(mesh)
-            .skin(skin)
+            .skeleton(skeleton)
             .build();
         return Optional.of(node);
     }

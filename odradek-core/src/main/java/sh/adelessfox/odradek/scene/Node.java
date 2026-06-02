@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public record Node(
     Optional<String> name,
     Optional<Model> model,
-    Optional<Skeleton> skin,
+    Optional<Skeleton> skeleton,
     List<Node> children,
     Matrix4 matrix
 ) {
@@ -41,11 +41,11 @@ public record Node(
     public Node add(Node child) {
         var children = new ArrayList<>(this.children);
         children.add(child);
-        return new Node(name, model, skin, children, matrix);
+        return new Node(name, model, skeleton, children, matrix);
     }
 
     public Node transform(Matrix4 transform) {
-        return new Node(name, model, skin, children, matrix.multiply(transform));
+        return new Node(name, model, skeleton, children, matrix.multiply(transform));
     }
 
     public void accept(NodeVisitor visitor) {
@@ -109,7 +109,7 @@ public record Node(
             return this;
         }
 
-        public Builder skin(Skeleton skeleton) {
+        public Builder skeleton(Skeleton skeleton) {
             this.skeleton = skeleton;
             return this;
         }
@@ -156,7 +156,7 @@ public record Node(
                 "children=" + children +
                 ", name='" + name + '\'' +
                 ", model=" + model +
-                ", skin=" + skeleton +
+                ", skeleton=" + skeleton +
                 ", matrix=" + matrix +
                 '}';
         }
