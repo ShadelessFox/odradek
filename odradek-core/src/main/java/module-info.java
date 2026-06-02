@@ -6,6 +6,7 @@ module odradek.core {
     requires java.net.http;
     requires org.slf4j;
 
+    exports sh.adelessfox.odradek.animation;
     exports sh.adelessfox.odradek.audio.container.at9;
     exports sh.adelessfox.odradek.audio.container.riff;
     exports sh.adelessfox.odradek.audio.container.wave;
