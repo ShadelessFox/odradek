@@ -5,6 +5,6 @@ module odradek.export.cast {
     requires org.slf4j;
 
     provides sh.adelessfox.odradek.game.Exporter with
-        sh.adelessfox.odradek.export.cast.CastExporter;
+        sh.adelessfox.odradek.export.cast.CastAnimationExporter,
         sh.adelessfox.odradek.export.cast.CastSceneExporter;
 }
