@@ -30,10 +30,10 @@ public record Mesh(
     List<Bytes> colors,
     Optional<Weights> weights
 ) {
-    public record Weights(Floats values, Ints joints, int maxInfluence) {
+    public record Weights(Floats values, Ints bones, int maxInfluence) {
         public Weights {
-            if (values.length() != joints.length()) {
-                throw new IllegalArgumentException("weights values and joints must have the same length");
+            if (values.length() != bones.length()) {
+                throw new IllegalArgumentException("weights values and bones must have the same length");
             }
             if (maxInfluence <= 0) {
                 throw new IllegalArgumentException("maximum influence must be greater than 0");
@@ -49,7 +49,7 @@ public record Mesh(
         colors.forEach(bytes -> check(bytes.length(), vertices, 4));
         weights.ifPresent(w -> {
             check(w.values.length(), vertices, w.maxInfluence);
-            check(w.joints.length(), vertices, w.maxInfluence);
+            check(w.bones.length(), vertices, w.maxInfluence);
         });
 
         texCoords = List.copyOf(texCoords);

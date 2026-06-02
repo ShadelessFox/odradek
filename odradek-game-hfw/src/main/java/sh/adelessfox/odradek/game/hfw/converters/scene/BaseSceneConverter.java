@@ -57,7 +57,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         var reader = new MeshReader()
             .setPositions(buildBufferAccessor(mesh.skinnedPositionDataBufferResource().get()).resize(3))
             .setWeights(buildBufferAccessor(mesh.skinnedBlendWeightsDataBufferResource().get()))
-            .setJoints(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
+            .setBones(buildHairJointsAccessor(mesh.skinnedBlendIndicesDataBufferResource().get()));
 
         var vertexArray = mesh.skinnedVertexArray().get();
         readVertices(vertexArray, null, reader);
@@ -198,8 +198,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
         switch (joints.size()) {
             case 0 -> { /* do nothing */ }
-            case 1 -> reader.setJoints(joints.getFirst());
-            default -> reader.setJoints(Accessor.ofInterleaved(joints));
+            case 1 -> reader.setBones(joints.getFirst());
+            default -> reader.setBones(Accessor.ofInterleaved(joints));
         }
     }
 

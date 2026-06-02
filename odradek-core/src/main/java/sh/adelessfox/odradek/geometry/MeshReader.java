@@ -12,7 +12,7 @@ public final class MeshReader {
     private Accessor normals;
     private Accessor tangents;
     private Accessor weights;
-    private Accessor joints;
+    private Accessor bones;
     private final List<Accessor> texCoords = new ArrayList<>();
     private final List<Accessor> colors = new ArrayList<>();
 
@@ -56,11 +56,11 @@ public final class MeshReader {
         return this;
     }
 
-    public MeshReader setJoints(Accessor joints) {
-        if (this.joints != null) {
-            throw new IllegalStateException("joints already set");
+    public MeshReader setBones(Accessor bones) {
+        if (this.bones != null) {
+            throw new IllegalStateException("bones already set");
         }
-        this.joints = joints;
+        this.bones = bones;
         return this;
     }
 
@@ -81,8 +81,8 @@ public final class MeshReader {
         if (positions == null) {
             throw new IllegalStateException("positions not set");
         }
-        if (weights != null && joints == null) {
-            throw new IllegalStateException("weights set but joints not set");
+        if (weights != null && bones == null) {
+            throw new IllegalStateException("weights set but bones not set");
         }
         return new Mesh(
             indices.toInts(),
@@ -95,34 +95,34 @@ public final class MeshReader {
     }
 
     private Optional<Mesh.Weights> readWeights() {
-        if (weights == null && joints == null) {
+        if (weights == null && bones == null) {
             return Optional.empty();
         }
 
         Floats values;
         if (weights != null) {
-            if (joints == null) {
-                throw new IllegalStateException("weights set but joints not set");
+            if (bones == null) {
+                throw new IllegalStateException("weights set but bones not set");
             }
-            if (weights.componentCount() != joints.componentCount()) {
-                throw new IllegalStateException("weights and joints must have the same number of components");
+            if (weights.componentCount() != bones.componentCount()) {
+                throw new IllegalStateException("weights and bones must have the same number of components");
             }
-            if (weights.count() != joints.count()) {
-                throw new IllegalStateException("weights and joints must have the same count");
+            if (weights.count() != bones.count()) {
+                throw new IllegalStateException("weights and bones must have the same count");
             }
             values = weights.toFloatsNormalized();
         } else {
             // Weights MAY be absent in case there's only one bone per vertex.
-            if (joints.componentCount() != 1) {
-                throw new IllegalStateException("JOINTS accessor has " + joints.componentCount()
-                    + " components, but WEIGHTS accessor is missing");
+            if (bones.componentCount() != 1) {
+                throw new IllegalStateException("bones accessor has " + bones.componentCount()
+                    + " components, but weights accessor is missing");
             }
             // Build a dummy WEIGHTS accessor with all weights set to 1.0f
-            values = Floats.Mutable.allocate(joints.count()).fill(1.0f);
+            values = Floats.Mutable.allocate(bones.count()).fill(1.0f);
         }
 
-        var indices = joints.toInts();
-        var maximumInfluence = joints.componentCount();
+        var indices = bones.toInts();
+        var maximumInfluence = bones.componentCount();
 
         return Optional.of(new Mesh.Weights(values, indices, maximumInfluence));
     }

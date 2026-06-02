@@ -142,8 +142,8 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
         switch (joints.size()) {
             case 0 -> { /* do nothing */ }
-            case 1 -> reader.setJoints(joints.getFirst());
-            default -> reader.setJoints(Accessor.ofInterleaved(joints));
+            case 1 -> reader.setBones(joints.getFirst());
+            default -> reader.setBones(Accessor.ofInterleaved(joints));
         }
     }
 

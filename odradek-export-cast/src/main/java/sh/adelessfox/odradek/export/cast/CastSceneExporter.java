@@ -1,69 +1,35 @@
 package sh.adelessfox.odradek.export.cast;
 
-import be.twofold.tinycast.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import be.twofold.tinycast.CastNodes;
+import be.twofold.tinycast.Vec3;
+import be.twofold.tinycast.Vec4;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Model;
-import sh.adelessfox.odradek.scene.Joint;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
-import sh.adelessfox.odradek.scene.Skin;
 import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.math.Matrix4;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
-import java.util.Optional;
-import java.util.OptionalInt;
 
-public class CastExporter implements Exporter.OfSingleOutput<Scene> {
-    private static final Logger log = LoggerFactory.getLogger(CastExporter.class);
+public final class CastSceneExporter
+    extends BaseCastExporter<Scene>
+    implements Exporter.OfSingleOutput<Scene> {
 
     @Override
-    public void export(Scene object, WritableByteChannel channel) throws IOException {
-        var cast = Cast.create();
-        var root = cast.createRoot();
-
-        root.createMetadata()
-            .setSoftware("Odradek")
-            .setAuthor("ShadelessFox");
-
+    protected void export(Scene object, CastNodes.Root root) {
         for (Node node : object.nodes()) {
             exportNode(node, Matrix4.IDENTITY, root);
-        }
-
-        try {
-            cast.write(Channels.newOutputStream(channel));
-        } catch (CastException e) {
-            throw new IOException("Error writing cast file", e);
         }
     }
 
     @Override
     public String id() {
         return "model.cast";
-    }
-
-    @Override
-    public String name() {
-        return "Cast (by DTZxPorter)";
-    }
-
-    @Override
-    public String extension() {
-        return "cast";
-    }
-
-    @Override
-    public Optional<String> icon() {
-        return Optional.of("fugue:paint-can");
     }
 
     private static void exportNode(Node node, Matrix4 transform, CastNodes.Root root) {
@@ -78,7 +44,7 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
             model.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
 
             node.name().ifPresent(model::setName);
-            node.skin().ifPresent(skin -> exportSkeleton(model, skin));
+            node.skin().ifPresent(skin -> mapSkeleton(model.createSkeleton(), skin));
 
             exportModel(model, m);
         });
@@ -109,32 +75,10 @@ public class CastExporter implements Exporter.OfSingleOutput<Scene> {
 
             mesh.weights().ifPresent(weights -> {
                 result.setMaximumWeightInfluence(weights.maxInfluence());
-                result.setVertexWeightBoneBuffer(weights.joints().asBuffer());
+                result.setVertexWeightBoneBuffer(weights.bones().asBuffer());
                 result.setVertexWeightValueBuffer(weights.values().asBuffer());
             });
         }
-    }
-
-    private static void exportSkeleton(CastNodes.Model model, Skin nodeSkin) {
-        var skeleton = model.createSkeleton();
-        for (Joint joint : nodeSkin.joints()) {
-            exportBone(skeleton, joint.parent(), joint);
-        }
-    }
-
-    private static void exportBone(CastNodes.Skeleton skeleton, OptionalInt parent, Joint joint) {
-        var bone = skeleton.createBone();
-        bone.setName(joint.name());
-        parent.ifPresent(bone::setParentIndex);
-
-        var transform = joint.matrix();
-        var pos = transform.toTranslation();
-        var rot = transform.toRotation();
-        var scl = transform.toScale();
-
-        bone.setLocalPosition(new Vec3(pos.x(), pos.y(), pos.z()));
-        bone.setLocalRotation(new Vec4(rot.x(), rot.y(), rot.z(), rot.w()));
-        bone.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
     }
 
     private static FloatBuffer mapTangentBuffer(FloatBuffer buffer) {

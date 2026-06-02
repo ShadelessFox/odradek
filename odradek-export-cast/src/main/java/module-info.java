@@ -6,4 +6,5 @@ module odradek.export.cast {
 
     provides sh.adelessfox.odradek.game.Exporter with
         sh.adelessfox.odradek.export.cast.CastExporter;
+        sh.adelessfox.odradek.export.cast.CastSceneExporter;
 }

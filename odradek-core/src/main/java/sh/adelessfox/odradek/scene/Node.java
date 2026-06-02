@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public record Node(
     Optional<String> name,
     Optional<Model> model,
-    Optional<Skin> skin,
+    Optional<Skeleton> skin,
     List<Node> children,
     Matrix4 matrix
 ) {
@@ -93,7 +93,7 @@ public record Node(
         private final List<NodeOrBuilder> children = new ArrayList<>();
         private String name;
         private Model model;
-        private Skin skin;
+        private Skeleton skeleton;
         private Matrix4 matrix = Matrix4.IDENTITY;
 
         private Builder() {
@@ -109,8 +109,8 @@ public record Node(
             return this;
         }
 
-        public Builder skin(Skin skin) {
-            this.skin = skin;
+        public Builder skin(Skeleton skeleton) {
+            this.skeleton = skeleton;
             return this;
         }
 
@@ -145,7 +145,7 @@ public record Node(
             return new Node(
                 Optional.ofNullable(name),
                 Optional.ofNullable(model),
-                Optional.ofNullable(skin),
+                Optional.ofNullable(skeleton),
                 children.stream().map(NodeOrBuilder::toNode).toList(),
                 matrix);
         }
@@ -156,7 +156,7 @@ public record Node(
                 "children=" + children +
                 ", name='" + name + '\'' +
                 ", model=" + model +
-                ", skin=" + skin +
+                ", skin=" + skeleton +
                 ", matrix=" + matrix +
                 '}';
         }

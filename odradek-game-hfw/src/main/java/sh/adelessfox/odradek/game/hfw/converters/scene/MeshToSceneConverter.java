@@ -10,10 +10,10 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimJointTransform;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.scene.Joint;
+import sh.adelessfox.odradek.scene.Bone;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
-import sh.adelessfox.odradek.scene.Skin;
+import sh.adelessfox.odradek.scene.Skeleton;
 import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
@@ -99,8 +99,8 @@ public final class MeshToSceneConverter
         return Node.of(nodes);
     }
 
-    private static Skin convertHairPose(HFW.HairPose pose) {
-        var joints = new ArrayList<Joint>();
+    private static Skeleton convertHairPose(HFW.HairPose pose) {
+        var bones = new ArrayList<Bone>();
         for (int i = 0; i < pose.bundles().size(); i++) {
             var bundle = pose.bundles().get(i);
             for (int j = 0; j < bundle.strands().size(); j++) {
@@ -108,15 +108,15 @@ public final class MeshToSceneConverter
                 for (int k = 0; k < strand.vertices().size(); k++) {
                     var vertex = strand.vertices().get(k);
                     if (k == 0) {
-                        joints.add(new Joint(
+                        bones.add(new Bone(
                             OptionalInt.empty(),
                             "strand%d_%d".formatted(i, j),
                             Matrix4.fromTranslation(vertex.x(), vertex.y(), vertex.z())
                         ));
                     } else {
                         var prev = strand.vertices().get(k - 1);
-                        joints.add(new Joint(
-                            OptionalInt.of(joints.size() - 1),
+                        bones.add(new Bone(
+                            OptionalInt.of(bones.size() - 1),
                             "strand%d_%d_%d".formatted(i, j, k),
                             Matrix4.fromTranslation(vertex.x() - prev.x(), vertex.y() - prev.y(), vertex.z() - prev.z())
                         ));
@@ -124,7 +124,7 @@ public final class MeshToSceneConverter
                 }
             }
         }
-        return new Skin(joints);
+        return new Skeleton(bones);
     }
 
     private static Optional<Node> convertMockupGeometry(
@@ -290,7 +290,7 @@ public final class MeshToSceneConverter
         return Optional.of(node);
     }
 
-    private static Optional<Skin> convertSkeleton(HFW.Skeleton skeleton) {
+    private static Optional<Skeleton> convertSkeleton(HFW.Skeleton skeleton) {
         if (!skeleton.general().hasBindPose()) {
             log.warn("Skipping skeleton {} without a bind pose", skeleton.general().objectUUID().toDisplayString());
             return Optional.empty();
@@ -306,17 +306,17 @@ public final class MeshToSceneConverter
         }
 
         var joints = skeleton.general().joints();
-        var converted = new ArrayList<Joint>();
+        var converted = new ArrayList<Bone>();
 
         for (int i = 0; i < joints.size(); i++) {
             var joint = joints.get(i);
-            converted.add(new Joint(
+            converted.add(new Bone(
                 joint.parentIndex() != -1 ? OptionalInt.of(joint.parentIndex()) : OptionalInt.empty(),
                 joint.name(),
                 transforms.get(i).toMatrix()));
         }
 
-        return Optional.of(new Skin(converted));
+        return Optional.of(new Skeleton(converted));
     }
 
     private static Optional<Node> convertLodMeshResource(
