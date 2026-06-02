@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 public record Node(
     Optional<String> name,
     Optional<Model> model,
-    Optional<Skin> skin,
+    Optional<Skeleton> skeleton,
     List<Node> children,
     Matrix4 matrix
 ) {
@@ -41,11 +41,11 @@ public record Node(
     public Node add(Node child) {
         var children = new ArrayList<>(this.children);
         children.add(child);
-        return new Node(name, model, skin, children, matrix);
+        return new Node(name, model, skeleton, children, matrix);
     }
 
     public Node transform(Matrix4 transform) {
-        return new Node(name, model, skin, children, matrix.multiply(transform));
+        return new Node(name, model, skeleton, children, matrix.multiply(transform));
     }
 
     public void accept(NodeVisitor visitor) {
@@ -93,7 +93,7 @@ public record Node(
         private final List<NodeOrBuilder> children = new ArrayList<>();
         private String name;
         private Model model;
-        private Skin skin;
+        private Skeleton skeleton;
         private Matrix4 matrix = Matrix4.IDENTITY;
 
         private Builder() {
@@ -109,8 +109,8 @@ public record Node(
             return this;
         }
 
-        public Builder skin(Skin skin) {
-            this.skin = skin;
+        public Builder skeleton(Skeleton skeleton) {
+            this.skeleton = skeleton;
             return this;
         }
 
@@ -145,7 +145,7 @@ public record Node(
             return new Node(
                 Optional.ofNullable(name),
                 Optional.ofNullable(model),
-                Optional.ofNullable(skin),
+                Optional.ofNullable(skeleton),
                 children.stream().map(NodeOrBuilder::toNode).toList(),
                 matrix);
         }
@@ -156,7 +156,7 @@ public record Node(
                 "children=" + children +
                 ", name='" + name + '\'' +
                 ", model=" + model +
-                ", skin=" + skin +
+                ", skeleton=" + skeleton +
                 ", matrix=" + matrix +
                 '}';
         }

@@ -10,10 +10,10 @@ import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimJointTransform;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.scene.Joint;
+import sh.adelessfox.odradek.scene.Bone;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
-import sh.adelessfox.odradek.scene.Skin;
+import sh.adelessfox.odradek.scene.Skeleton;
 import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
@@ -228,13 +228,13 @@ public final class MeshToSceneConverter
         DS2.SkinnedModelResource resource,
         DS2Game game
     ) {
-        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
             .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
             .toList();
 
         var node = Node.builder()
-            .skin(skin)
+            .skeleton(skeleton)
             .children(parts)
             .build();
 
@@ -306,7 +306,7 @@ public final class MeshToSceneConverter
         //     log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
         //     return Optional.empty();
         // }
-        var skin = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
         var mesh = convertMesh(
             resource.shadingGroups(),
             resource.primitives(),
@@ -315,12 +315,12 @@ public final class MeshToSceneConverter
         );
         var node = Node.builder()
             .model(mesh)
-            .skin(skin)
+            .skeleton(skeleton)
             .build();
         return Optional.of(node);
     }
 
-    private static Optional<Skin> convertSkeleton(DS2.Skeleton skeleton) {
+    private static Optional<Skeleton> convertSkeleton(DS2.Skeleton skeleton) {
         List<EdgeAnimJointTransform> transforms;
 
         try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
@@ -331,17 +331,17 @@ public final class MeshToSceneConverter
         }
 
         var joints = skeleton.general().joints();
-        var converted = new ArrayList<Joint>();
+        var converted = new ArrayList<Bone>();
 
         for (int i = 0; i < joints.size(); i++) {
             var joint = joints.get(i);
-            converted.add(new Joint(
+            converted.add(new Bone(
                 joint.parentIndex() != -1 ? OptionalInt.of(joint.parentIndex()) : OptionalInt.empty(),
                 joint.name(),
                 transforms.get(i).toMatrix()));
         }
 
-        return Optional.of(new Skin(converted));
+        return Optional.of(new Skeleton(converted));
     }
 
     private static Optional<Node> convertLodMeshResource(
