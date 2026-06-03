@@ -5,6 +5,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
+import sh.adelessfox.odradek.app.ui.component.texturesets.TextureSetBrowserPanel;
 import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanelContainer;
@@ -19,6 +20,7 @@ public class MainView implements View<JComponent> {
     public static final String GRAPH_PANEL_ID = "graph";
     public static final String BOOKMARKS_PANEL_ID = "bookmarks";
     public static final String USAGES_PANEL_ID = "usages";
+    public static final String TEXTURESETS_PANEL_ID = "texturesets";
 
     private final JPanel root;
 
@@ -27,10 +29,11 @@ public class MainView implements View<JComponent> {
         GraphPresenter graphPresenter,
         BookmarkToolPanel bookmarkPanel,
         UsagesToolPanel usagesPanel,
+        TextureSetBrowserPanel textureSetBrowserPanel,
         EditorManager editorManager,
         EventBus eventBus
     ) {
-        var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus);
+        var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, textureSetBrowserPanel, editorManager, eventBus);
         var right = buildRight();
         var bottom = buildBottom();
 
@@ -49,6 +52,7 @@ public class MainView implements View<JComponent> {
         GraphPresenter graphPresenter,
         BookmarkToolPanel bookmarkPanel,
         UsagesToolPanel usagesPanel,
+        TextureSetBrowserPanel textureSetBrowserPanel,
         EditorManager editorManager,
         EventBus eventBus
     ) {
@@ -56,6 +60,7 @@ public class MainView implements View<JComponent> {
         center.addPrimaryPanel(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
         center.addSecondaryPanel(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
         center.addSecondaryPanel(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel);
+        center.addSecondaryPanel(TEXTURESETS_PANEL_ID, "TextureSets", Fugue.getIcon("image"), textureSetBrowserPanel);
         center.setContent(editorManager.getRoot());
         center.showPanel(GRAPH_PANEL_ID);
 

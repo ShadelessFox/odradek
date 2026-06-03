@@ -109,4 +109,7 @@ module odradek.game.ds2 {
 
     provides sh.adelessfox.odradek.game.Game.Provider with
         sh.adelessfox.odradek.game.ds2.game.DS2Game.Provider;
+
+    provides sh.adelessfox.odradek.game.decima.ContainerTypeRegistry with
+        sh.adelessfox.odradek.game.ds2.game.DS2ContainerTypeRegistry;
 }
