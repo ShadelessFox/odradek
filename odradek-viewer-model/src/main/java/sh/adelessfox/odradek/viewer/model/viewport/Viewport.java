@@ -164,7 +164,7 @@ public final class Viewport extends JComponent implements GLEventListener {
     public void setCameraOrigin(Vector3 origin) {
         Objects.requireNonNull(camera, "camera is not set");
         camera.lookAt(origin);
-        cameraDistance = camera.position().subtract(origin).length();
+        cameraDistance = camera.position().distance(origin);
     }
 
     public Scene getScene() {
