@@ -2,7 +2,9 @@ package sh.adelessfox.odradek.export.json;
 
 import com.google.gson.FormattingStyle;
 import com.google.gson.Strictness;
+import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
+import sh.adelessfox.odradek.export.json.spi.TypeInfoAdapterFactory;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -14,9 +16,16 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
+import java.util.ServiceLoader;
 
 public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
+    private static final List<TypeInfoAdapterFactory> factories =
+        ServiceLoader.load(TypeInfoAdapterFactory.class).stream()
+            .map(ServiceLoader.Provider::get)
+            .toList();
+
     @Override
     public void export(TypedObject object, WritableByteChannel channel) throws IOException {
         try (JsonWriter writer = new JsonWriter(Channels.newWriter(channel, StandardCharsets.UTF_8))) {
@@ -50,11 +59,25 @@ public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
 
     private static final class JsonVisitor extends SimpleTypeVisitor<JsonWriter, IOException> {
         @Override
-        public void visitAtom(AtomTypeInfo info, Object object, JsonWriter writer) throws IOException {
-            if (object instanceof Number number) {
-                writer.value(number);
+        public void visit(TypeInfo info, Object object, JsonWriter writer) throws IOException {
+            @SuppressWarnings("unchecked")
+            var adapter = (TypeAdapter<Object>) factories.stream()
+                .flatMap(factory -> factory.create(info).stream())
+                .findFirst().orElse(null);
+
+            if (adapter != null) {
+                adapter.write(writer, object);
             } else {
-                writer.value(String.valueOf(object));
+                super.visit(info, object, writer);
+            }
+        }
+
+        @Override
+        public void visitAtom(AtomTypeInfo info, Object object, JsonWriter writer) throws IOException {
+            switch (object) {
+                case Number v -> writer.value(v);
+                case Boolean v -> writer.value(v);
+                default -> writer.value(String.valueOf(object));
             }
         }
 

@@ -80,6 +80,7 @@ module odradek.game.ds2 {
     requires static odradek.rtti.generator;
 
     requires odradek.core;
+    requires odradek.export.json;
     requires odradek.game.decima;
     requires odradek.middleware.edgeanim;
     requires odradek.rtti;
@@ -109,4 +110,7 @@ module odradek.game.ds2 {
 
     provides sh.adelessfox.odradek.game.Game.Provider with
         sh.adelessfox.odradek.game.ds2.game.DS2Game.Provider;
+
+    provides sh.adelessfox.odradek.export.json.spi.TypeInfoAdapterFactory with
+        sh.adelessfox.odradek.game.ds2.adapters.DS2TypeInfoAdapterFactory;
 }

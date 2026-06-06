@@ -1,4 +1,3 @@
-import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.hfw.rtti.callbacks.*;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.game.hfw.rtti.extensions.*;
@@ -84,6 +83,7 @@ module odradek.game.hfw {
     requires static odradek.rtti.generator;
 
     requires odradek.core;
+    requires odradek.export.json;
     requires odradek.game.decima;
     requires odradek.middleware.edgeanim;
     requires odradek.rtti;
@@ -111,6 +111,9 @@ module odradek.game.hfw {
         sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter,
         sh.adelessfox.odradek.game.hfw.converters.TextureSetToTextureSetConverter;
 
-    provides Game.Provider with
+    provides sh.adelessfox.odradek.game.Game.Provider with
         sh.adelessfox.odradek.game.hfw.game.HFWGame.Provider;
+
+    provides sh.adelessfox.odradek.export.json.spi.TypeInfoAdapterFactory with
+        sh.adelessfox.odradek.game.hfw.adapters.HFWTypeInfoAdapterFactory;
 }
