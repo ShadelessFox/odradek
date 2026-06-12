@@ -26,6 +26,7 @@ module odradek.app {
     requires jdk.attach;
 
     // Exporters
+    requires odradek.export.bundle;
     requires odradek.export.cast;
     requires odradek.export.dds;
     requires odradek.export.json;

@@ -18,6 +18,7 @@
 
         <module>odradek-app</module>
         <module>odradek-core</module>
+        <module>odradek-export-bundle</module>
         <module>odradek-export-cast</module>
         <module>odradek-export-dds</module>
         <module>odradek-export-json</module>
@@ -142,6 +143,11 @@
             </dependency>
 
             <!-- Export -->
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-export-bundle</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-export-cast</artifactId>
