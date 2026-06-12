@@ -1,8 +1,6 @@
 package sh.adelessfox.odradek.rtti.generator.source;
 
 import com.squareup.javapoet.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
@@ -19,8 +17,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
-    private static final Logger log = LoggerFactory.getLogger(TypeSourceGenerator.class);
-
     private static final ClassName NAME_List = ClassName.get(List.class);
     private static final ClassName NAME_Value_OfEnum = ClassName.get(Value.OfEnum.class);
     private static final ClassName NAME_Value_OfEnumSet = ClassName.get(Value.OfEnumSet.class);
@@ -34,16 +30,11 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
         this.className = className;
     }
 
-    void add(TypeInfo info) {
-        types.add(info);
-    }
-
     void addAll(Collection<? extends TypeInfo> info) {
         types.addAll(info);
     }
 
     JavaFile build() {
-        log.debug("Generating interfaces");
         return JavaFile.builder(packageName, buildNamespace()).build();
     }
 

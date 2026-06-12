@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.constant.ClassDesc;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -28,7 +29,7 @@ public class GenerateBindingsProcessor extends AbstractProcessor {
 
         for (Element element : roundEnv.getElementsAnnotatedWith(TypeBindings.class)) {
             var module = (ModuleElement) element;
-            var annotation = module.getAnnotation(TypeBindings.class);
+            var annotation = Objects.requireNonNull(module.getAnnotation(TypeBindings.class));
 
             var context = new TypeContext();
             try {

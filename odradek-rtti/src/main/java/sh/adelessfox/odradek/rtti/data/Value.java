@@ -1,8 +1,10 @@
 package sh.adelessfox.odradek.rtti.data;
 
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public sealed interface Value<T extends Enum<T>>
@@ -32,7 +34,7 @@ public sealed interface Value<T extends Enum<T>>
                 return constant;
             }
         }
-        return new Value$OfConst<>(value);
+        return new OfConst<>(value);
     }
 
     static <T extends Enum<T> & OfEnumSet<T>> OfEnumSet<T> setOf(Class<T> enumClass, int value) {
@@ -44,10 +46,48 @@ public sealed interface Value<T extends Enum<T>>
             }
         }
         if (value != 0) {
-            values.add(new Value$OfConst<>(value));
+            values.add(new OfConst<>(value));
         }
-        return new Value$OfSet<>(Collections.unmodifiableSet(values));
+        return new OfSet<>(Set.copyOf(values));
     }
 
     int value();
+
+    record OfConst<T extends Enum<T> & Value<T>>(int value) implements OfEnum<T> {
+        @Override
+        public T unwrap() {
+            throw new IllegalStateException("Value " + value + " does not correspond to any known constant");
+        }
+
+        @Override
+        public Optional<T> tryUnwrap() {
+            return Optional.empty();
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(value);
+        }
+    }
+
+    record OfSet<T extends Enum<T> & OfEnumSet<T>>(Set<Value<T>> values) implements OfEnumSet<T> {
+        @Override
+        public boolean contains(T t) {
+            return values.contains(t);
+        }
+
+        @Override
+        public int value() {
+            return values.stream()
+                .mapToInt(Value::value)
+                .reduce(0, (a, b) -> a | b);
+        }
+
+        @Override
+        public String toString() {
+            return values.stream()
+                .map(Objects::toString)
+                .collect(Collectors.joining(" | "));
+        }
+    }
 }
