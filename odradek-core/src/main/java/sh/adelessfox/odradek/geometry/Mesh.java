@@ -16,7 +16,7 @@ import java.util.Optional;
  *                  The winding order is counter-clockwise for front-facing triangles.
  * @param positions the vertex positions that define a vertex position (x, y, z).
  * @param normals   the vertex normals that define a vertex normal (x, y, z).
- * @param tangents  the vertex tangents that define a vertex tangent (x, y, z, w).
+ * @param tangents  the vertex tangents that define a vertex tangent (x, y, z).
  * @param texCoords the vertex texture coordinates that define a set of vertex texture coordinates (u, v).
  *                  The origin of the texture coordinates (0, 0) corresponds to the upper left corner of a texture image.
  * @param colors    the vertex colors, where every four consecutive bytes define a vertex color (r, g, b, a).
@@ -44,7 +44,7 @@ public record Mesh(
     public Mesh {
         int vertices = positions.length() / 3;
         normals.ifPresent(floats -> check(floats.length(), vertices, 3));
-        tangents.ifPresent(floats -> check(floats.length(), vertices, 4));
+        tangents.ifPresent(floats -> check(floats.length(), vertices, 3));
         texCoords.forEach(floats -> check(floats.length(), vertices, 2));
         colors.forEach(bytes -> check(bytes.length(), vertices, 4));
         weights.ifPresent(w -> {

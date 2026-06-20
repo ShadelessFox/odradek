@@ -62,7 +62,7 @@ public final class CastSceneExporter
             result.setVertexPositionBuffer(mesh.positions().asBuffer());
 
             mesh.normals().ifPresent(normals -> result.setVertexNormalBuffer(normals.asBuffer()));
-            mesh.tangents().ifPresent(tangents -> result.setVertexTangentBuffer(mapTangentBuffer(tangents.asBuffer())));
+            mesh.tangents().ifPresent(tangents -> result.setVertexTangentBuffer(tangents.asBuffer()));
 
             for (Floats texCoord : mesh.texCoords()) {
                 result.addVertexUVBuffer(mapUvBuffer(texCoord.asBuffer()));
@@ -80,17 +80,6 @@ public final class CastSceneExporter
                 result.setVertexWeightValueBuffer(weights.values().asBuffer());
             });
         }
-    }
-
-    private static FloatBuffer mapTangentBuffer(FloatBuffer buffer) {
-        var limit = buffer.limit();
-        var output = FloatBuffer.allocate(limit * 3 / 4);
-        for (int i = 0, o = 0; i < limit; i += 4, o += 3) {
-            output.put(o/**/, buffer.get(i/**/));
-            output.put(o + 1, buffer.get(i + 1));
-            output.put(o + 2, buffer.get(i + 2));
-        }
-        return output.flip();
     }
 
     private static FloatBuffer mapUvBuffer(FloatBuffer buffer) {
