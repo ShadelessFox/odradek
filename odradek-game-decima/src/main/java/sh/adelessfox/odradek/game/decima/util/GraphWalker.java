@@ -47,6 +47,7 @@ public final class GraphWalker {
         boolean readSubgroups
     ) {
         var groups = game.streamingGraph().groups().stream()
+            .filter(group -> group.types().stream().anyMatch(t -> ofType.isAssignableFrom(t.type())))
             .sorted(Comparator.comparingInt(StreamingGraph.Group::id))
             .toList();
 
@@ -82,23 +83,19 @@ public final class GraphWalker {
             }
 
             private boolean tryAdvanceGroup() {
-                for (int i = nextGroupIndex; i < groups.size(); i++) {
-                    var group = groups.get(i);
-                    var matches = group.types().stream().anyMatch(t -> ofType.isAssignableFrom(t.type()));
-                    if (matches) {
-                        log.debug("[{}/{}] Reading group {}", i + 1, groups.size(), group.id());
-                        try {
-                            currentGroup = group;
-                            currentObjects = game.readGroup(group.id(), readSubgroups);
-                            nextGroupIndex = i + 1;
-                            nextObjectIndex = 0;
-                            return true;
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    }
+                if (nextGroupIndex >= groups.size()) {
+                    return false;
                 }
-                return false;
+                var group = groups.get(nextGroupIndex++);
+                log.debug("[{}/{}] Reading group {}", nextGroupIndex, groups.size(), group.id());
+                try {
+                    currentGroup = group;
+                    currentObjects = game.readGroup(group.id(), readSubgroups);
+                    nextObjectIndex = 0;
+                    return true;
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
 
             private boolean tryAdvanceObject(Consumer<? super SearchResult<T>> action) {
