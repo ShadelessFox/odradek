@@ -264,7 +264,7 @@ public class ExportObjectAction extends Action {
             List<TypedObject> objects;
             try {
                 objects = game.readGroup(groupId);
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 log.error("Failed to read group {}", groupId, e);
                 return;
             }
@@ -290,7 +290,7 @@ public class ExportObjectAction extends Action {
 
                 export(objectId, converted.get(), object.getType());
                 exported.incrementAndGet();
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.error("Failed to export object {} ({})", objectId, object.getType(), e);
             }
         }
