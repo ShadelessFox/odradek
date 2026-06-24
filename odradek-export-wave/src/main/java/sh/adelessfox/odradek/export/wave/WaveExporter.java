@@ -19,27 +19,27 @@ public final class WaveExporter implements Exporter.OfSingleOutput<Audio> {
 
     @Override
     public void export(Audio object, WritableByteChannel channel) throws IOException {
-        var pcm16 = object.convert(AudioCodec.Pcm.S16LE);
-        int channels = pcm16.format().channels();
-        int sampleRate = pcm16.format().sampleRate();
+        var codec = AudioCodec.Pcm.S16LE;
+        var converted = object.convert(codec);
+        var format = converted.format();
 
         var fmt = ByteBuffer.allocate(24)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(RIFF_CHUNK_FMT_ID) // chunkID
             .putInt(16) // chunkSize
             .putShort(WAVE_FORMAT_PCM) // wFormatTag
-            .putShort((short) channels) // wChannels
-            .putInt(sampleRate) // dwSamplesPerSec
-            .putInt(sampleRate * 2 * channels) // dwAvgBytesPerSec
-            .putShort((short) (2 * channels)) // wBlockAlign
-            .putShort((short) 16) // wBitsPerSample
+            .putShort((short) format.channels()) // wChannels
+            .putInt(format.sampleRate()) // dwSamplesPerSec
+            .putInt(format.sampleRate() * codec.sizeBytes() * format.channels()) // dwAvgBytesPerSec
+            .putShort((short) (codec.sizeBytes() * format.channels())) // wBlockAlign
+            .putShort((short) (codec.sizeBytes() * 8)) // wBitsPerSample
             .flip();
 
-        var data = ByteBuffer.allocate(8 + pcm16.data().length)
+        var data = ByteBuffer.allocate(8 + converted.data().length)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(RIFF_CHUNK_DATA_ID) // chunkID
-            .putInt(pcm16.data().length) // chunkSize
-            .put(pcm16.data()) // data
+            .putInt(converted.data().length) // chunkSize
+            .put(converted.data()) // data
             .flip();
 
         var header = ByteBuffer.allocate(12)

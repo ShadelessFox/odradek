@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.audio;
 
+import wtf.reversed.toolbox.util.Check;
+
 /**
  * Audio data container.
  *
@@ -10,9 +12,7 @@ package sh.adelessfox.odradek.audio;
  */
 public record Audio(AudioCodec codec, AudioFormat format, int samples, byte[] data) {
     public Audio {
-        if (samples <= 0) {
-            throw new IllegalArgumentException("samples must be positive");
-        }
+        Check.positive(samples, "samples");
     }
 
     public Audio convert(AudioCodec codec, AudioFormat format) {
