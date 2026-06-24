@@ -101,7 +101,7 @@ public record Texture(
      * have a format determined by the presence of the red, green, blue, and
      * alpha channels in the mappings.
      */
-    public Texture permutes(
+    public Texture permute(
         Optional<Channel> red,
         Optional<Channel> green,
         Optional<Channel> blue,
