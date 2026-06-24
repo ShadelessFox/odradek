@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.components.tool;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
@@ -38,7 +40,7 @@ final class ToolPanelGroup {
             }
             if (info.component == null) {
                 var holder = new JPanel(new BorderLayout());
-                holder.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
+                holder.putClientProperty(FlatClientProperties.STYLE_CLASS, "ToolPanel.content");
                 holder.add(panel.createComponent());
 
                 info.component = holder;
