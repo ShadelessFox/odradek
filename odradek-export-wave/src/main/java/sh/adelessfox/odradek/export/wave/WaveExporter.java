@@ -30,7 +30,7 @@ public final class WaveExporter implements Exporter.OfSingleOutput<Audio> {
             .putShort(WAVE_FORMAT_PCM) // wFormatTag
             .putShort((short) channels) // wChannels
             .putInt(sampleRate) // dwSamplesPerSec
-            .putInt(sampleRate) // dwAvgBytesPerSec
+            .putInt(sampleRate * 2 * channels) // dwAvgBytesPerSec
             .putShort((short) (2 * channels)) // wBlockAlign
             .putShort((short) 16) // wBitsPerSample
             .flip();
