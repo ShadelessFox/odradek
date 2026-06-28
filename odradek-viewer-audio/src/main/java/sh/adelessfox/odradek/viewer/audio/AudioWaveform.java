@@ -1,21 +1,13 @@
 package sh.adelessfox.odradek.viewer.audio;
 
-import sh.adelessfox.odradek.audio.Audio;
-import sh.adelessfox.odradek.audio.AudioCodec;
-import sh.adelessfox.odradek.audio.AudioFormat;
-
 import javax.swing.*;
 import java.awt.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
+import java.util.stream.IntStream;
 
 final class AudioWaveform extends JComponent {
-    private final Audio audio;
-    private final ShortBuffer data;
+    private final SampleProvider sampler;
     private final List<Peak> peaks = new ArrayList<>();
     private float progress = 0.0f;
 
@@ -27,12 +19,8 @@ final class AudioWaveform extends JComponent {
     private int peakHorizontalGap;
     private int peakVerticalGap;
 
-    public AudioWaveform(Audio audio) {
-        this.audio = audio.convert(AudioCodec.Pcm.S16LE);
-        this.data = ByteBuffer.wrap(this.audio.data())
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .asShortBuffer();
-
+    public AudioWaveform(SampleProvider sampler) {
+        this.sampler = sampler;
         updateUI();
     }
 
@@ -57,13 +45,13 @@ final class AudioWaveform extends JComponent {
         int height2 = height / 2;
 
         int peaksTotal = width / (peakWidth + peakHorizontalGap);
-        int samplesPerPeak = audio.samples() / peaksTotal;
+        int samplesPerPeak = sampler.getSampleCount() / peaksTotal;
 
         if (peaksTotal != peaks.size()) {
             peaks.clear();
             for (int i = 0; i < peaksTotal; i++) {
                 // TODO: Show peaks of other channels as well
-                peaks.add(computePeak(audio.format(), data, 0, samplesPerPeak * i, samplesPerPeak));
+                peaks.add(computePeak(sampler, 0, samplesPerPeak * i, samplesPerPeak));
             }
         }
 
@@ -97,27 +85,20 @@ final class AudioWaveform extends JComponent {
 
     public void setProgress(float progress) {
         if (this.progress != progress) {
-            this.progress = progress;
+            this.progress = Math.clamp(progress, 0.0f, 1.0f);
             repaint();
         }
     }
 
-    private static Peak computePeak(AudioFormat format, ShortBuffer buffer, int channel, int start, int count) {
-        var statistics = new DoubleSummaryStatistics();
-        for (int i = 0; i < count; i++) {
-            int index = (start + i) * format.channels() + channel;
-            var value = shortToFloat(buffer.get(index));
-            statistics.accept(value);
-        }
+    private static Peak computePeak(SampleProvider sampler, int channel, int start, int count) {
+        var statistics = IntStream.range(start, start + count)
+            .mapToDouble(i -> sampler.getSample(i, channel))
+            .summaryStatistics();
         return new Peak(
             (float) statistics.getMin(),
             (float) statistics.getMax(),
             (float) statistics.getAverage()
         );
-    }
-
-    private static float shortToFloat(short value) {
-        return Math.max(value, -32767) / 32767.0f;
     }
 
     private record Peak(float min, float max, float avg) {

@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.odradek.ui.components.SplitButton;
 import sh.adelessfox.odradek.ui.util.Fugue;
 import sh.adelessfox.odradek.util.Futures;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -22,13 +23,13 @@ import java.time.temporal.ChronoUnit;
 
 final class AudioPlayer extends JPanel implements Disposable {
     private static final int REPAINT_INTERVAL = 1000 / 60; // TODO too arbitrary
+    private static final AudioCodec.Pcm CODEC = AudioCodec.Pcm.S16LE;
 
     private final EventBus eventBus = new DefaultEventBus();
     private final Clip clip;
 
     public AudioPlayer(Audio audio) {
-        // Both waveform and clip expects pcm16, so do it right away to avoid extra conversion
-        var pcm16 = audio.convert(AudioCodec.Pcm.S16LE, 2);
+        var pcm16 = audio.convert(CODEC, 2);
 
         try {
             clip = openClip(pcm16);
@@ -99,9 +100,11 @@ final class AudioPlayer extends JPanel implements Disposable {
     }
 
     //region Components
-    private static AudioWaveform createWaveform(Audio pcm16, EventBus eventBus) {
-        var waveform = new AudioWaveform(pcm16);
+    private static AudioWaveform createWaveform(Audio audio, EventBus eventBus) {
+        var sampler = new AudioSampleProvider(audio);
+        var waveform = new AudioWaveform(sampler);
         eventBus.subscribe(Events.PositionChanged.class, e -> waveform.setProgress(e.position()));
+
         return waveform;
     }
 
@@ -208,7 +211,7 @@ final class AudioPlayer extends JPanel implements Disposable {
     }
 
     private static Clip openClip(Audio audio) throws Exception {
-        var pcm16 = audio.convert(AudioCodec.Pcm.S16LE);
+        var pcm16 = audio.convert(CODEC);
         var format = new AudioFormat(pcm16.format().sampleRate(), 16, pcm16.format().channels(), true, false);
         var clip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
         clip.open(format, pcm16.data(), 0, pcm16.data().length);
@@ -290,6 +293,33 @@ final class AudioPlayer extends JPanel implements Disposable {
                 var position = Math.clamp(e.getPoint().x, 0.0f, component.getWidth()) / component.getWidth();
                 eventBus.publish(new Events.SetPositionRequested(position));
             }
+        }
+    }
+
+    private static class AudioSampleProvider implements SampleProvider {
+        private final Bytes samples;
+        private final int channels;
+
+        AudioSampleProvider(Audio audio) {
+            var pcm = audio.convert(CODEC);
+            samples = Bytes.wrap(pcm.data());
+            channels = pcm.format().channels();
+        }
+
+        @Override
+        public float getSample(int index, int channel) {
+            int offset = index * channels + channel;
+            var sample = samples.getShort(offset * CODEC.sizeBytes());
+            return shortToFloat(sample);
+        }
+
+        @Override
+        public int getSampleCount() {
+            return samples.length() / (CODEC.sizeBytes() * channels);
+        }
+
+        private static float shortToFloat(short value) {
+            return Math.max(value, -32767) / 32767.0f;
         }
     }
 }
