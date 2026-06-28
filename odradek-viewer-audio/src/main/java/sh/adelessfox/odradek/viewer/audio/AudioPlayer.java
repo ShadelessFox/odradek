@@ -18,6 +18,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
@@ -146,7 +147,11 @@ final class AudioPlayer extends JPanel implements Disposable {
         toolBar.add(Box.createHorizontalGlue());
         toolBar.addSeparator();
         toolBar.add(Box.createHorizontalStrut(4));
-        toolBar.add(new JLabel("%d Hz, %d channels".formatted(audio.format().sampleRate(), audio.format().channels())));
+        toolBar.add(new JLabel(MessageFormat.format(
+            "{0} Hz, {1,choice,1#1 channel|1<{1} channels}",
+            audio.format().sampleRate(),
+            audio.format().channels()
+        )));
         toolBar.add(Box.createHorizontalStrut(4));
 
         return toolBar;
