@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
@@ -36,9 +35,6 @@ public class Main implements Runnable {
     @Option(names = {"-s", "--source"}, description = "Path to the game's root directory where its executable resides")
     private Optional<Path> source;
 
-    @Option(names = {"--dark"}, description = "Use dark theme for the UI")
-    private boolean darkTheme = false;
-
     @Option(names = {"--debug"}, description = "Enable debug mode for the UI that features various inspectors")
     private boolean debugMode = false;
 
@@ -54,7 +50,7 @@ public class Main implements Runnable {
     }
 
     private void start() {
-        setupUI(debugMode, darkTheme);
+        setupUI(debugMode);
         ensureSingleRunningInstance(getClass());
 
         var configPath = determineConfigPath("Odradek");
@@ -77,7 +73,7 @@ public class Main implements Runnable {
         }
     }
 
-    private static void setupUI(boolean setupInspectors, boolean useDarkTheme) {
+    private static void setupUI(boolean setupInspectors) {
         if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
             // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated(true);
@@ -89,11 +85,8 @@ public class Main implements Runnable {
             FlatUIDefaultsInspector.install("ctrl shift alt Y");
         }
 
-        if (useDarkTheme) {
-            FlatDarkLaf.setup();
-        } else {
-            FlatLightLaf.setup();
-        }
+        // Use the light LaF by default. Once settings are loaded, the user-chosen LaF will be applied.
+        FlatLightLaf.setup();
     }
 
     private static void ensureSingleRunningInstance(Class<?> cls) {
