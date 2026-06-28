@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui;
 
+import com.formdev.flatlaf.FlatLaf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
@@ -77,7 +78,11 @@ public final class Application {
         });
 
         // Ensure settings are initialized and loaded after everything else
-        component.settings();
+        var settings = component.settings();
+        settings.theme().ifPresent(theme -> {
+            FlatLaf.setup(theme.createLookAndFeel());
+            FlatLaf.updateUI();
+        });
 
         // And now we can show the frame
         frame.setVisible(true);
@@ -121,6 +126,10 @@ public final class Application {
 
     public EventBus events() {
         return component.events();
+    }
+
+    public Settings settings() {
+        return component.settings();
     }
 
     public boolean isDebugMode() {

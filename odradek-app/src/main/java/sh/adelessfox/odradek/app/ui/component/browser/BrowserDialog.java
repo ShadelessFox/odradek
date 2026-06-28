@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.component.browser;
 
 import net.miginfocom.swing.MigLayout;
+import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionEvent;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
@@ -25,7 +26,7 @@ public final class BrowserDialog extends JDialog {
         tree.expand();
 
         var pane = new JScrollPane(tree);
-        pane.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
+        pane.setBorder(LineBorder.of());
 
         var openButton = createButton("Open", KeyEvent.VK_O, this::openPressed);
         openButton.setEnabled(false);

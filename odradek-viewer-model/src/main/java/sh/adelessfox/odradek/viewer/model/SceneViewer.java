@@ -4,6 +4,7 @@ import com.formdev.flatlaf.extras.components.FlatToolBar;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
+import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.SplitButton;
 import sh.adelessfox.odradek.ui.components.properties.PropertyPanelBuilder;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -55,7 +56,7 @@ public record SceneViewer(Scene scene) implements Viewer {
         context.setShowVertexColors(true);
 
         Viewport viewport = new Viewport(context);
-        viewport.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIManager.getColor("Component.borderColor")));
+        viewport.setBorder(LineBorder.of(1, 0, 0, 0));
         viewport.setMinimumSize(new Dimension(100, 100));
         viewport.addRenderPass(new RenderMeshesPass());
         viewport.addRenderPass(new GridRenderPass());

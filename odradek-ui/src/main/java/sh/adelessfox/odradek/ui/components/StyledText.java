@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * A text that consists of multiple fragment each having its own styling,
+ * A text that consists of multiple fragments, each having its own styling,
  * like foreground and background color, font style, etc.
  *
  * @param fragments a list of fragments this styled text consists of

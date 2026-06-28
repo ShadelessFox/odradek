@@ -19,6 +19,14 @@ public class SplitButton extends JButton {
         return "SplitButtonUI";
     }
 
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        if (popupMenu != null) {
+            SwingUtilities.updateComponentTreeUI(popupMenu);
+        }
+    }
+
     public JPopupMenu getPopupMenu() {
         return popupMenu;
     }

@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.ui.editors.lazy;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.ui.editors.Editor;
@@ -56,6 +57,7 @@ public final class LazyEditor implements Editor {
     @Override
     public JComponent createComponent() {
         JPanel panel = new JPanel();
+        panel.setOpaque(false);
         panel.setLayout(new BorderLayout(5, 5));
         panel.add(label, BorderLayout.NORTH);
         panel.add(button, BorderLayout.CENTER);
@@ -64,6 +66,7 @@ public final class LazyEditor implements Editor {
         label.updateUI();
 
         JPanel host = new JPanel();
+        host.putClientProperty(FlatClientProperties.STYLE, "background: $Editor.background");
         host.setLayout(new GridBagLayout());
         host.add(panel);
 

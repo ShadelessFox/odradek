@@ -70,6 +70,7 @@ public final class UsagesToolPanel implements ToolPanel {
 
         var layout = new CardLayout();
         var panel = new JPanel();
+        panel.setOpaque(false);
         panel.setLayout(layout);
         panel.add(createInitialView(eventBus), CARD_SETUP);
         panel.add(createLoadingView(), CARD_LOADING);
@@ -136,6 +137,7 @@ public final class UsagesToolPanel implements ToolPanel {
         button.addActionListener(_ -> eventBus.publish(new Events.ScanStart()));
 
         JPanel panel = new JPanel();
+        panel.setOpaque(false);
         panel.setLayout(new MigLayout("ins panel,fill", "al center", "[fill,grow][][][fill,grow]"));
         panel.add(text, "cell 0 1");
         panel.add(button, "cell 0 2");
@@ -152,6 +154,7 @@ public final class UsagesToolPanel implements ToolPanel {
         var label = new JLabel("N/A");
 
         var panel = new JPanel();
+        panel.setOpaque(false);
         panel.setLayout(new MigLayout("ins panel,fill", "al center", "[fill,grow][][][][fill,grow]"));
         panel.add(new JLabel("Scanning game resources"), "cell 0 1");
         panel.add(progress, "cell 0 2,growx");

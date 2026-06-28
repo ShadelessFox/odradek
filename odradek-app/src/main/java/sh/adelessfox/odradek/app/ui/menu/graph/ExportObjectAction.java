@@ -54,12 +54,12 @@ public class ExportObjectAction extends Action {
     @ActionContribution(parent = ExportObjectAction.ID)
     public static class Placeholder extends Action implements ActionProvider {
         @Override
-        public List<Action> create(ActionContext context) {
+        public List<? extends Action> create(ActionContext context) {
             var game = context.get(DataKeys.GAME, DecimaGame.class).orElseThrow();
             return exporters(context)
                 .gather(Gatherers.groupingBy(x -> x.exporter().namespace().orElse("")))
                 .sorted(Map.Entry.comparingByKey())
-                .map(e -> (Action) new GroupAction(e.getValue().stream()
+                .map(e -> new GroupAction(e.getValue().stream()
                     .map(batch -> action(batch, game))
                     .toList()))
                 .toList();

@@ -10,10 +10,10 @@ public final class MainMenu {
     private MainMenu() {
     }
 
-    @ActionRegistration(id = Edit.ID, text = "&Edit")
+    @ActionRegistration(id = View.ID, text = "&View")
     @ActionContribution(parent = ID, order = 1)
-    public static class Edit extends Action {
-        public static final String ID = MainMenu.ID + ".Edit";
+    public static class View extends Action {
+        public static final String ID = MainMenu.ID + ".View";
     }
 
     @ActionRegistration(id = File.ID, text = "&File")

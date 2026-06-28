@@ -204,7 +204,11 @@ public final class ToolPanelContainer extends JComponent {
                 pane.setDividerLocation(dividerLocation);
             }
 
-            revalidate();
+            // Unless a better way to toggle visibility of individual components
+            // is found without altering the hierarchy, use this to aid in
+            // updating the LaF in case the theme is changed while either
+            // component is hidden.
+            SwingUtilities.updateComponentTreeUI(this);
         }
 
         private int computeDividerLocation() {

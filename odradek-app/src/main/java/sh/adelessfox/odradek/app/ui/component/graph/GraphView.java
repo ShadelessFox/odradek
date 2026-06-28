@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
@@ -139,7 +140,7 @@ public class GraphView implements View<JComponent>, ToolPanel {
             </html>
             """);
         filterField.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")),
+            LineBorder.of(0, 0, 1, 0),
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 

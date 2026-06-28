@@ -100,6 +100,14 @@ public class StyledComponent extends JComponent {
     }
 
     @Override
+    public Dimension getMaximumSize() {
+        if (isMaximumSizeSet()) {
+            return super.getMaximumSize();
+        }
+        return getPreferredSize();
+    }
+
+    @Override
     protected void paintComponent(Graphics g) {
         doPaint((Graphics2D) g);
     }
