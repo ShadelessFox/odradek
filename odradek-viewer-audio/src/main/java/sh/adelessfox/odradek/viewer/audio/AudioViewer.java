@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.viewer.audio;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -27,6 +28,7 @@ public final class AudioViewer implements Viewer {
 
     private final Audio audio;
     private AudioPlayer player;
+    private boolean resume = true;
 
     private AudioViewer(Audio audio) {
         this.audio = audio;
@@ -34,11 +36,23 @@ public final class AudioViewer implements Viewer {
 
     @Override
     public JComponent createComponent() {
-        return player = new AudioPlayer(audio);
+        player = new AudioPlayer(audio);
+        player.putClientProperty(FlatClientProperties.STYLE, "background: $Editor.background");
+
+        return player;
+    }
+
+    @Override
+    public void activate() {
+        if (resume) {
+            player.start();
+            resume = false;
+        }
     }
 
     @Override
     public void deactivate() {
+        resume = player.isPlaying();
         player.stop();
     }
 
