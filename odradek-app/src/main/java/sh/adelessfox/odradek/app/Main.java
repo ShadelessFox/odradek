@@ -54,7 +54,7 @@ public class Main implements Runnable {
     }
 
     private void start() {
-        setupUI();
+        setupUI(debugMode, darkTheme);
         ensureSingleRunningInstance(getClass());
 
         var configPath = determineConfigPath("Odradek");
@@ -77,19 +77,19 @@ public class Main implements Runnable {
         }
     }
 
-    private void setupUI() {
+    private static void setupUI(boolean setupInspectors, boolean useDarkTheme) {
         if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
             // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);
         }
 
-        if (debugMode) {
+        if (setupInspectors) {
             FlatInspector.install("ctrl shift alt X");
             FlatUIDefaultsInspector.install("ctrl shift alt Y");
         }
 
-        if (darkTheme) {
+        if (useDarkTheme) {
             FlatDarkLaf.setup();
         } else {
             FlatLightLaf.setup();
