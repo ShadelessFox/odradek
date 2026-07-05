@@ -62,7 +62,7 @@ public class TextureSetToTextureSetConverter
     private static TextureSet.PackingChannel mapPackingChannel(TextureSetPackingChannel packing) {
         return new TextureSet.PackingChannel(
             mapTextureSetType(packing.type()),
-            mapTextureSetChannel(packing.channel().orElseThrow())
+            mapTextureSetChannel(packing.channel().orElse(HFW.ETextureSetChannel.R))
         );
     }
 
