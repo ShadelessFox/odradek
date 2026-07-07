@@ -7,6 +7,10 @@
 This is a reincarnation of [Decima Workshop](https://github.com/ShadelessFox/decima), a modding tool
 for Horizon Zero Dawn and Death Stranding.
 
+|           ![](/assets/showcase1.png)            |                  ![](/assets/showcase2.png)                  |
+|:-----------------------------------------------:|:------------------------------------------------------------:|
+| <sup>Demonstration of export capabilities</sup> | <sup>Demonstration of model, audio, and object viewers</sup> |
+
 > [!TIP]
 > Nightly prebuilt binaries can be downloaded from [workflows](https://nightly.link/ShadelessFox/odradek/workflows/build/master).
 
