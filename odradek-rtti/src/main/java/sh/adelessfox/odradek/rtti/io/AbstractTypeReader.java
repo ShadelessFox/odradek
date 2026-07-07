@@ -24,7 +24,7 @@ public abstract class AbstractTypeReader {
     }
 
     protected TypedObject readCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        var object = factory.newInstance(info);
+        var object = info.newInstance();
         fillCompound(info, reader, factory, object);
         return object;
     }

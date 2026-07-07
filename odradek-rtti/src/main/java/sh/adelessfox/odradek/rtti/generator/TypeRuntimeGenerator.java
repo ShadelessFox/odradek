@@ -49,10 +49,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         this.className = className;
     }
 
-    public Class<?> lookup(ClassTypeInfo info) {
-        return classes.computeIfAbsent(info, this::generateClass);
-    }
-
     public Class<?> getType(TypeInfo info) {
         try {
             return toClassDesc(info, false).resolveConstantDesc(lookup);
@@ -62,7 +58,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     }
 
     public VarHandle getHandle(ClassTypeInfo info, ClassAttrInfo attr) {
-        var clazz = lookup(info);
+        var clazz = generateClass(info);
         try {
             var type = toClassDesc(attr.type(), true).resolveConstantDesc(lookup);
             return MethodHandles
@@ -73,7 +69,21 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         }
     }
 
+    @SuppressWarnings("deprecation")
+    public Object newInstance(ClassTypeInfo info) {
+        var clazz = generateClass(info);
+        try {
+            return clazz.newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
+    }
+
     private Class<?> generateClass(ClassTypeInfo info) {
+        return classes.computeIfAbsent(info, this::generateClass0);
+    }
+
+    private Class<?> generateClass0(ClassTypeInfo info) {
         var desc = toImplClassDesc(info);
         var data = ClassFile.of().build(desc, cb -> {
             cb.withFlags(AccessFlag.PUBLIC, AccessFlag.FINAL);

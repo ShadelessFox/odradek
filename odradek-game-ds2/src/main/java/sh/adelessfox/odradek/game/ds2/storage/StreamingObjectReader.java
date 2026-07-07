@@ -105,7 +105,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
     private GroupResult readSingleGroup(StreamingGraph.Group group) throws IOException {
         var objects = new ArrayList<TypedObject>(group.types().size());
         for (ClassTypeInfo type : group.types()) {
-            objects.add(factory.newInstance(type));
+            objects.add(type.newInstance());
         }
 
         var result = new GroupResult(group, objects);

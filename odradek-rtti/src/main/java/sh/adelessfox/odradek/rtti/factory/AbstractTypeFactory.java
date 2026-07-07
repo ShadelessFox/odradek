@@ -6,7 +6,6 @@ import sh.adelessfox.odradek.rtti.ClassAttrInfo;
 import sh.adelessfox.odradek.rtti.ClassBaseInfo;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.generator.TypeBindings;
 import sh.adelessfox.odradek.rtti.generator.TypeContext;
 import sh.adelessfox.odradek.rtti.generator.TypeRuntimeGenerator;
@@ -23,14 +22,12 @@ import java.util.stream.Stream;
 public abstract class AbstractTypeFactory implements TypeFactory {
     private static final Logger log = LoggerFactory.getLogger(AbstractTypeFactory.class);
 
-    private final Map<ClassTypeInfo, Class<?>> classes = new IdentityHashMap<>();
     private final Map<TypeId, TypeInfo> types = new HashMap<>();
-
     private final Class<?> namespace;
     private final TypeContext context;
     private final TypeRuntimeGenerator generator;
 
-    public AbstractTypeFactory(Class<?> namespace, MethodHandles.Lookup lookup) {
+    protected AbstractTypeFactory(Class<?> namespace, MethodHandles.Lookup lookup) {
         this.namespace = namespace;
 
         generator = new TypeRuntimeGenerator(lookup, namespace.getPackageName(), namespace.getSimpleName());
@@ -71,17 +68,6 @@ public abstract class AbstractTypeFactory implements TypeFactory {
     @Override
     public Collection<TypeInfo> getAll() {
         return context.getAll();
-    }
-
-    @Override
-    @SuppressWarnings({"deprecation", "unchecked"})
-    public <T extends TypedObject> T newInstance(ClassTypeInfo info) {
-        Class<?> clazz = classes.computeIfAbsent(info, generator::lookup);
-        try {
-            return (T) clazz.newInstance();
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     private static void collectOrderedAttrs(ClassTypeInfo info, int offset, List<OrderedAttr> attrs) {
@@ -127,6 +113,11 @@ public abstract class AbstractTypeFactory implements TypeFactory {
         @Override
         protected Class<?> computeType(TypeInfo info) {
             return generator.getType(info);
+        }
+
+        @Override
+        protected Object newInstance(ClassTypeInfo info) {
+            return generator.newInstance(info);
         }
 
         @Override

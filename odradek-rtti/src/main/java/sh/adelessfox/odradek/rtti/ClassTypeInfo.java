@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.rtti;
 
+import sh.adelessfox.odradek.rtti.data.TypedObject;
+
 import java.lang.invoke.VarHandle;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,8 @@ public non-sealed interface ClassTypeInfo extends TypeInfo {
     int flags();
 
     VarHandle handle(ClassAttrInfo attr);
+
+    TypedObject newInstance();
 
     default Object get(ClassAttrInfo attr, Object object) {
         if (!attr.isSerialized() && attr.isProperty()) {

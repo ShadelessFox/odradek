@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 
 import java.io.BufferedReader;
@@ -230,6 +231,10 @@ public class TypeContext {
         StableValue<TypeInfo> holder = StableValue.of();
         pending.put(holder, type);
         return holder;
+    }
+
+    protected Object newInstance(ClassTypeInfo info) {
+        throw new UnsupportedOperationException("Can't instantiate class in the current context");
     }
 
     protected Class<?> computeType(TypeInfo info) {
@@ -469,6 +474,11 @@ public class TypeContext {
         @Override
         public VarHandle handle(ClassAttrInfo attr) {
             return handles.computeIfAbsent(attr, attr1 -> computeHandle(this, attr1));
+        }
+
+        @Override
+        public TypedObject newInstance() {
+            return (TypedObject) TypeContext.this.newInstance(this);
         }
     }
 

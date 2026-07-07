@@ -33,14 +33,14 @@ class HFWTypeFactoryTest {
     @MethodSource("getTypes")
     void typeCanBeInstantiated(String name) {
         var info = factory.get(name).asClass();
-        assertDoesNotThrow(() -> factory.newInstance(info));
+        assertDoesNotThrow(info::newInstance);
     }
 
     @ParameterizedTest
     @MethodSource("getTypes")
     void typePassesEqualityChecks(String name) {
         var info = factory.get(name).asClass();
-        var instance = factory.newInstance(info);
+        var instance = info.newInstance();
 
         EqualsVerifier.forClass(instance.getClass())
             .suppress(Warning.NONFINAL_FIELDS)

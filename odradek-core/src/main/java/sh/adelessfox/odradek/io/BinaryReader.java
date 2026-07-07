@@ -146,10 +146,16 @@ public interface BinaryReader extends Closeable {
     }
 
     default String readString(int length, Charset charset) throws IOException {
+        if (length == 0) {
+            return "";
+        }
         return new String(readBytes(length), charset);
     }
 
     default String readString(int length) throws IOException {
+        if (length == 0) {
+            return "";
+        }
         return readString(length, StandardCharsets.UTF_8);
     }
 
