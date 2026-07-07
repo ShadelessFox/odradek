@@ -140,10 +140,10 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
-        super.fillCompound(info, reader, factory, object);
+    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object target) throws IOException {
+        super.fillCompound(info, reader, factory, target);
 
-        if (object instanceof HFW.StreamingDataSource dataSource) {
+        if (target instanceof HFW.StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
         }
     }

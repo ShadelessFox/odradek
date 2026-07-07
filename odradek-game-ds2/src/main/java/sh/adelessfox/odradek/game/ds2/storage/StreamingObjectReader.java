@@ -140,10 +140,10 @@ public final class StreamingObjectReader extends DS2TypeReader {
     }
 
     @Override
-    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object object) throws IOException {
-        super.fillCompound(info, reader, factory, object);
+    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object target) throws IOException {
+        super.fillCompound(info, reader, factory, target);
 
-        if (object instanceof DS2.StreamingDataSource dataSource) {
+        if (target instanceof DS2.StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
         }
     }

@@ -111,7 +111,7 @@ public interface BinaryReader extends Closeable {
 
     default float[] readHalfs(int count) throws IOException {
         var dst = new float[count];
-        readFloats(dst, 0, count);
+        readHalfs(dst, 0, count);
         return dst;
     }
 
