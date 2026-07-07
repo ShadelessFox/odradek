@@ -12,9 +12,7 @@ import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.util.Optional;
 
-abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, DS2Game>
-    permits TextureToTextureConverter, UITextureToTextureConverter {
-
+abstract class BaseTextureConverter<T> implements Converter<T, Texture, DS2Game> {
     private static final Logger log = LoggerFactory.getLogger(BaseTextureConverter.class);
 
     protected static Optional<TextureFormat> mapFormat(DS2.EPixelFormat format) {
@@ -24,6 +22,7 @@ abstract sealed class BaseTextureConverter<T> implements Converter<T, Texture, D
             case RGBA_8888 -> TextureFormat.R8G8B8A8_UNORM;
             case RGBA_8888_REV -> TextureFormat.B8G8R8A8_UNORM;
             case RGBA_FLOAT_16 -> TextureFormat.R16G16B16A16_SFLOAT;
+            case R_FLOAT_16 -> TextureFormat.R16_SFLOAT;
             case R_FLOAT_32 -> TextureFormat.R32_SFLOAT;
             case BC1 -> TextureFormat.BC1_UNORM;
             case BC2 -> TextureFormat.BC2_UNORM;
