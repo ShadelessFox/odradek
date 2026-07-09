@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.rtti.data;
 
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
@@ -11,5 +12,12 @@ public interface ExtraBinaryDataHolder {
             "Missing callback for '"
             + getClass().getInterfaces()[0].getSimpleName()
             + "' required to read extra data at position " + reader.position());
+    }
+
+    default void serialize(BinaryWriter reader) throws IOException {
+        throw new UnsupportedOperationException(
+            "Missing callback for '"
+            + getClass().getInterfaces()[0].getSimpleName()
+            + "' required to write extra data at position " + reader.position());
     }
 }

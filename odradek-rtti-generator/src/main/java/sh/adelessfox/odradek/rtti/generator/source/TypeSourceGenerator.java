@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.rtti.generator.source;
 
 import com.squareup.javapoet.*;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -74,6 +75,15 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
                     .addCode("new $T().deserialize(reader, factory, this);", callback);
 
                 builder.addMethod(deserialize.build());
+
+                var serialize = MethodSpec.methodBuilder("serialize")
+                    .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                    .addAnnotation(Override.class)
+                    .addParameter(BinaryWriter.class, "writer")
+                    .addException(IOException.class)
+                    .addCode("new $T().serialize(writer, this);", callback);
+
+                builder.addMethod(serialize.build());
             });
 
             builder.addSuperinterface(ExtraBinaryDataHolder.class);
