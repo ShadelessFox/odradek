@@ -61,6 +61,8 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.help.AboutAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction.Placeholder,
+        sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectPreviewAction,
+        sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectTypeInformationAction,
         sh.adelessfox.odradek.app.ui.menu.graph.CopyIdToClipboardAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction,
         sh.adelessfox.odradek.app.ui.menu.graph.ExportObjectAction.Placeholder,

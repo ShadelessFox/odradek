@@ -39,11 +39,12 @@ public final class SettingAdapterFactory implements TypeAdapterFactory {
 
         @Override
         public void write(JsonWriter out, Setting<E> value) throws IOException {
-            if (value.get().isEmpty()) {
+            var inner = value.orElse(null);
+            if (inner == null) {
                 out.nullValue();
-                return;
+            } else {
+                elementTypeAdapter.write(out, inner);
             }
-            elementTypeAdapter.write(out, value.get().get());
         }
 
         @Override

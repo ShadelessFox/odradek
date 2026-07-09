@@ -57,7 +57,7 @@ public final class ThemeAction extends Action {
         @Override
         public boolean isSelected(ActionContext context) {
             var setting = Application.getInstance().settings().theme();
-            return setting.get().orElse(null) == theme;
+            return setting.orElse(null) == theme;
         }
     }
 }

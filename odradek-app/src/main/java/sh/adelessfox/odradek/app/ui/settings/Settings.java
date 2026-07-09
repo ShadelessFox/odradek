@@ -17,6 +17,8 @@ public final class Settings {
     private final Setting<EditorState> editors = new Setting<>();
     private final Setting<List<Bookmark>> bookmarks = new Setting<>();
     private final Setting<Theme> theme = new Setting<>(Theme.LIGHT);
+    private final Setting<Boolean> showObjectPreview = new Setting<>(true);
+    private final Setting<Boolean> showObjectTypeInformation = new Setting<>(false);
 
     Settings() {
     }
@@ -35,6 +37,14 @@ public final class Settings {
 
     public Setting<Theme> theme() {
         return theme;
+    }
+
+    public Setting<Boolean> showObjectPreview() {
+        return showObjectPreview;
+    }
+
+    public Setting<Boolean> showObjectTypeInformation() {
+        return showObjectTypeInformation;
     }
 
     public record WindowState(int x, int y, int width, int height, boolean maximized) {

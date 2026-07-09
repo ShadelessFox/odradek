@@ -1,10 +1,10 @@
 package sh.adelessfox.odradek.app.ui.settings;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public final class Setting<T> {
     private T value;
@@ -17,8 +17,16 @@ public final class Setting<T> {
         this.value = value;
     }
 
-    public Optional<T> get() {
-        return Optional.ofNullable(value);
+    public T orElse(T other) {
+        return value != null ? value : other;
+    }
+
+    public T orElseThrow() {
+        if (value != null) {
+            return value;
+        } else {
+            throw new NoSuchElementException("No value present");
+        }
     }
 
     public void set(T value) {
@@ -38,13 +46,6 @@ public final class Setting<T> {
         } else {
             return Optional.ofNullable(mapper.apply(value));
         }
-    }
-
-    public T compute(Supplier<? extends T> supplier) {
-        if (value == null) {
-            value = Objects.requireNonNull(supplier.get());
-        }
-        return value;
     }
 
     @Override

@@ -20,9 +20,31 @@ import java.util.Optional;
  */
 public final class PreviewManager extends MouseAdapter {
     public interface PreviewObjectProvider {
-        Optional<TypedObject> getObject(JTree tree, Object value);
-
+        /**
+         * Retrieves {@link TypeInfo} for the given value, if it can be retrieved.
+         * <p>
+         * This method is called <b>first</b> to determine the type of the object,
+         * which is then used to find a suitable {@link Converter} and {@link Preview}.
+         * <p>
+         * It must not perform any expensive operations, as it is called frequently during mouse movement.
+         *
+         * @param tree  the tree where the value is located
+         * @param value the value for which to retrieve the type
+         * @return resolved {@link TypeInfo} for the value, or {@link Optional#empty()} if it cannot be retrieved
+         */
         Optional<TypeInfo> getType(JTree tree, Object value);
+
+        /**
+         * Retrieves the {@link TypedObject} for the given value, if it can be retrieved.
+         * <p>
+         * This method is called <b>after</b> {@link #getType(JTree, Object)}
+         * to retrieve the actual object to be converted and previewed.
+         *
+         * @param tree  the tree where the value is located
+         * @param value the value for which to retrieve the object
+         * @return resolved {@link TypedObject} for the value, or {@link Optional#empty()} if it cannot be retrieved
+         */
+        Optional<TypedObject> getObject(JTree tree, Object value);
     }
 
     private final JTree tree;

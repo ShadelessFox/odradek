@@ -35,7 +35,7 @@ public class Main implements Runnable {
     @Option(names = {"-s", "--source"}, description = "Path to the game's root directory where its executable resides")
     private Optional<Path> source;
 
-    @Option(names = {"--debug"}, description = "Enable debug mode for the UI that features various inspectors")
+    @Option(names = {"--debug"}, description = "Enable UI inspectors for debugging purposes")
     private boolean debugMode = false;
 
     static void main(String[] args) {
@@ -62,7 +62,7 @@ public class Main implements Runnable {
         }
 
         try {
-            Application.start(new ApplicationParameters(configPath, sourcePath, debugMode));
+            Application.start(new ApplicationParameters(configPath, sourcePath));
         } catch (IOException e) {
             log.error("Failed to start the application", e);
             JOptionPane.showMessageDialog(

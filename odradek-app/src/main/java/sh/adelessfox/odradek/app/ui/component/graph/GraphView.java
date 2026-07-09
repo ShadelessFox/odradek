@@ -4,6 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
@@ -197,20 +198,23 @@ public class GraphView implements View<JComponent>, ToolPanel {
 
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override
+            public Optional<TypeInfo> getType(JTree tree, Object value) {
+                if (!Application.getInstance().settings().showObjectPreview().orElse(false)) {
+                    return Optional.empty();
+                }
+                if (value instanceof ObjectIdHolder provider) {
+                    return Optional.of(provider.objectType(game));
+                }
+                return Optional.empty();
+            }
+
+            @Override
             public Optional<TypedObject> getObject(JTree tree, Object value) {
                 var holder = (ObjectIdHolder) value;
                 try {
                     return Optional.of(game.readObject(holder.objectId()));
                 } catch (IOException e) {
                     log.error("Failed to read object for preview", e);
-                }
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<TypeInfo> getType(JTree tree, Object value) {
-                if (value instanceof ObjectIdHolder provider) {
-                    return Optional.of(provider.objectType(game));
                 }
                 return Optional.empty();
             }

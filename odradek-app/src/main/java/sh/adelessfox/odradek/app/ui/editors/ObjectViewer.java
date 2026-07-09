@@ -317,7 +317,8 @@ public final class ObjectViewer implements Viewer {
 
         @Override
         public Optional<String> getToolTip(ObjectStructure element) {
-            if (Application.getInstance().isDebugMode()) {
+            var settings = Application.getInstance().settings();
+            if (settings.showObjectTypeInformation().orElse(false)) {
                 return Optional.of(getElementToolTip(element));
             }
             return Optional.empty();
@@ -326,13 +327,16 @@ public final class ObjectViewer implements Viewer {
 
     private static class ObjectPreviewObjectProvider implements PreviewManager.PreviewObjectProvider {
         @Override
-        public Optional<TypedObject> getObject(JTree tree, Object value) {
-            return get(value);
+        public Optional<TypeInfo> getType(JTree tree, Object value) {
+            if (!Application.getInstance().settings().showObjectPreview().orElse(false)) {
+                return Optional.empty();
+            }
+            return get(value).map(TypedObject::getType);
         }
 
         @Override
-        public Optional<TypeInfo> getType(JTree tree, Object value) {
-            return get(value).map(TypedObject::getType);
+        public Optional<TypedObject> getObject(JTree tree, Object value) {
+            return get(value);
         }
 
         private static Optional<TypedObject> get(Object value) {

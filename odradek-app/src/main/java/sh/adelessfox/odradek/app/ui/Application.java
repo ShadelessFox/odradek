@@ -23,11 +23,9 @@ public final class Application {
     private static Application application;
 
     private final ApplicationComponent component;
-    private final ApplicationParameters parameters;
 
-    private Application(ApplicationComponent component, ApplicationParameters parameters) {
+    private Application(ApplicationComponent component) {
         this.component = component;
-        this.parameters = parameters;
     }
 
     public static Application getInstance() {
@@ -48,7 +46,7 @@ public final class Application {
             .config(params.configPath())
             .build();
 
-        application = new Application(component, params);
+        application = new Application(component);
 
         log.info("Starting the application");
         SwingUtilities.invokeLater(() -> run(component, params));
@@ -130,9 +128,5 @@ public final class Application {
 
     public Settings settings() {
         return component.settings();
-    }
-
-    public boolean isDebugMode() {
-        return parameters.enableDebugMode();
     }
 }
