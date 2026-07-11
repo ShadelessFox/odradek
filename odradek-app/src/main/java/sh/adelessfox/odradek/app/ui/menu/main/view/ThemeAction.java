@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.app.ui.menu.main.view;
 
 import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.extras.FlatAnimatedLafChange;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
@@ -40,10 +39,8 @@ public final class ThemeAction extends Action {
                 return;
             }
 
-            FlatAnimatedLafChange.showSnapshot();
             FlatLaf.setup(theme.createLookAndFeel());
             FlatLaf.updateUI();
-            FlatAnimatedLafChange.hideSnapshotWithAnimation();
 
             var setting = Application.getInstance().settings().theme();
             setting.set(theme);
