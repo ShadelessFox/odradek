@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.IntFunction;
 
 /**
  * A generic source of data.
@@ -43,9 +42,27 @@ public interface BinaryReader extends Closeable {
         return ChannelBinaryReader.open(path);
     }
 
+    void readBytes(byte[] dst, int off, int len) throws IOException;
+
     byte readByte() throws IOException;
 
-    void readBytes(byte[] dst, int off, int len) throws IOException;
+    short readShort() throws IOException;
+
+    int readInt() throws IOException;
+
+    long readLong() throws IOException;
+
+    default float readFloat() throws IOException {
+        return Float.intBitsToFloat(readInt());
+    }
+
+    default double readDouble() throws IOException {
+        return Double.longBitsToDouble(readLong());
+    }
+
+    default float readHalf() throws IOException {
+        return Float.float16ToFloat(readShort());
+    }
 
     default byte[] readBytes(int count) throws IOException {
         var dst = new byte[count];
@@ -53,96 +70,69 @@ public interface BinaryReader extends Closeable {
         return dst;
     }
 
-    short readShort() throws IOException;
-
-    default void readShorts(short[] dst, int off, int len) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        for (int i = 0; i < len; i++) {
-            dst[off + i] = readShort();
-        }
-    }
-
     default short[] readShorts(int count) throws IOException {
         var dst = new short[count];
-        readShorts(dst, 0, count);
-        return dst;
-    }
-
-    int readInt() throws IOException;
-
-    default void readInts(int[] dst, int off, int len) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        for (int i = 0; i < len; i++) {
-            dst[off + i] = readInt();
+        for (int i = 0; i < count; i++) {
+            dst[i] = readShort();
         }
+        return dst;
     }
 
     default int[] readInts(int count) throws IOException {
         var dst = new int[count];
-        readInts(dst, 0, count);
-        return dst;
-    }
-
-    long readLong() throws IOException;
-
-    default void readLongs(long[] dst, int off, int len) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        for (int i = 0; i < len; i++) {
-            dst[off + i] = readLong();
+        for (int i = 0; i < count; i++) {
+            dst[i] = readInt();
         }
+        return dst;
     }
 
     default long[] readLongs(int count) throws IOException {
         var dst = new long[count];
-        readLongs(dst, 0, count);
-        return dst;
-    }
-
-    default float readHalf() throws IOException {
-        return Float.float16ToFloat(readShort());
-    }
-
-    default void readHalfs(float[] dst, int off, int len) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        for (int i = 0; i < len; i++) {
-            dst[off + i] = readHalf();
+        for (int i = 0; i < count; i++) {
+            dst[i] = readLong();
         }
-    }
-
-    default float[] readHalfs(int count) throws IOException {
-        var dst = new float[count];
-        readHalfs(dst, 0, count);
         return dst;
-    }
-
-    float readFloat() throws IOException;
-
-    default void readFloats(float[] dst, int off, int len) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        for (int i = 0; i < len; i++) {
-            dst[off + i] = readFloat();
-        }
     }
 
     default float[] readFloats(int count) throws IOException {
         var dst = new float[count];
-        readFloats(dst, 0, count);
-        return dst;
-    }
-
-    double readDouble() throws IOException;
-
-    default void readDoubles(double[] dst, int off, int len) throws IOException {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        for (int i = 0; i < len; i++) {
-            dst[off + i] = readDouble();
+        for (int i = 0; i < count; i++) {
+            dst[i] = readFloat();
         }
+        return dst;
     }
 
     default double[] readDoubles(int count) throws IOException {
         var dst = new double[count];
-        readDoubles(dst, 0, count);
+        for (int i = 0; i < count; i++) {
+            dst[i] = readDouble();
+        }
         return dst;
+    }
+
+    default float[] readHalfs(int count) throws IOException {
+        var dst = new float[count];
+        for (int i = 0; i < count; i++) {
+            dst[i] = readHalf();
+        }
+        return dst;
+    }
+
+    default String readString(StringFormat format) throws IOException {
+        return readString(format, StandardCharsets.UTF_8);
+    }
+
+    default String readString(StringFormat format, Charset charset) throws IOException {
+        int length = switch (format) {
+            case BYTE_LENGTH -> Byte.toUnsignedInt(readByte());
+            case SHORT_LENGTH -> Short.toUnsignedInt(readShort());
+            case INT_LENGTH -> readInt();
+        };
+        return readString(length, charset);
+    }
+
+    default String readString(int length) throws IOException {
+        return readString(length, StandardCharsets.UTF_8);
     }
 
     default String readString(int length, Charset charset) throws IOException {
@@ -152,37 +142,17 @@ public interface BinaryReader extends Closeable {
         return new String(readBytes(length), charset);
     }
 
-    default String readString(int length) throws IOException {
-        if (length == 0) {
-            return "";
-        }
-        return readString(length, StandardCharsets.UTF_8);
-    }
-
-    default boolean readByteBoolean() throws IOException {
-        var value = readByte();
+    default boolean readBool(BoolFormat format) throws IOException {
+        int value = switch (format) {
+            case BYTE -> readByte();
+            case SHORT -> readShort();
+            case INT -> readInt();
+        };
         return switch (value) {
             case 0 -> false;
             case 1 -> true;
-            default -> throw new IOException("Invalid boolean value: " + value);
+            default -> throw new IOException("Unexpected value for bool: " + value);
         };
-    }
-
-    default boolean readIntBoolean() throws IOException {
-        var value = readInt();
-        return switch (value) {
-            case 0 -> false;
-            case 1 -> true;
-            default -> throw new IOException("Invalid boolean value: " + value);
-        };
-    }
-
-    default <T> T[] readObjects(int count, Mapper<T> mapper, IntFunction<T[]> creator) throws IOException {
-        var dst = creator.apply(count);
-        for (int i = 0; i < count; i++) {
-            dst[i] = mapper.read(this);
-        }
-        return dst;
     }
 
     default <T> List<T> readObjects(int count, Mapper<T> mapper) throws IOException {

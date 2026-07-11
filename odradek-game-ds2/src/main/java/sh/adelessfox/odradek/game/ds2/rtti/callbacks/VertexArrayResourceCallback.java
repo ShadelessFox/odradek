@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.game.ds2.rtti.callbacks;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeReader;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -13,7 +14,7 @@ public final class VertexArrayResourceCallback implements ExtraBinaryDataCallbac
     public void deserialize(BinaryReader reader, TypeFactory factory, DS2.VertexArrayResource object) throws IOException {
         var numVertices = reader.readInt();
         var numStreams = reader.readInt();
-        var streaming = reader.readByteBoolean();
+        var streaming = reader.readBool(BoolFormat.BYTE);
         var streams = reader.readObjects(numStreams, r -> readVertexStream(r, factory, numVertices, streaming));
 
         object.count(numVertices);

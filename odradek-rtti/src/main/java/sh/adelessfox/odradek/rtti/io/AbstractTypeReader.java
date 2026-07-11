@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.rtti.io;
 
 import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -230,12 +231,12 @@ public abstract class AbstractTypeReader {
         final class Bool8 implements AtomReader {
             @Override
             public Object read(BinaryReader reader) throws IOException {
-                return reader.readByteBoolean();
+                return reader.readBool(BoolFormat.BYTE);
             }
 
             @Override
             public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readByteBoolean());
+                handle.set(target, reader.readBool(BoolFormat.BYTE));
             }
 
             @Override

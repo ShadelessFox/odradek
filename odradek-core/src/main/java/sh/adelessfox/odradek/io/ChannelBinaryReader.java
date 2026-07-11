@@ -54,18 +54,6 @@ final class ChannelBinaryReader implements BinaryReader {
     }
 
     @Override
-    public float readFloat() throws IOException {
-        refill(Float.BYTES);
-        return buffer.getFloat();
-    }
-
-    @Override
-    public double readDouble() throws IOException {
-        refill(Double.BYTES);
-        return buffer.getDouble();
-    }
-
-    @Override
     public void readBytes(byte[] dst, int off, int len) throws IOException {
         Objects.checkFromIndexSize(off, len, dst.length);
 

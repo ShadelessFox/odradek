@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.constraints;
 
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.core.Factory;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 
 import java.io.IOException;
 
@@ -27,7 +28,7 @@ public class ConstraintSettings {
     }
 
     public void restoreBinaryState(BinaryReader reader) throws IOException {
-        enabled = reader.readByteBoolean();
+        enabled = reader.readBool(BoolFormat.BYTE);
         drawConstraintSize = reader.readFloat();
         constraintPriority = reader.readInt();
         numVelocityStepsOverride = reader.readInt();

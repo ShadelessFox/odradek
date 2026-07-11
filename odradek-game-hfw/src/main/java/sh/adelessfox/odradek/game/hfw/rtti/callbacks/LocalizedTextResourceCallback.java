@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class LocalizedTextResourceCallback implements ExtraBinaryDataCallback<HFW.LocalizedTextResource> {
     @Override
@@ -17,6 +18,6 @@ public class LocalizedTextResourceCallback implements ExtraBinaryDataCallback<HF
         for (int i = 0; i < count; i++) {
             texts.add(reader.readString(Short.toUnsignedInt(reader.readShort())));
         }
-        object.texts(texts);
+        object.texts(List.copyOf(texts));
     }
 }

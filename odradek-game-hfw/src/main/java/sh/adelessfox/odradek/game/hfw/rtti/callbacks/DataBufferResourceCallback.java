@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
@@ -16,7 +17,7 @@ public class DataBufferResourceCallback implements ExtraBinaryDataCallback<HFW.D
             return;
         }
 
-        var streaming = reader.readIntBoolean();
+        var streaming = reader.readBool(BoolFormat.INT);
         var flags = reader.readInt();
         var format = Value.valueOf(HFW.EDataBufferFormat.class, reader.readInt());
         var stride = reader.readInt();

@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.ds2.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
@@ -10,7 +11,7 @@ import java.io.IOException;
 public final class UITextureCallback implements ExtraBinaryDataCallback<DS2.UITexture> {
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, DS2.UITexture object) throws IOException {
-        var animated = reader.readByteBoolean();
+        var animated = reader.readBool(BoolFormat.BYTE);
         object.animated(animated);
 
         var smallTextureSize = reader.readInt();

@@ -20,17 +20,17 @@ final class BytesBinaryReader implements BinaryReader {
     }
 
     @Override
-    public byte readByte() {
-        var value = array[offset + position];
-        position++;
-        return value;
-    }
-
-    @Override
     public void readBytes(byte[] dst, int off, int len) {
         Objects.checkFromIndexSize(off, len, dst.length);
         System.arraycopy(array, offset + position, dst, off, len);
         position += len;
+    }
+
+    @Override
+    public byte readByte() {
+        var value = array[offset + position];
+        position++;
+        return value;
     }
 
     @Override
@@ -51,20 +51,6 @@ final class BytesBinaryReader implements BinaryReader {
     public long readLong() {
         var value = Handles.getLong(array, offset + position, order);
         position += Long.BYTES;
-        return value;
-    }
-
-    @Override
-    public float readFloat() {
-        var value = Handles.getFloat(array, offset + position, order);
-        position += Float.BYTES;
-        return value;
-    }
-
-    @Override
-    public double readDouble() {
-        var value = Handles.getDouble(array, offset + position, order);
-        position += Double.BYTES;
         return value;
     }
 

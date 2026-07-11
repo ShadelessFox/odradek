@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -52,10 +53,6 @@ public class StreamingObjectReader extends HFWTypeReader {
         this.factory = factory;
     }
 
-    public GroupResult readGroup(int id) throws IOException {
-        return readGroup(id, true);
-    }
-
     public GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
         return readGroup(id, new HashMap<>(), readSubgroups);
     }
@@ -70,7 +67,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         var result = cache.get(group.id());
         if (result == null) {
             depth++;
-            result = readGroup(group, cache, readSubgroups);
+            result = readGroup(group, readSubgroups);
             cache.put(result.group.id(), result);
             depth--;
         }
@@ -78,15 +75,11 @@ public class StreamingObjectReader extends HFWTypeReader {
         return result;
     }
 
-    private synchronized GroupResult readGroup(
-        StreamingGraph.Group group,
-        Map<Integer, GroupResult> groups,
-        boolean readSubgroups
-    ) throws IOException {
+    private synchronized GroupResult readGroup(StreamingGraph.Group group, boolean readSubgroups) throws IOException {
         var subGroups = new ArrayList<GroupResult>(group.subGroups().size());
         if (readSubgroups) {
             for (StreamingGraph.Group subGroup : group.subGroups()) {
-                subGroups.add(readGroup(subGroup, groups, true));
+                subGroups.add(readGroup(subGroup, true));
             }
         }
 
@@ -150,7 +143,7 @@ public class StreamingObjectReader extends HFWTypeReader {
 
     @Override
     protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        if (!reader.readByteBoolean()) {
+        if (!reader.readBool(BoolFormat.BYTE)) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
             return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));

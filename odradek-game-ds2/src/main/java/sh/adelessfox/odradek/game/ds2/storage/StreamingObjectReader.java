@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeReader;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.*;
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
@@ -70,7 +71,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
         var result = cache.get(group.id());
         if (result == null) {
             depth++;
-            result = readGroup(group, cache, readSubgroups);
+            result = readGroup(group, readSubgroups);
             cache.put(result.group.id(), result);
             depth--;
         }
@@ -80,13 +81,12 @@ public final class StreamingObjectReader extends DS2TypeReader {
 
     private synchronized GroupResult readGroup(
         StreamingGraph.Group group,
-        Map<Integer, GroupResult> groups,
         boolean readSubgroups
     ) throws IOException {
         var subGroups = new ArrayList<GroupResult>(group.subGroups().size());
         if (readSubgroups) {
             for (StreamingGraph.Group subGroup : group.subGroups()) {
-                subGroups.add(readGroup(subGroup, groups, true));
+                subGroups.add(readGroup(subGroup, true));
             }
         }
 
@@ -150,7 +150,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
 
     @Override
     protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        if (!reader.readByteBoolean()) {
+        if (!reader.readBool(BoolFormat.BYTE)) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
             return new UUIDRef<>((DS2.GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));

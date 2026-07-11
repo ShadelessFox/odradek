@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic;
 
 import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BoolFormat;
 
 import java.io.IOException;
 
@@ -14,10 +15,10 @@ public record Configuration(
     public static Configuration read(BinaryReader reader) throws IOException {
         return new Configuration(
             CalculationType.values()[reader.readInt()],
-            reader.readByteBoolean(),
-            reader.readByteBoolean(),
-            reader.readByteBoolean(),
-            reader.readByteBoolean()
+            reader.readBool(BoolFormat.BYTE),
+            reader.readBool(BoolFormat.BYTE),
+            reader.readBool(BoolFormat.BYTE),
+            reader.readBool(BoolFormat.BYTE)
         );
     }
 }
