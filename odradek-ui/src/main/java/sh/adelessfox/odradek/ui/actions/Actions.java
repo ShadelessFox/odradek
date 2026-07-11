@@ -199,6 +199,7 @@ public final class Actions {
     ) {
         selectionProvider.getSelection(component, event).ifPresent(selection -> {
             var location = selectionProvider.getSelectionLocation(component, selection, event);
+            popupMenu.updateUI();
             popupMenu.show(component, location.x, location.y);
         });
     }
