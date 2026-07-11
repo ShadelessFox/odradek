@@ -3,19 +3,43 @@ package sh.adelessfox.odradek.game.decima;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import wtf.reversed.toolbox.hash.HashCode;
+import wtf.reversed.toolbox.util.Check;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.OptionalInt;
 
 public interface StreamingGraph {
-    record Span(int fileIndex, int offset, int length) {
+    record Span(int fileIndex, int offset, int length, boolean patch) {
+        public Span {
+            Check.positiveOrZero(offset, "offset");
+            Check.positiveOrZero(length, "length");
+        }
+
+        public long end() {
+            return offset + length;
+        }
+
+        public Span shift(int delta) {
+            return new Span(fileIndex, Math.addExact(offset, delta), length, patch);
+        }
     }
 
     record Locator(int fileIndex, long offset) {
     }
 
     record Link(OptionalInt group, int index) {
+    }
+
+    @Deprecated
+    record Range(long offset, int size) {
+        public long end() {
+            return offset + size;
+        }
+
+        public Range shift(long delta) {
+            return new Range(offset + delta, size);
+        }
     }
 
     interface Group {
@@ -38,6 +62,9 @@ public interface StreamingGraph {
         List<Locator> locators();
 
         Iterator<StreamingGraph.Link> links();
+
+        /** Returns the game-specific resource object that represents this group. */
+        TypedObject resource();
     }
 
     List<ClassTypeInfo> types();

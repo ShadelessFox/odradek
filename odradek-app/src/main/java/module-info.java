@@ -14,6 +14,7 @@ module odradek.app {
     requires odradek.game.decima;
     requires odradek.rtti;
     requires odradek.ui;
+    requires org.lz4.java;
     requires org.slf4j;
 
     requires wtf.reversed.toolbox;

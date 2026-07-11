@@ -115,7 +115,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
 
     private static List<StreamingGraph.Span> computeSpans(DS2.StreamingGraphResource graph) {
         return graph.spanTable().stream()
-            .map(span -> new StreamingGraph.Span(span.fileIndexAndIsPatch() & 0x7fffffff, span.offset(), span.length()))
+            .map(span -> new StreamingGraph.Span(span.fileIndex(), span.offset(), span.length(), span.isPatch()))
             .toList();
     }
 
@@ -276,6 +276,11 @@ public final class StreamingGraphImpl implements StreamingGraph {
         @Override
         public Iterator<StreamingGraph.Link> links() {
             return graph.links(inner.linkStart());
+        }
+
+        @Override
+        public TypedObject resource() {
+            return inner;
         }
     }
 }

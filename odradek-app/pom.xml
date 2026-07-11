@@ -144,6 +144,11 @@
             <groupId>io.github.jbock-java</groupId>
             <artifactId>dapper</artifactId>
         </dependency>
+        <dependency>
+            <groupId>at.yawk.lz4</groupId>
+            <artifactId>lz4-java</artifactId>
+            <version>1.10.2</version>
+        </dependency>
 
         <dependency>
             <groupId>wtf.reversed</groupId>

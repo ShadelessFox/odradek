@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.util.LruWeakCache;
+import wtf.reversed.toolbox.util.Check;
 
 import java.io.IOException;
 import java.util.*;
@@ -35,9 +36,11 @@ public final class StreamingObjectReader extends DS2TypeReader {
     private Iterator<StreamingGraph.Locator> streamingLocators;
     private int depth;
 
-    public record GroupResult(StreamingGraph.Group group, List<TypedObject> objects) {
+    public record GroupResult(StreamingGraph.Group group, List<TypedObject> objects, List<StreamingGraph.Span> spans) {
         public GroupResult {
+            Check.state(objects.size() == spans.size(), "objects and spans must have the same size");
             objects = List.copyOf(objects);
+            spans = List.copyOf(spans);
         }
 
         @Override
@@ -99,23 +102,24 @@ public final class StreamingObjectReader extends DS2TypeReader {
 
     private GroupResult readSingleGroup(StreamingGraph.Group group) throws IOException {
         var objects = new ArrayList<TypedObject>(group.types().size());
+        var spans = new ArrayList<StreamingGraph.Span>(group.types().size());
         for (ClassTypeInfo type : group.types()) {
             objects.add(type.newInstance());
+            spans.add(new StreamingGraph.Span(0, 0, 0, false));
         }
 
-        var result = new GroupResult(group, objects);
-
-        currentGroup = result;
+        currentGroup = new GroupResult(group, objects, spans);
         streamingLinks = group.links();
         streamingLocators = group.locators().iterator();
 
-        int index = 0;
+        var objectIndex = 0;
         for (StreamingGraph.Span span : group.spans()) {
             var data = getSpanData(span);
             var reader = BinaryReader.wrap(data);
 
             while (reader.remaining() > 0) {
-                var object = objects.get(index++);
+                var start = reader.position();
+                var object = objects.get(objectIndex);
 
                 if (log.isDebugEnabled()) {
                     log.debug(
@@ -123,15 +127,24 @@ public final class StreamingObjectReader extends DS2TypeReader {
                         indent(),
                         Colors.yellow(object.getType()),
                         Colors.yellow(getSpanFile(span)),
-                        Colors.blue(span.offset() + reader.position())
+                        Colors.blue(span.offset() + start)
                     );
                 }
 
                 fillCompound(object.getType(), reader, factory, object);
+
+                var range = new StreamingGraph.Span(
+                    span.fileIndex(),
+                    Math.toIntExact(span.offset() + start),
+                    Math.toIntExact(reader.position() - start),
+                    span.patch());
+                spans.set(objectIndex, range);
+
+                objectIndex++;
             }
         }
 
-        return result;
+        return new GroupResult(group, objects, spans);
     }
 
     @Override

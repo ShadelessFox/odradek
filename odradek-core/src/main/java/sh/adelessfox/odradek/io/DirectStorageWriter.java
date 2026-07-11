@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.io;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.compress.Compressor;
 import wtf.reversed.toolbox.util.Check;
@@ -24,6 +26,7 @@ public final class DirectStorageWriter implements BinaryWriter {
     private static final long HEADER_PADDING = 0x2a4b45444152444fL;
     private static final long CHUNK_PADDING = 0x5555555555555555L;
     private static final byte CHUNK_COMPRESSION_LZ4 = 3;
+    private static final Logger log = LoggerFactory.getLogger(DirectStorageWriter.class);
 
     private final BinaryWriter writer;
     private final long dataSize;
@@ -117,10 +120,13 @@ public final class DirectStorageWriter implements BinaryWriter {
 
     @Override
     public void close() throws IOException {
-        // TODO: Check whether the expected amount of data was actually written and throw an exception or log if not
         flush();
         writeCompleteHeader();
         writer.close();
+
+        if (position != dataSize) {
+            log.warn("Expected to write {} bytes, but wrote {} bytes", dataSize, position);
+        }
     }
 
     private void reserve(int count) throws IOException {

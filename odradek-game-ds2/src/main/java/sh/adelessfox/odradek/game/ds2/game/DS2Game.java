@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Optional;
 
 public final class DS2Game implements DecimaGame {
+
+    private final DS2TypeFactory typeFactory;
+
     public static final class Provider implements Game.Provider {
         @Override
         public boolean supports(Path path) {
@@ -61,7 +64,7 @@ public final class DS2Game implements DecimaGame {
         fileSystem = new FileSystem(source, platform);
 
         log.debug("Loading type factory");
-        var typeFactory = new DS2TypeFactory();
+        typeFactory = new DS2TypeFactory();
 
         log.debug("Loading streaming graph");
         var graph = readStreamingGraph(fileSystem, typeFactory);
@@ -106,6 +109,19 @@ public final class DS2Game implements DecimaGame {
     }
 
     @Override
+    public List<TypedObject> readGroup(
+        int groupId,
+        boolean readSubgroups,
+        List<StreamingGraph.Span> spans
+    ) throws IOException {
+        synchronized (streamingReader) {
+            var result = streamingReader.readGroup(groupId, readSubgroups);
+            spans.addAll(result.spans());
+            return result.objects();
+        }
+    }
+
+    @Override
     public byte[] readFile(String file, long offset, long length) throws IOException {
         return storage.read(file, offset, length);
     }
@@ -126,6 +142,10 @@ public final class DS2Game implements DecimaGame {
 
     public DS2.ELanguage getSpokenLanguage() {
         return spokenLanguage;
+    }
+
+    public DS2TypeFactory getTypeFactory() {
+        return typeFactory;
     }
 
     @Override

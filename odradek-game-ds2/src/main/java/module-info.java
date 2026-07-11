@@ -73,6 +73,7 @@ import java.math.BigInteger;
         @Extension(type = "LocalizedTextResource", extension = LocalizedTextResourceExtension.class),
         @Extension(type = "MurmurHashValue", extension = MurmurHashValueExtension.class),
         @Extension(type = "StreamingDataSource", extension = StreamingDataSourceExtension.class),
+        @Extension(type = "StreamingSourceSpan", extension = StreamingSourceSpanExtension.class),
         @Extension(type = "WwiseWemLocalizedResource", extension = WwiseWemLocalizedResourceExtension.class)
     }
 )

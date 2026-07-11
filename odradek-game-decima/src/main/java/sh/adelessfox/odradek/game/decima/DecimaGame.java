@@ -29,6 +29,21 @@ public interface DecimaGame extends Game {
      */
     List<TypedObject> readGroup(int groupId, boolean readSubgroups) throws IOException;
 
+    /**
+     * Reads a group from the streaming graph by its group ID.
+     *
+     * @param groupId       id of the group
+     * @param readSubgroups whether to read subgroups of the group
+     * @param spans         mutable output parameter to store individual spans of the objects in the group
+     * @return a list of objects in the group
+     * @throws IOException if an I/O error occurs during reading
+     */
+    List<TypedObject> readGroup(
+        int groupId,
+        boolean readSubgroups,
+        List<StreamingGraph.Span> spans
+    ) throws IOException;
+
     default TypedObject readObject(ObjectId objectId) throws IOException {
         return readObject(objectId.groupId(), objectId.objectIndex());
     }

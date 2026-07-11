@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.hfw.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
@@ -100,6 +101,15 @@ public final class HFWGame implements DecimaGame {
         synchronized (streamingReader) {
             return streamingReader.readGroup(groupId, readSubgroups).objects();
         }
+    }
+
+    @Override
+    public List<TypedObject> readGroup(
+        int groupId,
+        boolean readSubgroups,
+        List<StreamingGraph.Span> spans
+    ) throws IOException {
+        throw new NotImplementedException(); // TODO
     }
 
     @Override
