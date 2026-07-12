@@ -8,7 +8,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,15 +77,26 @@ final class ViewportAnimator {
                 break;
             }
             try {
-                SwingUtilities.invokeAndWait(() -> {
+                var lock = new Object();
+                var dispatched = new boolean[1];
+                SwingUtilities.invokeLater(() -> {
                     if (viewport.isValid()) {
                         viewport.render();
                     }
+                    dispatched[0] = true;
+                    synchronized (lock) {
+                        lock.notify();
+                    }
                 });
+                if (!dispatched[0]) {
+                    synchronized (lock) {
+                        lock.wait(1000);
+                    }
+                    if (!dispatched[0]) {
+                        log.warn("Render event was not dispatched within 1 second. The EDT might have consumed the event!");
+                    }
+                }
             } catch (InterruptedException ignored) {
-            } catch (InvocationTargetException e) {
-                log.error("Error during rendering", e.getTargetException());
-                stop();
             }
         }
     }
