@@ -71,14 +71,16 @@ public final class EditorStackDropOverlay extends JComponent {
         var newTarget = determineDropTarget(manager.getRoot(), sourceStack, screenX, screenY);
         if (!Objects.equals(target, newTarget)) {
             target = newTarget;
+            setCursor(determineCursor(newTarget));
             repaint();
         }
     }
 
     /**
-     * Cleans up resources used by the overlay.
+     * Cleans up resources used by the overlay and prepares for next use.
      */
     public void release() {
+        setCursor(null);
         target = null;
     }
 
@@ -87,6 +89,21 @@ public final class EditorStackDropOverlay extends JComponent {
      */
     public Optional<EditorStackDropTarget> getTarget() {
         return Optional.ofNullable(target);
+    }
+
+    private Cursor determineCursor(EditorStackDropTarget target) {
+        int type = switch (target) {
+            case EditorStackDropTarget.Move _ -> Cursor.MOVE_CURSOR;
+            case EditorStackDropTarget.Split(_, var position) -> switch (position) {
+                case CENTER -> Cursor.MOVE_CURSOR;
+                case TOP -> Cursor.N_RESIZE_CURSOR;
+                case BOTTOM -> Cursor.S_RESIZE_CURSOR;
+                case LEFT -> Cursor.W_RESIZE_CURSOR;
+                case RIGHT -> Cursor.E_RESIZE_CURSOR;
+            };
+            case null -> Cursor.DEFAULT_CURSOR;
+        };
+        return Cursor.getPredefinedCursor(type);
     }
 
     private void paintMoveMarker(Graphics2D g2, EditorStack stack, int index) {
