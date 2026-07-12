@@ -288,7 +288,7 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
     }
 
     private void updateOrbitCamera(float dt, Vector2 mouse) {
-        var speed = (float) (Math.sqrt(cameraDistance) * dt);
+        var speed = (float) (Math.sqrt(cameraDistance) * dt * 1e3);
         var target = camera.forward();
         camera.rotate(mouse.x() * speed, mouse.y() * speed);
         var distance = target.subtract(camera.forward()).multiply(cameraDistance);
