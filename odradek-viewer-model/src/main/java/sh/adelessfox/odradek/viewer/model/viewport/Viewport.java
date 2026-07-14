@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.viewer.model.viewport;
 
-import com.formdev.flatlaf.util.UIScale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.opengl.awt.GLEventListener;
@@ -60,6 +59,15 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
     @Override
     public void addNotify() {
         super.addNotify();
+
+        var gc = getGraphicsConfiguration();
+        if (gc != null) {
+            int refreshRate = gc.getDevice().getDisplayMode().getRefreshRate();
+            if (refreshRate != DisplayMode.REFRESH_RATE_UNKNOWN) {
+                animator.setRefreshRate(refreshRate);
+            }
+        }
+
         animator.start();
     }
 

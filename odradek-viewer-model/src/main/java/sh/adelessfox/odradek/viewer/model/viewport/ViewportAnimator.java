@@ -16,8 +16,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This class is responsible for triggering the {@link Viewport#render()} function
- * periodically according to the current display refresh rate.
+ * This class is responsible for triggering the {@link Viewport#renderAndRepaint()} function
+ * periodically according to the {@link #setRefreshRate(int) specified refresh rate}.
  * <p>
  * When the viewport is not visible, the rendering is paused to reduce CPU and GPU usage.
  */
@@ -32,6 +32,9 @@ final class ViewportAnimator {
 
     private final Viewport viewport;
     private final EventHandler handler = new EventHandler();
+
+    private int refreshRate = -1;
+    private long lastRenderTime = 0;
 
     public ViewportAnimator(Viewport viewport) {
         this.viewport = viewport;
@@ -63,41 +66,66 @@ final class ViewportAnimator {
         }
     }
 
+    public void setRefreshRate(int refreshRate) {
+        this.refreshRate = refreshRate;
+    }
+
     private void loop() {
         while (isRunning.get()) {
-            renderLock.lock();
-            try {
-                while (isRunning.get() && isPaused.get()) {
-                    canRender.awaitUninterruptibly();
+            waitUntilCanRender();
+            if (isRunning.get()) {
+                render();
+            }
+        }
+    }
+
+    private void render() {
+        var lock = new Object();
+        var dispatched = new boolean[1];
+        SwingUtilities.invokeLater(() -> {
+            if (viewport.isValid()) {
+                viewport.renderAndRepaint();
+            }
+            dispatched[0] = true;
+            synchronized (lock) {
+                lock.notify();
+            }
+        });
+        if (!dispatched[0]) {
+            synchronized (lock) {
+                try {
+                    lock.wait(1000);
+                } catch (InterruptedException e) {
+                    log.debug("Interrupted while waiting for render event to be dispatched", e);
                 }
-            } finally {
-                renderLock.unlock();
             }
-            if (!isRunning.get()) {
-                break;
+            if (!dispatched[0]) {
+                log.warn("Render event was not dispatched within 1 second. The EDT might have consumed the event!");
             }
-            try {
-                var lock = new Object();
-                var dispatched = new boolean[1];
-                SwingUtilities.invokeLater(() -> {
-                    if (viewport.isValid()) {
-                        viewport.render();
-                    }
-                    dispatched[0] = true;
-                    synchronized (lock) {
-                        lock.notify();
-                    }
-                });
-                if (!dispatched[0]) {
-                    synchronized (lock) {
-                        lock.wait(1000);
-                    }
-                    if (!dispatched[0]) {
-                        log.warn("Render event was not dispatched within 1 second. The EDT might have consumed the event!");
-                    }
+        }
+    }
+
+    private void waitUntilCanRender() {
+        renderLock.lock();
+        try {
+            while (isRunning.get() && isPaused.get()) {
+                canRender.awaitUninterruptibly();
+            }
+        } finally {
+            renderLock.unlock();
+        }
+        if (refreshRate > 0) {
+            long currentTime = System.currentTimeMillis();
+            long elapsedTime = currentTime - lastRenderTime;
+            long timeToNextRender = (long) (1_000_000_000.0 / refreshRate) - elapsedTime;
+            if (timeToNextRender > 0) {
+                try {
+                    Thread.sleep(timeToNextRender / 1_000_000, (int) (timeToNextRender % 1_000_000));
+                } catch (InterruptedException e) {
+                    log.debug("Interrupted while sleeping before next render", e);
                 }
-            } catch (InterruptedException ignored) {
             }
+            lastRenderTime = System.currentTimeMillis();
         }
     }
 
