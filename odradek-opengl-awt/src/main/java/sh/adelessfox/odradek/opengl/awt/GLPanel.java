@@ -36,35 +36,32 @@ public class GLPanel extends JPanel implements Disposable {
         };
     }
 
+    public void render() {
+        runInContext(() -> {
+            swapChain.resize(getWidth(), getHeight());
+            swapChain.present();
+        });
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
-        context.makeCurrent();
+        swapChain.getImage().ifPresent(image -> {
+            int width = getWidth();
+            int height = getHeight();
 
-        if (capabilities == null) {
-            capabilities = GL.createCapabilities();
-            notifyListeners(GLEventListener::onCreate);
-        } else {
-            GL.setCapabilities(capabilities);
-        }
-
-        int width = getWidth();
-        int height = getHeight();
-
-        swapChain.resize(width, height);
-        swapChain.present();
-
-        g.setColor(getBackground());
-        g.fillRect(0, 0, width, height);
-        g.drawImage(swapChain.getImage(), 0, 0, width, height, 0, height, width, 0, null);
-
-        context.clearCurrent();
+            g.setColor(getBackground());
+            g.fillRect(0, 0, width, height);
+            g.drawImage(image, 0, 0, width, height, 0, height, width, 0, null);
+        });
     }
 
     @Override
     public void dispose() {
-        notifyListeners(GLEventListener::onDestroy);
-        swapChain.dispose();
-        context.dispose();
+        runInContext(() -> {
+            notifyListeners(GLEventListener::onDestroy);
+            swapChain.dispose();
+            context.dispose();
+        });
     }
 
     public void addGLEventListener(GLEventListener listener) {
@@ -78,6 +75,24 @@ public class GLPanel extends JPanel implements Disposable {
     private void notifyListeners(Consumer<GLEventListener> consumer) {
         for (GLEventListener listener : listeners) {
             consumer.accept(listener);
+        }
+    }
+
+    private void runInContext(Runnable runnable) {
+        context.makeCurrent();
+
+        if (capabilities == null) {
+            capabilities = GL.createCapabilities();
+            notifyListeners(GLEventListener::onCreate);
+        } else {
+            GL.setCapabilities(capabilities);
+        }
+
+        try {
+            runnable.run();
+        } finally {
+            context.clearCurrent();
+            GL.setCapabilities(null);
         }
     }
 }

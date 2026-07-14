@@ -103,7 +103,7 @@ public abstract sealed class Framebuffer implements GLObject.Bindable<Framebuffe
         private final int depthAttachment;
 
         MultiSampled(int width, int height, int samples) {
-            Objects.checkIndex(samples, glGetInteger(GL_MAX_SAMPLES));
+            Objects.checkIndex(samples, glGetInteger(GL_MAX_SAMPLES) + 1);
             super(width, height);
 
             glBindFramebuffer(GL_FRAMEBUFFER, id);

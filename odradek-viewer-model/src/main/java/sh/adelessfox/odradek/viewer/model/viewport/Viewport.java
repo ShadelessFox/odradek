@@ -44,20 +44,17 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
     private Scene scene;
 
     public Viewport(ViewportContext context) {
-        panel = createPanel();
+        this.context = context;
+
+        panel = new GLPanel(GLProfile.CORE, 4, 6, true, -1);
+        panel.setBackground(Color.DARK_GRAY);
+        panel.addGLEventListener(this);
+
         input = new ViewportInput(panel);
         animator = new ViewportAnimator(this);
-        this.context = context;
 
         setLayout(new BorderLayout());
         add(panel, BorderLayout.CENTER);
-    }
-
-    private GLPanel createPanel() {
-        GLPanel panel = new GLPanel(GLProfile.CORE, 4, 6, true, 16);
-        panel.setBackground(Color.DARK_GRAY);
-        panel.addGLEventListener(this);
-        return panel;
     }
 
     @Override
@@ -127,7 +124,8 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
         panel.dispose();
     }
 
-    public void render() {
+    public void renderAndRepaint() {
+        panel.render();
         panel.repaint();
     }
 
@@ -177,11 +175,11 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
     }
 
     public int getFramebufferWidth() {
-        return UIScale.scale(panel.getWidth());
+        return panel.getWidth();
     }
 
     public int getFramebufferHeight() {
-        return UIScale.scale(panel.getHeight());
+        return panel.getHeight();
     }
 
     private void renderScene(float dt) {
@@ -229,7 +227,7 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
             context.setShowCameraOrigin(true);
         } else if (input.isMouseDown(MouseEvent.BUTTON3)) {
             updateCameraZoom(Math.clamp((float) Math.exp(Math.log(cameraDistance) - wheelDelta), 0.1f, 100.0f));
-            updateOrbitCamera(dt, mouseDelta);
+            updateOrbitCamera(mouseDelta);
             context.setShowCameraOrigin(true);
         }
     }
@@ -287,10 +285,9 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
         camera.move(camera.up().multiply(mouse.y() * speed));
     }
 
-    private void updateOrbitCamera(float dt, Vector2 mouse) {
-        var speed = (float) (Math.sqrt(cameraDistance) * dt * 1e3);
+    private void updateOrbitCamera(Vector2 mouse) {
         var target = camera.forward();
-        camera.rotate(mouse.x() * speed, mouse.y() * speed);
+        camera.rotate(mouse.x(), mouse.y());
         var distance = target.subtract(camera.forward()).multiply(cameraDistance);
         camera.move(distance);
     }

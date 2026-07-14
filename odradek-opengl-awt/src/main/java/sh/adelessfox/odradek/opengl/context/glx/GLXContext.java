@@ -47,7 +47,9 @@ public final class GLXContext extends GLContext {
 
     @Override
     public void makeCurrent() {
-        glXMakeCurrent(display, pbuffer, context);
+        if (!glXMakeCurrent(display, pbuffer, context)) {
+            throw new IllegalStateException("Failed to make GLX context current");
+        }
     }
 
     @Override
