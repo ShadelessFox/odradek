@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
@@ -33,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -208,10 +210,18 @@ public class ExportObjectAction extends Action {
 
         @Override
         protected Integer doInBackground() {
+            // Process all objects that are already loaded in memory
             batch.objects().parallelStream()
+                .filter(ObjectHolder.class::isInstance)
+                .forEach(e -> exportObject(e.objectId(), (TypedObject) ((ObjectHolder<?>) e).object()));
+
+            // Process the rest, in groups, to avoid reading the same group multiple times
+            batch.objects().parallelStream()
+                .filter(Predicate.not(ObjectHolder.class::isInstance))
                 .map(ObjectIdHolder::objectId)
                 .gather(Gatherers.groupingBy(ObjectId::groupId))
                 .forEach(e -> exportGroup(e.getKey(), e.getValue()));
+
             return exported.get();
         }
 

@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.editors;
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public final class ObjectEditor implements Editor, ObjectTypeHolder, DataContext {
+public final class ObjectEditor implements Editor, ObjectTypeHolder, ObjectHolder<TypedObject>, DataContext {
     public static final class Provider implements Editor.Provider {
         @Override
         public Editor createEditor(EditorInput input, EditorSite site) {
@@ -99,6 +100,11 @@ public final class ObjectEditor implements Editor, ObjectTypeHolder, DataContext
     @Override
     public ClassTypeInfo objectType() {
         return input.object().getType();
+    }
+
+    @Override
+    public TypedObject object() {
+        return input.object();
     }
 
     @Override
