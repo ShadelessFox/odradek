@@ -4,6 +4,7 @@ import sh.adelessfox.odradek.opengl.Framebuffer;
 import sh.adelessfox.odradek.ui.Disposable;
 
 import java.awt.*;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 abstract class SwapBuffer implements Disposable {
@@ -11,5 +12,5 @@ abstract class SwapBuffer implements Disposable {
 
     abstract void resize(int width, int height);
 
-    abstract Image getImage();
+    abstract Optional<Image> getImage();
 }
