@@ -50,7 +50,7 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
         panel.addGLEventListener(this);
 
         input = new ViewportInput(panel);
-        animator = new ViewportAnimator(this);
+        animator = new ViewportAnimator(panel, this::renderAndRepaint);
 
         setLayout(new BorderLayout());
         add(panel, BorderLayout.CENTER);
