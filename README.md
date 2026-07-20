@@ -4,28 +4,14 @@
 
 # Odradek
 
-This is a reincarnation of [Decima Workshop](https://github.com/ShadelessFox/decima), a modding tool
-for Horizon Zero Dawn and Death Stranding.
+Odradek is a modding tool for **Horizon Forbidden West** and **Death Stranding 2**. See [supported games](#supported-games) section for more info.
+
+> [!TIP]
+> Nightly prebuilt binaries can be downloaded from [here](https://nightly.link/ShadelessFox/odradek/workflows/build/master). Alternatively, you can [build](#building) Odradek from sources.
 
 |           ![](/assets/showcase1.png)            |                  ![](/assets/showcase2.png)                  |
 |:-----------------------------------------------:|:------------------------------------------------------------:|
 | <sup>Demonstration of export capabilities</sup> | <sup>Demonstration of model, audio, and object viewers</sup> |
-
-> [!TIP]
-> Nightly prebuilt binaries can be downloaded from [workflows](https://nightly.link/ShadelessFox/odradek/workflows/build/master).
-
-Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attempt to come up with something that could be useful for modders.
-
-### Supported games
-
-| Name                   | Version      | Platform |
-|------------------------|--------------|----------|
-| Horizon Forbidden West | **1.5.80.0** | **PC**   |
-| Death Stranding 2      | **1.9.85.0** | **PC**   |
-
-> [!IMPORTANT]
-> The **latest** build of Odradek from **master** branch is guaranteed to work against versions listed above.
-> Before reporting issues, please make sure you're running the latest version of both the game and Odradek.
 
 ### Features
 - Preview for static and skinned models; export to `.cast`
@@ -33,6 +19,17 @@ Odradek targets **Horizon Forbidden West** and **Death Stranding 2** in an attem
 - Audio playback; export to `.wav`, `.wem` (for Wwise audio), `.at9` (for Atrac9 audio)
 - Rich object inspector that utilizes type information
 - Command-line interface with the export functionality fully exposed
+
+### Supported games
+
+| Name                   | Version       | Platform |
+|------------------------|---------------|----------|
+| Horizon Forbidden West | **1.5.80.0**  | **PC**   |
+| Death Stranding 2      | **1.10.89.0** | **PC**   |
+
+> [!IMPORTANT]
+> The **latest** build of Odradek from **master** branch is guaranteed to work against versions listed above.
+> Before reporting issues, please make sure you're running the latest version of both the game and Odradek.
 
 ### Building
 
@@ -48,7 +45,7 @@ Open the terminal and execute the following commands:
 
 Ready-to-use distributions can be found under the `odradek-app/target/dist` directory.
 
-#### Troubleshooting
+#### IDE troubleshooting
 
 <details>
 <summary>Module wtf.reversed.toolbox not found</summary>
