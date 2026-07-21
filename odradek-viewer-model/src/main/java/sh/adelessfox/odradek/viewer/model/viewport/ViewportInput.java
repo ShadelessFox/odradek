@@ -74,6 +74,7 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
 
     @Override
     public void mousePressed(MouseEvent e) {
+        viewport.requestFocusInWindow();
         mouseState.add(e.getButton());
 
         if (mouseState.size() > 1) {

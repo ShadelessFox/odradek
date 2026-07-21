@@ -2,10 +2,11 @@ package sh.adelessfox.odradek.viewer.model.viewport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.opengl.awt.GLCanvas;
-import sh.adelessfox.odradek.opengl.awt.GLData;
 import sh.adelessfox.odradek.opengl.awt.GLEventListener;
+import sh.adelessfox.odradek.opengl.awt.GLPanel;
+import sh.adelessfox.odradek.opengl.context.GLProfile;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.ui.Disposable;
 import sh.adelessfox.odradek.viewer.model.viewport.renderpass.RenderPass;
 import wtf.reversed.toolbox.math.Vector2;
 import wtf.reversed.toolbox.math.Vector3;
@@ -23,13 +24,13 @@ import java.util.Objects;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL43.*;
 
-public final class Viewport extends JComponent implements GLEventListener {
+public final class Viewport extends JComponent implements GLEventListener, Disposable {
     private static final Logger log = LoggerFactory.getLogger(Viewport.class);
 
     private final List<RenderPass> passes = new ArrayList<>();
     private final List<RenderPass> effectivePasses = new ArrayList<>();
 
-    private final GLCanvas canvas;
+    private final GLPanel panel;
     private final ViewportInput input;
     private final ViewportAnimator animator;
     private final ViewportContext context;
@@ -42,31 +43,31 @@ public final class Viewport extends JComponent implements GLEventListener {
     private Scene scene;
 
     public Viewport(ViewportContext context) {
-        canvas = createCanvas();
-        input = new ViewportInput(canvas);
-        animator = new ViewportAnimator(this);
         this.context = context;
 
+        panel = new GLPanel(GLProfile.CORE, 4, 6, true, -1);
+        panel.setBackground(Color.DARK_GRAY);
+        panel.addGLEventListener(this);
+
+        input = new ViewportInput(panel);
+        animator = new ViewportAnimator(panel, this::renderAndRepaint);
+
         setLayout(new BorderLayout());
-        add(canvas, BorderLayout.CENTER);
-    }
-
-    private GLCanvas createCanvas() {
-        GLData data = new GLData();
-        data.majorVersion = 4;
-        data.minorVersion = 5;
-        data.swapInterval = 1;
-        data.profile = GLData.Profile.CORE;
-
-        GLCanvas canvas = new GLCanvas(data);
-        canvas.addGLEventListener(this);
-
-        return canvas;
+        add(panel, BorderLayout.CENTER);
     }
 
     @Override
     public void addNotify() {
         super.addNotify();
+
+        var gc = getGraphicsConfiguration();
+        if (gc != null) {
+            int refreshRate = gc.getDevice().getDisplayMode().getRefreshRate();
+            if (refreshRate != DisplayMode.REFRESH_RATE_UNKNOWN) {
+                animator.setRefreshRate(refreshRate);
+            }
+        }
+
         animator.start();
     }
 
@@ -126,8 +127,14 @@ public final class Viewport extends JComponent implements GLEventListener {
         initialized = false;
     }
 
-    public void render() {
-        canvas.render();
+    @Override
+    public void dispose() {
+        panel.dispose();
+    }
+
+    public void renderAndRepaint() {
+        panel.render();
+        panel.repaint();
     }
 
     public void addRenderPass(RenderPass pass) {
@@ -176,11 +183,11 @@ public final class Viewport extends JComponent implements GLEventListener {
     }
 
     public int getFramebufferWidth() {
-        return canvas.getFramebufferWidth();
+        return panel.getWidth();
     }
 
     public int getFramebufferHeight() {
-        return canvas.getFramebufferHeight();
+        return panel.getHeight();
     }
 
     private void renderScene(float dt) {

@@ -24,7 +24,7 @@ import java.awt.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public record SceneViewer(Scene scene) implements Viewer {
+public final class SceneViewer implements Viewer {
     public static final class Provider implements Viewer.Provider<Scene> {
         @Override
         public Viewer create(Scene object, Game game) {
@@ -42,6 +42,13 @@ public record SceneViewer(Scene scene) implements Viewer {
         }
     }
 
+    private final Scene scene;
+    private Viewport viewport;
+
+    private SceneViewer(Scene scene) {
+        this.scene = scene;
+    }
+
     @Override
     public JComponent createComponent() {
         Vector3 center = scene.computeBounds()
@@ -55,7 +62,7 @@ public record SceneViewer(Scene scene) implements Viewer {
         context.setShowVertexUVs(true);
         context.setShowVertexColors(true);
 
-        Viewport viewport = new Viewport(context);
+        viewport = new Viewport(context);
         viewport.setBorder(LineBorder.of(1, 0, 0, 0));
         viewport.setMinimumSize(new Dimension(100, 100));
         viewport.addRenderPass(new RenderMeshesPass());
@@ -73,6 +80,11 @@ public record SceneViewer(Scene scene) implements Viewer {
         panel.add(viewport, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    @Override
+    public void dispose() {
+        viewport.dispose();
     }
 
     private JToolBar createToolBar(Camera camera, ViewportContext context) {
