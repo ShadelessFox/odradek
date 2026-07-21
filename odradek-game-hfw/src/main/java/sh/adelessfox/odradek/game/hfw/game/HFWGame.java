@@ -50,7 +50,7 @@ public final class HFWGame implements DecimaGame {
     public HFWGame(Path source, HFW.EPlatform platform) throws IOException {
         var version = Optional.of(source.resolve("HorizonForbiddenWest.exe"))
             .filter(Files::exists)
-            .flatMap(ProductVersion::probe)
+            .flatMap(ProductVersion::find)
             .map(ProductVersion::toString)
             .orElse("Unknown");
 

@@ -18,6 +18,12 @@
             <version>1.0</version>
         </dependency>
         <dependency>
+            <groupId>com.kichik.pecoff4j</groupId>
+            <artifactId>pecoff4j</artifactId>
+            <version>0.4.1</version>
+        </dependency>
+
+        <dependency>
             <groupId>wtf.reversed</groupId>
             <artifactId>reversed-toolbox</artifactId>
         </dependency>

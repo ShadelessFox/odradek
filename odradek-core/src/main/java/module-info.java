@@ -2,8 +2,9 @@ module odradek.core {
     requires static java.desktop; // sh.adelessfox.odradek.texture.Converter.AWT
 
     requires transitive wtf.reversed.toolbox;
-    requires be.twofold.tinybcdec;
-    requires java.net.http;
+    requires be.twofold.tinybcdec; // sh.adelessfox.odradek.texture.processing.TileUnpacker#decompress
+    requires com.kichik.pecoff4j; // sh.adelessfox.odradek.util.system.ProductVersion
+    requires java.net.http; // sh.adelessfox.odradek.audio.VgmstreamDownloader
     requires org.slf4j;
 
     exports sh.adelessfox.odradek.animation;
