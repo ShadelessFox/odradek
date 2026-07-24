@@ -1,9 +1,6 @@
 package sh.adelessfox.odradek.app.util.steam.vdf;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public final class VdfObject extends VdfElement {
     private final Map<String, VdfElement> members = new LinkedHashMap<>();
@@ -17,8 +14,8 @@ public final class VdfObject extends VdfElement {
         return members.containsKey(key);
     }
 
-    public VdfElement get(String key) {
-        return members.get(key);
+    public Optional<VdfElement> get(String key) {
+        return Optional.ofNullable(members.get(key));
     }
 
     public VdfElement add(String key, VdfElement value) {
@@ -35,6 +32,10 @@ public final class VdfObject extends VdfElement {
 
     public Set<String> keySet() {
         return members.keySet();
+    }
+
+    public Collection<VdfElement> values() {
+        return members.values();
     }
 
     public int size() {
