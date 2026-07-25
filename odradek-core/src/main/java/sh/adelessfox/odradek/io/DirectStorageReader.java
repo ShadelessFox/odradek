@@ -22,10 +22,14 @@ public final class DirectStorageReader extends ChunkedBinaryReader {
 
     public static BinaryReader open(Path path) throws IOException {
         var reader = BinaryReader.open(path);
-        var header = Header.read(reader);
-        var chunks = reader.readObjects(header.chunkCount(), DirectStorageReader::readChunk);
-
-        return new DirectStorageReader(reader, header, chunks);
+        try {
+            var header = Header.read(reader);
+            var chunks = reader.readObjects(header.chunkCount(), DirectStorageReader::readChunk);
+            return new DirectStorageReader(reader, header, chunks);
+        } catch (IOException e) {
+            reader.close(); // don't want to leak the file handle if we fail to read the header
+            throw e;
+        }
     }
 
     @Override

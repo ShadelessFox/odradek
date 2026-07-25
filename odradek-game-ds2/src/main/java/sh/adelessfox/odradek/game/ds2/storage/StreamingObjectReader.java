@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.game.ds2.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
@@ -22,7 +21,7 @@ import java.util.*;
 public final class StreamingObjectReader extends DS2TypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);
 
-    private final DecimaGame game;
+    private final StreamingGraphStorage storage;
     private final StreamingGraph graph;
     private final TypeFactory factory;
 
@@ -47,14 +46,10 @@ public final class StreamingObjectReader extends DS2TypeReader {
         }
     }
 
-    public StreamingObjectReader(DecimaGame game, TypeFactory factory) {
-        this.game = game;
-        this.graph = game.streamingGraph();
+    public StreamingObjectReader(StreamingGraphStorage storage, StreamingGraph graph, TypeFactory factory) {
+        this.storage = storage;
+        this.graph = graph;
         this.factory = factory;
-    }
-
-    public GroupResult readGroup(int id) throws IOException {
-        return readGroup(id, true);
     }
 
     public GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
@@ -248,7 +243,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
     }
 
     private byte[] getSpanData(StreamingGraph.Span span) throws IOException {
-        return game.readFile(getSpanFile(span), span.offset(), span.length());
+        return storage.read(getSpanFile(span), span.offset(), span.length());
     }
 
     private String getSpanFile(StreamingGraph.Span span) {

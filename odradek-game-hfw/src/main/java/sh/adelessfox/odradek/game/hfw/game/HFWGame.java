@@ -68,13 +68,10 @@ public final class HFWGame implements DecimaGame {
 
         log.debug("Loading storage files");
         storage = new StreamingGraphStorage(this);
-
-        for (String file : graph.files()) {
-            storage.mount(file);
-        }
+        storage.mountAll(graph.files());
 
         streamingGraph = new StreamingGraphImpl(graph, storage, typeFactory);
-        streamingReader = new StreamingObjectReader(this, typeFactory);
+        streamingReader = new StreamingObjectReader(storage, streamingGraph, typeFactory);
     }
 
     public byte[] readDataSource(HFW.StreamingDataSource dataSource) {

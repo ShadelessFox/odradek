@@ -68,13 +68,13 @@ public final class DS2Game implements DecimaGame {
 
         log.debug("Loading storage files");
         storage = new StreamingGraphStorage(this);
-
-        for (String file : graph.files()) {
-            storage.mount(file);
-        }
+        long start = System.currentTimeMillis();
+        storage.mountAll(graph.files());
+        long end = System.currentTimeMillis();
+        log.debug("Storage files loaded in {} ms", end - start);
 
         streamingGraph = new StreamingGraphImpl(graph, storage, typeFactory);
-        streamingReader = new StreamingObjectReader(this, typeFactory);
+        streamingReader = new StreamingObjectReader(storage, streamingGraph, typeFactory);
     }
 
     public byte[] readDataSource(DS2.StreamingDataSource dataSource) {

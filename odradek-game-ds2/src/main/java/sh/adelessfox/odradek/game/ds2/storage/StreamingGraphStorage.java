@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.StructuredTaskScope;
 import java.util.regex.Pattern;
 
 public final class StreamingGraphStorage implements Closeable {
@@ -26,10 +27,29 @@ public final class StreamingGraphStorage implements Closeable {
         this.game = game;
     }
 
+    public void mountAll(Iterable<? extends String> files) throws IOException {
+        try (var scope = StructuredTaskScope.open()) {
+            for (String file : files) {
+                scope.fork(() -> {
+                    mount(file);
+                    return null;
+                });
+            }
+
+            scope.join();
+        } catch (StructuredTaskScope.FailedException e) {
+            throw new IOException("Failed to load storage files", e.getCause());
+        } catch (InterruptedException e) {
+            throw new IOException("Failed to load storage files", e);
+        }
+    }
+
     public void mount(String file) throws IOException {
-        if (files.containsKey(file)) {
-            log.warn("File already mounted: {}", file);
-            return;
+        synchronized (files) {
+            if (files.containsKey(file)) {
+                log.warn("File already mounted: {}", file);
+                return;
+            }
         }
 
         Path path = game.resolvePath(file);
@@ -46,15 +66,16 @@ public final class StreamingGraphStorage implements Closeable {
             reader = BinaryReader.open(path);
         }
 
-        files.put(file, reader);
-
-        var filename = path.getFileName().toString();
-        var matcher = PACKAGE_NAME.matcher(filename);
+        var matcher = PACKAGE_NAME.matcher(file);
         if (matcher.find()) {
             var channel = DS2.EStreamingDataChannel.valueOf(Byte.parseByte(matcher.group("channel")));
             log.info("Mounted file: {} ({})", file, channel);
         } else {
             log.info("Mounted file: {}", file);
+        }
+
+        synchronized (files) {
+            files.put(file, reader);
         }
     }
 
@@ -74,7 +95,7 @@ public final class StreamingGraphStorage implements Closeable {
         return buffer;
     }
 
-    public BinaryReader resolve(String file) {
+    private BinaryReader resolve(String file) {
         BinaryReader reader = files.get(file);
         if (reader == null) {
             throw new IllegalArgumentException("Can't resolve file: " + file);
