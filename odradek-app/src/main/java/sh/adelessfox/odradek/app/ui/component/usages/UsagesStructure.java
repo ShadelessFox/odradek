@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
@@ -37,6 +38,7 @@ sealed interface UsagesStructure extends TreeStructure<UsagesStructure> {
             case Object _ -> List.of();
             case Links(var type, var links) -> links.stream()
                 .map(link -> new Link(type, link))
+                .sorted(Comparator.comparing(Link::objectId))
                 .toList();
             case Link _ -> List.of();
         };
