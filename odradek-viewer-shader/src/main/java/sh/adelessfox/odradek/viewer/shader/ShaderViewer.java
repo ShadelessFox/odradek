@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.viewer.shader;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.ProgramType;
@@ -12,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 public record ShaderViewer(Shader shader, Game game) implements Viewer {
+    private static final Logger log = LoggerFactory.getLogger(ShaderViewer.class);
+
     public static final class Provider implements Viewer.Provider<Shader> {
         @Override
         public Viewer create(Shader object, Game game) {
@@ -31,11 +35,16 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
 
     @Override
     public JComponent createComponent() {
-        var disassembled = shader.programs().stream()
-            .map(Program::disassemble)
-            .toList();
+        try {
+            var disassembled = shader.programs().stream()
+                .map(Program::disassemble)
+                .toList();
 
-        return createShaderPanel(shader, disassembled);
+            return createShaderPanel(shader, disassembled);
+        } catch (Exception e) {
+            log.error("Unable to disassemble the shader", e);
+            return new JLabel("Unable to disassemble the shader. Refer to log for more details", SwingConstants.CENTER);
+        }
     }
 
     private static JComponent createShaderPanel(Shader shader, List<String> disassembled) {

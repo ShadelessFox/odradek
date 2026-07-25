@@ -7,7 +7,7 @@ public record Program(ProgramType type, ProgramFormat format, byte[] blob) {
      * @return a human-readable disassembly of the program
      * @throws UnsupportedOperationException if the disassembler is not available or platform is not Windows
      */
-    public String disassemble() throws UnsupportedOperationException {
+    public String disassemble() {
         return Disassembler.disassemble(this);
     }
 }
