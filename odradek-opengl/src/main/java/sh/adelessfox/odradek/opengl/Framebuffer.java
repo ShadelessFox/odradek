@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.opengl;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
+import static org.lwjgl.opengl.GL21.GL_PIXEL_PACK_BUFFER;
 import static org.lwjgl.opengl.GL30.*;
 
 public abstract sealed class Framebuffer implements GLObject.Bindable<Framebuffer> {
@@ -45,6 +46,16 @@ public abstract sealed class Framebuffer implements GLObject.Bindable<Framebuffe
         var oldReadBuffer = glGetInteger(GL_READ_FRAMEBUFFER_BINDING);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, id);
         glReadPixels(x, y, width, height, format, type, target);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, oldReadBuffer);
+    }
+
+    public void readPixels(int x, int y, int width, int height, int format, int type, Buffer buffer, long offset) {
+        var oldReadBuffer = glGetInteger(GL_READ_FRAMEBUFFER_BINDING);
+        var oldPackBuffer = glGetInteger(GL_PIXEL_PACK_BUFFER_BINDING);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, id);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, buffer.name());
+        glReadPixels(x, y, width, height, format, type, offset);
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, oldPackBuffer);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, oldReadBuffer);
     }
 
