@@ -5,6 +5,7 @@ import org.lwjgl.BufferUtils;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Optional;
 
 import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL45.*;
@@ -38,6 +39,26 @@ public final class Buffer implements GLObject {
 
     public void update(FloatBuffer data, int offset) {
         glNamedBufferSubData(name, offset, makeDirect(data));
+    }
+
+    public Optional<ByteBuffer> map(int access) {
+        return map(access, size());
+    }
+
+    public Optional<ByteBuffer> map(int access, long length) {
+        return map(access, 0, length);
+    }
+
+    public Optional<ByteBuffer> map(int access, long offset, long length) {
+        return Optional.ofNullable(glMapNamedBufferRange(name, offset, length, access));
+    }
+
+    public long size() {
+        return glGetNamedBufferParameteri(name, GL_BUFFER_SIZE);
+    }
+
+    public boolean unmap() {
+        return glUnmapNamedBuffer(name);
     }
 
     @Override

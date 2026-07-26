@@ -8,7 +8,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 abstract class SwapBuffer implements Disposable {
-    abstract void present(Consumer<Framebuffer> renderer);
+    abstract void render(Consumer<Framebuffer> renderer);
+
+    abstract void beginReadback();
+
+    abstract void awaitReadback();
 
     abstract void resize(int width, int height);
 
