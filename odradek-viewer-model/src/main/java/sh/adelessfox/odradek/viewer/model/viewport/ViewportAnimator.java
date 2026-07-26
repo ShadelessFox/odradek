@@ -34,7 +34,7 @@ final class ViewportAnimator {
     private final Runnable requestRender;
 
     private int refreshRate = -1;
-    private long lastRenderTime = 0;
+    private long lastRenderTime;
 
     public ViewportAnimator(JComponent viewport, Runnable requestRender) {
         this.viewport = viewport;
@@ -74,6 +74,7 @@ final class ViewportAnimator {
     }
 
     private void loop() {
+        lastRenderTime = System.nanoTime();
         while (isRunning.get()) {
             waitUntilCanRender();
             if (isRunning.get()) {
@@ -118,17 +119,17 @@ final class ViewportAnimator {
             renderLock.unlock();
         }
         if (refreshRate > 0) {
-            long currentTime = System.currentTimeMillis();
+            long currentTime = System.nanoTime();
             long elapsedTime = currentTime - lastRenderTime;
-            long timeToNextRender = (long) (1_000_000_000.0 / refreshRate) - elapsedTime;
-            if (timeToNextRender > 0) {
+            long waitTime = (long) (1e9 / refreshRate) - elapsedTime;
+            if (waitTime > 0) {
                 try {
-                    Thread.sleep(timeToNextRender / 1_000_000, (int) (timeToNextRender % 1_000_000));
+                    Thread.sleep(waitTime / 1_000_000, (int) (waitTime % 1_000_000));
                 } catch (InterruptedException e) {
                     log.debug("Interrupted while sleeping before next render", e);
                 }
             }
-            lastRenderTime = System.currentTimeMillis();
+            lastRenderTime = System.nanoTime();
         }
     }
 
