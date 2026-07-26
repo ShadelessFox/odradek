@@ -190,6 +190,14 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
         return panel.getHeight();
     }
 
+    public Duration getLastFrameSleep() {
+        return animator.getLastFrameSleep();
+    }
+
+    public Duration getLastFrameDuration() {
+        return animator.getLastFrameDuration();
+    }
+
     private void renderScene(float dt) {
         int width = getFramebufferWidth();
         int height = getFramebufferHeight();

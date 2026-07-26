@@ -15,6 +15,7 @@ import wtf.reversed.toolbox.math.Matrix4;
 import wtf.reversed.toolbox.math.Vector3;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.*;
 
 public class OverlayRenderPass implements RenderPass {
@@ -24,6 +25,11 @@ public class OverlayRenderPass implements RenderPass {
     private Scene scene;
     private SceneStatistics statistics;
     private final List<OverlayNode> nodes = new ArrayList<>();
+
+    // NOTE: Move to ViewportAnimator at some point, or introduce a helper class
+    private int frameCount;
+    private int lastFrameCount;
+    private long lastFrameCommitTime = System.currentTimeMillis();
 
     @Override
     public void init() throws IOException {
@@ -49,7 +55,12 @@ public class OverlayRenderPass implements RenderPass {
             }
 
             renderNodes(camera, context);
-            renderInformation(statistics, camera);
+            renderInformation(
+                statistics,
+                camera,
+                lastFrameCount,
+                viewport.getLastFrameDuration(),
+                viewport.getLastFrameSleep());
         }
 
         if (context.isShowCameraOrigin()) {
@@ -57,12 +68,33 @@ public class OverlayRenderPass implements RenderPass {
         }
 
         debug.draw(viewport, dt);
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastFrameCommitTime >= 1000) {
+            lastFrameCount = frameCount;
+            frameCount = 0;
+            lastFrameCommitTime = currentTime;
+        }
+
+        frameCount++;
     }
 
-    private void renderInformation(SceneStatistics statistics, Camera camera) {
+    private void renderInformation(
+        SceneStatistics statistics,
+        Camera camera,
+        int fps,
+        Duration lastFrameDuration,
+        Duration lastFrameSleep
+    ) {
         var position = camera.position();
         var text = new StringJoiner("\n");
 
+        text.add("FPS: %3d (%.2f ms render; %.2f ms sleep)".formatted(
+            fps,
+            lastFrameDuration.toNanos() / 1_000_000.0,
+            lastFrameSleep.toNanos() / 1_000_000.0));
+
+        text.add("");
         text.add("Statistics:");
         text.add("  Vertices %,d".formatted(statistics.vertices));
         text.add("  Faces    %,d".formatted(statistics.faces));
