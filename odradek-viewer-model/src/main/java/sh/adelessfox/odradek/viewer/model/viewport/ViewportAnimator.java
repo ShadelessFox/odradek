@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +35,9 @@ final class ViewportAnimator {
     private final Runnable requestRender;
 
     private int refreshRate = -1;
-    private long lastRenderTime;
+    private long lastFrameTimestampNanos;
+    private long lastFrameDurationNanos;
+    private long lastFrameSleepNanos;
 
     public ViewportAnimator(JComponent viewport, Runnable requestRender) {
         this.viewport = viewport;
@@ -73,8 +76,16 @@ final class ViewportAnimator {
         this.refreshRate = refreshRate;
     }
 
+    public Duration getLastFrameDuration() {
+        return Duration.ofNanos(lastFrameDurationNanos);
+    }
+
+    public Duration getLastFrameSleep() {
+        return Duration.ofNanos(lastFrameSleepNanos);
+    }
+
     private void loop() {
-        lastRenderTime = System.nanoTime();
+        lastFrameTimestampNanos = System.nanoTime();
         while (isRunning.get()) {
             waitUntilCanRender();
             if (isRunning.get()) {
@@ -120,7 +131,7 @@ final class ViewportAnimator {
         }
         if (refreshRate > 0) {
             long currentTime = System.nanoTime();
-            long elapsedTime = currentTime - lastRenderTime;
+            long elapsedTime = currentTime - lastFrameTimestampNanos;
             long waitTime = (long) (1e9 / refreshRate) - elapsedTime;
             if (waitTime > 0) {
                 try {
@@ -129,7 +140,9 @@ final class ViewportAnimator {
                     log.debug("Interrupted while sleeping before next render", e);
                 }
             }
-            lastRenderTime = System.nanoTime();
+            lastFrameTimestampNanos = System.nanoTime();
+            lastFrameDurationNanos = elapsedTime;
+            lastFrameSleepNanos = waitTime;
         }
     }
 
