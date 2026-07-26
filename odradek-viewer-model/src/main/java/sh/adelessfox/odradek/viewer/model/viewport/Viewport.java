@@ -27,6 +27,10 @@ import static org.lwjgl.opengl.GL43.*;
 public final class Viewport extends JComponent implements GLEventListener, Disposable {
     private static final Logger log = LoggerFactory.getLogger(Viewport.class);
 
+    private static final GLProfile OPENGL_PROFILE = GLProfile.CORE;
+    private static final int OPENGL_VERSION_MAJOR = 4;
+    private static final int OPENGL_VERSION_MINOR = 6;
+
     private final List<RenderPass> passes = new ArrayList<>();
     private final List<RenderPass> effectivePasses = new ArrayList<>();
 
@@ -45,7 +49,7 @@ public final class Viewport extends JComponent implements GLEventListener, Dispo
     public Viewport(ViewportContext context) {
         this.context = context;
 
-        panel = new GLPanel(GLProfile.CORE, 4, 6, true, -1);
+        panel = new GLPanel(OPENGL_PROFILE, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR, true, -1);
         panel.setBackground(Color.DARK_GRAY);
         panel.addGLEventListener(this);
 
