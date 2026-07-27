@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.lang.invoke.VarHandle;
 
 public abstract class AbstractTypeWriter {
+    public void write(TypedObject object, BinaryWriter writer) throws IOException {
+        write(object, object.getType(), writer);
+    }
+
     public void write(Object object, TypeInfo info, BinaryWriter writer) throws IOException {
         switch (info) {
             case AtomTypeInfo t -> writeAtom(object, t, writer);

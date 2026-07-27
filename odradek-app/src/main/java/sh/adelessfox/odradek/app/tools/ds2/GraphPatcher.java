@@ -26,42 +26,34 @@ public final class GraphPatcher {
     private final DS2Game game;
 
     private final BytesBinaryWriter buffer = new BytesBinaryWriter();
-    private final List<Patch> patches = new ArrayList<>();
+    private final List<CorePatch> patches = new ArrayList<>();
 
     public GraphPatcher(DS2Game game) {
         this.game = game;
     }
 
-    public <T extends TypedObject> void patchObject(
-        ObjectId id,
-        Consumer<T> patcher
-    ) throws IOException {
-        patchObject(id.groupId(), id.objectIndex(), patcher);
-    }
-
     @SuppressWarnings("unchecked")
-    private <T extends TypedObject> void patchObject(
-        int groupId,
-        int objectIndex,
-        Consumer<T> patcher
-    ) throws IOException {
+    public <T extends TypedObject> void patchObject(ObjectId id, Consumer<T> patcher) throws IOException {
         var spans = new ArrayList<StreamingGraph.Span>();
-        var objects = game.readGroup(groupId, true, spans);
-        var object = objects.get(objectIndex);
+        var objects = game.readGroup(id.groupId(), true, spans);
+
+        var span = spans.get(id.objectIndex());
+        var object = objects.get(id.objectIndex());
 
         // Patch the object
         patcher.accept((T) object);
 
         // Serialize the object
-        var position = buffer.position();
+        var offset = buffer.position();
         new DS2TypeWriter().write(object, object.getType(), buffer);
-        var length = Math.toIntExact(buffer.position() - position);
+        var length = Math.toIntExact(buffer.position() - offset);
 
-        patches.add(new Patch(
-            (DS2.StreamingGroupData) game.streamingGraph().group(groupId).resource(),
-            objectIndex,
-            spans.get(objectIndex),
-            position,
+        patches.add(new CorePatch(
+            id,
+            span.fileIndex(),
+            span.offset(),
+            span.length(),
+            offset,
             length));
     }
 
@@ -79,28 +71,32 @@ public final class GraphPatcher {
         graph.packFileOffsets().add(new int[0]);
 
         for (var patch : patches) {
-            var group = patch.group();
-            var originalSpan = patch.originalSpan();
+            var fileIndex = patch.fileIndex();
+            var sourceOffset = patch.sourceOffset();
+            var sourceSize = patch.sourceSize();
             var patchOffset = patch.patchOffset();
             var patchSize = patch.patchSize();
 
             log.debug(
-                "Patching object {}:{}: file {}, offset {}, size {} -> {} ({})",
-                group.groupID(), patch.objectIndex(),
-                graph.files().get(originalSpan.fileIndex()),
-                originalSpan.offset(), originalSpan.length(), patchSize,
-                "%+d bytes".formatted(patchSize - originalSpan.length()));
+                "Patching object {}: file {}, offset {} ({} bytes) -> {} ({} bytes)",
+                patch.id(),
+                graph.files().get(fileIndex),
+                sourceOffset,
+                sourceSize,
+                patchSize,
+                "%+d".formatted(patchSize - sourceSize));
 
+            var group = (DS2.StreamingGroupData) game.streamingGraph().group(patch.id().groupId()).resource();
             var span = IntStream.range(group.spanStart(), group.spanStart() + group.spanCount())
                 .mapToObj(i -> graph.spanTable().get(i))
-                .filter(s -> s.fileIndex() == originalSpan.fileIndex() && s.contains(originalSpan.offset(), originalSpan.length()))
+                .filter(s -> s.fileIndex() == fileIndex && s.contains(sourceOffset, sourceSize))
                 .findFirst().orElseThrow(() -> new IllegalStateException("Could not find span to patch!"));
 
             var split = patch(
                 span,
                 createSpan(patchFileIndex, Math.toIntExact(patchOffset), patchSize, true),
-                originalSpan.offset(),
-                originalSpan.length());
+                sourceOffset,
+                sourceSize);
 
             var oldSpans = graph.spanTable().subList(group.spanStart(), group.spanStart() + group.spanCount());
             var newSpans = new ArrayList<>(oldSpans);
@@ -114,7 +110,7 @@ public final class GraphPatcher {
 
             group.spanStart(spanStart);
             group.spanCount(spanCount);
-            group.groupSize(group.groupSize() + (patchSize - originalSpan.length()));
+            group.groupSize(group.groupSize() + (patchSize - sourceSize));
 
             graph.spanTable().addAll(newSpans);
         }
@@ -136,7 +132,7 @@ public final class GraphPatcher {
             Files.copy(backupGraphPath, activeGraphPath, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        log.debug("Patching streaming_graph");
+        log.debug("Patching streaming_graph.core");
         try (var writer = BinaryWriter.open(activeGraphPath)) {
             var data = serialize(graph);
             writer.writeLong(0x929d7af6a30cd1c5L);
@@ -202,12 +198,11 @@ public final class GraphPatcher {
         }
     }
 
-    private record Patch(
-        DS2.StreamingGroupData group,
-        int objectIndex,
-        StreamingGraph.Span originalSpan,
-        long patchOffset,
-        int patchSize
+    private record CorePatch(
+        ObjectId id,
+        int fileIndex,
+        long sourceOffset, int sourceSize,
+        long patchOffset, int patchSize
     ) {
     }
 }

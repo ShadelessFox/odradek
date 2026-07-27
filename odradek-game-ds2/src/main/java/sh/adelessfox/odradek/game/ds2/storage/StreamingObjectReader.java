@@ -103,6 +103,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
     private GroupResult readSingleGroup(StreamingGraph.Group group) throws IOException {
         var objects = new ArrayList<TypedObject>(group.types().size());
         var spans = new ArrayList<StreamingGraph.Span>(group.types().size());
+
         for (ClassTypeInfo type : group.types()) {
             objects.add(type.newInstance());
             spans.add(new StreamingGraph.Span(0, 0, 0, false));
@@ -137,7 +138,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
                     span.fileIndex(),
                     Math.toIntExact(span.offset() + start),
                     Math.toIntExact(reader.position() - start),
-                    span.patch());
+                    span.isPatch());
                 spans.set(objectIndex, range);
 
                 objectIndex++;

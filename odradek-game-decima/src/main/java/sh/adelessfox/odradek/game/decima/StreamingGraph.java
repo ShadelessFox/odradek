@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.OptionalInt;
 
 public interface StreamingGraph {
-    record Span(int fileIndex, int offset, int length, boolean patch) {
+    record Span(int fileIndex, int offset, int length, boolean isPatch) {
         public Span {
             Check.positiveOrZero(offset, "offset");
             Check.positiveOrZero(length, "length");
@@ -18,10 +18,6 @@ public interface StreamingGraph {
 
         public long end() {
             return offset + length;
-        }
-
-        public Span shift(int delta) {
-            return new Span(fileIndex, Math.addExact(offset, delta), length, patch);
         }
     }
 

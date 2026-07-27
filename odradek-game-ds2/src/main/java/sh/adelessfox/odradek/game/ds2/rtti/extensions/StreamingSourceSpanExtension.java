@@ -28,7 +28,7 @@ public interface StreamingSourceSpanExtension {
         return (long) span.offset() + span.length();
     }
 
-    default boolean contains(int offset, int length) {
+    default boolean contains(long offset, int length) {
         var span = (DS2.StreamingSourceSpan) this;
         return span.offset() <= offset && offset + length <= span.offset() + span.length();
     }

@@ -16,13 +16,19 @@ public final class GraphPatcherDemo extends Tool {
         var patcher = new GraphPatcher(game);
         patcher.patchObject(
             new ObjectId(56, 40679),
-            (DS2.LocalizedTextResource object) -> object.text(DS2.ELanguage.English).text("About Odradek"));
+            (DS2.LocalizedTextResource object) -> object
+                .text(DS2.ELanguage.English)
+                .text("About Odradek"));
         patcher.patchObject(
             new ObjectId(56, 80230),
-            (DS2.LocalizedTextResource object) -> object.text(DS2.ELanguage.English).text("Details about Odradek can be viewed by selecting \"About Odradek\" from the title screen."));
+            (DS2.LocalizedTextResource object) -> object
+                .text(DS2.ELanguage.English)
+                .text("Details about Odradek can be viewed by selecting \"About Odradek\" from the title screen."));
         patcher.patchObject(
             new ObjectId(56, 33794),
-            (DS2.LocalizedTextResource object) -> object.text(DS2.ELanguage.English).text("An asset viewer/extractor for Horizon Forbidden West and Death Stranding 2.\n\n© 2025-2026 ShadelessFox and contributors"));
+            (DS2.LocalizedTextResource object) -> object
+                .text(DS2.ELanguage.English)
+                .text("An asset viewer/extractor for Horizon Forbidden West and Death Stranding 2.\n\n© 2025-2026 ShadelessFox and contributors"));
         patcher.persist();
     }
 }
