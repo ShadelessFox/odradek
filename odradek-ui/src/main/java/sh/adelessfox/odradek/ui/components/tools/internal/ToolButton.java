@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 final class ToolButton extends JComponent {
     private final ToolPanel.Provider provider;
     private final Predicate<ToolPanel.Provider> selected;
+    private final Predicate<ToolPanel.Provider> focused;
 
     private boolean rollover;
     private boolean armed;
@@ -23,16 +24,17 @@ final class ToolButton extends JComponent {
     ToolButton(
         ToolPanel.Provider provider,
         Predicate<ToolPanel.Provider> selected,
+        Predicate<ToolPanel.Provider> focused,
         Consumer<ToolPanel.Provider> clicked
     ) {
         this.provider = provider;
         this.selected = selected;
+        this.focused = focused;
 
-        Handler handler = new Handler(clicked);
+        var handler = new Handler(clicked);
         addMouseListener(handler);
         addFocusListener(handler);
 
-        setFocusable(false); // FIXME was true
         setToolTipText(provider.name());
     }
 
@@ -50,7 +52,7 @@ final class ToolButton extends JComponent {
 
             boolean isRollover = rollover;
             boolean isSelected = selected.test(provider);
-            boolean isFocused = isButtonOrChildFocused();
+            boolean isFocused = focused.test(provider);
 
             g2.setColor(isSelected ? isFocused ? focusedSelectedColor : selectionColor : isRollover ? rolloverColor : defaultColor);
             g2.fillRoundRect(4, 4, 24, 24, arc, arc);
@@ -77,21 +79,6 @@ final class ToolButton extends JComponent {
     @Override
     public Dimension getMinimumSize() {
         return getPreferredSize();
-    }
-
-    private boolean isButtonOrChildFocused() {
-        return false; // FIXME
-        // KeyboardFocusManager keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-        // Component focusOwner = keyboardFocusManager.getPermanentFocusOwner();
-        // return focusOwner != null
-        //     && SwingUtilities.isDescendingFrom(focusOwner, group.getComponent())
-        //     && isInActiveWindow(focusOwner, keyboardFocusManager.getActiveWindow());
-    }
-
-    static boolean isInActiveWindow(Component c, Window activeWindow) {
-        Window window = SwingUtilities.windowForComponent(c);
-        return window == activeWindow
-               || window != null && window.getType() == Window.Type.POPUP && window.getOwner() == activeWindow;
     }
 
     private class Handler extends MouseAdapter implements FocusListener {

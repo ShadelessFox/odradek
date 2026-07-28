@@ -28,9 +28,10 @@ public interface ToolManager {
     /**
      * Opens the tool panel with the given ID.
      *
-     * @param id ID of the tool panel
+     * @param id    ID of the tool panel
+     * @param focus whether to focus the panel component after opening
      */
-    void openPanel(String id);
+    void openPanel(String id, boolean focus);
 
     /**
      * Closes the tool panel with the given ID.

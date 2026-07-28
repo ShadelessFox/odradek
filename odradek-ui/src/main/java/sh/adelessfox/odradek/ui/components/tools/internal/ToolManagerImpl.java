@@ -6,6 +6,8 @@ import sh.adelessfox.odradek.ui.components.tools.ToolState;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
@@ -28,8 +30,10 @@ public final class ToolManagerImpl implements ToolManager {
         root.add(container, BorderLayout.CENTER);
         root.add(leftButtons, BorderLayout.WEST);
         root.add(rightButtons, BorderLayout.EAST);
+        root.putClientProperty(ToolManagerImpl.class, this); // required for ButtonRepainter
 
         updateButtons();
+        ButtonRepainter.install();
     }
 
     @Override
@@ -53,7 +57,7 @@ public final class ToolManagerImpl implements ToolManager {
     }
 
     @Override
-    public void openPanel(String id) {
+    public void openPanel(String id, boolean focus) {
         var state = findPanel(id);
         if (state.open) {
             return;
@@ -74,6 +78,10 @@ public final class ToolManagerImpl implements ToolManager {
 
         container.setComponent(state.component, state.placement);
         state.open = true;
+
+        if (focus) {
+            state.component.requestFocusInWindow();
+        }
 
         leftButtons.repaint();
         rightButtons.repaint();
@@ -177,11 +185,15 @@ public final class ToolManagerImpl implements ToolManager {
         for (ToolPanelState pane : getGroupFor(placement)) {
             var selection = state.selection();
             if (selection.isPresent() && pane.provider.id().equals(state.tools().get(selection.getAsInt()))) {
-                openPanel(pane.provider.id());
+                openPanel(pane.provider.id(), false);
             } else {
                 closePanel(pane.provider.id());
             }
         }
+    }
+
+    private void togglePanel(ToolPanel.Provider provider) {
+        togglePanel(provider.id());
     }
 
     private void togglePanel(String id) {
@@ -189,7 +201,7 @@ public final class ToolManagerImpl implements ToolManager {
         if (state.open) {
             closePanel(id);
         } else {
-            openPanel(id);
+            openPanel(id, true);
         }
     }
 
@@ -249,11 +261,30 @@ public final class ToolManagerImpl implements ToolManager {
     }
 
     private ToolButton createButton(ToolPanelState state) {
-        return new ToolButton(
-            state.provider,
-            provider -> findPanel(provider.id()).open,
-            provider -> togglePanel(provider.id())
-        );
+        return new ToolButton(state.provider, this::isPanelSelected, this::isPanelFocused, this::togglePanel);
+    }
+
+    private boolean isPanelSelected(ToolPanel.Provider provider) {
+        return findPanel(provider.id()).open;
+    }
+
+    private boolean isPanelFocused(ToolPanel.Provider provider) {
+        var component = findPanel(provider.id()).component;
+        if (component == null) {
+            return false;
+        }
+        var focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        var focusOwner = focusManager.getPermanentFocusOwner();
+        return focusOwner != null
+            && SwingUtilities.isDescendingFrom(focusOwner, component)
+            && isInActiveWindow(focusOwner, focusManager.getActiveWindow());
+    }
+
+    // com.formdev.flatlaf.ui.FlatUIUtils.isInActiveWindow
+    static boolean isInActiveWindow(Component c, Window activeWindow) {
+        var window = SwingUtilities.windowForComponent(c);
+        return window == activeWindow
+            || window != null && window.getType() == Window.Type.POPUP && window.getOwner() == activeWindow;
     }
 
     private static final class ToolPanelState {
@@ -286,6 +317,63 @@ public final class ToolManagerImpl implements ToolManager {
                 left ? 1 : 0,
                 UIManager.getColor("Component.borderColor")));
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        }
+    }
+
+    private static class Host extends JComponent {
+    }
+
+    private static class ButtonRepainter implements PropertyChangeListener {
+        private static ButtonRepainter instance;
+        private final KeyboardFocusManager keyboardFocusManager;
+
+        static void install() {
+            synchronized (ButtonRepainter.class) {
+                if (instance != null) {
+                    return;
+                }
+                instance = new ButtonRepainter();
+            }
+        }
+
+        ButtonRepainter() {
+            keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            keyboardFocusManager.addPropertyChangeListener(this);
+        }
+
+        @Override
+        public void propertyChange(PropertyChangeEvent e) {
+            switch (e.getPropertyName()) {
+                case "permanentFocusOwner" -> {
+                    Object oldValue = e.getOldValue();
+                    Object newValue = e.getNewValue();
+                    if (oldValue instanceof Component component) {
+                        repaintSelectedPaneButtons(component);
+                    }
+                    if (newValue instanceof Component component) {
+                        repaintSelectedPaneButtons(component);
+                    }
+                }
+                case "activeWindow" -> {
+                    Component permanentFocusOwner = keyboardFocusManager.getPermanentFocusOwner();
+                    if (permanentFocusOwner != null) {
+                        repaintSelectedPaneButtons(permanentFocusOwner);
+                    }
+                }
+            }
+        }
+
+        private static void repaintSelectedPaneButtons(Component c) {
+            while (c != null) {
+                if (c instanceof JComponent jc) {
+                    var manager = (ToolManagerImpl) jc.getClientProperty(ToolManagerImpl.class);
+                    if (manager != null) {
+                        manager.leftButtons.repaint();
+                        manager.rightButtons.repaint();
+                    }
+                }
+                c = c.getParent();
+            }
         }
     }
 }

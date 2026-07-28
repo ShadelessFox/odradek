@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.ui.components.tools.demo;
 
-import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
@@ -52,12 +51,7 @@ public class ToolManagerDemo {
 
                     @Override
                     public ToolPanel create() {
-                        return () -> {
-                            var label = new JLabel(id, SwingConstants.CENTER);
-                            label.setOpaque(true);
-                            label.putClientProperty(FlatClientProperties.STYLE, "background: @componentBackground");
-                            return label;
-                        };
+                        return () -> new JButton(id);
                     }
                 }, new ToolPanel.Placement(anchor, i < 3));
             }
