@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.game;
 
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -41,9 +43,20 @@ public interface Game extends Closeable {
             .filter(provider -> provider.supports(path))
             .toList();
         return switch (providers.size()) {
-            case 1 -> providers.getFirst().load(path);
+            case 1 -> load(path, providers.getFirst());
             case 0 -> throw new IllegalArgumentException("No provider found for " + path);
             default -> throw new IllegalStateException("Multiple providers found for " + path + ": " + providers);
         };
+    }
+
+    private static Game load(Path path, Provider provider) throws IOException {
+        var log = LoggerFactory.getLogger(provider.getClass());
+        log.debug("Loading game from {}", path);
+
+        var start = System.currentTimeMillis();
+        var game = provider.load(path);
+        log.debug("Loaded game in {} ms", System.currentTimeMillis() - start);
+
+        return game;
     }
 }
