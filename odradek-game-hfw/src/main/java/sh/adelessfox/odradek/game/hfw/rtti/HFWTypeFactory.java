@@ -3,20 +3,19 @@ package sh.adelessfox.odradek.game.hfw.rtti;
 import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.factory.AbstractTypeFactory;
-import sh.adelessfox.odradek.rtti.factory.TypeId;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class HFWTypeFactory extends AbstractTypeFactory {
+public class HFWTypeFactory extends AbstractTypeFactory<HFWTypeId> {
     public HFWTypeFactory() {
         super(HFW.class, MethodHandles.lookup());
     }
 
     @Override
-    protected TypeId computeTypeId(TypeInfo info) {
+    protected HFWTypeId computeTypeId(TypeInfo info) {
         var name = "00000001_" + info.name();
         var hash = DecimaHash.murmur3().hash(name).asLong();
         return HFWTypeId.of(hash);

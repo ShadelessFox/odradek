@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
+import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeFactory;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeWriter;
 import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.io.BytesBinaryWriter;
@@ -14,7 +15,7 @@ import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -60,89 +61,101 @@ public final class GraphPatcher {
     public void persist() throws IOException {
         var graph = (DS2.StreamingGraphResource) game.streamingGraph().resource();
 
+        // ensure we have mutable lists to modify
         graph.files(new ArrayList<>(graph.files()));
         graph.packFileLengths(new ArrayList<>(graph.packFileLengths()));
         graph.packFileOffsets(new ArrayList<>(graph.packFileOffsets()));
         graph.spanTable(new ArrayList<>(graph.spanTable()));
 
+        applyCorePatches(graph);
+
+        var path = game.resolvePath("cache:package/streaming_graph.core");
+        log.debug("Patching {}", path);
+        writeCoreFile(path, graph, game.getTypeFactory());
+    }
+
+    private void applyCorePatches(DS2.StreamingGraphResource graph) throws IOException {
         int patchFileIndex = graph.files().size();
         graph.files().add("cache:package/patch/odradek.00.00.core");
         graph.packFileLengths().add(new int[0]);
         graph.packFileOffsets().add(new int[0]);
 
         for (var patch : patches) {
-            var fileIndex = patch.fileIndex();
-            var sourceOffset = patch.sourceOffset();
-            var sourceSize = patch.sourceSize();
-            var patchOffset = patch.patchOffset();
-            var patchSize = patch.patchSize();
-
-            log.debug(
-                "Patching object {}: file {}, offset {} ({} bytes) -> {} ({} bytes)",
-                patch.id(),
-                graph.files().get(fileIndex),
-                sourceOffset,
-                sourceSize,
-                patchSize,
-                "%+d".formatted(patchSize - sourceSize));
-
-            var group = (DS2.StreamingGroupData) game.streamingGraph().group(patch.id().groupId()).resource();
-            var span = IntStream.range(group.spanStart(), group.spanStart() + group.spanCount())
-                .mapToObj(i -> graph.spanTable().get(i))
-                .filter(s -> s.fileIndex() == fileIndex && s.contains(sourceOffset, sourceSize))
-                .findFirst().orElseThrow(() -> new IllegalStateException("Could not find span to patch!"));
-
-            var split = patch(
-                span,
-                createSpan(patchFileIndex, Math.toIntExact(patchOffset), patchSize, true),
-                sourceOffset,
-                sourceSize);
-
-            var oldSpans = graph.spanTable().subList(group.spanStart(), group.spanStart() + group.spanCount());
-            var newSpans = new ArrayList<>(oldSpans);
-
-            int oldSpanIndex = newSpans.indexOf(span);
-            newSpans.remove(oldSpanIndex);
-            newSpans.addAll(oldSpanIndex, split);
-
-            int spanStart = graph.spanTable().size();
-            int spanCount = newSpans.size();
-
-            group.spanStart(spanStart);
-            group.spanCount(spanCount);
-            group.groupSize(group.groupSize() + (patchSize - sourceSize));
-
-            graph.spanTable().addAll(newSpans);
+            applyCorePatch(patch, graph, patchFileIndex);
         }
 
         var path = game.resolvePath(graph.files().get(patchFileIndex));
-        log.debug("Writing package to {}", path);
+        log.debug("Writing patched package to {}", path);
         Files.createDirectories(path.getParent());
         try (var writer = new DirectStorageWriter(BinaryWriter.open(path), buffer.position())) {
             writer.writeBytes(buffer.toByteArray());
         }
+    }
 
-        var activeGraphPath = game.resolvePath("cache:package/streaming_graph.core");
-        var backupGraphPath = game.resolvePath("cache:package/streaming_graph.core.bak");
-        if (Files.notExists(backupGraphPath)) {
-            log.debug("Backing up streaming_graph.core to {}", backupGraphPath);
-            Files.copy(activeGraphPath, backupGraphPath);
-        } else {
-            log.debug("Restoring streaming_graph.core from backup {}", backupGraphPath);
-            Files.copy(backupGraphPath, activeGraphPath, StandardCopyOption.REPLACE_EXISTING);
-        }
+    private void applyCorePatch(CorePatch patch, DS2.StreamingGraphResource graph, int patchFileIndex) {
+        var fileIndex = patch.fileIndex();
+        var sourceOffset = patch.sourceOffset();
+        var sourceSize = patch.sourceSize();
+        var patchOffset = patch.patchOffset();
+        var patchSize = patch.patchSize();
 
-        log.debug("Patching streaming_graph.core");
-        try (var writer = BinaryWriter.open(activeGraphPath)) {
-            var data = serialize(graph);
-            writer.writeLong(0x929d7af6a30cd1c5L);
-            writer.writeInt(data.length);
-            writer.writeBytes(data);
-            writer.writeInt(0 /* unused */);
+        log.debug(
+            "Patching object {}: file {}, offset {} ({} bytes) -> {} ({} bytes)",
+            patch.id(),
+            graph.files().get(fileIndex),
+            sourceOffset,
+            sourceSize,
+            patchSize,
+            "%+d".formatted(patchSize - sourceSize));
+
+        var group = (DS2.StreamingGroupData) game.streamingGraph().group(patch.id().groupId()).resource();
+        var span = IntStream.range(group.spanStart(), group.spanStart() + group.spanCount())
+            .mapToObj(i -> graph.spanTable().get(i))
+            .filter(s -> s.fileIndex() == fileIndex && s.contains(sourceOffset, sourceSize))
+            .findFirst().orElseThrow(() -> new IllegalStateException("Could not find span to patch!"));
+
+        var split = split(
+            span,
+            createSpan(patchFileIndex, Math.toIntExact(patchOffset), patchSize, true),
+            sourceOffset,
+            sourceSize);
+
+        var oldSpans = graph.spanTable().subList(group.spanStart(), group.spanStart() + group.spanCount());
+        var newSpans = new ArrayList<>(oldSpans);
+
+        int oldSpanIndex = newSpans.indexOf(span);
+        newSpans.remove(oldSpanIndex);
+        newSpans.addAll(oldSpanIndex, split);
+
+        int spanStart = graph.spanTable().size();
+        int spanCount = newSpans.size();
+
+        group.spanStart(spanStart);
+        group.spanCount(spanCount);
+        group.groupSize(group.groupSize() + (patchSize - sourceSize));
+
+        graph.spanTable().addAll(newSpans);
+    }
+
+    private static void writeCoreFile(Path path, TypedObject resource, DS2TypeFactory factory) throws IOException {
+        try (var writer = BinaryWriter.open(path)) {
+            // Object data
+            writer.position(12);
+            new DS2TypeWriter().write(resource, writer);
+            var length = writer.position() - 12;
+
+            // Object header
+            writer.position(0);
+            writer.writeLong(factory.getId(resource.getType()).hash());
+            writer.writeInt(Math.toIntExact(length));
+
+            // Links, unused in retail game
+            writer.position(length + 12);
+            writer.writeInt(0);
         }
     }
 
-    private List<DS2.StreamingSourceSpan> patch(
+    private List<DS2.StreamingSourceSpan> split(
         DS2.StreamingSourceSpan original,
         DS2.StreamingSourceSpan patch,
         long offset,
@@ -188,14 +201,6 @@ public final class GraphPatcher {
         span.isPatch(isPatch);
 
         return span;
-    }
-
-    private byte[] serialize(TypedObject object) throws IOException {
-        // TODO can be inlined
-        try (var writer = new BytesBinaryWriter()) {
-            new DS2TypeWriter().write(object, object.getType(), writer);
-            return writer.toByteArray();
-        }
     }
 
     private record CorePatch(

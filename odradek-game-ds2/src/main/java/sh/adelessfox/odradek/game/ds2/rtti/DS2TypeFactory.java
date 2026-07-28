@@ -3,20 +3,19 @@ package sh.adelessfox.odradek.game.ds2.rtti;
 import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.factory.AbstractTypeFactory;
-import sh.adelessfox.odradek.rtti.factory.TypeId;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public final class DS2TypeFactory extends AbstractTypeFactory {
+public final class DS2TypeFactory extends AbstractTypeFactory<DS2TypeId> {
     public DS2TypeFactory() {
         super(DS2.class, MethodHandles.lookup());
     }
 
     @Override
-    protected TypeId computeTypeId(TypeInfo info) {
+    protected DS2TypeId computeTypeId(TypeInfo info) {
         var name = "00000001_" + info.name();
         var hash = DecimaHash.murmur3().hash(name).asLong();
         return DS2TypeId.of(hash);

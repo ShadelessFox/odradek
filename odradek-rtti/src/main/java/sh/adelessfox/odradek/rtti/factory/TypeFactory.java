@@ -12,6 +12,8 @@ public interface TypeFactory {
 
     Collection<TypeInfo> getAll();
 
+    TypeId getId(TypeInfo info);
+
     @SuppressWarnings("unchecked")
     default <T extends TypedObject> T newInstance(Class<T> clazz) {
         var name = clazz.getSimpleName();

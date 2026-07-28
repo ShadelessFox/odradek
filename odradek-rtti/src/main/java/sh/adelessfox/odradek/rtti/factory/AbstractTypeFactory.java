@@ -19,10 +19,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class AbstractTypeFactory implements TypeFactory {
+public abstract class AbstractTypeFactory<T extends TypeId> implements TypeFactory {
     private static final Logger log = LoggerFactory.getLogger(AbstractTypeFactory.class);
 
-    private final Map<TypeId, TypeInfo> types = new HashMap<>();
+    private final Map<T, TypeInfo> types = new HashMap<>();
+    private final Map<TypeInfo, T> ids = new IdentityHashMap<>();
     private final Class<?> namespace;
     private final TypeContext context;
     private final TypeRuntimeGenerator generator;
@@ -43,10 +44,11 @@ public abstract class AbstractTypeFactory implements TypeFactory {
 
         log.debug("Computing type ids");
         for (TypeInfo info : context.getAll()) {
-            TypeId id = computeTypeId(info);
+            var id = computeTypeId(info);
             if (types.putIfAbsent(id, info) != null) {
                 throw new IllegalStateException("Duplicate type id " + id + " for " + types.get(id) + " and " + info);
             }
+            ids.put(info, id);
         }
     }
 
@@ -58,7 +60,8 @@ public abstract class AbstractTypeFactory implements TypeFactory {
 
     @Override
     public TypeInfo get(TypeId id) {
-        TypeInfo info = types.get(id);
+        @SuppressWarnings("unchecked")
+        var info = types.get((T) id);
         if (info == null) {
             throw new TypeNotFoundException("Unknown type: " + id);
         }
@@ -68,6 +71,15 @@ public abstract class AbstractTypeFactory implements TypeFactory {
     @Override
     public Collection<TypeInfo> getAll() {
         return context.getAll();
+    }
+
+    @Override
+    public T getId(TypeInfo info) {
+        var id = ids.get(info);
+        if (id == null) {
+            throw new TypeNotFoundException("Unknown type: " + info);
+        }
+        return id;
     }
 
     private static void collectOrderedAttrs(ClassTypeInfo info, int offset, List<OrderedAttr> attrs) {
@@ -83,7 +95,7 @@ public abstract class AbstractTypeFactory implements TypeFactory {
         }
     }
 
-    protected abstract TypeId computeTypeId(TypeInfo info);
+    protected abstract T computeTypeId(TypeInfo info);
 
     protected abstract void sortOrderedAttributes(List<OrderedAttr> attrs);
 
