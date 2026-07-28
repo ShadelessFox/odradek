@@ -2,6 +2,8 @@ package sh.adelessfox.odradek.ui.components.tool;
 
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.Focusable;
+import sh.adelessfox.odradek.ui.components.Orientation;
+import sh.adelessfox.odradek.ui.components.Splitter;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,8 +19,8 @@ import java.util.Map;
  * Clicking on an already selected button will unselect it and hide the contents.
  */
 public final class ToolPanelContainer extends JComponent {
-    private final Splitter groupSplitter = new Splitter(true); // splitter between primary and secondary groups
-    private final Splitter outerSplitter = new Splitter(false); // splitter between the panel and contents
+    private final Splitter groupSplitter = new Splitter(Orientation.VERTICAL); // splitter between primary and secondary groups
+    private final Splitter outerSplitter = new Splitter(Orientation.HORIZONTAL); // splitter between the panel and contents
     private final JPanel buttonsPanel;
 
     private final List<ToolPanelButton> primaryButtons = new ArrayList<>();
@@ -44,6 +46,14 @@ public final class ToolPanelContainer extends JComponent {
             case LEFT -> BorderLayout.WEST;
             case RIGHT -> BorderLayout.EAST;
         });
+
+        groupSplitter.setFirstComponent(primaryGroup.getComponent());
+        groupSplitter.setSecondComponent(secondaryGroup.getComponent());
+
+        switch (placement) {
+            case LEFT -> outerSplitter.setFirstComponent(groupSplitter);
+            case RIGHT -> outerSplitter.setSecondComponent(groupSplitter);
+        }
 
         ButtonRepainter.install();
     }
@@ -129,14 +139,9 @@ public final class ToolPanelContainer extends JComponent {
         boolean hasPrimary = primaryGroup.hasSelection();
         boolean hasSecondary = secondaryGroup.hasSelection();
 
-        groupSplitter.setFirstComponent(hasPrimary ? primaryGroup.getComponent() : null);
-        groupSplitter.setSecondComponent(hasSecondary ? secondaryGroup.getComponent() : null);
-
-        var content = hasPrimary || hasSecondary ? groupSplitter : null;
-        switch (placement) {
-            case LEFT -> outerSplitter.setFirstComponent(content);
-            case RIGHT -> outerSplitter.setSecondComponent(content);
-        }
+        primaryGroup.getComponent().setVisible(hasPrimary);
+        secondaryGroup.getComponent().setVisible(hasSecondary);
+        groupSplitter.setVisible(hasPrimary || hasSecondary);
 
         if (select) {
             panel.setFocus();
@@ -147,87 +152,6 @@ public final class ToolPanelContainer extends JComponent {
 
     private static JPanel createButtonPane() {
         return new JPanel(new MigLayout("ins 0 4 0 4,gap 4,wrap"));
-    }
-
-    private static final class Splitter extends JComponent {
-        private final JSplitPane pane;
-        private JComponent firstComponent;
-        private JComponent secondComponent;
-
-        Splitter(boolean vertical) {
-            pane = new JSplitPane(vertical ? JSplitPane.VERTICAL_SPLIT : JSplitPane.HORIZONTAL_SPLIT);
-            pane.setLeftComponent(null);
-            pane.setRightComponent(null);
-            pane.setContinuousLayout(true);
-
-            setLayout(new BorderLayout());
-        }
-
-        JComponent getFirstComponent() {
-            return firstComponent;
-        }
-
-        void setFirstComponent(JComponent component) {
-            if (this.firstComponent != component) {
-                expand(component, true);
-                this.firstComponent = component;
-            }
-        }
-
-        JComponent getSecondComponent() {
-            return secondComponent;
-        }
-
-        void setSecondComponent(JComponent component) {
-            if (this.secondComponent != component) {
-                expand(component, false);
-                this.secondComponent = component;
-            }
-        }
-
-        private void expand(Component component, boolean left) {
-            var opposite = left ? secondComponent : firstComponent;
-            var dividerLocation = computeDividerLocation();
-
-            removeAll();
-
-            if (component == null) {
-                if (opposite != null) {
-                    add(opposite, BorderLayout.CENTER);
-                }
-            } else if (opposite == null) {
-                add(component, BorderLayout.CENTER);
-            } else {
-                add(pane, BorderLayout.CENTER);
-                pane.setLeftComponent(left ? component : opposite);
-                pane.setRightComponent(left ? opposite : component);
-                pane.setDividerLocation(dividerLocation);
-            }
-
-            // Unless a better way to toggle visibility of individual components
-            // is found without altering the hierarchy, use this to aid in
-            // updating the LaF in case the theme is changed while either
-            // component is hidden.
-            SwingUtilities.updateComponentTreeUI(this);
-        }
-
-        private int computeDividerLocation() {
-            var location = pane.getDividerLocation();
-            if (location != -1) {
-                return location;
-            }
-
-            Dimension size = getSize();
-            if (size.width == 0 && size.height == 0) {
-                return -1;
-            }
-
-            if (pane.getOrientation() == JSplitPane.VERTICAL_SPLIT) {
-                return size.height / 2;
-            } else {
-                return size.width / 2;
-            }
-        }
     }
 
     private static class ButtonRepainter implements PropertyChangeListener {
