@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.ui.components.tool;
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.components.Orientation;
-import sh.adelessfox.odradek.ui.components.Splitter;
+import sh.adelessfox.odradek.ui.components.tools.Splitter;
 
 import javax.swing.*;
 import java.awt.*;

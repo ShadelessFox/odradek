@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.ui.components.laf;
 
 import sh.adelessfox.odradek.ui.components.Orientation;
-import sh.adelessfox.odradek.ui.components.Splitter;
+import sh.adelessfox.odradek.ui.components.tools.Splitter;
 
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
@@ -22,7 +22,7 @@ public final class SplitterUI extends ComponentUI {
     public void installUI(JComponent c) {
         splitter = (Splitter) c;
 
-        divider = new Divider(splitter);
+        divider = new Divider();
         divider.setOrientation(splitter.getOrientation());
 
         splitter.setLayout(new SplitterLayoutManager());
@@ -44,58 +44,16 @@ public final class SplitterUI extends ComponentUI {
 
     @Override
     public void uninstallUI(JComponent c) {
-        divider = null;
-
         splitter.setLayout(null);
+        splitter = null;
         divider = null;
     }
 
-    private static class Divider extends JPanel {
-        public Divider(Splitter splitter) {
-            var adapter = new MouseAdapter() {
-                boolean dragging;
-                Point origin;
-
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    if (!SwingUtilities.isLeftMouseButton(e)) {
-                        return;
-                    }
-                    dragging = true;
-                    origin = e.getPoint();
-                }
-
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    if (!SwingUtilities.isLeftMouseButton(e)) {
-                        return;
-                    }
-                    dragging = false;
-                }
-
-                @Override
-                public void mouseDragged(MouseEvent e) {
-                    if (!dragging) {
-                        return;
-                    }
-
-                    double weight;
-                    if (splitter.getOrientation() == Orientation.HORIZONTAL) {
-                        var delta = e.getPoint().x - origin.x;
-                        var location = getX() + delta;
-                        weight = (double) location / (splitter.getWidth() - getPreferredSize().width);
-                    } else {
-                        var delta = e.getPoint().y - origin.y;
-                        var location = getY() + delta;
-                        weight = (double) location / (splitter.getHeight() - getPreferredSize().height);
-                    }
-
-                    splitter.setDividerLocation(Math.clamp(weight, 0.0, 1.0));
-                }
-            };
-
-            addMouseListener(adapter);
-            addMouseMotionListener(adapter);
+    private class Divider extends JPanel {
+        Divider() {
+            var handler = new Handler();
+            addMouseListener(handler);
+            addMouseMotionListener(handler);
         }
 
         public void setOrientation(Orientation orientation) {
@@ -114,6 +72,46 @@ public final class SplitterUI extends ComponentUI {
         @Override
         public Dimension getMinimumSize() {
             return new Dimension(6, 6);
+        }
+
+        private class Handler extends MouseAdapter {
+            private Point origin;
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
+                }
+                origin = e.getPoint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
+                }
+                origin = null;
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (origin == null) {
+                    return;
+                }
+
+                double weight;
+                if (splitter.getOrientation() == Orientation.HORIZONTAL) {
+                    var delta = e.getPoint().x - origin.x;
+                    var location = getX() + delta;
+                    weight = (double) location / (splitter.getWidth() - getPreferredSize().width);
+                } else {
+                    var delta = e.getPoint().y - origin.y;
+                    var location = getY() + delta;
+                    weight = (double) location / (splitter.getHeight() - getPreferredSize().height);
+                }
+
+                splitter.setDividerLocation(Math.clamp(weight, 0.0, 1.0));
+            }
         }
     }
 
