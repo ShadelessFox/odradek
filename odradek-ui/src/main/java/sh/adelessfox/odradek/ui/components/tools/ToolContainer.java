@@ -199,6 +199,12 @@ public final class ToolContainer extends JComponent implements ToolManager {
         container.setComponent(component, state.placement);
         state.open = true;
 
+        // Unless a better way to toggle visibility of individual components
+        // is found without altering the hierarchy, use this to aid in
+        // updating the LaF in case the theme is changed while either
+        // component is hidden.
+        SwingUtilities.updateComponentTreeUI(this);
+
         if (focus) {
             component.requestFocusInWindow();
         }
@@ -366,7 +372,7 @@ public final class ToolContainer extends JComponent implements ToolManager {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() % 2 == 0) {
-                            // TODO expand the panel    
+                            // TODO expand the panel
                         } else if (SwingUtilities.isMiddleMouseButton(e)) {
                             closePanel(provider.id());
                         }
