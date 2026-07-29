@@ -8,6 +8,8 @@ import sh.adelessfox.odradek.ui.util.Fugue;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
@@ -193,29 +195,12 @@ public final class ToolContainer extends JComponent implements ToolManager {
     }
 
     private void openPanel(ToolPanelState state, boolean focus) {
-        if (state.component == null) {
-            var header = new ToolPanelHeader();
-            header.setLabel(state.provider.name());
-
-            var holder = new JPanel(new BorderLayout());
-            holder.putClientProperty(FlatClientProperties.STYLE_CLASS, "ToolPanel.content");
-            holder.add(header, BorderLayout.NORTH);
-            holder.add(state.panel.createComponent());
-
-            state.component = holder;
-            state.header = header;
-
-            if (state.trailingComponent != null) {
-                header.setTrailingComponent(state.trailingComponent);
-                state.trailingComponent = null;
-            }
-        }
-
-        container.setComponent(state.component, state.placement);
+        var component = state.getOrCreateComponent();
+        container.setComponent(component, state.placement);
         state.open = true;
 
         if (focus) {
-            state.component.requestFocusInWindow();
+            component.requestFocusInWindow();
         }
     }
 
@@ -353,7 +338,7 @@ public final class ToolContainer extends JComponent implements ToolManager {
             || window != null && window.getType() == Window.Type.POPUP && window.getOwner() == activeWindow;
     }
 
-    private static final class ToolPanelState implements ToolSite {
+    private final class ToolPanelState implements ToolSite {
         private final ToolPanel.Provider provider;
         private final ToolPanel.Placement placement;
         private ToolPanel panel;
@@ -361,11 +346,62 @@ public final class ToolContainer extends JComponent implements ToolManager {
         private ToolPanelHeader header;
         private boolean open;
 
+        private JComponent leadingComponent;
         private JComponent trailingComponent;
 
         ToolPanelState(ToolPanel.Provider provider, ToolPanel.Placement placement) {
             this.provider = provider;
             this.placement = placement;
+        }
+
+        private JComponent getOrCreateComponent() {
+            if (component == null) {
+                var label = new JLabel(provider.name());
+                label.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
+
+                header = new ToolPanelHeader();
+                header.setLeadingComponent(label);
+
+                var handler = new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() % 2 == 0) {
+                            // TODO expand the panel    
+                        } else if (SwingUtilities.isMiddleMouseButton(e)) {
+                            closePanel(provider.id());
+                        }
+                    }
+                };
+
+                header.addMouseListener(handler);
+                label.addMouseListener(handler);
+
+                component = new JPanel(new BorderLayout());
+                component.putClientProperty(FlatClientProperties.STYLE_CLASS, "ToolPanel.content");
+                component.add(header, BorderLayout.NORTH);
+                component.add(panel.createComponent());
+
+                if (leadingComponent != null) {
+                    header.setLeadingComponent(leadingComponent);
+                    leadingComponent = null;
+                }
+
+                if (trailingComponent != null) {
+                    header.setTrailingComponent(trailingComponent);
+                    trailingComponent = null;
+                }
+            }
+
+            return component;
+        }
+
+        @Override
+        public void setLeadingComponent(JComponent component) {
+            if (header == null) {
+                leadingComponent = component;
+            } else {
+                header.setLeadingComponent(component);
+            }
         }
 
         @Override
@@ -383,6 +419,8 @@ public final class ToolContainer extends JComponent implements ToolManager {
             moved.component = component;
             moved.header = header;
             moved.open = open;
+            moved.leadingComponent = leadingComponent;
+            moved.trailingComponent = trailingComponent;
             return moved;
         }
     }
@@ -453,31 +491,32 @@ public final class ToolContainer extends JComponent implements ToolManager {
         private Color backgroundStart;
         private Color backgroundEnd;
 
-        private final JLabel label;
+        private JComponent leadingComponent;
         private JComponent trailingComponent;
 
         public ToolPanelHeader() {
-            label = new JLabel();
-
             setBorder(LineBorder.of(0, 0, 1, 0));
-            setLayout(new MigLayout("ins 0", "", "[grow,fill]"));
-            add(label, "gap 6");
-            add(Box.createHorizontalGlue(), "push,grow");
-
+            setLayout(new MigLayout("ins 0,fill,hidemode 3", "", "[grow,fill]"));
             updateUI();
         }
 
-        void setLabel(String label) {
-            this.label.setText(label);
+        void setLeadingComponent(JComponent component) {
+            if (leadingComponent != null) {
+                remove(leadingComponent);
+            }
+            leadingComponent = component;
+            if (component != null) {
+                add(component, "cell 0 0,pushx,growx");
+            }
         }
 
-        void setTrailingComponent(JComponent trailingComponent) {
-            if (this.trailingComponent != null) {
+        void setTrailingComponent(JComponent component) {
+            if (trailingComponent != null) {
                 remove(trailingComponent);
             }
-            this.trailingComponent = trailingComponent;
-            if (trailingComponent != null) {
-                add(trailingComponent);
+            trailingComponent = component;
+            if (component != null) {
+                add(component, "cell 1 0");
             }
         }
 

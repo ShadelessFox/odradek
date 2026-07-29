@@ -19,7 +19,6 @@ import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
@@ -32,7 +31,6 @@ import sh.adelessfox.odradek.ui.util.Fugue;
 import sh.adelessfox.odradek.util.Result;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.EnumSet;
@@ -55,7 +53,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
         @Override
         public ToolPanel create(ToolSite site) {
-            return new GraphToolPanel(eventBus, game);
+            return new GraphToolPanel(site, eventBus, game);
         }
 
         @Override
@@ -76,18 +74,32 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
     private static final Logger log = LoggerFactory.getLogger(GraphToolPanel.class);
 
+    private final ToolSite site;
     private final EventBus eventBus;
     private final DecimaGame game;
 
-    private final StructuredTree<GraphStructure> tree;
-    private final JPanel panel;
-    private final ValidationPopup filterValidationPopup;
+    private StructuredTree<GraphStructure> tree;
+    private SearchTextField filterField;
 
-    private GraphToolPanel(EventBus eventBus, DecimaGame game) {
+    private GraphToolPanel(ToolSite site, EventBus eventBus, DecimaGame game) {
+        this.site = site;
         this.eventBus = eventBus;
         this.game = game;
+    }
 
-        var filterField = createFilterField();
+    @Override
+    public JComponent createComponent() {
+        tree = createGraphTree();
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
+        tree.getActionMap().put("focus-in", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                filterField.requestFocusInWindow();
+            }
+        });
+
+        filterField = createFilterField(tree);
+        filterField.setBorder(BorderFactory.createEmptyBorder());
         filterField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "focus-out");
         filterField.getActionMap().put("focus-out", new AbstractAction() {
             @Override
@@ -96,36 +108,16 @@ public class GraphToolPanel implements ToolPanel, Focusable {
             }
         });
 
-        filterValidationPopup = new ValidationPopup(filterField);
-
-        tree = createGraphTree();
-
-        var treeScrollPane = new JScrollPane(tree);
-        treeScrollPane.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-            .put(KeyStroke.getKeyStroke("ctrl F"), "focus-in");
-        treeScrollPane.getActionMap().put("focus-in", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                filterField.requestFocusInWindow();
-            }
-        });
-
-        panel = new JPanel(new BorderLayout());
-        panel.add(filterField, BorderLayout.NORTH);
-        panel.add(treeScrollPane, BorderLayout.CENTER);
-        panel.setPreferredSize(new Dimension(300, 300));
-
         Actions.installContextMenu(tree, GraphMenu.ID, key -> {
             if (DataKeys.GAME.is(key)) {
                 return Optional.of(game);
             }
             return tree.get(key);
         });
-    }
 
-    @Override
-    public JComponent createComponent() {
-        return panel;
+        site.setLeadingComponent(filterField);
+
+        return new JScrollPane(tree);
     }
 
     @Override
@@ -138,7 +130,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         tree.requestFocusInWindow();
     }
 
-    private SearchTextField createFilterField() {
+    private SearchTextField createFilterField(StructuredTree<GraphStructure> tree) {
         var toggleCaseSensitive = new JToggleButton(Fugue.getIcon("edit-small-caps"));
         toggleCaseSensitive.setToolTipText("Match Case");
 
@@ -148,7 +140,6 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         var filterToolbar = new JToolBar();
         filterToolbar.add(toggleCaseSensitive);
         filterToolbar.add(toggleWholeWord);
-        filterToolbar.add(Box.createHorizontalStrut(4));
 
         var filterField = new SearchTextField();
         filterField.setShowClearButton(true);
@@ -166,15 +157,27 @@ public class GraphToolPanel implements ToolPanel, Focusable {
              - To include groups that have <i>child groups</i>, use <code>has:subgroups</code>.
             </html>
             """);
-        filterField.setBorder(BorderFactory.createCompoundBorder(
-            LineBorder.of(0, 0, 1, 0),
-            BorderFactory.createEmptyBorder(6, 8, 6, 8)
-        ));
 
-        Runnable callback = () -> updateFilter(
-            filterField.getText(),
-            toggleCaseSensitive.isSelected(),
-            toggleWholeWord.isSelected());
+        var validationPopup = new ValidationPopup(filterField);
+        Runnable callback = () -> {
+            var filter = createFilter(
+                filterField.getText(),
+                toggleCaseSensitive.isSelected(),
+                toggleWholeWord.isSelected());
+
+            switch (filter) {
+                case Result.Ok(var predicate) -> {
+                    validationPopup.setVisible(false);
+                    tree.getModel().setFilter(predicate.orElse(null));
+                    tree.getModel().refresh();
+                }
+                case Result.Error(var message) -> {
+                    validationPopup.setMessage(message);
+                    validationPopup.setSeverity(ValidationPopup.Severity.ERROR);
+                    validationPopup.setVisible(true);
+                }
+            }
+        };
 
         filterField.addActionListener(_ -> callback.run());
         toggleCaseSensitive.addActionListener(_ -> callback.run());
@@ -246,25 +249,6 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         });
 
         return tree;
-    }
-
-    private void updateFilter(String input, boolean matchCase, boolean matchWholeWord) {
-        var treeModel = tree.getModel();
-        var filter = createFilter(input, matchCase, matchWholeWord);
-        var validation = filterValidationPopup;
-
-        switch (filter) {
-            case Result.Ok(var predicate) -> {
-                validation.setVisible(false);
-                treeModel.setFilter(predicate.orElse(null));
-                treeModel.refresh();
-            }
-            case Result.Error(var message) -> {
-                validation.setMessage(message);
-                validation.setSeverity(ValidationPopup.Severity.ERROR);
-                validation.setVisible(true);
-            }
-        }
     }
 
     private static Result<Optional<Predicate<GraphStructure>>, String> createFilter(
