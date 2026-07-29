@@ -71,7 +71,7 @@ public final class SettingsManager {
         }
     }
 
-    private void save() {
+    private synchronized void save() {
         eventBus.publish(new SettingsEvent.BeforeSave(settings));
 
         try {
