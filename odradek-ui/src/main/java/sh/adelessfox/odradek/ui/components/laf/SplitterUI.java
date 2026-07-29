@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.ui.components.laf;
 
-import com.formdev.flatlaf.FlatClientProperties;
 import sh.adelessfox.odradek.ui.components.Orientation;
 import sh.adelessfox.odradek.ui.components.Splitter;
 
@@ -97,7 +96,6 @@ public final class SplitterUI extends ComponentUI {
 
             addMouseListener(adapter);
             addMouseMotionListener(adapter);
-            putClientProperty(FlatClientProperties.STYLE, "background: $Component.borderColor");
         }
 
         public void setOrientation(Orientation orientation) {
@@ -120,6 +118,8 @@ public final class SplitterUI extends ComponentUI {
     }
 
     private class SplitterLayoutManager implements LayoutManager {
+        private int lastSplitterSize;
+
         @Override
         public void addLayoutComponent(String name, Component comp) {
             // don't care
@@ -161,6 +161,16 @@ public final class SplitterUI extends ComponentUI {
                 int totalHeight = parent.getHeight();
 
                 if (splitter.getOrientation() == Orientation.HORIZONTAL) {
+                    if (lastSplitterSize == 0) {
+                        lastSplitterSize = totalWidth;
+                    } else if (lastSplitterSize != totalWidth) {
+                        int delta = lastSplitterSize - totalWidth;
+                        var oldLocation = lastSplitterSize * splitter.getDividerLocation();
+                        var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalWidth;
+                        splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
+                        lastSplitterSize = totalWidth;
+                    }
+
                     int dividerWidth = divider.getPreferredSize().width;
                     int firstWidth = (int) (splitter.getDividerLocation() * (totalWidth - dividerWidth));
                     int secondWidth = totalWidth - dividerWidth - firstWidth;
@@ -169,6 +179,16 @@ public final class SplitterUI extends ComponentUI {
                     secondComponent.setBounds(firstWidth + dividerWidth, 0, secondWidth, totalHeight);
                     divider.setBounds(firstWidth, 0, dividerWidth, totalHeight);
                 } else {
+                    if (lastSplitterSize == 0) {
+                        lastSplitterSize = totalHeight;
+                    } else if (totalHeight != lastSplitterSize) {
+                        int delta = lastSplitterSize - totalHeight;
+                        var oldLocation = lastSplitterSize * splitter.getDividerLocation();
+                        var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalHeight;
+                        splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
+                        lastSplitterSize = totalHeight;
+                    }
+
                     int dividerHeight = divider.getPreferredSize().height;
                     int firstHeight = (int) (splitter.getDividerLocation() * (totalHeight - dividerHeight));
                     int secondHeight = totalHeight - dividerHeight - firstHeight;
