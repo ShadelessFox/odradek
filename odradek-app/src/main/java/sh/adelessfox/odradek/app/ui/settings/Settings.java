@@ -6,8 +6,8 @@ import com.google.gson.annotations.JsonAdapter;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
 import sh.adelessfox.odradek.app.ui.settings.gson.EditorStateAdapter;
 import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.ui.components.tools.ToolState;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
+import sh.adelessfox.odradek.ui.tools.ToolState;
 
 import javax.swing.*;
 import java.util.List;

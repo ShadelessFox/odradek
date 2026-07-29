@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.components.tools;
+package sh.adelessfox.odradek.ui.tools;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
@@ -209,7 +209,6 @@ public final class ToolContainer extends JComponent implements ToolManager {
             component.requestFocusInWindow();
         }
     }
-
 
     private ToolPanelState findPanel(String id) {
         var state = panelById.get(id);

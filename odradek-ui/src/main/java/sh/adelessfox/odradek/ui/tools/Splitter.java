@@ -1,32 +1,35 @@
-package sh.adelessfox.odradek.ui.components.tools;
-
-import sh.adelessfox.odradek.ui.components.Orientation;
+package sh.adelessfox.odradek.ui.tools;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public final class Splitter extends JComponent {
-    public static final String ORIENTATION_PROPERTY = "orientation";
-    public static final String DIVIDER_LOCATION_PROPERTY = "dividerLocation";
-    public static final String RESIZE_WEIGHT_PROPERTY = "resizeWeight";
+final class Splitter extends JComponent {
+    enum Orientation {
+        HORIZONTAL,
+        VERTICAL
+    }
 
-    public static final String FIRST = "first";
-    public static final String SECOND = "second";
-    public static final String DIVIDER = "divider";
+    static final String ORIENTATION_PROPERTY = "orientation";
+    static final String DIVIDER_LOCATION_PROPERTY = "dividerLocation";
+    static final String RESIZE_WEIGHT_PROPERTY = "resizeWeight";
+
+    static final String FIRST = "first";
+    static final String SECOND = "second";
+    static final String DIVIDER = "divider";
 
     private final Divider divider;
+    private int dividerSize;
 
     private JComponent firstComponent;
     private JComponent secondComponent;
     private Orientation orientation = Orientation.HORIZONTAL;
 
-    private int dividerSize = 6;
     private double dividerLocation = 0.5;
     private double resizeWeight = 0.5;
 
-    public Splitter(Orientation orientation) {
+    Splitter(Orientation orientation) {
         setOrientation(orientation);
         setLayout(new SplitterLayoutManager());
 
@@ -47,6 +50,8 @@ public final class Splitter extends JComponent {
                 }
             }
         });
+
+        updateUI();
     }
 
     public JComponent getFirstComponent() {
@@ -109,6 +114,13 @@ public final class Splitter extends JComponent {
         double oldWeight = this.resizeWeight;
         this.resizeWeight = resizeWeight;
         firePropertyChange(RESIZE_WEIGHT_PROPERTY, oldWeight, resizeWeight);
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+
+        dividerSize = UIManager.getInt("SplitPane.dividerSize");
     }
 
     @Override

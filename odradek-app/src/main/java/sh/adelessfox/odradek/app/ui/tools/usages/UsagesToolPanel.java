@@ -20,12 +20,12 @@ import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
-import sh.adelessfox.odradek.ui.components.tools.ToolSite;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.tools.ToolPanel;
+import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.ui.util.Fugue;
 

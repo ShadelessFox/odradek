@@ -8,9 +8,9 @@ import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
 import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.ui.components.tools.ToolContainer;
-import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.tools.ToolContainer;
+import sh.adelessfox.odradek.ui.tools.ToolPanel;
 
 import javax.swing.*;
 import java.awt.*;

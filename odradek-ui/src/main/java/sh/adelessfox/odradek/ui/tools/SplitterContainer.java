@@ -1,6 +1,4 @@
-package sh.adelessfox.odradek.ui.components.tools;
-
-import sh.adelessfox.odradek.ui.components.Orientation;
+package sh.adelessfox.odradek.ui.tools;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,22 +18,22 @@ final class SplitterContainer extends JPanel {
     public SplitterContainer() {
         setLayout(new BorderLayout());
 
-        leftInnerSplitter = new Splitter(Orientation.VERTICAL);
+        leftInnerSplitter = new Splitter(Splitter.Orientation.VERTICAL);
         leftInnerSplitter.setResizeWeight(0.5);
 
-        rightInnerSplitter = new Splitter(Orientation.VERTICAL);
+        rightInnerSplitter = new Splitter(Splitter.Orientation.VERTICAL);
         rightInnerSplitter.setResizeWeight(0.5);
 
-        bottomInnerSplitter = new Splitter(Orientation.HORIZONTAL);
+        bottomInnerSplitter = new Splitter(Splitter.Orientation.HORIZONTAL);
         bottomInnerSplitter.setResizeWeight(0.5);
 
-        leftSplitter = new Splitter(Orientation.HORIZONTAL);
+        leftSplitter = new Splitter(Splitter.Orientation.HORIZONTAL);
         leftSplitter.setResizeWeight(0.0);
 
-        rightSplitter = new Splitter(Orientation.HORIZONTAL);
+        rightSplitter = new Splitter(Splitter.Orientation.HORIZONTAL);
         rightSplitter.setResizeWeight(1.0);
 
-        bottomSplitter = new Splitter(Orientation.VERTICAL);
+        bottomSplitter = new Splitter(Splitter.Orientation.VERTICAL);
         bottomSplitter.setResizeWeight(1.0);
 
         rightSplitter.setFirstComponent(leftSplitter);

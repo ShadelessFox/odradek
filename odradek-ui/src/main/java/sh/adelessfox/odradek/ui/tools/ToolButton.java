@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.components.tools;
+package sh.adelessfox.odradek.ui.tools;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
 
