@@ -34,7 +34,7 @@ public final class ToolManagerImpl implements ToolManager {
         root.putClientProperty(ToolManagerImpl.class, this); // required for ButtonRepainter
 
         updateButtons();
-        ButtonRepainter.install();
+        ToolButtonRepainter.install();
     }
 
     @Override
@@ -315,20 +315,20 @@ public final class ToolManagerImpl implements ToolManager {
         }
     }
 
-    private static class ButtonRepainter implements PropertyChangeListener {
-        private static ButtonRepainter instance;
+    private static final class ToolButtonRepainter implements PropertyChangeListener {
+        private static ToolButtonRepainter instance;
         private final KeyboardFocusManager keyboardFocusManager;
 
         static void install() {
-            synchronized (ButtonRepainter.class) {
+            synchronized (ToolButtonRepainter.class) {
                 if (instance != null) {
                     return;
                 }
-                instance = new ButtonRepainter();
+                instance = new ToolButtonRepainter();
             }
         }
 
-        ButtonRepainter() {
+        ToolButtonRepainter() {
             keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
             keyboardFocusManager.addPropertyChangeListener(this);
         }
