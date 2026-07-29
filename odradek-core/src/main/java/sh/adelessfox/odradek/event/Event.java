@@ -8,7 +8,7 @@ public interface Event {
      *
      * <h4>Usage notice</h3>
      * Care must be taken when using sticky events, as they can lead to memory leaks
-     * because they are retained in the event bus basically forever.
+     * because they are retained in the event bus for its lifetime.
      */
     interface Sticky extends Event {
     }
