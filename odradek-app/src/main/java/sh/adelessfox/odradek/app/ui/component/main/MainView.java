@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.app.ui.component.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphToolPanel;
 import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
+import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.components.tools.ToolContainer;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
@@ -56,6 +57,12 @@ public class MainView implements View<JComponent> {
         center.openPanel(GraphToolPanel.ID, true);
 
         eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
+        eventBus.subscribe(SettingsEvent.class, event -> {
+            switch (event) {
+                case SettingsEvent.AfterLoad(var settings) -> settings.tools().ifPresent(center::setState);
+                case SettingsEvent.BeforeSave(var settings) -> settings.tools().set(center.getState());
+            }
+        });
 
         return center.getComponent();
     }

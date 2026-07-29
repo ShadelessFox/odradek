@@ -62,13 +62,6 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     private BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
         this.repository = repository;
         this.eventBus = eventBus;
-
-        eventBus.subscribe(SettingsEvent.class, event -> {
-            switch (event) {
-                case SettingsEvent.AfterLoad(var settings) -> loadSettings(settings);
-                case SettingsEvent.BeforeSave(var settings) -> saveSettings(settings);
-            }
-        });
     }
 
     @Override
@@ -89,6 +82,12 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         Actions.installContextMenu(tree, BookmarkMenu.ID, tree);
 
         eventBus.subscribe(BookmarkEvent.class, _ -> tree.getModel().refresh());
+        eventBus.subscribe(SettingsEvent.class, event -> {
+            switch (event) {
+                case SettingsEvent.AfterLoad(var settings) -> loadSettings(settings);
+                case SettingsEvent.BeforeSave(var settings) -> saveSettings(settings);
+            }
+        });
 
         return new JScrollPane(tree);
     }

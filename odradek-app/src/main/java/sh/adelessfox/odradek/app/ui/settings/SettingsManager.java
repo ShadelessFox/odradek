@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.settings.gson.ObjectIdTypeAdapter;
+import sh.adelessfox.odradek.app.ui.settings.gson.OptionalIntTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.PathTypeAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.SettingAdapterFactory;
 import sh.adelessfox.odradek.event.EventBus;
@@ -17,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -24,9 +26,11 @@ public final class SettingsManager {
     private static final Logger log = LoggerFactory.getLogger(SettingsManager.class);
     private static final Gson gson = new GsonBuilder()
         .registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe())
-        .registerTypeHierarchyAdapter(ObjectId.class, new ObjectIdTypeAdapter().nullSafe())
+        .registerTypeAdapter(OptionalInt.class, new OptionalIntTypeAdapter())
+        .registerTypeAdapter(ObjectId.class, new ObjectIdTypeAdapter().nullSafe())
         .registerTypeAdapterFactory(new SettingAdapterFactory())
         .setPrettyPrinting()
+        .serializeNulls()
         .create();
 
     private final Path path;
