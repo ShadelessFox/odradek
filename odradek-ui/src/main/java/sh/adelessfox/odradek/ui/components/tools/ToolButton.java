@@ -51,12 +51,12 @@ final class ToolButton extends JComponent {
     public void updateUI() {
         super.updateUI();
 
-        size = UIManager.getDimension("ToolPanelButton.size");
-        arc = UIManager.getInt("ToolPanelButton.arc");
-        defaultColor = UIManager.getColor("ToolPanelButton.background");
-        selectionColor = UIManager.getColor("ToolPanelButton.selectedBackground");
-        focusedSelectedColor = UIManager.getColor("ToolPanelButton.focusedSelectedColor");
-        rolloverColor = UIManager.getColor("ToolPanelButton.rolloverBackground");
+        size = UIManager.getDimension("ToolButton.size");
+        arc = UIManager.getInt("ToolButton.arc");
+        defaultColor = UIManager.getColor("ToolButton.background");
+        selectionColor = UIManager.getColor("ToolButton.selectedBackground");
+        focusedSelectedColor = UIManager.getColor("ToolButton.focusedSelectedColor");
+        rolloverColor = UIManager.getColor("ToolButton.rolloverBackground");
     }
 
     @Override
