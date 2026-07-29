@@ -4,9 +4,11 @@ import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.components.tools.ToolManager;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tools.ToolState;
+import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
@@ -262,7 +264,58 @@ public final class ToolManagerImpl implements ToolManager {
     }
 
     private ToolButton createButton(ToolPanelState state) {
-        return new ToolButton(state.provider, this::isPanelSelected, this::isPanelFocused, this::togglePanel);
+        var button = new ToolButton(
+            state.provider,
+            this::isPanelSelected,
+            this::isPanelFocused,
+            this::togglePanel);
+        button.setComponentPopupMenu(createButtonPopupMenu(state));
+        return button;
+    }
+
+    private JPopupMenu createButtonPopupMenu(ToolPanelState state) {
+        var moveTo = new JMenu("Move to");
+
+        var placements = List.of(
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.BOTTOM, true),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.BOTTOM, false),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.RIGHT, false),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.RIGHT, true));
+
+        for (ToolPanel.Placement placement : placements) {
+            var action = new AbstractAction(getLabelForPlacement(placement)) {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    movePanel(state.provider.id(), placement, 0);
+                }
+            };
+            action.putValue(Action.SMALL_ICON, getIconForPlacement(placement));
+            action.setEnabled(!placement.equals(state.placement));
+            moveTo.add(action);
+        }
+
+        var menu = new JPopupMenu();
+        menu.add(moveTo);
+
+        return menu;
+    }
+
+    private static String getLabelForPlacement(ToolPanel.Placement placement) {
+        return switch (placement.anchor()) {
+            case LEFT -> placement.primary() ? "Left Top" : "Left Bottom";
+            case RIGHT -> placement.primary() ? "Right Top" : "Right Bottom";
+            case BOTTOM -> placement.primary() ? "Bottom Left" : "Bottom Right";
+        };
+    }
+
+    private static Icon getIconForPlacement(ToolPanel.Placement placement) {
+        return switch (placement.anchor()) {
+            case LEFT -> Fugue.getIcon("application-dock-180");
+            case RIGHT -> Fugue.getIcon("application-dock");
+            case BOTTOM -> Fugue.getIcon("application-dock-270");
+        };
     }
 
     private boolean isPanelSelected(ToolPanel.Provider provider) {
