@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.ui.menu.object;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.editors.ObjectStructure;
+import sh.adelessfox.odradek.app.ui.viewers.ObjectStructure;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;

@@ -2,11 +2,11 @@ package sh.adelessfox.odradek.app.ui.component.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import sh.adelessfox.odradek.app.ui.component.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.component.common.View;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphToolPanel;
-import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
+import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.components.tools.ToolContainer;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
@@ -28,12 +28,10 @@ public class MainView implements View<JComponent> {
         EventBus eventBus
     ) {
         var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus);
-        var right = buildRight();
         var bottom = buildBottom();
 
         root = new JPanel(new BorderLayout());
         root.add(center);
-        root.add(right, BorderLayout.EAST);
         root.add(bottom, BorderLayout.SOUTH);
     }
 
@@ -65,10 +63,6 @@ public class MainView implements View<JComponent> {
         });
 
         return center.getComponent();
-    }
-
-    private static Component buildRight() {
-        return Box.createHorizontalStrut(5);
     }
 
     private static Component buildBottom() {
