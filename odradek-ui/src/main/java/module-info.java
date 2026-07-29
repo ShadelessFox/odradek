@@ -15,6 +15,7 @@ module odradek.ui {
     exports sh.adelessfox.odradek.ui.components.laf;
     exports sh.adelessfox.odradek.ui.components.properties;
     exports sh.adelessfox.odradek.ui.components.tool;
+    exports sh.adelessfox.odradek.ui.components.tools;
     exports sh.adelessfox.odradek.ui.components.tree;
     exports sh.adelessfox.odradek.ui.components;
     exports sh.adelessfox.odradek.ui.data;

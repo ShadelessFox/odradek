@@ -1,9 +1,7 @@
-package sh.adelessfox.odradek.ui.components.tools.internal;
+package sh.adelessfox.odradek.ui.components.tools;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
-import sh.adelessfox.odradek.ui.components.tools.ToolManager;
-import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
-import sh.adelessfox.odradek.ui.components.tools.ToolState;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -75,16 +73,7 @@ public final class ToolManagerImpl implements ToolManager {
             state.panel = state.provider.create();
         }
 
-        if (state.component == null) {
-            state.component = state.panel.createComponent();
-        }
-
-        container.setComponent(state.component, state.placement);
-        state.open = true;
-
-        if (focus) {
-            state.component.requestFocusInWindow();
-        }
+        openPanel(state, focus);
 
         leftButtons.repaint();
         rightButtons.repaint();
@@ -128,10 +117,7 @@ public final class ToolManagerImpl implements ToolManager {
         getGroupFor(placement).add(index, moved);
 
         if (moved.open) {
-            if (moved.component == null) {
-                moved.component = moved.panel.createComponent();
-            }
-            container.setComponent(moved.component, placement);
+            openPanel(moved, false);
         }
 
         updateButtons();
@@ -207,6 +193,24 @@ public final class ToolManagerImpl implements ToolManager {
             openPanel(id, true);
         }
     }
+
+    private void openPanel(ToolPanelState state, boolean focus) {
+        if (state.component == null) {
+            var holder = new JPanel(new BorderLayout());
+            holder.putClientProperty(FlatClientProperties.STYLE_CLASS, "ToolPanel.content");
+            holder.add(state.panel.createComponent());
+
+            state.component = holder;
+        }
+
+        container.setComponent(state.component, state.placement);
+        state.open = true;
+
+        if (focus) {
+            state.component.requestFocusInWindow();
+        }
+    }
+
 
     private ToolPanelState findPanel(String id) {
         var state = panelById.get(id);

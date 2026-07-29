@@ -3,9 +3,9 @@ package sh.adelessfox.odradek.ui.components.tools.demo;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
+import sh.adelessfox.odradek.ui.components.tools.ToolManagerImpl;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tools.ToolState;
-import sh.adelessfox.odradek.ui.components.tools.internal.ToolManagerImpl;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;

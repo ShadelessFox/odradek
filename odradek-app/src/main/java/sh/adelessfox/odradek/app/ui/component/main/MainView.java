@@ -7,7 +7,8 @@ import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
 import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.ui.components.tool.ToolPanelContainer;
+import sh.adelessfox.odradek.ui.components.tools.ToolManagerImpl;
+import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
@@ -52,15 +53,46 @@ public class MainView implements View<JComponent> {
         EditorManager editorManager,
         EventBus eventBus
     ) {
-        var center = new ToolPanelContainer(ToolPanelContainer.Placement.LEFT);
-        center.addPrimaryPanel(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
-        center.addSecondaryPanel(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
-        center.addSecondaryPanel(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel);
-        center.setContent(editorManager.getRoot());
-        center.showPanel(GRAPH_PANEL_ID);
+        var center = new ToolManagerImpl();
+        center.addPanel(
+            createProvider(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView()),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
+        center.addPanel(
+            createProvider(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
+        center.addPanel(
+            createProvider(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel),
+            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
+        center.setCenter(editorManager.getRoot());
+        center.openPanel(GRAPH_PANEL_ID, true);
 
-        eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.showPanel(event.id()));
-        return center;
+        eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
+
+        return center.getComponent();
+    }
+
+    private static ToolPanel.Provider createProvider(String id, String name, Icon icon, ToolPanel panel) {
+        return new ToolPanel.Provider() {
+            @Override
+            public String id() {
+                return id;
+            }
+
+            @Override
+            public String name() {
+                return name;
+            }
+
+            @Override
+            public Icon icon() {
+                return icon;
+            }
+
+            @Override
+            public ToolPanel create() {
+                return panel;
+            }
+        };
     }
 
     private static Component buildRight() {

@@ -1,7 +1,6 @@
-package sh.adelessfox.odradek.ui.components.tools.internal;
+package sh.adelessfox.odradek.ui.components.tools;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
-import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 
 import javax.swing.*;
 import java.awt.*;

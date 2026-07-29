@@ -15,11 +15,12 @@ import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
-import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
+import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -33,7 +34,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Singleton
-public class GraphView implements View<JComponent>, ToolPanel {
+public class GraphView implements View<JComponent>, ToolPanel, Focusable {
     private static final Logger log = LoggerFactory.getLogger(GraphView.class);
 
     private final EventBus eventBus;

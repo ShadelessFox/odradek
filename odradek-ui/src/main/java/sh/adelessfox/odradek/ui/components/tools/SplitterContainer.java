@@ -1,9 +1,7 @@
-package sh.adelessfox.odradek.ui.components.tools.internal;
+package sh.adelessfox.odradek.ui.components.tools;
 
 import sh.adelessfox.odradek.ui.components.Orientation;
 import sh.adelessfox.odradek.ui.components.Splitter;
-import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
-import sh.adelessfox.odradek.ui.components.tools.ToolState;
 
 import javax.swing.*;
 import java.awt.*;

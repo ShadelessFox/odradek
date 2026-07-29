@@ -17,8 +17,9 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
+import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
@@ -37,7 +38,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 @Singleton
-public final class UsagesToolPanel implements ToolPanel {
+public final class UsagesToolPanel implements ToolPanel, Focusable {
     private static final Logger log = LoggerFactory.getLogger(UsagesToolPanel.class);
 
     private static final String CARD_SETUP = "setup";

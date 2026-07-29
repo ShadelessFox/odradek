@@ -11,15 +11,16 @@ import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.components.tool.ToolPanel;
+import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 
 import javax.swing.*;
 
 @Singleton
-public class BookmarkToolPanel implements ToolPanel {
+public class BookmarkToolPanel implements ToolPanel, Focusable {
     private final Bookmarks repository;
     private final EventBus eventBus;
 
