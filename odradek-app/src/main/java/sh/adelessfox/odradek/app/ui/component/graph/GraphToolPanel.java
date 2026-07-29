@@ -33,9 +33,42 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.Optional;
 
-@Singleton
-public class GraphView implements View<JComponent>, ToolPanel, Focusable {
-    private static final Logger log = LoggerFactory.getLogger(GraphView.class);
+public class GraphToolPanel implements View<JComponent>, ToolPanel, Focusable {
+    public static final String ID = "graph";
+
+    @Singleton
+    public static final class Provider implements ToolPanel.Provider {
+        private final EventBus eventBus;
+        private final DecimaGame game;
+
+        @Inject
+        Provider(EventBus eventBus, DecimaGame game) {
+            this.eventBus = eventBus;
+            this.game = game;
+        }
+
+        @Override
+        public ToolPanel create() {
+            return new GraphToolPanel(eventBus, game);
+        }
+
+        @Override
+        public String id() {
+            return GraphToolPanel.ID;
+        }
+
+        @Override
+        public String name() {
+            return "Graph";
+        }
+
+        @Override
+        public Icon icon() {
+            return Fugue.getIcon("blue-document");
+        }
+    }
+
+    private static final Logger log = LoggerFactory.getLogger(GraphToolPanel.class);
 
     private final EventBus eventBus;
     private final DecimaGame game;
@@ -44,8 +77,7 @@ public class GraphView implements View<JComponent>, ToolPanel, Focusable {
     private final JPanel panel;
     private final ValidationPopup filterValidationPopup;
 
-    @Inject
-    GraphView(EventBus eventBus, DecimaGame game) {
+    private GraphToolPanel(EventBus eventBus, DecimaGame game) {
         this.eventBus = eventBus;
         this.game = game;
 
@@ -146,7 +178,7 @@ public class GraphView implements View<JComponent>, ToolPanel, Focusable {
             BorderFactory.createEmptyBorder(6, 8, 6, 8)
         ));
 
-        Runnable callback = () -> eventBus.publish(new GraphViewEvent.UpdateFilter(
+        Runnable callback = () -> eventBus.publish(new GraphToolPanelEvent.UpdateFilter(
             filterField.getText(),
             toggleCaseSensitive.isSelected(),
             toggleWholeWord.isSelected()

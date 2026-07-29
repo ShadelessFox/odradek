@@ -12,7 +12,7 @@ import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
-public final class ToolManagerImpl implements ToolManager {
+public final class ToolContainer implements ToolManager {
     private final Map<String, ToolPanelState> panelById = new HashMap<>();
     private final Map<ToolPanel.Placement, List<ToolPanelState>> groupByPlacement = new HashMap<>();
 
@@ -21,7 +21,7 @@ public final class ToolManagerImpl implements ToolManager {
     private final ToolButtonPanel rightButtons;
     private final JPanel root;
 
-    public ToolManagerImpl() {
+    public ToolContainer() {
         container = new SplitterContainer();
         leftButtons = new ToolButtonPanel();
         rightButtons = new ToolButtonPanel();
@@ -31,7 +31,7 @@ public final class ToolManagerImpl implements ToolManager {
         root.add(container, BorderLayout.CENTER);
         root.add(leftButtons, BorderLayout.WEST);
         root.add(rightButtons, BorderLayout.EAST);
-        root.putClientProperty(ToolManagerImpl.class, this); // required for ButtonRepainter
+        root.putClientProperty(ToolContainer.class, this); // required for ButtonRepainter
 
         updateButtons();
         ToolButtonRepainter.install();
@@ -415,7 +415,7 @@ public final class ToolManagerImpl implements ToolManager {
         private static void repaintSelectedPaneButtons(Component c) {
             while (c != null) {
                 if (c instanceof JComponent jc) {
-                    var manager = (ToolManagerImpl) jc.getClientProperty(ToolManagerImpl.class);
+                    var manager = (ToolContainer) jc.getClientProperty(ToolContainer.class);
                     if (manager != null) {
                         manager.leftButtons.repaint();
                         manager.rightButtons.repaint();

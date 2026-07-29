@@ -1,10 +1,11 @@
 package sh.adelessfox.odradek.ui.components.tools;
 
 import sh.adelessfox.odradek.ui.components.Orientation;
-import sh.adelessfox.odradek.ui.components.laf.SplitterUI;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public final class Splitter extends JComponent {
     public static final String ORIENTATION_PROPERTY = "orientation";
@@ -15,6 +16,8 @@ public final class Splitter extends JComponent {
     public static final String SECOND = "second";
     public static final String DIVIDER = "divider";
 
+    private final Divider divider;
+
     private JComponent firstComponent;
     private JComponent secondComponent;
     private Orientation orientation = Orientation.HORIZONTAL;
@@ -23,7 +26,25 @@ public final class Splitter extends JComponent {
 
     public Splitter(Orientation orientation) {
         setOrientation(orientation);
-        updateUI();
+        setLayout(new SplitterLayoutManager());
+
+        divider = new Divider(this);
+        divider.setOrientation(orientation);
+
+        add(divider, Splitter.DIVIDER);
+        addPropertyChangeListener(e -> {
+            switch (e.getPropertyName()) {
+                case Splitter.ORIENTATION_PROPERTY -> {
+                    divider.setOrientation(getOrientation());
+                    revalidate();
+                    repaint();
+                }
+                case Splitter.DIVIDER_LOCATION_PROPERTY -> {
+                    revalidate();
+                    repaint();
+                }
+            }
+        });
     }
 
     public JComponent getFirstComponent() {
@@ -133,18 +154,162 @@ public final class Splitter extends JComponent {
         repaint();
     }
 
-    @Override
-    public String getUIClassID() {
-        return "SplitterUI";
+    private static class Divider extends JPanel {
+        private final Splitter splitter;
+
+        Divider(Splitter splitter) {
+            this.splitter = splitter;
+
+            var handler = new Divider.Handler();
+            addMouseListener(handler);
+            addMouseMotionListener(handler);
+        }
+
+        public void setOrientation(Orientation orientation) {
+            if (orientation == Orientation.HORIZONTAL) {
+                setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+            } else {
+                setCursor(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR));
+            }
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return getMinimumSize();
+        }
+
+        @Override
+        public Dimension getMinimumSize() {
+            return new Dimension(6, 6);
+        }
+
+        private class Handler extends MouseAdapter {
+            private Point origin;
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
+                }
+                origin = e.getPoint();
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
+                }
+                origin = null;
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if (origin == null) {
+                    return;
+                }
+
+                double weight;
+                if (splitter.getOrientation() == Orientation.HORIZONTAL) {
+                    var delta = e.getPoint().x - origin.x;
+                    var location = getX() + delta;
+                    weight = (double) location / (splitter.getWidth() - getPreferredSize().width);
+                } else {
+                    var delta = e.getPoint().y - origin.y;
+                    var location = getY() + delta;
+                    weight = (double) location / (splitter.getHeight() - getPreferredSize().height);
+                }
+
+                splitter.setDividerLocation(Math.clamp(weight, 0.0, 1.0));
+            }
+        }
     }
 
-    @Override
-    public void updateUI() {
-        setUI(UIManager.getUI(this));
-    }
+    private static class SplitterLayoutManager implements LayoutManager {
+        private int lastSplitterSize;
 
-    @Override
-    public SplitterUI getUI() {
-        return (SplitterUI) super.getUI();
+        @Override
+        public void addLayoutComponent(String name, Component comp) {
+            // don't care
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp) {
+            // don't care
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent) {
+            return minimumLayoutSize(parent);
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent) {
+            return new Dimension(10, 10);
+        }
+
+        @Override
+        public void layoutContainer(Container parent) {
+            var splitter = (Splitter) parent;
+            var divider = splitter.divider;
+
+            var firstComponent = splitter.getFirstComponent();
+            var secondComponent = splitter.getSecondComponent();
+
+            if (!contributes(firstComponent) && !contributes(secondComponent)) {
+                // nothing to layout; just hide splitter
+                divider.setBounds(0, 0, 0, 0);
+            } else if (!contributes(firstComponent) || !contributes(secondComponent)) {
+                // only one component; layout it to fill the whole area
+                var child = contributes(firstComponent) ? firstComponent : secondComponent;
+                child.setBounds(0, 0, parent.getWidth(), parent.getHeight());
+                divider.setBounds(0, 0, 0, 0);
+            } else {
+                // both components are present; layout them with a splitter in between
+                int totalWidth = parent.getWidth();
+                int totalHeight = parent.getHeight();
+
+                if (splitter.getOrientation() == Orientation.HORIZONTAL) {
+                    if (lastSplitterSize == 0) {
+                        lastSplitterSize = totalWidth;
+                    } else if (lastSplitterSize != totalWidth) {
+                        int delta = lastSplitterSize - totalWidth;
+                        var oldLocation = lastSplitterSize * splitter.getDividerLocation();
+                        var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalWidth;
+                        splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
+                        lastSplitterSize = totalWidth;
+                    }
+
+                    int dividerWidth = divider.getPreferredSize().width;
+                    int firstWidth = (int) (splitter.getDividerLocation() * (totalWidth - dividerWidth));
+                    int secondWidth = totalWidth - dividerWidth - firstWidth;
+
+                    firstComponent.setBounds(0, 0, firstWidth, totalHeight);
+                    secondComponent.setBounds(firstWidth + dividerWidth, 0, secondWidth, totalHeight);
+                    divider.setBounds(firstWidth, 0, dividerWidth, totalHeight);
+                } else {
+                    if (lastSplitterSize == 0) {
+                        lastSplitterSize = totalHeight;
+                    } else if (totalHeight != lastSplitterSize) {
+                        int delta = lastSplitterSize - totalHeight;
+                        var oldLocation = lastSplitterSize * splitter.getDividerLocation();
+                        var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalHeight;
+                        splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
+                        lastSplitterSize = totalHeight;
+                    }
+
+                    int dividerHeight = divider.getPreferredSize().height;
+                    int firstHeight = (int) (splitter.getDividerLocation() * (totalHeight - dividerHeight));
+                    int secondHeight = totalHeight - dividerHeight - firstHeight;
+
+                    firstComponent.setBounds(0, 0, totalWidth, firstHeight);
+                    secondComponent.setBounds(0, firstHeight + dividerHeight, totalWidth, secondHeight);
+                    divider.setBounds(0, firstHeight, totalWidth, dividerHeight);
+                }
+            }
+        }
+
+        private boolean contributes(Component comp) {
+            return comp != null && comp.isVisible();
+        }
     }
 }

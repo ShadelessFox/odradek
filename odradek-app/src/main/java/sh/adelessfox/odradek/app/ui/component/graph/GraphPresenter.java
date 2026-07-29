@@ -15,18 +15,18 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 @Singleton
-public class GraphPresenter implements Presenter<GraphView> {
-    private final GraphView view;
+public class GraphPresenter implements Presenter<GraphToolPanel> {
+    private final GraphToolPanel view;
 
     @Inject
     GraphPresenter(
-        GraphView view,
+        GraphToolPanel view,
         EventBus eventBus
     ) {
         this.view = view;
 
         // TODO: Update the selection model as well
-        eventBus.subscribe(GraphViewEvent.UpdateFilter.class, event -> {
+        eventBus.subscribe(GraphToolPanelEvent.UpdateFilter.class, event -> {
             var treeModel = view.getTree().getModel();
             var filter = createFilter(event.query(), event.matchCase(), event.matchWholeWord());
             var validation = view.getFilterValidationPopup();
@@ -47,7 +47,7 @@ public class GraphPresenter implements Presenter<GraphView> {
     }
 
     @Override
-    public GraphView getView() {
+    public GraphToolPanel getView() {
         return view;
     }
 

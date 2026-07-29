@@ -4,30 +4,25 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.component.common.View;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
+import sh.adelessfox.odradek.app.ui.component.graph.GraphToolPanel;
 import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.ui.components.tools.ToolManagerImpl;
+import sh.adelessfox.odradek.ui.components.tools.ToolContainer;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
-import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
 import java.awt.*;
 
 @Singleton
 public class MainView implements View<JComponent> {
-    public static final String GRAPH_PANEL_ID = "graph";
-    public static final String BOOKMARKS_PANEL_ID = "bookmarks";
-    public static final String USAGES_PANEL_ID = "usages";
-
     private final JPanel root;
 
     @Inject
     MainView(
-        GraphPresenter graphPresenter,
-        BookmarkToolPanel bookmarkPanel,
-        UsagesToolPanel usagesPanel,
+        GraphToolPanel.Provider graphPresenter,
+        BookmarkToolPanel.Provider bookmarkPanel,
+        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
         EventBus eventBus
     ) {
@@ -47,52 +42,22 @@ public class MainView implements View<JComponent> {
     }
 
     private static JComponent buildCenter(
-        GraphPresenter graphPresenter,
-        BookmarkToolPanel bookmarkPanel,
-        UsagesToolPanel usagesPanel,
+        GraphToolPanel.Provider graphPresenter,
+        BookmarkToolPanel.Provider bookmarkPanel,
+        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
         EventBus eventBus
     ) {
-        var center = new ToolManagerImpl();
-        center.addPanel(
-            createProvider(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView()),
-            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
-        center.addPanel(
-            createProvider(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel),
-            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
-        center.addPanel(
-            createProvider(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel),
-            new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
+        var center = new ToolContainer();
+        center.addPanel(graphPresenter, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
+        center.addPanel(bookmarkPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
+        center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
         center.setCenter(editorManager.getRoot());
-        center.openPanel(GRAPH_PANEL_ID, true);
+        center.openPanel(GraphToolPanel.ID, true);
 
         eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
 
         return center.getComponent();
-    }
-
-    private static ToolPanel.Provider createProvider(String id, String name, Icon icon, ToolPanel panel) {
-        return new ToolPanel.Provider() {
-            @Override
-            public String id() {
-                return id;
-            }
-
-            @Override
-            public String name() {
-                return name;
-            }
-
-            @Override
-            public Icon icon() {
-                return icon;
-            }
-
-            @Override
-            public ToolPanel create() {
-                return panel;
-            }
-        };
     }
 
     private static Component buildRight() {

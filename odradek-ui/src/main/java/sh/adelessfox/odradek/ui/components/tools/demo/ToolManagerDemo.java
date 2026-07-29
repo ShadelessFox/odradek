@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.ui.components.tools.demo;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.extras.FlatInspector;
 import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
-import sh.adelessfox.odradek.ui.components.tools.ToolManagerImpl;
+import sh.adelessfox.odradek.ui.components.tools.ToolContainer;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tools.ToolState;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -18,7 +18,7 @@ public class ToolManagerDemo {
         FlatInspector.install("ctrl shift alt X");
         FlatUIDefaultsInspector.install("ctrl shift alt Y");
 
-        ToolManagerImpl manager = new ToolManagerImpl();
+        ToolContainer manager = new ToolContainer();
         manager.setCenter(new JLabel("Center", SwingConstants.CENTER));
         // manager.addPanel(new GraphToolPanel.Provider());
         // manager.addPanel(new BookmarkToolPanel.Provider());

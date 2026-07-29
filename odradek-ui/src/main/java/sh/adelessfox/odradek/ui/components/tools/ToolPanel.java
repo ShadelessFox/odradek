@@ -4,13 +4,13 @@ import javax.swing.*;
 
 public interface ToolPanel {
     interface Provider {
+        ToolPanel create();
+
         String id();
 
         String name();
 
         Icon icon();
-
-        ToolPanel create();
     }
 
     record Placement(Anchor anchor, boolean primary) {

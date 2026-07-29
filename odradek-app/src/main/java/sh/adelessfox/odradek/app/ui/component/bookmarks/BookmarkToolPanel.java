@@ -16,18 +16,50 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
+import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
 
-@Singleton
 public class BookmarkToolPanel implements ToolPanel, Focusable {
+    public static final String ID = "bookmarks";
+
+    @Singleton
+    public static final class Provider implements ToolPanel.Provider {
+        private final Bookmarks repository;
+        private final EventBus eventBus;
+
+        @Inject
+        Provider(Bookmarks repository, EventBus eventBus) {
+            this.repository = repository;
+            this.eventBus = eventBus;
+        }
+
+        @Override
+        public ToolPanel create() {
+            return new BookmarkToolPanel(repository, eventBus);
+        }
+
+        @Override
+        public String id() {
+            return BookmarkToolPanel.ID;
+        }
+
+        @Override
+        public String name() {
+            return "Bookmarks";
+        }
+
+        @Override
+        public Icon icon() {
+            return Fugue.getIcon("blue-document-bookmark");
+        }
+    }
+
     private final Bookmarks repository;
     private final EventBus eventBus;
-
     private StructuredTree<BookmarkStructure> tree;
 
-    @Inject
-    BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
+    private BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
         this.repository = repository;
         this.eventBus = eventBus;
 

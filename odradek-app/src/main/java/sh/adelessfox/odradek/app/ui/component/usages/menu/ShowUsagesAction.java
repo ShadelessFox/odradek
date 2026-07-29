@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.component.usages.menu;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
-import sh.adelessfox.odradek.app.ui.component.main.MainView;
+import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.menu.graph.GraphMenu;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
@@ -23,7 +23,7 @@ public final class ShowUsagesAction extends Action {
     public void perform(ActionContext context) {
         var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
         var eventBus = Application.getInstance().events();
-        eventBus.publish(new MainEvent.ShowPanel(MainView.USAGES_PANEL_ID, true));
+        eventBus.publish(new MainEvent.ShowPanel(UsagesToolPanel.ID, true));
         eventBus.publish(new MainEvent.ShowUsages(holder.objectId()));
     }
 

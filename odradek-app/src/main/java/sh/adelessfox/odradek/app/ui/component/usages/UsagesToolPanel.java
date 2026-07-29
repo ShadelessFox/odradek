@@ -37,8 +37,43 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-@Singleton
 public final class UsagesToolPanel implements ToolPanel, Focusable {
+    public static final String ID = "usages";
+
+    @Singleton
+    public static final class Provider implements ToolPanel.Provider {
+        private final DecimaGame game;
+        private final EventBus appEventBus;
+        private final Path config;
+
+        @Inject
+        public Provider(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
+            this.game = game;
+            this.appEventBus = appEventBus;
+            this.config = config;
+        }
+
+        @Override
+        public ToolPanel create() {
+            return new UsagesToolPanel(game, appEventBus, config);
+        }
+
+        @Override
+        public String id() {
+            return UsagesToolPanel.ID;
+        }
+
+        @Override
+        public String name() {
+            return "Usages";
+        }
+
+        @Override
+        public Icon icon() {
+            return Fugue.getIcon("magnifier-left");
+        }
+    }
+
     private static final Logger log = LoggerFactory.getLogger(UsagesToolPanel.class);
 
     private static final String CARD_SETUP = "setup";
@@ -57,8 +92,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     private StructuredTree<UsagesStructure> tree;
     private ObjectId pendingObjectId;
 
-    @Inject
-    UsagesToolPanel(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
+    private UsagesToolPanel(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
         this.game = game;
         this.appEventBus = appEventBus;
         this.config = config;
