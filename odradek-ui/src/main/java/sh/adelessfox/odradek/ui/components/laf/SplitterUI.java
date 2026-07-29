@@ -1,6 +1,8 @@
-package sh.adelessfox.odradek.ui.components;
+package sh.adelessfox.odradek.ui.components.laf;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import sh.adelessfox.odradek.ui.components.Orientation;
+import sh.adelessfox.odradek.ui.components.Splitter;
 
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;

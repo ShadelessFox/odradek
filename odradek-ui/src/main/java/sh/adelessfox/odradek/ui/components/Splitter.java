@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.components;
 
+import sh.adelessfox.odradek.ui.components.laf.SplitterUI;
+
 import javax.swing.*;
 import java.awt.*;
 
