@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.ui.components.tools.internal;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
-import com.formdev.flatlaf.util.UIScale;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 
 import javax.swing.*;
@@ -17,6 +16,14 @@ final class ToolButton extends JComponent {
     private final ToolPanel.Provider provider;
     private final Predicate<ToolPanel.Provider> selected;
     private final Predicate<ToolPanel.Provider> focused;
+
+    // Styles
+    private Dimension size;
+    private int arc;
+    private Color defaultColor;
+    private Color selectionColor;
+    private Color focusedSelectedColor;
+    private Color rolloverColor;
 
     private boolean rollover;
     private boolean armed;
@@ -36,6 +43,21 @@ final class ToolButton extends JComponent {
         addFocusListener(handler);
 
         setToolTipText(provider.name());
+        setFocusable(false);
+
+        updateUI();
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+
+        size = UIManager.getDimension("ToolPanelButton.size");
+        arc = UIManager.getInt("ToolPanelButton.arc");
+        defaultColor = UIManager.getColor("ToolPanelButton.background");
+        selectionColor = UIManager.getColor("ToolPanelButton.selectedBackground");
+        focusedSelectedColor = UIManager.getColor("ToolPanelButton.focusedSelectedColor");
+        rolloverColor = UIManager.getColor("ToolPanelButton.rolloverBackground");
     }
 
     @Override
@@ -44,22 +66,16 @@ final class ToolButton extends JComponent {
         try {
             FlatUIUtils.setRenderingHints(g2);
 
-            int arc = UIScale.scale(10);
-            Color defaultColor = UIManager.getColor("ToolPanelButton.background");
-            Color selectionColor = UIManager.getColor("ToolPanelButton.selectedBackground");
-            Color focusedSelectedColor = UIManager.getColor("ToolPanelButton.focusedSelectedColor");
-            Color rolloverColor = UIManager.getColor("ToolPanelButton.rolloverBackground");
+            g2.setColor(getColor());
+            g2.fillRoundRect(0, 0, size.width, size.height, arc, arc);
 
-            boolean isRollover = rollover;
-            boolean isSelected = selected.test(provider);
-            boolean isFocused = focused.test(provider);
-
-            g2.setColor(isSelected ? isFocused ? focusedSelectedColor : selectionColor : isRollover ? rolloverColor : defaultColor);
-            g2.fillRoundRect(4, 4, 24, 24, arc, arc);
-
-            Icon icon = provider.icon();
+            var icon = provider.icon();
             if (icon != null) {
-                icon.paintIcon(this, g2, 16 - icon.getIconWidth() / 2, 16 - icon.getIconHeight() / 2);
+                icon.paintIcon(
+                    this,
+                    g2,
+                    (size.width - icon.getIconWidth()) / 2,
+                    (size.height - icon.getIconHeight()) / 2);
             }
         } finally {
             g2.dispose();
@@ -68,7 +84,7 @@ final class ToolButton extends JComponent {
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(32, 32);
+        return size;
     }
 
     @Override
@@ -81,6 +97,20 @@ final class ToolButton extends JComponent {
         return getPreferredSize();
     }
 
+    private Color getColor() {
+        boolean isRollover = rollover;
+        boolean isSelected = selected.test(provider);
+        boolean isFocused = focused.test(provider);
+
+        if (isSelected) {
+            return isFocused ? focusedSelectedColor : selectionColor;
+        } else if (isRollover) {
+            return armed ? selectionColor : rolloverColor;
+        } else {
+            return defaultColor;
+        }
+    }
+
     private class Handler extends MouseAdapter implements FocusListener {
         private final Consumer<ToolPanel.Provider> clicked;
 
@@ -90,12 +120,17 @@ final class ToolButton extends JComponent {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            armed = true;
-            repaint();
+            if (SwingUtilities.isLeftMouseButton(e)) {
+                armed = true;
+                repaint();
+            }
         }
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            if (!SwingUtilities.isLeftMouseButton(e)) {
+                return;
+            }
             if (armed && rollover) {
                 clicked.accept(provider);
             }

@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.ui.components.tools.internal;
 
+import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.components.tools.ToolManager;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.components.tools.ToolState;
@@ -22,8 +23,8 @@ public final class ToolManagerImpl implements ToolManager {
 
     public ToolManagerImpl() {
         container = new SplitterContainer();
-        leftButtons = new ToolButtonPanel(true);
-        rightButtons = new ToolButtonPanel(false);
+        leftButtons = new ToolButtonPanel();
+        rightButtons = new ToolButtonPanel();
 
         root = new JPanel();
         root.setLayout(new BorderLayout());
@@ -244,13 +245,13 @@ public final class ToolManagerImpl implements ToolManager {
             strip.add(createButton(state));
         }
         if (!primary.isEmpty() && !secondary.isEmpty()) {
-            strip.add(new JSeparator());
+            strip.add(new JSeparator(), "al center,w 16");
         }
         for (ToolPanelState state : secondary) {
             strip.add(createButton(state));
         }
         if (!bottom.isEmpty()) {
-            strip.add(Box.createVerticalGlue());
+            strip.add(Box.createVerticalGlue(), "pushy,growy");
         }
         for (ToolPanelState state : bottom) {
             strip.add(createButton(state));
@@ -309,18 +310,9 @@ public final class ToolManagerImpl implements ToolManager {
     }
 
     private static final class ToolButtonPanel extends JPanel {
-        ToolButtonPanel(boolean left) {
-            setBorder(BorderFactory.createMatteBorder(
-                0,
-                left ? 0 : 1,
-                0,
-                left ? 1 : 0,
-                UIManager.getColor("Component.borderColor")));
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        ToolButtonPanel() {
+            setLayout(new MigLayout("ins 0 4 0 4,gap 4,flowy"));
         }
-    }
-
-    private static class Host extends JComponent {
     }
 
     private static class ButtonRepainter implements PropertyChangeListener {
