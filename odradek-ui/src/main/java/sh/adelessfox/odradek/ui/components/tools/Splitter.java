@@ -21,6 +21,8 @@ public final class Splitter extends JComponent {
     private JComponent firstComponent;
     private JComponent secondComponent;
     private Orientation orientation = Orientation.HORIZONTAL;
+
+    private int dividerSize = 6;
     private double dividerLocation = 0.5;
     private double resizeWeight = 0.5;
 
@@ -165,22 +167,12 @@ public final class Splitter extends JComponent {
             addMouseMotionListener(handler);
         }
 
-        public void setOrientation(Orientation orientation) {
+        void setOrientation(Orientation orientation) {
             if (orientation == Orientation.HORIZONTAL) {
                 setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
             } else {
                 setCursor(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR));
             }
-        }
-
-        @Override
-        public Dimension getPreferredSize() {
-            return getMinimumSize();
-        }
-
-        @Override
-        public Dimension getMinimumSize() {
-            return new Dimension(6, 6);
         }
 
         private class Handler extends MouseAdapter {
@@ -251,16 +243,17 @@ public final class Splitter extends JComponent {
         public void layoutContainer(Container parent) {
             var splitter = (Splitter) parent;
             var divider = splitter.divider;
+            var dividerSize = splitter.dividerSize;
 
             var firstComponent = splitter.getFirstComponent();
             var secondComponent = splitter.getSecondComponent();
 
-            if (!contributes(firstComponent) && !contributes(secondComponent)) {
+            if (firstComponent == null && secondComponent == null) {
                 // nothing to layout; just hide splitter
                 divider.setBounds(0, 0, 0, 0);
-            } else if (!contributes(firstComponent) || !contributes(secondComponent)) {
+            } else if (firstComponent == null || secondComponent == null) {
                 // only one component; layout it to fill the whole area
-                var child = contributes(firstComponent) ? firstComponent : secondComponent;
+                var child = firstComponent != null ? firstComponent : secondComponent;
                 child.setBounds(0, 0, parent.getWidth(), parent.getHeight());
                 divider.setBounds(0, 0, 0, 0);
             } else {
@@ -269,47 +262,45 @@ public final class Splitter extends JComponent {
                 int totalHeight = parent.getHeight();
 
                 if (splitter.getOrientation() == Orientation.HORIZONTAL) {
-                    if (lastSplitterSize == 0) {
-                        lastSplitterSize = totalWidth;
-                    } else if (lastSplitterSize != totalWidth) {
-                        int delta = lastSplitterSize - totalWidth;
-                        var oldLocation = lastSplitterSize * splitter.getDividerLocation();
-                        var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalWidth;
-                        splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
-                        lastSplitterSize = totalWidth;
-                    }
+                    updateLocation(totalWidth, splitter);
 
-                    int dividerWidth = divider.getPreferredSize().width;
-                    int firstWidth = (int) (splitter.getDividerLocation() * (totalWidth - dividerWidth));
-                    int secondWidth = totalWidth - dividerWidth - firstWidth;
+                    int firstWidth = computeFirstComponentSize(totalWidth, splitter);
+                    int secondWidth = computeSecondComponentSize(totalWidth, firstWidth, splitter);
 
                     firstComponent.setBounds(0, 0, firstWidth, totalHeight);
-                    secondComponent.setBounds(firstWidth + dividerWidth, 0, secondWidth, totalHeight);
-                    divider.setBounds(firstWidth, 0, dividerWidth, totalHeight);
+                    secondComponent.setBounds(firstWidth + dividerSize, 0, secondWidth, totalHeight);
+                    divider.setBounds(firstWidth, 0, dividerSize, totalHeight);
                 } else {
-                    if (lastSplitterSize == 0) {
-                        lastSplitterSize = totalHeight;
-                    } else if (totalHeight != lastSplitterSize) {
-                        int delta = lastSplitterSize - totalHeight;
-                        var oldLocation = lastSplitterSize * splitter.getDividerLocation();
-                        var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalHeight;
-                        splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
-                        lastSplitterSize = totalHeight;
-                    }
+                    updateLocation(totalHeight, splitter);
 
-                    int dividerHeight = divider.getPreferredSize().height;
-                    int firstHeight = (int) (splitter.getDividerLocation() * (totalHeight - dividerHeight));
-                    int secondHeight = totalHeight - dividerHeight - firstHeight;
+                    int firstHeight = computeFirstComponentSize(totalHeight, splitter);
+                    int secondHeight = computeSecondComponentSize(totalHeight, firstHeight, splitter);
 
                     firstComponent.setBounds(0, 0, totalWidth, firstHeight);
-                    secondComponent.setBounds(0, firstHeight + dividerHeight, totalWidth, secondHeight);
-                    divider.setBounds(0, firstHeight, totalWidth, dividerHeight);
+                    secondComponent.setBounds(0, firstHeight + dividerSize, totalWidth, secondHeight);
+                    divider.setBounds(0, firstHeight, totalWidth, dividerSize);
                 }
             }
         }
 
-        private boolean contributes(Component comp) {
-            return comp != null && comp.isVisible();
+        private int computeFirstComponentSize(int totalSize, Splitter splitter) {
+            return (int) (splitter.getDividerLocation() * (totalSize - splitter.dividerSize));
+        }
+
+        private int computeSecondComponentSize(int totalSize, int firstSize, Splitter splitter) {
+            return totalSize - firstSize - splitter.dividerSize;
+        }
+
+        private void updateLocation(int totalSize, Splitter splitter) {
+            if (lastSplitterSize == 0) {
+                lastSplitterSize = totalSize;
+            } else if (totalSize != lastSplitterSize) {
+                int delta = lastSplitterSize - totalSize;
+                var oldLocation = lastSplitterSize * splitter.getDividerLocation();
+                var newLocation = (oldLocation - delta * splitter.getResizeWeight()) / totalSize;
+                splitter.setDividerLocation(Math.clamp(newLocation, 0.0, 1.0));
+                lastSplitterSize = totalSize;
+            }
         }
     }
 }

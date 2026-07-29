@@ -12,26 +12,23 @@ import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
 
-public final class ToolContainer implements ToolManager {
+public final class ToolContainer extends JComponent implements ToolManager {
     private final Map<String, ToolPanelState> panelById = new HashMap<>();
     private final Map<ToolPanel.Placement, List<ToolPanelState>> groupByPlacement = new HashMap<>();
 
     private final SplitterContainer container;
     private final ToolButtonPanel leftButtons;
     private final ToolButtonPanel rightButtons;
-    private final JPanel root;
 
     public ToolContainer() {
         container = new SplitterContainer();
         leftButtons = new ToolButtonPanel();
         rightButtons = new ToolButtonPanel();
 
-        root = new JPanel();
-        root.setLayout(new BorderLayout());
-        root.add(container, BorderLayout.CENTER);
-        root.add(leftButtons, BorderLayout.WEST);
-        root.add(rightButtons, BorderLayout.EAST);
-        root.putClientProperty(ToolContainer.class, this); // required for ButtonRepainter
+        setLayout(new BorderLayout());
+        add(container, BorderLayout.CENTER);
+        add(leftButtons, BorderLayout.WEST);
+        add(rightButtons, BorderLayout.EAST);
 
         updateButtons();
         ToolButtonRepainter.install();
@@ -39,7 +36,7 @@ public final class ToolContainer implements ToolManager {
 
     @Override
     public JComponent getComponent() {
-        return root;
+        return this;
     }
 
     @Override
@@ -413,16 +410,17 @@ public final class ToolContainer implements ToolManager {
         }
 
         private static void repaintSelectedPaneButtons(Component c) {
-            while (c != null) {
-                if (c instanceof JComponent jc) {
-                    var manager = (ToolContainer) jc.getClientProperty(ToolContainer.class);
-                    if (manager != null) {
-                        manager.leftButtons.repaint();
-                        manager.rightButtons.repaint();
-                    }
-                }
-                c = c.getParent();
+            if (c instanceof ToolContainer panel) {
+                repaintSelectedPaneButton(panel);
+            }
+            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolContainer.class, c2)) != null; ) {
+                repaintSelectedPaneButton((ToolContainer) c2);
             }
         }
+    }
+
+    private static void repaintSelectedPaneButton(ToolContainer manager) {
+        manager.leftButtons.repaint();
+        manager.rightButtons.repaint();
     }
 }
