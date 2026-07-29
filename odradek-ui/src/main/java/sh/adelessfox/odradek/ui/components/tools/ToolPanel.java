@@ -4,7 +4,7 @@ import javax.swing.*;
 
 public interface ToolPanel {
     interface Provider {
-        ToolPanel create();
+        ToolPanel create(ToolSite site);
 
         String id();
 

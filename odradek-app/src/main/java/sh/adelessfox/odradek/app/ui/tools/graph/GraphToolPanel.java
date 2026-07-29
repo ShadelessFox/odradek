@@ -23,6 +23,7 @@ import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
+import sh.adelessfox.odradek.ui.components.tools.ToolSite;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
@@ -53,7 +54,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         }
 
         @Override
-        public ToolPanel create() {
+        public ToolPanel create(ToolSite site) {
             return new GraphToolPanel(eventBus, game);
         }
 

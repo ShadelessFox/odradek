@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
+import sh.adelessfox.odradek.ui.components.tools.ToolSite;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -35,7 +36,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         }
 
         @Override
-        public ToolPanel create() {
+        public ToolPanel create(ToolSite site) {
             return new BookmarkToolPanel(repository, eventBus);
         }
 

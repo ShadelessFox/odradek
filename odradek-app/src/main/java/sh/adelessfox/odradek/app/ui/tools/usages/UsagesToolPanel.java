@@ -21,6 +21,7 @@ import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tools.ToolPanel;
+import sh.adelessfox.odradek.ui.components.tools.ToolSite;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
@@ -55,8 +56,8 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         }
 
         @Override
-        public ToolPanel create() {
-            return new UsagesToolPanel(game, appEventBus, config);
+        public ToolPanel create(ToolSite site) {
+            return new UsagesToolPanel(site, game, appEventBus, config);
         }
 
         @Override
@@ -82,6 +83,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     private static final String CARD_SCANNING = "scanning";
     private static final String CARD_MAIN = "main";
 
+    private final ToolSite site;
     private final DecimaGame game;
     private final EventBus appEventBus;
     private final Path config;
@@ -93,7 +95,8 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     private StructuredTree<UsagesStructure> tree;
     private ObjectId pendingObjectId;
 
-    private UsagesToolPanel(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
+    private UsagesToolPanel(ToolSite site, DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
+        this.site = site;
         this.game = game;
         this.appEventBus = appEventBus;
         this.config = config;
@@ -152,6 +155,8 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
             // Trigger loading immediately if database file already exists
             eventBus.publish(new Events.DatabaseReady());
         }
+
+        site.setTrailingComponent(createToolBar(eventBus));
 
         return panel;
     }
@@ -241,14 +246,8 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
 
         var pane = new FlatScrollPane();
         pane.setViewportView(tree);
-        pane.setStyle("border: 1,0,0,0, $Component.borderColor");
 
-        var panel = new JPanel();
-        panel.setLayout(new BorderLayout());
-        panel.add(createToolBar(eventBus), BorderLayout.NORTH);
-        panel.add(pane, BorderLayout.CENTER);
-
-        return panel;
+        return pane;
     }
 
     private JToolBar createToolBar(EventBus eventBus) {
@@ -285,11 +284,10 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         });
 
         var toolBar = new JToolBar();
-        toolBar.add(Box.createHorizontalStrut(4));
-        toolBar.add(new JLabel("Usages"));
-        toolBar.add(Box.createHorizontalGlue());
+        toolBar.setOpaque(false);
         toolBar.add(backAction);
         toolBar.add(forwardAction);
+
         return toolBar;
     }
 

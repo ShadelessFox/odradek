@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.components.tools;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
+import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -67,7 +68,7 @@ public final class ToolContainer extends JComponent implements ToolManager {
         }
 
         if (state.panel == null) {
-            state.panel = state.provider.create();
+            state.panel = state.provider.create(state);
         }
 
         openPanel(state, focus);
@@ -193,11 +194,21 @@ public final class ToolContainer extends JComponent implements ToolManager {
 
     private void openPanel(ToolPanelState state, boolean focus) {
         if (state.component == null) {
+            var header = new ToolPanelHeader();
+            header.setLabel(state.provider.name());
+
             var holder = new JPanel(new BorderLayout());
             holder.putClientProperty(FlatClientProperties.STYLE_CLASS, "ToolPanel.content");
+            holder.add(header, BorderLayout.NORTH);
             holder.add(state.panel.createComponent());
 
             state.component = holder;
+            state.header = header;
+
+            if (state.trailingComponent != null) {
+                header.setTrailingComponent(state.trailingComponent);
+                state.trailingComponent = null;
+            }
         }
 
         container.setComponent(state.component, state.placement);
@@ -342,22 +353,35 @@ public final class ToolContainer extends JComponent implements ToolManager {
             || window != null && window.getType() == Window.Type.POPUP && window.getOwner() == activeWindow;
     }
 
-    private static final class ToolPanelState {
+    private static final class ToolPanelState implements ToolSite {
         private final ToolPanel.Provider provider;
         private final ToolPanel.Placement placement;
         private ToolPanel panel;
         private JComponent component;
+        private ToolPanelHeader header;
         private boolean open;
+
+        private JComponent trailingComponent;
 
         ToolPanelState(ToolPanel.Provider provider, ToolPanel.Placement placement) {
             this.provider = provider;
             this.placement = placement;
         }
 
+        @Override
+        public void setTrailingComponent(JComponent component) {
+            if (header == null) {
+                trailingComponent = component;
+            } else {
+                header.setTrailingComponent(component);
+            }
+        }
+
         private ToolPanelState movedTo(ToolPanel.Placement placement) {
             var moved = new ToolPanelState(provider, placement);
             moved.panel = panel;
             moved.component = component;
+            moved.header = header;
             moved.open = open;
             return moved;
         }
@@ -422,5 +446,64 @@ public final class ToolContainer extends JComponent implements ToolManager {
     private static void repaintSelectedPaneButton(ToolContainer manager) {
         manager.leftButtons.repaint();
         manager.rightButtons.repaint();
+    }
+
+    private static class ToolPanelHeader extends JPanel {
+        private int height;
+        private Color backgroundStart;
+        private Color backgroundEnd;
+
+        private final JLabel label;
+        private JComponent trailingComponent;
+
+        public ToolPanelHeader() {
+            label = new JLabel();
+
+            setBorder(LineBorder.of(0, 0, 1, 0));
+            setLayout(new MigLayout("ins 0", "", "[grow,fill]"));
+            add(label, "gap 6");
+            add(Box.createHorizontalGlue(), "push,grow");
+
+            updateUI();
+        }
+
+        void setLabel(String label) {
+            this.label.setText(label);
+        }
+
+        void setTrailingComponent(JComponent trailingComponent) {
+            if (this.trailingComponent != null) {
+                remove(trailingComponent);
+            }
+            this.trailingComponent = trailingComponent;
+            if (trailingComponent != null) {
+                add(trailingComponent);
+            }
+        }
+
+        @Override
+        public void updateUI() {
+            super.updateUI();
+
+            height = UIManager.getInt("ToolPanelHeader.height");
+            backgroundStart = UIManager.getColor("ToolPanelHeader.backgroundStart");
+            backgroundEnd = UIManager.getColor("ToolPanelHeader.backgroundEnd");
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            var g2 = (Graphics2D) g.create();
+            try {
+                g2.setPaint(new GradientPaint(0, 0, backgroundStart, 0, getHeight(), backgroundEnd));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+            } finally {
+                g2.dispose();
+            }
+        }
+
+        @Override
+        public Dimension getPreferredSize() {
+            return new Dimension(0, height);
+        }
     }
 }
