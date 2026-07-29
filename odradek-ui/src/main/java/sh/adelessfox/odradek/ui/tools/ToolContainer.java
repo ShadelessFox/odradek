@@ -139,6 +139,13 @@ public final class ToolContainer extends JComponent implements ToolManager {
         setState(ToolPanel.Placement.Anchor.BOTTOM, state.bottom());
     }
 
+    @Override
+    public void setWeight(ToolPanel.Placement.Anchor anchor, double weight) {
+        var oldWeights = container.getWeights(anchor);
+        var newWeights = new ToolState.Anchor.Weights(oldWeights.inner(), weight);
+        container.setWeights(anchor, newWeights);
+    }
+
     private ToolState.Anchor getState(ToolPanel.Placement.Anchor anchor) {
         var primary = getState(new ToolPanel.Placement(anchor, true));
         var secondary = getState(new ToolPanel.Placement(anchor, false));

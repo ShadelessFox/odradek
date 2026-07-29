@@ -49,7 +49,25 @@ public interface ToolManager {
      */
     void movePanel(String id, ToolPanel.Placement placement, int index);
 
+    /**
+     * Returns a snapshot of the current state of all tool panels,
+     * including their visibility, placement, and order.
+     *
+     * @return current state of the tool panels
+     */
     ToolState getState();
 
+    /**
+     * Restores the state of all tool panels from the given snapshot.
+     *
+     * @param state snapshot of the tool panels' state to restore
+     */
     void setState(ToolState state);
+
+    /**
+     * Sets the weight of the splitter for the given anchor position.
+     *
+     * @param weight weight of the splitter (0.0 to 1.0)
+     */
+    void setWeight(ToolPanel.Placement.Anchor anchor, double weight);
 }

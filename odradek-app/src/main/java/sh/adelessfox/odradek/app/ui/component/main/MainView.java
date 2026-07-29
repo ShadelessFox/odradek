@@ -52,7 +52,10 @@ public class MainView implements View<JComponent> {
         center.addPanel(bookmarkPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
         center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
         center.setCenter(editorManager.getRoot());
+
+        // The initial state
         center.openPanel(GraphToolPanel.ID, true);
+        center.setWeight(ToolPanel.Placement.Anchor.LEFT, 0.2);
 
         eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
         eventBus.subscribe(SettingsEvent.class, event -> {
