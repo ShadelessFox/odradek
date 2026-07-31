@@ -50,12 +50,14 @@ public class MainView implements View<JComponent> {
         var center = new ToolContainer();
         center.addPanel(graphPresenter, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
         center.addPanel(bookmarkPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
-        center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
+        center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.BOTTOM, true));
         center.setCenter(editorManager.getRoot());
 
         // The initial state
         center.openPanel(GraphToolPanel.ID, true);
         center.setWeight(ToolPanel.Placement.Anchor.LEFT, 0.2);
+        center.setWeight(ToolPanel.Placement.Anchor.BOTTOM, 0.6);
+        center.setToolNamesVisible(true);
 
         eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
         eventBus.subscribe(SettingsEvent.class, event -> {

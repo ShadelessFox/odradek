@@ -6,7 +6,8 @@ import java.util.OptionalInt;
 public record ToolState(
     Anchor left,
     Anchor right,
-    Anchor bottom
+    Anchor bottom,
+    boolean showToolNames
 ) {
     public record Anchor(
         Group primary,

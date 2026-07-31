@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.tools;
 
-import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.ui.FlatLineBorder;
+import com.formdev.flatlaf.util.UIScale;
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -14,6 +15,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.List;
+import java.util.function.Predicate;
 
 public final class ToolContainer extends JComponent implements ToolManager {
     private final Map<String, ToolPanelState> panelById = new HashMap<>();
@@ -22,6 +24,8 @@ public final class ToolContainer extends JComponent implements ToolManager {
     private final SplitterContainer container;
     private final ToolButtonPanel leftButtons;
     private final ToolButtonPanel rightButtons;
+
+    private boolean showToolNames;
 
     public ToolContainer() {
         container = new SplitterContainer();
@@ -128,7 +132,8 @@ public final class ToolContainer extends JComponent implements ToolManager {
         return new ToolState(
             getState(ToolPanel.Placement.Anchor.LEFT),
             getState(ToolPanel.Placement.Anchor.RIGHT),
-            getState(ToolPanel.Placement.Anchor.BOTTOM)
+            getState(ToolPanel.Placement.Anchor.BOTTOM),
+            showToolNames
         );
     }
 
@@ -137,6 +142,7 @@ public final class ToolContainer extends JComponent implements ToolManager {
         setState(ToolPanel.Placement.Anchor.LEFT, state.left());
         setState(ToolPanel.Placement.Anchor.RIGHT, state.right());
         setState(ToolPanel.Placement.Anchor.BOTTOM, state.bottom());
+        setToolNamesVisible(state.showToolNames());
     }
 
     @Override
@@ -144,6 +150,14 @@ public final class ToolContainer extends JComponent implements ToolManager {
         var oldWeights = container.getWeights(anchor);
         var newWeights = new ToolState.Anchor.Weights(oldWeights.inner(), weight);
         container.setWeights(anchor, newWeights);
+    }
+
+    @Override
+    public void setToolNamesVisible(boolean visible) {
+        if (showToolNames != visible) {
+            showToolNames = visible;
+            updateButtons();
+        }
     }
 
     private ToolState.Anchor getState(ToolPanel.Placement.Anchor anchor) {
@@ -226,15 +240,17 @@ public final class ToolContainer extends JComponent implements ToolManager {
     }
 
     private void updateButtons() {
+        var style = showToolNames ? ToolButton.Style.ICON_WITH_TEXT : ToolButton.Style.ICON;
+
         var leftPrimary = getGroupFor(ToolPanel.Placement.Anchor.LEFT, true);
         var leftSecondary = getGroupFor(ToolPanel.Placement.Anchor.LEFT, false);
         var leftBottom = getGroupFor(ToolPanel.Placement.Anchor.BOTTOM, true);
-        rebuildButtons(leftButtons, leftPrimary, leftSecondary, leftBottom);
+        rebuildButtons(leftButtons, leftPrimary, leftSecondary, leftBottom, ToolButton.Placement.LEFT, style);
 
         var rightPrimary = getGroupFor(ToolPanel.Placement.Anchor.RIGHT, true);
         var rightSecondary = getGroupFor(ToolPanel.Placement.Anchor.RIGHT, false);
         var rightBottom = getGroupFor(ToolPanel.Placement.Anchor.BOTTOM, false);
-        rebuildButtons(rightButtons, rightPrimary, rightSecondary, rightBottom);
+        rebuildButtons(rightButtons, rightPrimary, rightSecondary, rightBottom, ToolButton.Placement.RIGHT, style);
     }
 
     private List<ToolPanelState> getGroupFor(ToolPanel.Placement.Anchor anchor, boolean primary) {
@@ -249,35 +265,43 @@ public final class ToolContainer extends JComponent implements ToolManager {
         ToolButtonPanel strip,
         List<ToolPanelState> primary,
         List<ToolPanelState> secondary,
-        List<ToolPanelState> bottom
+        List<ToolPanelState> bottom,
+        ToolButton.Placement placement,
+        ToolButton.Style style
     ) {
         strip.removeAll();
         for (ToolPanelState state : primary) {
-            strip.add(createButton(state));
+            strip.add(createButton(state, placement, style));
         }
         if (!primary.isEmpty() && !secondary.isEmpty()) {
             strip.add(new JSeparator(), "al center,w 16");
         }
         for (ToolPanelState state : secondary) {
-            strip.add(createButton(state));
+            strip.add(createButton(state, placement, style));
         }
         if (!bottom.isEmpty()) {
             strip.add(Box.createVerticalGlue(), "pushy,growy");
         }
         for (ToolPanelState state : bottom) {
-            strip.add(createButton(state));
+            strip.add(createButton(state, placement, style));
         }
         strip.setVisible(strip.getComponentCount() > 0);
         strip.revalidate();
         strip.repaint();
     }
 
-    private ToolButton createButton(ToolPanelState state) {
+    private ToolButton createButton(
+        ToolPanelState state,
+        ToolButton.Placement placement,
+        ToolButton.Style style
+    ) {
         var button = new ToolButton(
             state.provider,
             this::isPanelSelected,
             this::isPanelFocused,
-            this::togglePanel);
+            this::togglePanel,
+            placement,
+            style);
         button.setComponentPopupMenu(createButtonPopupMenu(state));
         return button;
     }
@@ -305,8 +329,16 @@ public final class ToolContainer extends JComponent implements ToolManager {
             moveTo.add(action);
         }
 
+        var showText = new JCheckBoxMenuItem("Show tool names", showToolNames);
+        showText.addActionListener(_ -> {
+            showToolNames = showText.isSelected();
+            updateButtons();
+        });
+
         var menu = new JPopupMenu();
         menu.add(moveTo);
+        menu.addSeparator();
+        menu.add(showText);
 
         return menu;
     }
@@ -388,8 +420,14 @@ public final class ToolContainer extends JComponent implements ToolManager {
                 header.addMouseListener(handler);
                 label.addMouseListener(handler);
 
-                component = new JPanel(new BorderLayout());
-                component.putClientProperty(FlatClientProperties.STYLE_CLASS, "ToolPanel.content");
+                component = new JPanel(new BorderLayout()) {
+                    @Override
+                    public void updateUI() {
+                        super.updateUI();
+                        setBorder(new ToolPanelBorder(provider, ToolContainer.this::isPanelFocused));
+                        setBackground(UIManager.getColor("ToolPanel.background"));
+                    }
+                };
                 component.add(header, BorderLayout.NORTH);
                 component.add(panel.createComponent());
 
@@ -437,6 +475,36 @@ public final class ToolContainer extends JComponent implements ToolManager {
         }
     }
 
+    private static final class ToolPanelBorder extends FlatLineBorder {
+        private final ToolPanel.Provider provider;
+        private final Predicate<ToolPanel.Provider> focused;
+
+        private final Color focusedColor;
+        private final Color focus;
+
+        public ToolPanelBorder(
+            ToolPanel.Provider provider,
+            Predicate<ToolPanel.Provider> focused
+        ) {
+            super(new Insets(1, 1, 1, 1), 0);
+            this.provider = provider;
+            this.focused = focused;
+
+            this.focusedColor = UIManager.getColor("ToolPanel.focusedBorderColor");
+            this.focus = UIManager.getColor("ToolPanel.borderColor");
+        }
+
+        @Override
+        public Color getLineColor() {
+            return focused.test(provider) ? focusedColor : focus;
+        }
+
+        @Override
+        public float getLineThickness() {
+            return 1;
+        }
+    }
+
     private static final class ToolPanelHeader extends JPanel {
         private int height;
         private Color backgroundStart;
@@ -475,9 +543,9 @@ public final class ToolContainer extends JComponent implements ToolManager {
         public void updateUI() {
             super.updateUI();
 
-            height = UIManager.getInt("ToolPanelHeader.height");
-            backgroundStart = UIManager.getColor("ToolPanelHeader.backgroundStart");
-            backgroundEnd = UIManager.getColor("ToolPanelHeader.backgroundEnd");
+            height = UIManager.getInt("ToolPanel.header.height");
+            backgroundStart = UIManager.getColor("ToolPanel.header.backgroundStart");
+            backgroundEnd = UIManager.getColor("ToolPanel.header.backgroundEnd");
         }
 
         @Override
@@ -493,7 +561,7 @@ public final class ToolContainer extends JComponent implements ToolManager {
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(0, height);
+            return new Dimension(0, UIScale.scale(height));
         }
     }
 
@@ -552,8 +620,9 @@ public final class ToolContainer extends JComponent implements ToolManager {
         }
 
         private static void repaintSelectedPaneButton(ToolContainer manager) {
-            manager.leftButtons.repaint();
-            manager.rightButtons.repaint();
+            // manager.leftButtons.repaint();
+            // manager.rightButtons.repaint();
+            manager.repaint();
         }
     }
 }

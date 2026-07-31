@@ -70,4 +70,11 @@ public interface ToolManager {
      * @param weight weight of the splitter (0.0 to 1.0)
      */
     void setWeight(ToolPanel.Placement.Anchor anchor, double weight);
+
+    /**
+     * Sets whether the names of the tool panels should be visible.
+     *
+     * @param visible true to show tool names, false to hide them
+     */
+    void setToolNamesVisible(boolean visible);
 }
