@@ -437,68 +437,7 @@ public final class ToolContainer extends JComponent implements ToolManager {
         }
     }
 
-    private static final class ToolButtonPanel extends JPanel {
-        ToolButtonPanel() {
-            setLayout(new MigLayout("ins 0 4 0 4,gap 4,flowy"));
-        }
-    }
-
-    private static final class ToolButtonRepainter implements PropertyChangeListener {
-        private static ToolButtonRepainter instance;
-        private final KeyboardFocusManager keyboardFocusManager;
-
-        static void install() {
-            synchronized (ToolButtonRepainter.class) {
-                if (instance != null) {
-                    return;
-                }
-                instance = new ToolButtonRepainter();
-            }
-        }
-
-        ToolButtonRepainter() {
-            keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            keyboardFocusManager.addPropertyChangeListener(this);
-        }
-
-        @Override
-        public void propertyChange(PropertyChangeEvent e) {
-            switch (e.getPropertyName()) {
-                case "permanentFocusOwner" -> {
-                    Object oldValue = e.getOldValue();
-                    Object newValue = e.getNewValue();
-                    if (oldValue instanceof Component component) {
-                        repaintSelectedPaneButtons(component);
-                    }
-                    if (newValue instanceof Component component) {
-                        repaintSelectedPaneButtons(component);
-                    }
-                }
-                case "activeWindow" -> {
-                    Component permanentFocusOwner = keyboardFocusManager.getPermanentFocusOwner();
-                    if (permanentFocusOwner != null) {
-                        repaintSelectedPaneButtons(permanentFocusOwner);
-                    }
-                }
-            }
-        }
-
-        private static void repaintSelectedPaneButtons(Component c) {
-            if (c instanceof ToolContainer panel) {
-                repaintSelectedPaneButton(panel);
-            }
-            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolContainer.class, c2)) != null; ) {
-                repaintSelectedPaneButton((ToolContainer) c2);
-            }
-        }
-    }
-
-    private static void repaintSelectedPaneButton(ToolContainer manager) {
-        manager.leftButtons.repaint();
-        manager.rightButtons.repaint();
-    }
-
-    private static class ToolPanelHeader extends JPanel {
+    private static final class ToolPanelHeader extends JPanel {
         private int height;
         private Color backgroundStart;
         private Color backgroundEnd;
@@ -555,6 +494,67 @@ public final class ToolContainer extends JComponent implements ToolManager {
         @Override
         public Dimension getPreferredSize() {
             return new Dimension(0, height);
+        }
+    }
+
+    private static final class ToolButtonPanel extends JPanel {
+        ToolButtonPanel() {
+            setLayout(new MigLayout("ins 0 4 0 4,gap 4,flowy"));
+        }
+    }
+
+    private static final class ToolButtonRepainter implements PropertyChangeListener {
+        private static ToolButtonRepainter instance;
+        private final KeyboardFocusManager keyboardFocusManager;
+
+        static void install() {
+            synchronized (ToolButtonRepainter.class) {
+                if (instance != null) {
+                    return;
+                }
+                instance = new ToolButtonRepainter();
+            }
+        }
+
+        ToolButtonRepainter() {
+            keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+            keyboardFocusManager.addPropertyChangeListener(this);
+        }
+
+        @Override
+        public void propertyChange(PropertyChangeEvent e) {
+            switch (e.getPropertyName()) {
+                case "permanentFocusOwner" -> {
+                    Object oldValue = e.getOldValue();
+                    Object newValue = e.getNewValue();
+                    if (oldValue instanceof Component component) {
+                        repaintSelectedPaneButtons(component);
+                    }
+                    if (newValue instanceof Component component) {
+                        repaintSelectedPaneButtons(component);
+                    }
+                }
+                case "activeWindow" -> {
+                    Component permanentFocusOwner = keyboardFocusManager.getPermanentFocusOwner();
+                    if (permanentFocusOwner != null) {
+                        repaintSelectedPaneButtons(permanentFocusOwner);
+                    }
+                }
+            }
+        }
+
+        private static void repaintSelectedPaneButtons(Component c) {
+            if (c instanceof ToolContainer panel) {
+                repaintSelectedPaneButton(panel);
+            }
+            for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolContainer.class, c2)) != null; ) {
+                repaintSelectedPaneButton((ToolContainer) c2);
+            }
+        }
+
+        private static void repaintSelectedPaneButton(ToolContainer manager) {
+            manager.leftButtons.repaint();
+            manager.rightButtons.repaint();
         }
     }
 }
