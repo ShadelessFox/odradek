@@ -2,41 +2,36 @@ package sh.adelessfox.odradek.app.ui.component.main;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import sh.adelessfox.odradek.app.ui.component.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.component.common.View;
-import sh.adelessfox.odradek.app.ui.component.graph.GraphPresenter;
-import sh.adelessfox.odradek.app.ui.component.usages.UsagesToolPanel;
+import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
+import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.ui.components.tool.ToolPanelContainer;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
-import sh.adelessfox.odradek.ui.util.Fugue;
+import sh.adelessfox.odradek.ui.tools.ToolContainer;
+import sh.adelessfox.odradek.ui.tools.ToolPanel;
 
 import javax.swing.*;
 import java.awt.*;
 
 @Singleton
 public class MainView implements View<JComponent> {
-    public static final String GRAPH_PANEL_ID = "graph";
-    public static final String BOOKMARKS_PANEL_ID = "bookmarks";
-    public static final String USAGES_PANEL_ID = "usages";
-
     private final JPanel root;
 
     @Inject
     MainView(
-        GraphPresenter graphPresenter,
-        BookmarkToolPanel bookmarkPanel,
-        UsagesToolPanel usagesPanel,
+        GraphToolPanel.Provider graphPresenter,
+        BookmarkToolPanel.Provider bookmarkPanel,
+        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
         EventBus eventBus
     ) {
         var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus);
-        var right = buildRight();
         var bottom = buildBottom();
 
         root = new JPanel(new BorderLayout());
         root.add(center);
-        root.add(right, BorderLayout.EAST);
         root.add(bottom, BorderLayout.SOUTH);
     }
 
@@ -46,25 +41,33 @@ public class MainView implements View<JComponent> {
     }
 
     private static JComponent buildCenter(
-        GraphPresenter graphPresenter,
-        BookmarkToolPanel bookmarkPanel,
-        UsagesToolPanel usagesPanel,
+        GraphToolPanel.Provider graphPresenter,
+        BookmarkToolPanel.Provider bookmarkPanel,
+        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
         EventBus eventBus
     ) {
-        var center = new ToolPanelContainer(ToolPanelContainer.Placement.LEFT);
-        center.addPrimaryPanel(GRAPH_PANEL_ID, "Graph", Fugue.getIcon("blue-document"), graphPresenter.getView());
-        center.addSecondaryPanel(BOOKMARKS_PANEL_ID, "Bookmarks", Fugue.getIcon("blue-document-bookmark"), bookmarkPanel);
-        center.addSecondaryPanel(USAGES_PANEL_ID, "Usages", Fugue.getIcon("magnifier-left"), usagesPanel);
-        center.setContent(editorManager.getRoot());
-        center.showPanel(GRAPH_PANEL_ID);
+        var center = new ToolContainer();
+        center.addPanel(graphPresenter, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
+        center.addPanel(bookmarkPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
+        center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.BOTTOM, true));
+        center.setCenter(editorManager.getRoot());
 
-        eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.showPanel(event.id()));
-        return center;
-    }
+        // The initial state
+        center.openPanel(GraphToolPanel.ID, true);
+        center.setWeight(ToolPanel.Placement.Anchor.LEFT, 0.2);
+        center.setWeight(ToolPanel.Placement.Anchor.BOTTOM, 0.6);
+        center.setToolNamesVisible(true);
 
-    private static Component buildRight() {
-        return Box.createHorizontalStrut(5);
+        eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
+        eventBus.subscribe(SettingsEvent.class, event -> {
+            switch (event) {
+                case SettingsEvent.AfterLoad(var settings) -> settings.tools().ifPresent(center::setState);
+                case SettingsEvent.BeforeSave(var settings) -> settings.tools().set(center.getState());
+            }
+        });
+
+        return center.getComponent();
     }
 
     private static Component buildBottom() {

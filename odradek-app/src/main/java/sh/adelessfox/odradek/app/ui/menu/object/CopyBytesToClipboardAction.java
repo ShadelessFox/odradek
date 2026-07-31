@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.menu.object;
 
-import sh.adelessfox.odradek.app.ui.editors.ObjectStructure;
+import sh.adelessfox.odradek.app.ui.viewers.ObjectStructure;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
