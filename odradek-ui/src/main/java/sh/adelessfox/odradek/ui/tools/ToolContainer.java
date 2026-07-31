@@ -503,17 +503,16 @@ public final class ToolContainer extends JComponent implements ToolManager {
         }
     }
 
+    // com.formdev.flatlaf.ui.FlatTabbedPaneUI.FlatSelectedTabRepainter
     private static final class ToolButtonRepainter implements PropertyChangeListener {
         private static ToolButtonRepainter instance;
         private final KeyboardFocusManager keyboardFocusManager;
 
-        static void install() {
-            synchronized (ToolButtonRepainter.class) {
-                if (instance != null) {
-                    return;
-                }
-                instance = new ToolButtonRepainter();
+         static synchronized void install() {
+            if (instance != null) {
+                return;
             }
+            instance = new ToolButtonRepainter();
         }
 
         ToolButtonRepainter() {
