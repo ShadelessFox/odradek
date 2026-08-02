@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.menu.object;
+package sh.adelessfox.odradek.app.ui.viewers.menu;
 
 import sh.adelessfox.odradek.app.ui.viewers.ObjectStructure;
 import sh.adelessfox.odradek.game.Converter;

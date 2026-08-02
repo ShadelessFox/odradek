@@ -60,8 +60,6 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction.Placeholder,
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectPreviewAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectTypeInformationAction,
-        sh.adelessfox.odradek.app.ui.menu.object.CopyBytesToClipboardAction,
-        sh.adelessfox.odradek.app.ui.menu.object.SaveBytesToFileAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameBookmarkAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.ToggleBookmarkAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyIdToClipboardAction,
@@ -71,7 +69,9 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.tools.graph.menu.GroupObjectsByTypeAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.SortGroupsByCountAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.SortObjectsByCountAction,
-        sh.adelessfox.odradek.app.ui.tools.usages.menu.ShowUsagesAction;
+        sh.adelessfox.odradek.app.ui.tools.usages.menu.ShowUsagesAction,
+        sh.adelessfox.odradek.app.ui.viewers.menu.CopyBytesToClipboardAction,
+        sh.adelessfox.odradek.app.ui.viewers.menu.SaveBytesToFileAction;
 
     provides sh.adelessfox.odradek.ui.editors.Editor.Provider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditor.Provider;

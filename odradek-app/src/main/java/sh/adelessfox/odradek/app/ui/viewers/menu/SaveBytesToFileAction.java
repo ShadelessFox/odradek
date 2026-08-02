@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.menu.object;
+package sh.adelessfox.odradek.app.ui.viewers.menu;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

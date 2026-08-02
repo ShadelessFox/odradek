@@ -5,7 +5,7 @@ import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
-import sh.adelessfox.odradek.app.ui.menu.object.ObjectMenu;
+import sh.adelessfox.odradek.app.ui.viewers.menu.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
