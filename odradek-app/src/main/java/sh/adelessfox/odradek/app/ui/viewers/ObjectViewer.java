@@ -13,6 +13,8 @@ import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
+import sh.adelessfox.odradek.rtti.util.TypePath;
+import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
@@ -25,17 +27,18 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.util.Optional;
 import java.util.function.Function;
 
-public final class ObjectViewer implements Viewer {
+public final class ObjectViewer implements Viewer, Focusable {
     public static final class Provider implements Viewer.Provider<TypedObject> {
         @Override
-        public Viewer create(TypedObject object, Game game) {
-            return new ObjectViewer(object, game);
+        public Viewer create(TypedObject object, Game game, Optional<?> selection) {
+            return new ObjectViewer(object, game, selection);
         }
 
         @Override
@@ -51,19 +54,42 @@ public final class ObjectViewer implements Viewer {
 
     private final TypedObject object;
     private final Game game;
+    private StructuredTree<?> tree;
+    private Object selection;
 
-    public ObjectViewer(TypedObject object, Game game) {
+    public ObjectViewer(TypedObject object, Game game, Optional<?> selection) {
         this.object = object;
         this.game = game;
+        this.selection = selection.orElse(null);
     }
 
     @Override
     public JComponent createComponent() {
-        return new JScrollPane(createObjectTree(game, object));
+        tree = createObjectTree(game, object);
+        return new JScrollPane(tree);
+    }
+
+    @Override
+    public void activate() {
+        if (selection instanceof TypePath path) {
+            SwingUtilities.invokeLater(() -> selectPath(tree, path));
+            selection = null;
+        }
+    }
+
+    @Override
+    public boolean isFocused() {
+        return tree.isFocusOwner();
+    }
+
+    @Override
+    public void setFocus() {
+        tree.requestFocusInWindow();
     }
 
     private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
+        tree.setExpandsSelectedPaths(true);
         tree.setTransferHandler(new ObjectEditorTransferHandler());
         tree.setLabelProvider(new ObjectEditorLabelProvider());
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
@@ -93,6 +119,39 @@ public final class ObjectViewer implements Viewer {
         }));
         PreviewManager.install(tree, game, new ObjectPreviewObjectProvider());
         return tree;
+    }
+
+    // NOTE: Can be moved somewhere else
+    private static void selectPath(StructuredTree<?> tree, TypePath selection) {
+        var model = tree.getModel();
+        var node = model.getRoot();
+        var path = new TreePath(node);
+
+        for (TypePath.Element element : selection.elements()) {
+            var resolved = switch (element) {
+                case TypePath.Element.Attr attr -> model.findChild(
+                    node,
+                    s -> s instanceof ObjectStructure.Attr o
+                        && attr.type() == o.info()
+                        && attr.attr() == o.attr());
+                case TypePath.Element.Index index -> model
+                    .findChild(
+                        node,
+                        s -> s instanceof ObjectStructure.Index o
+                            && index.type() == o.info()
+                            && index.index() == o.index());
+            };
+
+            if (resolved.isPresent()) {
+                node = resolved.orElseThrow();
+                path = path.pathByAddingChild(node);
+            } else {
+                return;
+            }
+        }
+
+        tree.setSelectionPath(path);
+        tree.scrollRowToVisible(Math.max(0, tree.getRowForPath(path) - 3 /* make some breathing room */));
     }
 
     // region Text

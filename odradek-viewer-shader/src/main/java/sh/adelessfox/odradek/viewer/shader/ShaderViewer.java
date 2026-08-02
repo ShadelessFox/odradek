@@ -18,7 +18,7 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
 
     public static final class Provider implements Viewer.Provider<Shader> {
         @Override
-        public Viewer create(Shader object, Game game) {
+        public Viewer create(Shader object, Game game, Optional<?> selection) {
             return new ShaderViewer(object, game);
         }
 

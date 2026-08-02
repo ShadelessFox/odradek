@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  */
 public interface Viewer extends Activable, Disposable {
     interface Provider<T> {
-        Viewer create(T object, Game game);
+        Viewer create(T object, Game game, Optional<?> selection);
 
         String name();
 

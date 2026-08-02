@@ -219,9 +219,16 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         tree.setRootVisible(false);
         tree.setPlaceholderText("No object selected\n\nRight-click on an object to inspect its usages");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
-            var component = event.getLastPathComponent();
-            if (component instanceof ObjectIdHolder holder) {
-                Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(holder.objectId()));
+            switch (event.getLastPathComponent()) {
+                case UsagesStructure.Link link when link.type() == UsagesStructure.Type.INCOMING -> {
+                    var input = new ObjectEditorInputLazy(link.objectId(), Optional.of(link.link().path()));
+                    Application.getInstance().editors().openEditor(input);
+                }
+                case ObjectIdHolder holder -> {
+                    var input = new ObjectEditorInputLazy(holder.objectId());
+                    Application.getInstance().editors().openEditor(input);
+                }
+                default -> { /* do nothing */ }
             }
         }));
 

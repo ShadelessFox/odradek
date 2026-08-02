@@ -11,7 +11,7 @@ import java.util.Optional;
 public final class AudioViewer implements Viewer {
     public static final class Provider implements Viewer.Provider<Audio> {
         @Override
-        public Viewer create(Audio object, Game game) {
+        public Viewer create(Audio object, Game game, Optional<?> selection) {
             return new AudioViewer(object);
         }
 

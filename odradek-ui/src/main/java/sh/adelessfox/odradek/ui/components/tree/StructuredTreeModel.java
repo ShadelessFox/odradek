@@ -30,11 +30,11 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     private static final Logger log = LoggerFactory.getLogger(StructuredTreeModel.class);
 
     private final Listeners<TreeModelListener> listeners = new Listeners<>(TreeModelListener.class);
-    private final TreeStructure<T> root;
+    private final T root;
     private Predicate<T> filter;
     private Node<T> rootNode;
 
-    public StructuredTreeModel(TreeStructure<T> root) {
+    public StructuredTreeModel(T root) {
         this.root = root;
     }
 
@@ -96,6 +96,13 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
 
     boolean isEmpty() {
         return rootNode == null || getChildCount(rootNode) == 0;
+    }
+
+    public Optional<?> findChild(Object parent, Predicate<T> predicate) {
+        Node<T> node = cast(parent);
+        return getChildNodes(node).stream()
+            .filter(child -> predicate.test(child.structure))
+            .findFirst();
     }
 
     /**
@@ -234,7 +241,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         }
     }
 
-    private Object getRootNode() {
+    private Node<T> getRootNode() {
         if (rootNode == null) {
             rootNode = computeRootNode();
         }
@@ -276,16 +283,16 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     private static class Node<T extends TreeStructure<T>> implements TreeItem<TreeStructure<T>> {
         private static final int CACHE_THRESHOLD = 1024;
 
-        private final TreeStructure<T> structure;
+        private final T structure;
         private final Node<T> parent;
         private List<Node<T>> children;
         private Map<Node<T>, Integer> indices;
 
-        Node(TreeStructure<T> structure, Node<T> parent) {
+        Node(T structure, Node<T> parent) {
             this(structure, parent, null);
         }
 
-        Node(TreeStructure<T> structure, Node<T> parent, List<Node<T>> children) {
+        Node(T structure, Node<T> parent, List<Node<T>> children) {
             this.structure = structure;
             this.parent = parent;
             this.children = children;

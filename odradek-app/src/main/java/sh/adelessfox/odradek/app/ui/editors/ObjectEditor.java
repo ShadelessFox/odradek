@@ -8,6 +8,8 @@ import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.rtti.util.TypePath;
+import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
@@ -48,7 +50,7 @@ public final class ObjectEditor implements Editor, ObjectTypeHolder, ObjectHolde
     @Override
     public JComponent createComponent() {
         if (pane == null) {
-            pane = createRoot(input.game(), input.object());
+            pane = createRoot(input.game(), input.object(), input.selection());
         }
         return pane;
     }
@@ -60,12 +62,20 @@ public final class ObjectEditor implements Editor, ObjectTypeHolder, ObjectHolde
 
     @Override
     public boolean isFocused() {
-        return pane.getSelectedComponent().isFocusOwner();
+        if (lastViewer instanceof Focusable focusable) {
+            return focusable.isFocused();
+        } else {
+            return pane.getSelectedComponent().isFocusOwner();
+        }
     }
 
     @Override
     public void setFocus() {
-        pane.getSelectedComponent().requestFocusInWindow();
+        if (lastViewer instanceof Focusable focusable) {
+            focusable.setFocus();
+        } else {
+            pane.getSelectedComponent().requestFocusInWindow();
+        }
     }
 
     @Override
@@ -118,7 +128,7 @@ public final class ObjectEditor implements Editor, ObjectTypeHolder, ObjectHolde
         return Optional.empty();
     }
 
-    private FlatTabbedPane createRoot(Game game, TypedObject object) {
+    private FlatTabbedPane createRoot(Game game, TypedObject object, Optional<TypePath> selection) {
         var pane = new FlatTabbedPane();
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -139,7 +149,7 @@ public final class ObjectEditor implements Editor, ObjectTypeHolder, ObjectHolde
                     return;
                 }
 
-                var viewer = provider.create(result.get(), game);
+                var viewer = provider.create(result.get(), game, selection);
 
                 viewers.add(viewer);
                 pane.insertTab(

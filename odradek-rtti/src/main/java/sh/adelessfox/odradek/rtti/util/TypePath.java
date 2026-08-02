@@ -17,9 +17,6 @@ public record TypePath(List<Element> elements) {
     }
 
     public TypePath {
-        if (elements.isEmpty()) {
-            throw new IllegalArgumentException("Path cannot be empty");
-        }
         elements = List.copyOf(elements);
     }
 

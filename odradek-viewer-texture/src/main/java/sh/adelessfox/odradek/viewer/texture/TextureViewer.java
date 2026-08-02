@@ -24,7 +24,7 @@ import java.util.Optional;
 public final class TextureViewer implements Viewer {
     public static final class Provider implements Viewer.Provider<Texture> {
         @Override
-        public Viewer create(Texture object, Game game) {
+        public Viewer create(Texture object, Game game, Optional<?> selection) {
             return new TextureViewer(object);
         }
 

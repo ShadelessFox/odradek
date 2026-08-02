@@ -27,7 +27,7 @@ public final class TextureSetViewer implements Viewer {
 
     public static final class Provider implements Viewer.Provider<TextureSet> {
         @Override
-        public Viewer create(TextureSet object, Game game) {
+        public Viewer create(TextureSet object, Game game, Optional<?> selection) {
             return new TextureSetViewer(object);
         }
 

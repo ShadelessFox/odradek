@@ -3,27 +3,35 @@ package sh.adelessfox.odradek.app.ui.editors;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.rtti.util.TypePath;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.lazy.LazyEditorInput;
 
+import java.util.Optional;
+
 public record ObjectEditorInputLazy(
     ObjectId objectId,
+    Optional<TypePath> selection,
     boolean canLoadImmediately
 ) implements LazyEditorInput, ObjectIdHolder {
+    public ObjectEditorInputLazy(ObjectId objectId, Optional<TypePath> selection) {
+        this(objectId, selection, true);
+    }
+
     public ObjectEditorInputLazy(ObjectId objectId) {
-        this(objectId, true);
+        this(objectId, Optional.empty(), true);
     }
 
     @Override
     public EditorInput loadRealInput() throws Exception {
         var game = Application.getInstance().game();
         var object = game.readObject(objectId);
-        return new ObjectEditorInput(game, object, objectId);
+        return new ObjectEditorInput(game, object, objectId, selection);
     }
 
     @Override
     public LazyEditorInput canLoadImmediately(boolean value) {
-        return new ObjectEditorInputLazy(objectId, value);
+        return new ObjectEditorInputLazy(objectId, selection, value);
     }
 
     @Override

@@ -36,7 +36,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         setup();
     }
 
-    public StructuredTree(TreeStructure<T> structure) {
+    public StructuredTree(T structure) {
         super(new StructuredTreeModel<>(structure));
         setup();
     }

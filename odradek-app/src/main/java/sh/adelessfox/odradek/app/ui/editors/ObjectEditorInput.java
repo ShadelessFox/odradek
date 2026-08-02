@@ -4,13 +4,21 @@ import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.rtti.util.TypePath;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
+
+import java.util.Optional;
 
 public record ObjectEditorInput(
     Game game,
     TypedObject object,
-    ObjectId objectId
+    ObjectId objectId,
+    Optional<TypePath> selection
 ) implements EditorInput, ObjectIdHolder {
+    public ObjectEditorInput(Game game, TypedObject object, ObjectId objectId) {
+        this(game, object, objectId, Optional.empty());
+    }
+
     @Override
     public String getName() {
         return "[%s] %s".formatted(objectId, object.getType());

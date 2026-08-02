@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 public record SceneViewer(Scene scene) implements Viewer {
     public static final class Provider implements Viewer.Provider<Scene> {
         @Override
-        public Viewer create(Scene object, Game game) {
+        public Viewer create(Scene object, Game game, Optional<?> selection) {
             return new SceneViewer(object);
         }
 
