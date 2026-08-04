@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 import sh.adelessfox.odradek.util.Gatherers;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -132,6 +133,7 @@ public sealed interface ObjectStructure
                     .flatMap(e -> e.getKey().isEmpty()
                         ? e.getValue().stream()
                         : Stream.of(new Group(node.game(), c, e.getKey().orElseThrow(), e.getValue(), node.value())))
+                    .sorted(Comparator.comparing(e -> e instanceof Group ? -1 : 1))
                     .toList();
                 case ContainerTypeInfo c -> IntStream.range(0, c.length(node.value()))
                     .mapToObj(index -> new Index(node.game(), c, node.value(), index))
