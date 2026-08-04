@@ -80,6 +80,11 @@ public final class EditorStack extends FlatTabbedPane {
         });
     }
 
+    @Override
+    public String getUIClassID() {
+        return "EditorStackUI";
+    }
+
     void insertEditor(EditorInput input, EditorComponent component, int index) {
         insertTab(input.getName(), null, component, input.getDescription(), index);
     }
