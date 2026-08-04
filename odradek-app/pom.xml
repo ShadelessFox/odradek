@@ -17,6 +17,29 @@
         <image.version>1.0</image.version>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>launcher-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <version>1.6.5</version>
+                        <configuration>
+                            <icon>launcher/application.ico</icon>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <dependencies>
         <!-- Internal dependencies -->
         <dependency>
@@ -168,6 +191,7 @@
                     <type>APP_IMAGE</type>
                     <appVersion>${image.version}</appVersion>
                     <name>${image.name}</name>
+                    <icon>launcher/application.png</icon>
                     <destination>target/dist</destination>
                     <vendor>ShadelessFox</vendor>
                     <winConsole>true</winConsole>

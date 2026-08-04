@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui;
 
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
@@ -61,6 +62,7 @@ public final class Application {
         var frame = new JFrame();
         frame.add(component.presenter().getRoot());
         frame.setTitle("Odradek - " + params.sourcePath());
+        frame.setIconImages(FlatSVGUtils.createWindowIconImages(Application.class.getResource("application.svg")));
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
