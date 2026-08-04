@@ -32,8 +32,8 @@ public class SaveBytesToFileAction extends Action {
         }
 
         var game = context.get(DataKeys.GAME).orElseThrow();
-        var structure = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
-        var bytes = Converter.convert(structure.type(), structure.value(), byte[].class, game);
+        var node = context.get(DataKeys.SELECTION, ObjectStructure.Node.class).orElseThrow();
+        var bytes = Converter.convert(node.type(), node.value(), byte[].class, game);
 
         if (bytes.isPresent()) {
             try {
@@ -53,7 +53,7 @@ public class SaveBytesToFileAction extends Action {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION, ObjectStructure.class)
+        return context.get(DataKeys.SELECTION, ObjectStructure.Node.class)
             .flatMap(structure -> Converter.converter(structure.type(), byte[].class))
             .isPresent();
     }

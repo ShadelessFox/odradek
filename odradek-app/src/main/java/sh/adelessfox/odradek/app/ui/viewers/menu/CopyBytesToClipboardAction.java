@@ -18,8 +18,8 @@ public class CopyBytesToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var game = context.get(DataKeys.GAME).orElseThrow();
-        var structure = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
-        var bytes = Converter.convert(structure.type(), structure.value(), byte[].class, game);
+        var node = context.get(DataKeys.SELECTION, ObjectStructure.Node.class).orElseThrow();
+        var bytes = Converter.convert(node.type(), node.value(), byte[].class, game);
 
         if (bytes.isPresent()) {
             var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -36,7 +36,7 @@ public class CopyBytesToClipboardAction extends Action {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION, ObjectStructure.class)
+        return context.get(DataKeys.SELECTION, ObjectStructure.Node.class)
             .flatMap(structure -> Converter.converter(structure.type(), byte[].class))
             .isPresent();
     }

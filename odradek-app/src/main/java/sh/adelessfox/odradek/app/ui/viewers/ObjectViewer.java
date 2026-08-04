@@ -21,6 +21,7 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
+import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -89,15 +90,17 @@ public final class ObjectViewer implements Viewer, Focusable {
 
     private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
+        tree.setRootVisible(false);
+        tree.setShowsRootHandles(true);
         tree.setExpandsSelectedPaths(true);
         tree.setTransferHandler(new ObjectEditorTransferHandler());
         tree.setLabelProvider(new ObjectEditorLabelProvider());
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
-            if (!(component instanceof ObjectStructure structure)) {
+            if (!(component instanceof ObjectStructure.Node node)) {
                 return;
             }
-            switch (structure.value()) {
+            switch (node.value()) {
                 case ObjectWithIdHolder<?> holder when holder.object() instanceof TypedObject typedObject -> {
                     var input = new ObjectEditorInput(game, typedObject, holder.objectId());
                     Application.getInstance().editors().openEditor(input);
@@ -118,44 +121,90 @@ public final class ObjectViewer implements Viewer, Focusable {
             return Optional.empty();
         }));
         PreviewManager.install(tree, game, new ObjectPreviewObjectProvider());
+        expandGroups(tree);
         return tree;
     }
 
-    // NOTE: Can be moved somewhere else
+    private void expandGroups(StructuredTree<?> tree) {
+        for (int i = 0; i < tree.getRowCount(); i++) {
+            var path = tree.getPathForRow(i);
+            if (tree.getLastPathComponent(path) instanceof ObjectStructure.Group) {
+                tree.expandRow(i);
+            }
+        }
+    }
+
+    //region Paths
     private static void selectPath(StructuredTree<?> tree, TypePath selection) {
+        findNode(tree, selection).ifPresent(path -> {
+            tree.setSelectionPath(path);
+            tree.scrollRowToVisible(Math.max(0, tree.getRowForPath(path) - 3 /* make some breathing room */));
+        });
+    }
+
+    private static Optional<TreePath> findNode(StructuredTree<?> tree, TypePath selection) {
         var model = tree.getModel();
         var node = model.getRoot();
         var path = new TreePath(node);
 
         for (TypePath.Element element : selection.elements()) {
             var resolved = switch (element) {
-                case TypePath.Element.Attr attr -> model.findChild(
-                    node,
-                    s -> s instanceof ObjectStructure.Attr o
-                        && attr.type() == o.info()
-                        && attr.attr() == o.attr());
-                case TypePath.Element.Index index -> model
-                    .findChild(
-                        node,
-                        s -> s instanceof ObjectStructure.Index o
-                            && index.type() == o.info()
-                            && index.index() == o.index());
+                case TypePath.Element.Attr attr -> {
+                    var group = attr.attr().group().orElse(null);
+                    if (group == null) {
+                        // No group, so we can just find the attribute directly
+                        yield findAttrNode(model, node, attr);
+                    }
+
+                    // If the attribute is in a group, we need to find the group first, then the attribute
+                    var group1 = findGroupNode(model, node, group).orElse(null);
+                    if (group1 == null) {
+                        yield Optional.empty();
+                    }
+
+                    path = path.pathByAddingChild(group1);
+                    yield findAttrNode(model, group1, attr);
+                }
+                case TypePath.Element.Index index -> findIndexNode(model, node, index);
             };
 
             if (resolved.isPresent()) {
                 node = resolved.orElseThrow();
                 path = path.pathByAddingChild(node);
             } else {
-                return;
+                return Optional.empty();
             }
         }
 
-        tree.setSelectionPath(path);
-        tree.scrollRowToVisible(Math.max(0, tree.getRowForPath(path) - 3 /* make some breathing room */));
+        return Optional.of(path);
     }
 
+    private static Optional<?> findGroupNode(StructuredTreeModel<?> model, Object node, String group) {
+        return model.findChild(
+            node,
+            s -> s instanceof ObjectStructure.Group o
+                && group.equals(o.name()));
+    }
+
+    private static Optional<?> findAttrNode(StructuredTreeModel<?> model, Object node, TypePath.Element.Attr attr) {
+        return model.findChild(
+            node,
+            s -> s instanceof ObjectStructure.Attr o
+                && attr.type() == o.info()
+                && attr.attr() == o.attr());
+    }
+
+    private static Optional<?> findIndexNode(StructuredTreeModel<?> model, Object node, TypePath.Element.Index index) {
+        return model.findChild(
+            node,
+            s -> s instanceof ObjectStructure.Index o
+                && index.type() == o.info()
+                && index.index() == o.index());
+    }
+    //endregion
+
     // region Text
-    private static Optional<Transferable> getElementTransferable(ObjectStructure s) {
+    private static Optional<Transferable> getElementTransferable(ObjectStructure.Node s) {
         return valueTextBuilder(s, false)
             .map(b -> b.apply(StyledText.builder()))
             .flatMap(StyledText.Builder::build)
@@ -163,7 +212,7 @@ public final class ObjectViewer implements Viewer, Focusable {
             .map(StringSelection::new);
     }
 
-    private static Optional<StyledText> getElementText(ObjectStructure s) {
+    private static Optional<StyledText> getElementText(ObjectStructure.Node s) {
         var builder = StyledText.builder();
         keyTextBuilder(s).ifPresent(b -> b.apply(builder));
         builder.add("{" + s.type() + "} ", StyledFragment.GRAYED);
@@ -171,13 +220,8 @@ public final class ObjectViewer implements Viewer, Focusable {
         return builder.build();
     }
 
-    private static Optional<Function<StyledText.Builder, StyledText.Builder>> keyTextBuilder(ObjectStructure s) {
+    private static Optional<Function<StyledText.Builder, StyledText.Builder>> keyTextBuilder(ObjectStructure.Node s) {
         Function<StyledText.Builder, StyledText.Builder> function = switch (s) {
-            // [Group].[Attr] =
-            case ObjectStructure.Attr(_, _, var attr, _) when attr.group().isPresent() -> b -> b
-                .add(attr.group().orElseThrow() + '.', StyledFragment.NAME.andThen(StyledFragment.GRAYED))
-                .add(attr.name(), StyledFragment.NAME).add(" = ");
-
             // [Attr] =
             case ObjectStructure.Attr(_, _, var attr, _) -> b -> b
                 .add(attr.name(), StyledFragment.NAME).add(" = ");
@@ -192,17 +236,20 @@ public final class ObjectViewer implements Viewer, Focusable {
         return Optional.ofNullable(function);
     }
 
-    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(ObjectStructure structure, boolean allowStyledText) {
-        if (structure.value() == null) {
+    private static Optional<Function<StyledText.Builder, StyledText.Builder>> valueTextBuilder(
+        ObjectStructure.Node node,
+        boolean allowStyledText
+    ) {
+        if (node.value() == null) {
             return Optional.of(b -> b.add("null"));
         }
 
-        var type = structure.type();
-        var value = structure.value();
+        var type = node.type();
+        var value = node.value();
         var renderer = (Renderer<Object, Game>) null;
 
         // Special handling for attributes
-        if (structure instanceof ObjectStructure.Attr(var game, var clazz, var attr, var object)) {
+        if (node instanceof ObjectStructure.Attr(var game, var clazz, var attr, var object)) {
             renderer = Renderer.renderer(clazz, attr, game).orElse(null);
 
             // For attribute renderers, the parent type/object is passed
@@ -214,18 +261,18 @@ public final class ObjectViewer implements Viewer, Focusable {
 
         // If we couldn't find an attribute-specific renderer, try type-based renderer
         if (renderer == null) {
-            renderer = Renderer.renderer(type, structure.game()).orElse(null);
+            renderer = Renderer.renderer(type, node.game()).orElse(null);
         }
 
         if (renderer != null) {
             if (allowStyledText) {
-                var styledText = renderer.styledText(type, value, structure.game()).orElse(null);
+                var styledText = renderer.styledText(type, value, node.game()).orElse(null);
                 if (styledText != null) {
                     return Optional.of(tb -> tb.add(styledText));
                 }
             }
 
-            var text = renderer.text(type, value, structure.game()).orElse(null);
+            var text = renderer.text(type, value, node.game()).orElse(null);
             if (text != null) {
                 return Optional.of(tb -> tb.add(text));
             }
@@ -245,8 +292,8 @@ public final class ObjectViewer implements Viewer, Focusable {
     // endregion
 
     // region Tooltip
-    private static String getElementToolTip(ObjectStructure s) {
-        var type = s.type();
+    private static String getElementToolTip(ObjectStructure.Node node) {
+        var type = node.type();
         var buf = new StringBuilder();
 
         buf.append("<html><table>");
@@ -258,7 +305,7 @@ public final class ObjectViewer implements Viewer, Focusable {
             }
 
             case EnumTypeInfo i -> {
-                var value = (Value<?>) s.value();
+                var value = (Value<?>) node.value();
                 appendSection(buf, "Enum");
                 appendRow(buf, "Type", getTypeHierarchy(type, false));
                 appendRow(buf, "Size", i.size() == 1 ? "1 byte" : i.size() + " bytes");
@@ -284,7 +331,7 @@ public final class ObjectViewer implements Viewer, Focusable {
             }
             case BitSetTypeInfo _ -> throw new NotImplementedException(); // TODO
         }
-        if (s instanceof ObjectStructure.Attr(_, _, var attr, _)) {
+        if (node instanceof ObjectStructure.Attr(_, _, var attr, _)) {
             appendSection(buf, "Attribute");
             appendRow(buf, "Offset", toText(attr.offset()));
             appendRow(buf, "Flags", toText(attr.flags()));
@@ -353,8 +400,8 @@ public final class ObjectViewer implements Viewer, Focusable {
         @Override
         protected Transferable createTransferable(JComponent c) {
             var tree = (StructuredTree<?>) c;
-            if (tree.getSelectionPathComponent() instanceof ObjectStructure structure) {
-                return getElementTransferable(structure).orElse(null);
+            if (tree.getSelectionPathComponent() instanceof ObjectStructure.Node node) {
+                return getElementTransferable(node).orElse(null);
             }
             return super.createTransferable(c);
         }
@@ -368,19 +415,30 @@ public final class ObjectViewer implements Viewer, Focusable {
     private static class ObjectEditorLabelProvider implements StyledTreeLabelProvider<ObjectStructure> {
         @Override
         public Optional<StyledText> getStyledText(ObjectStructure element) {
-            return getElementText(element);
+            return switch (element) {
+                case ObjectStructure.Node node -> getElementText(node);
+                case ObjectStructure.Group group -> StyledText.builder()
+                    .add(group.name(), StyledFragment.BOLD.andThen(StyledFragment.GRAYED))
+                    .build();
+            };
         }
 
         @Override
         public Optional<Icon> getIcon(ObjectStructure element) {
+            if (!(element instanceof ObjectStructure.Node)) {
+                return Optional.empty();
+            }
             return Optional.of(Fugue.getIcon("blue-document"));
         }
 
         @Override
         public Optional<String> getToolTip(ObjectStructure element) {
+            if (!(element instanceof ObjectStructure.Node node)) {
+                return Optional.empty();
+            }
             var settings = Application.getInstance().settings();
             if (settings.showObjectTypeInformation().orElse(false)) {
-                return Optional.of(getElementToolTip(element));
+                return Optional.of(getElementToolTip(node));
             }
             return Optional.empty();
         }
@@ -401,8 +459,8 @@ public final class ObjectViewer implements Viewer, Focusable {
         }
 
         private static Optional<TypedObject> get(Object value) {
-            if (value instanceof ObjectStructure structure) {
-                Object object = structure.value();
+            if (value instanceof ObjectStructure.Node node) {
+                Object object = node.value();
                 if (object instanceof ObjectHolder<?> holder) {
                     // Should this be done here?
                     object = holder.get();
