@@ -20,14 +20,13 @@ import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
-import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
-import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
-import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
-import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
+import sh.adelessfox.odradek.ui.components.tree.*;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -55,7 +54,7 @@ public final class ObjectViewer implements Viewer, Focusable {
 
     private final TypedObject object;
     private final Game game;
-    private StructuredTree<?> tree;
+    private StructuredTree<ObjectStructure> tree;
     private Object selection;
 
     public ObjectViewer(TypedObject object, Game game, Optional<?> selection) {
@@ -88,7 +87,7 @@ public final class ObjectViewer implements Viewer, Focusable {
         tree.requestFocusInWindow();
     }
 
-    private StructuredTree<?> createObjectTree(Game game, TypedObject object) {
+    private StructuredTree<ObjectStructure> createObjectTree(Game game, TypedObject object) {
         var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
@@ -121,34 +120,64 @@ public final class ObjectViewer implements Viewer, Focusable {
             return Optional.empty();
         }));
         PreviewManager.install(tree, game, new ObjectPreviewObjectProvider());
-        expandGroups(tree);
+
+        installAutoExpandGroups(tree);
+        expandTreeGroups(tree);
+
         return tree;
     }
 
-    private void expandGroups(StructuredTree<?> tree) {
-        for (int i = 0; i < tree.getRowCount(); i++) {
-            var path = tree.getPathForRow(i);
-            if (tree.getLastPathComponent(path) instanceof ObjectStructure.Group) {
-                tree.expandRow(i);
+    private static void installAutoExpandGroups(StructuredTree<ObjectStructure> tree) {
+        tree.addTreeExpansionListener(new TreeExpansionListener() {
+            @Override
+            public void treeExpanded(TreeExpansionEvent event) {
+                expandTreeGroups(tree, event.getPath());
+            }
+
+            @Override
+            public void treeCollapsed(TreeExpansionEvent event) {
+                // nothing to do
+            }
+        });
+    }
+
+    private static void expandTreeGroups(StructuredTree<ObjectStructure> tree) {
+        expandTreeGroups(tree, new TreePath(tree.getModel().getRoot()));
+    }
+
+    private static void expandTreeGroups(StructuredTree<ObjectStructure> tree, TreePath path) {
+        if (!tree.isExpanded(path)) {
+            return;
+        }
+        var model = tree.getModel();
+        var parent = path.getLastPathComponent();
+        for (int i = 0, count = model.getChildCount(parent); i < count; i++) {
+            var child = model.getChild(parent, i);
+            if (!(child.getValue() instanceof ObjectStructure.Group)) {
+                continue;
+            }
+            var childPath = path.pathByAddingChild(child);
+            if (!tree.hasBeenExpanded(childPath)) {
+                tree.expandPath(childPath);
             }
         }
     }
 
     //region Paths
-    private static void selectPath(StructuredTree<?> tree, TypePath selection) {
+    private static void selectPath(StructuredTree<ObjectStructure> tree, TypePath selection) {
         findNode(tree, selection).ifPresent(path -> {
             tree.setSelectionPath(path);
             tree.scrollRowToVisible(Math.max(0, tree.getRowForPath(path) - 3 /* make some breathing room */));
         });
     }
 
-    private static Optional<TreePath> findNode(StructuredTree<?> tree, TypePath selection) {
+    private static Optional<TreePath> findNode(StructuredTree<ObjectStructure> tree, TypePath selection) {
         var model = tree.getModel();
         var node = model.getRoot();
         var path = new TreePath(node);
 
         for (TypePath.Element element : selection.elements()) {
-            var resolved = switch (element) {
+            Optional<TreeItem<ObjectStructure>> item = switch (element) {
                 case TypePath.Element.Attr attr -> {
                     var group = attr.attr().group().orElse(null);
                     if (group == null) {
@@ -168,8 +197,8 @@ public final class ObjectViewer implements Viewer, Focusable {
                 case TypePath.Element.Index index -> findIndexNode(model, node, index);
             };
 
-            if (resolved.isPresent()) {
-                node = resolved.orElseThrow();
+            if (item.isPresent()) {
+                node = item.orElseThrow();
                 path = path.pathByAddingChild(node);
             } else {
                 return Optional.empty();
@@ -179,14 +208,22 @@ public final class ObjectViewer implements Viewer, Focusable {
         return Optional.of(path);
     }
 
-    private static Optional<?> findGroupNode(StructuredTreeModel<?> model, Object node, String group) {
+    private static Optional<TreeItem<ObjectStructure>> findGroupNode(
+        StructuredTreeModel<ObjectStructure> model,
+        Object node,
+        String group
+    ) {
         return model.findChild(
             node,
             s -> s instanceof ObjectStructure.Group o
                 && group.equals(o.name()));
     }
 
-    private static Optional<?> findAttrNode(StructuredTreeModel<?> model, Object node, TypePath.Element.Attr attr) {
+    private static Optional<TreeItem<ObjectStructure>> findAttrNode(
+        StructuredTreeModel<ObjectStructure> model,
+        Object node,
+        TypePath.Element.Attr attr
+    ) {
         return model.findChild(
             node,
             s -> s instanceof ObjectStructure.Attr o
@@ -194,7 +231,11 @@ public final class ObjectViewer implements Viewer, Focusable {
                 && attr.attr() == o.attr());
     }
 
-    private static Optional<?> findIndexNode(StructuredTreeModel<?> model, Object node, TypePath.Element.Index index) {
+    private static Optional<TreeItem<ObjectStructure>> findIndexNode(
+        StructuredTreeModel<ObjectStructure> model,
+        Object node,
+        TypePath.Element.Index index
+    ) {
         return model.findChild(
             node,
             s -> s instanceof ObjectStructure.Index o

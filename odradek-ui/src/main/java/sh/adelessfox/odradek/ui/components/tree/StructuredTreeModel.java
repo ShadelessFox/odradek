@@ -39,12 +39,12 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     }
 
     @Override
-    public Object getRoot() {
+    public TreeItem<T> getRoot() {
         return getRootNode();
     }
 
     @Override
-    public Object getChild(Object parent, int index) {
+    public TreeItem<T> getChild(Object parent, int index) {
         Node<T> node = cast(parent);
         return getChildNodes(node).get(index);
     }
@@ -98,10 +98,11 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         return rootNode == null || getChildCount(rootNode) == 0;
     }
 
-    public Optional<?> findChild(Object parent, Predicate<T> predicate) {
+    public Optional<TreeItem<T>> findChild(Object parent, Predicate<T> predicate) {
         Node<T> node = cast(parent);
         return getChildNodes(node).stream()
             .filter(child -> predicate.test(child.structure))
+            .map(child -> (TreeItem<T>) child)
             .findFirst();
     }
 
@@ -280,7 +281,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         }
     }
 
-    private static class Node<T extends TreeStructure<T>> implements TreeItem<TreeStructure<T>> {
+    private static class Node<T extends TreeStructure<T>> implements TreeItem<T> {
         private static final int CACHE_THRESHOLD = 1024;
 
         private final T structure;
@@ -321,7 +322,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         }
 
         @Override
-        public TreeStructure<T> getValue() {
+        public T getValue() {
             return structure;
         }
 
