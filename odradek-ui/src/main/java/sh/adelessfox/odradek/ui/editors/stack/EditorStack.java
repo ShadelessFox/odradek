@@ -245,4 +245,16 @@ public final class EditorStack extends FlatTabbedPane {
             throw new IllegalStateException("Illegal parent of an editor stack");
         }
     }
+
+    @Override
+    public void removeTabAt(int index) {
+        if (index > 0 && index == getSelectedIndex()) {
+            // When closing the active tab, the default implementation removes that tab and
+            // keeps the old selection index, effectively selecting the tab to the right.
+            // This code selects the tab to the left instead because it seems more intuitive.
+            setSelectedIndex(index - 1);
+        }
+
+        super.removeTabAt(index);
+    }
 }
