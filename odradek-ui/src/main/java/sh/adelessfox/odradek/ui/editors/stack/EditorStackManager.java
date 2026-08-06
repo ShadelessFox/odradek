@@ -51,7 +51,7 @@ public final class EditorStackManager implements EditorManager {
 
     @Override
     public void openEditor(EditorInput input, Activation activation) {
-        openEditor(input, findEditorStack(root), activation);
+        openEditor(input, findActiveEditorStack(), activation);
     }
 
     @Override
@@ -203,6 +203,19 @@ public final class EditorStackManager implements EditorManager {
 
     private static Optional<EditorComponent> getSelectedEditor(EditorStack stack) {
         return Optional.ofNullable(stack.getSelectedComponent()).map(EditorComponent.class::cast);
+    }
+
+    private EditorStack findActiveEditorStack() {
+        var focusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        var focusOwner = focusManager.getPermanentFocusOwner();
+        if (focusOwner instanceof EditorStack stack) {
+            return stack;
+        }
+        var stack = (EditorStack) SwingUtilities.getAncestorOfClass(EditorStack.class, focusOwner);
+        if (stack != null) {
+            return stack;
+        }
+        return findEditorStack(root);
     }
 
     private EditorStack findEditorStack(EditorStackContainer container) {
