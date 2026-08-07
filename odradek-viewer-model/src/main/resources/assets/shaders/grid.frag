@@ -38,11 +38,11 @@ vec4 computeGrid(vec3 point, float scale, bool isAxis) {
 
     vec4 gridColor = vec4(vec3(0.2), 1.0 - min(line, 1.0));
 
-    if (-min_x < point.x && point.x < 0.1 * min_x && isAxis) {
+    if (-min_x < point.x && point.x < min_x && isAxis) {
         gridColor.rgb = vec3(0.2, 0.8, 0.2);
     }
 
-    if (-min_y < point.y && point.y < 0.1 * min_y && isAxis) {
+    if (-min_y < point.y && point.y < min_y && isAxis) {
         gridColor.rgb = vec3(0.9, 0.2, 0.2);
     }
 
