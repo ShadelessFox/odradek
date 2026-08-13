@@ -10,20 +10,26 @@ public final class MainMenu {
     private MainMenu() {
     }
 
-    @ActionRegistration(id = View.ID, text = "&View")
-    @ActionContribution(parent = ID, order = 1)
-    public static class View extends Action {
-        public static final String ID = MainMenu.ID + ".View";
-    }
-
     @ActionRegistration(id = File.ID, text = "&File")
     @ActionContribution(parent = ID, order = 0)
     public static class File extends Action {
         public static final String ID = MainMenu.ID + ".File";
     }
 
-    @ActionRegistration(id = Help.ID, text = "&Help")
+    @ActionRegistration(id = View.ID, text = "&View")
+    @ActionContribution(parent = ID, order = 1)
+    public static class View extends Action {
+        public static final String ID = MainMenu.ID + ".View";
+    }
+
+    @ActionRegistration(id = Tools.ID, text = "&Tools")
     @ActionContribution(parent = ID, order = 2)
+    public static class Tools extends Action {
+        public static final String ID = MainMenu.ID + ".Tools";
+    }
+
+    @ActionRegistration(id = Help.ID, text = "&Help")
+    @ActionContribution(parent = ID, order = 3)
     public static class Help extends Action {
         public static final String ID = MainMenu.ID + ".Help";
     }
