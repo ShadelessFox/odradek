@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
 
-public final class ToolContainer extends JComponent implements ToolManager {
+public final class ToolContainer extends JComponent implements ToolManager, PropertyChangeListener {
     private final Map<String, ToolPanelState> panelById = new HashMap<>();
     private final Map<ToolPanel.Placement, List<ToolPanelState>> groupByPlacement = new HashMap<>();
 
@@ -160,6 +160,44 @@ public final class ToolContainer extends JComponent implements ToolManager {
         }
     }
 
+    @Override
+    public void addNotify() {
+        super.addNotify();
+
+        UIManager.addPropertyChangeListener(this);
+        UIManager.getDefaults().addPropertyChangeListener(this);
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+
+        UIManager.removePropertyChangeListener(this);
+        UIManager.getDefaults().removePropertyChangeListener(this);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {
+        if (!"lookAndFeel".equals(event.getPropertyName())) {
+            return;
+        }
+
+        for (ToolPanelState state : panelById.values()) {
+            // Unless a better way to toggle visibility of individual components
+            // is found without altering the hierarchy, use this to aid in
+            // updating the LaF in case the theme is changed while either
+            // component is hidden.
+
+            if (state.component != null) {
+                SwingUtilities.updateComponentTreeUI(state.component);
+            }
+
+            if (state.header != null) {
+                SwingUtilities.updateComponentTreeUI(state.header);
+            }
+        }
+    }
+
     private ToolState.Anchor getState(ToolPanel.Placement.Anchor anchor) {
         var primary = getState(new ToolPanel.Placement(anchor, true));
         var secondary = getState(new ToolPanel.Placement(anchor, false));
@@ -219,12 +257,6 @@ public final class ToolContainer extends JComponent implements ToolManager {
         var component = state.getOrCreateComponent();
         container.setComponent(component, state.placement);
         state.open = true;
-
-        // Unless a better way to toggle visibility of individual components
-        // is found without altering the hierarchy, use this to aid in
-        // updating the LaF in case the theme is changed while either
-        // component is hidden.
-        SwingUtilities.updateComponentTreeUI(this);
 
         if (focus) {
             component.requestFocusInWindow();
