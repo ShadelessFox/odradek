@@ -3,8 +3,8 @@ package sh.adelessfox.odradek.viewer.font;
 import java.awt.*;
 
 // https://tips4java.wordpress.com/2008/11/06/wrap-layout/
-public class WrapLayout extends FlowLayout {
-    public WrapLayout(int align, int hgap, int vgap) {
+final class WrapLayout extends FlowLayout {
+    WrapLayout(int align, int hgap, int vgap) {
         super(align, hgap, vgap);
     }
 
