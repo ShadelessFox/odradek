@@ -146,7 +146,6 @@ final class AudioPlayer extends JPanel implements Disposable {
 
         toolBar.add(Box.createHorizontalGlue());
         toolBar.addSeparator();
-        toolBar.add(Box.createHorizontalStrut(4));
         toolBar.add(new JLabel(MessageFormat.format(
             "{0} Hz, {1,choice,1#1 channel|1<{1} channels}",
             audio.format().sampleRate(),
