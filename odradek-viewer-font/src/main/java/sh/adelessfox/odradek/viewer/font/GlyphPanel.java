@@ -74,7 +74,7 @@ final class GlyphPanel extends JComponent {
         g.fillRect(0, 0, width, height);
 
         g.setColor(UIManager.getColor("Component.borderColor"));
-        g.drawRect(0, 0, width - 1, height - 1);
+        g.drawRect(-1, -1, width, height);
 
         float textWidth = glyph.metrics().advanceWidth();
         float textHeight = font.metrics().height();

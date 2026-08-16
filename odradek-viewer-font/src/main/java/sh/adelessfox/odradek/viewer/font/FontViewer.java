@@ -31,10 +31,19 @@ public record FontViewer(Font font) implements Viewer {
         var gallery = new GlyphGallery(font);
         gallery.putClientProperty(FlatClientProperties.STYLE, "background: $Editor.background");
 
-        var pane = new JScrollPane(gallery);
-        pane.getViewport().putClientProperty(FlatClientProperties.STYLE, "background: $Editor.background");
+        // Is there a better way to set the fucking background?
+        var viewport = new JViewport() {
+            @Override
+            public void updateUI() {
+                super.updateUI();
+                setBackground(UIManager.getColor("Editor.background"));
+            }
+        };
+        viewport.setView(gallery);
+
+        var pane = new JScrollPane();
+        pane.setViewport(viewport);
 
         return pane;
     }
-
 }

@@ -8,7 +8,7 @@ import java.awt.*;
 
 final class GlyphGallery extends JPanel implements Scrollable {
     GlyphGallery(Font font) {
-        setLayout(new WrapLayout(FlowLayout.LEFT, 5, 5));
+        setLayout(new WrapLayout(FlowLayout.LEFT, 0, 0));
 
         for (Glyph glyph : font.glyphs()) {
             add(new GlyphPanel(font, glyph, 72));
