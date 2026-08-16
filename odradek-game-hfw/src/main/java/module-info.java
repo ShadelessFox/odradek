@@ -107,6 +107,7 @@ module odradek.game.hfw {
         sh.adelessfox.odradek.game.hfw.converters.texture.TextureBindingWithHandleToTextureConverter,
         sh.adelessfox.odradek.game.hfw.converters.texture.TextureToTextureConverter,
         sh.adelessfox.odradek.game.hfw.converters.texture.UITextureToTextureConverter,
+        sh.adelessfox.odradek.game.hfw.converters.FontResourceToFontConverter,
         sh.adelessfox.odradek.game.hfw.converters.ShaderResourceToShaderConverter,
         sh.adelessfox.odradek.game.hfw.converters.StreamingDataSourceToBytesConverter,
         sh.adelessfox.odradek.game.hfw.converters.TextureSetToTextureSetConverter;
