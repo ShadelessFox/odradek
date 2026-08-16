@@ -12,7 +12,7 @@ final class GlyphPanel extends JComponent {
     private final Font font;
     private final Glyph glyph;
     private final Path2D.Float path;
-    private final int size;
+    private int size;
 
     GlyphPanel(Font font, Glyph glyph, int size) {
         this.font = font;
@@ -21,6 +21,14 @@ final class GlyphPanel extends JComponent {
         this.size = size;
 
         ToolTipManager.sharedInstance().registerComponent(this);
+    }
+
+    void setSize(int size) {
+        if (this.size != size) {
+            this.size = size;
+            revalidate();
+            repaint();
+        }
     }
 
     @Override

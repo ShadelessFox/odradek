@@ -7,11 +7,19 @@ import javax.swing.*;
 import java.awt.*;
 
 final class GlyphGallery extends JPanel implements Scrollable {
-    GlyphGallery(Font font) {
+    GlyphGallery(Font font, int size) {
         setLayout(new WrapLayout(FlowLayout.LEFT, 0, 0));
 
         for (Glyph glyph : font.glyphs()) {
-            add(new GlyphPanel(font, glyph, 72));
+            add(new GlyphPanel(font, glyph, size));
+        }
+    }
+
+    void setSize(int size) {
+        for (Component comp : getComponents()) {
+            if (comp instanceof GlyphPanel panel) {
+                panel.setSize(size);
+            }
         }
     }
 
