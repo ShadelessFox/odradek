@@ -33,10 +33,12 @@ module odradek.app {
     requires odradek.export.json;
     requires odradek.export.png;
     requires odradek.export.shader;
+    requires odradek.export.svg;
     requires odradek.export.wave;
 
     // Viewers
     requires odradek.viewer.audio;
+    requires odradek.viewer.font;
     requires odradek.viewer.model;
     requires odradek.viewer.shader;
     requires odradek.viewer.texture;
