@@ -72,6 +72,10 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-viewer-font</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-viewer-model</artifactId>
         </dependency>
         <dependency>
@@ -101,6 +105,10 @@
         <dependency>
             <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-export-shader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>sh.adelessfox</groupId>
+            <artifactId>odradek-export-svg</artifactId>
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>

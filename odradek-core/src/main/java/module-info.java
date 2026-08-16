@@ -14,6 +14,7 @@ module odradek.core {
     exports sh.adelessfox.odradek.audio.container.wwise;
     exports sh.adelessfox.odradek.audio;
     exports sh.adelessfox.odradek.event;
+    exports sh.adelessfox.odradek.font;
     exports sh.adelessfox.odradek.geometry;
     exports sh.adelessfox.odradek.graphics;
     exports sh.adelessfox.odradek.io;
