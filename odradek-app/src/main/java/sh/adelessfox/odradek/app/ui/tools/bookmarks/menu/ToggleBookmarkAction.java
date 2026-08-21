@@ -13,7 +13,7 @@ import java.util.Optional;
 @ActionRegistration(text = "Toggle Bookmark", icon = "fugue:blue-document-bookmark")
 @ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_UTIL)
 @ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_UTIL)
-@ActionContribution(parent = BookmarkMenu.ID)
+@ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 1)
 public class ToggleBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {

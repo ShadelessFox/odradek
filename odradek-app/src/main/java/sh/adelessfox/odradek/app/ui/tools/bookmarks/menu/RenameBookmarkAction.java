@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
@@ -8,7 +9,7 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import java.util.Optional;
 
 @ActionRegistration(text = "Rename Bookmark\u2026", icon = "fugue:bookmark--pencil", keystroke = "F2")
-@ActionContribution(parent = BookmarkMenu.ID, order = 0)
+@ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 0)
 public class RenameBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {

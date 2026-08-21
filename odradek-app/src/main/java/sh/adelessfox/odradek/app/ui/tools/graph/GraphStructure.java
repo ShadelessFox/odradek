@@ -449,8 +449,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         StreamingGraph graph,
         StreamingGraph.Group group,
         int indexAndIncludeGroupId
-    )
-        implements GraphStructure, ObjectTypeHolder, ObjectIdHolder {
+    ) implements GraphStructure, ObjectTypeHolder, ObjectIdHolder {
         public GroupObject(
             StreamingGraph graph,
             StreamingGraph.Group group,

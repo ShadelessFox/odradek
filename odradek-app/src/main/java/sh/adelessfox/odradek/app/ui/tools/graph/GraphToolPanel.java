@@ -23,7 +23,6 @@ import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
-import sh.adelessfox.odradek.ui.components.tree.TreeLabelProvider;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
@@ -190,30 +189,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         var tree = new StructuredTree<>(new GraphStructure.Graph(game.streamingGraph()));
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
-        tree.setLabelProvider(new TreeLabelProvider<>() {
-            @Override
-            public Optional<String> getText(GraphStructure element) {
-                return Optional.of(element.toString());
-            }
-
-            @Override
-            public Optional<Icon> getIcon(GraphStructure element) {
-                return Optional.ofNullable(switch (element) {
-                    case GraphStructure.Graph _ -> null;
-                    case GraphStructure.GraphGroups _, GraphStructure.GraphObjects _ -> Fugue.getIcon("folders-stack");
-                    case GraphStructure.Group _ -> Fugue.getIcon("folders");
-                    case GraphStructure.GroupDependencies _ -> Fugue.getIcon("folder-export");
-                    case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
-                    case GraphStructure.GroupObject _ -> Fugue.getIcon("blue-document");
-                    case GraphStructure.GraphRoots _,
-                         GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-bookmark");
-                    case GraphStructure.GroupableByType _,
-                         GraphStructure.GroupedByType _,
-                         GraphStructure.GroupableByGroup _,
-                         GraphStructure.GroupedByGroup _ -> Fugue.getIcon("folder-open-document");
-                });
-            }
-        });
+        tree.setLabelProvider(new GraphLabelProvider());
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
