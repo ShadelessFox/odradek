@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.settings;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.annotations.JsonAdapter;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
+import sh.adelessfox.odradek.app.ui.settings.gson.BookmarkStateAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.EditorStateAdapter;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
@@ -17,7 +17,7 @@ public final class Settings {
     private final Setting<WindowState> window = new Setting<>();
     private final Setting<ToolState> tools = new Setting<>();
     private final Setting<EditorState> editors = new Setting<>();
-    private final Setting<List<Bookmark>> bookmarks = new Setting<>();
+    private final Setting<List<BookmarkState>> bookmarks = new Setting<>();
     private final Setting<Theme> theme = new Setting<>(Theme.LIGHT);
     private final Setting<Boolean> showObjectPreview = new Setting<>(true);
     private final Setting<Boolean> showObjectTypeInformation = new Setting<>(false);
@@ -37,7 +37,7 @@ public final class Settings {
         return editors;
     }
 
-    public Setting<List<Bookmark>> bookmarks() {
+    public Setting<List<BookmarkState>> bookmarks() {
         return bookmarks;
     }
 
@@ -54,6 +54,15 @@ public final class Settings {
     }
 
     public record WindowState(int x, int y, int width, int height, boolean maximized) {
+    }
+
+    @JsonAdapter(value = BookmarkStateAdapter.class)
+    public sealed interface BookmarkState {
+        record Folder(String name, List<BookmarkState> children) implements BookmarkState {
+        }
+
+        record Bookmark(ObjectId objectId, String name) implements BookmarkState {
+        }
     }
 
     @JsonAdapter(value = EditorStateAdapter.class)

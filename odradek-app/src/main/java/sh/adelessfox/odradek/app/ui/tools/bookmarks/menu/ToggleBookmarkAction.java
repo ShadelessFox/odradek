@@ -21,7 +21,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
             if (bookmarks.get(id).isEmpty()) {
                 var name = promptName("New Bookmark", "Enter name for " + id + ":", "New bookmark");
                 if (name != null) {
-                    bookmarks.create(id, name);
+                    bookmarks.create(bookmarks.rootFolderId(), id, name);
                 }
             } else {
                 bookmarks.delete(id);

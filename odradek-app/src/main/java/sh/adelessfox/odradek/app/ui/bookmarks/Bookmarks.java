@@ -34,14 +34,15 @@ public final class Bookmarks {
      * <p>
      * Whether a bookmark exists or not is determined by its {@link Bookmark#objectId()}.
      *
-     * @param objectId an object id to add bookmark for
-     * @param name     name of the bookmark
+     * @param parentFolderId id of the folder to add the bookmark to
+     * @param objectId       an object id to add bookmark for
+     * @param name           name of the bookmark
      * @return {@code true} if bookmark was added, {@code false} otherwise
      */
-    public boolean create(ObjectId objectId, String name) {
+    public boolean create(FolderId parentFolderId, ObjectId objectId, String name) {
         var bookmark = new Bookmark(objectId, name);
         if (bookmarks.putIfAbsent(objectId, bookmark) == null) {
-            bookmarkToParent.put(objectId, root);
+            bookmarkToParent.put(objectId, parentFolderId);
             eventBus.publish(new BookmarkEvent.BookmarkAdded(bookmark));
             return true;
         }
@@ -104,18 +105,17 @@ public final class Bookmarks {
         eventBus.publish(new BookmarkEvent.BookmarkRemoved(bookmark));
     }
 
-    public boolean createFolder(FolderId folderId, String name) {
-        return createFolder(root, folderId, name);
+    public FolderId createFolder(String name) {
+        return createFolder(root, name);
     }
 
-    public boolean createFolder(FolderId parentFolderId, FolderId folderId, String name) {
-        var folder = new Folder(folderId, name);
-        if (folders.putIfAbsent(folderId, folder) == null) {
-            folderToParent.put(folderId, parentFolderId);
-            eventBus.publish(new BookmarkEvent.FolderAdded(folder));
-            return true;
-        }
-        return false;
+    public FolderId createFolder(FolderId parentFolderId, String name) {
+        var id = FolderId.random();
+        var folder = new Folder(id, name);
+        folders.put(id, folder);
+        folderToParent.put(id, parentFolderId);
+        eventBus.publish(new BookmarkEvent.FolderAdded(folder));
+        return id;
     }
 
     public Optional<FolderId> getParent(FolderId folderId) {

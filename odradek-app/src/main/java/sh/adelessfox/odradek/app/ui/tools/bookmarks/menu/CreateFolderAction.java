@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -14,7 +13,7 @@ public final class CreateFolderAction extends AbstractBookmarkAction {
         var parent = enclosingFolder(context).orElseThrow();
         var name = promptName("New Folder", "Enter folder name:", "New folder");
         if (name != null) {
-            bookmarks().createFolder(parent, FolderId.random(), name);
+            bookmarks().createFolder(parent, name);
         }
     }
 

@@ -49,6 +49,7 @@ public final class EditorStateAdapter implements JsonSerializer<Settings.EditorS
                 object.add("left", serialize(split.left(), Settings.EditorState.class, context));
                 object.add("right", serialize(split.right(), Settings.EditorState.class, context));
             }
+            default -> throw new JsonParseException("Unknown EditorState type: " + src.getClass().getName());
         }
         return object;
     }
