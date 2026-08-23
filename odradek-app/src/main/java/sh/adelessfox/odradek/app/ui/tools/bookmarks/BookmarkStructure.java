@@ -1,21 +1,26 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
-    record Root(Bookmarks repository) implements BookmarkStructure {
+    record Folder(Bookmarks repository, FolderId id, String name) implements BookmarkStructure {
         @Override
         public List<? extends BookmarkStructure> getChildren() {
-            return repository.getAll().stream()
+            var folders = repository.getAllFoldersInFolder(id).stream()
+                .map(f -> new Folder(repository, f.id(), f.name()))
+                .sorted(Comparator.comparing(Folder::name));
+            var bookmarks = repository.getAllInFolder(id).stream()
                 .map(b -> new Bookmark(repository, b.objectId(), b.name()))
-                .sorted(Comparator.comparing(Bookmark::name))
-                .toList();
+                .sorted(Comparator.comparing(Bookmark::name));
+            return Stream.concat(folders, bookmarks).toList();
         }
 
         @Override
