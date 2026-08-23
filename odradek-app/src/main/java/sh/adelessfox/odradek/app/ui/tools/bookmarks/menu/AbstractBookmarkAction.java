@@ -49,7 +49,7 @@ abstract class AbstractBookmarkAction extends Action {
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.class))
             .flatMap(structure -> folderIdOf(structure).stream())
-            .limit(2).collect(Collectors.toSet());
+            .collect(Collectors.toSet());
         return switch (folders.size()) {
             case 1 -> Optional.of(folders.iterator().next());
             default -> Optional.empty();

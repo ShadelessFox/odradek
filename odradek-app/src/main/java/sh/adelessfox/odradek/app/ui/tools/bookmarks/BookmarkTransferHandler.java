@@ -9,6 +9,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
+import javax.swing.tree.TreePath;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -52,6 +53,11 @@ final class BookmarkTransferHandler extends TransferHandler {
                 return false;
             }
         }
+        for (ObjectId bookmark : data.bookmarks()) {
+            if (bookmarks.getParent(bookmark).equals(target)) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -80,8 +86,12 @@ final class BookmarkTransferHandler extends TransferHandler {
     }
 
     private Optional<FolderId> findDropFolder(TransferSupport support) {
-        var location = (JTree.DropLocation) support.getDropLocation();
-        var path = location.getPath();
+        TreePath path;
+        if (support.isDrop()) {
+            path = ((JTree.DropLocation) support.getDropLocation()).getPath();
+        } else {
+            path = tree.getSelectionPath();
+        }
         if (path == null) {
             return Optional.empty();
         }

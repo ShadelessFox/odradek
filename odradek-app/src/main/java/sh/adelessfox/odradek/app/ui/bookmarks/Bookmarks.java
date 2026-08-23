@@ -35,7 +35,7 @@ public final class Bookmarks {
      * @param name           name of the bookmark
      * @return {@code true} if bookmark was added, {@code false} otherwise
      */
-    public boolean create(FolderId parentFolderId, ObjectId objectId, String name) {
+    public synchronized boolean create(FolderId parentFolderId, ObjectId objectId, String name) {
         var bookmark = new Bookmark(objectId, name);
         if (bookmarks.putIfAbsent(objectId, bookmark) == null) {
             bookmarkToParent.put(objectId, parentFolderId);
@@ -51,7 +51,7 @@ public final class Bookmarks {
      * @param objectId object id to check
      * @return a bookmark if it exists for the given object id, {@link Optional#empty()} otherwise
      */
-    public Optional<Bookmark> get(ObjectId objectId) {
+    public synchronized Optional<Bookmark> get(ObjectId objectId) {
         return Optional.ofNullable(bookmarks.get(objectId));
     }
 
@@ -61,7 +61,7 @@ public final class Bookmarks {
      * @param folderId id of the folder to get bookmarks from
      * @return a list of bookmarks contained in the given folder
      */
-    public List<Bookmark> getAllInFolder(FolderId folderId) {
+    public synchronized List<Bookmark> getAllInFolder(FolderId folderId) {
         return bookmarks.entrySet().stream()
             .filter(entry -> folderId.equals(bookmarkToParent.get(entry.getKey())))
             .map(Map.Entry::getValue)
@@ -74,7 +74,7 @@ public final class Bookmarks {
      * @param objectId id of the bookmark to get the parent for
      * @return the id of the parent folder
      */
-    public FolderId getParent(ObjectId objectId) {
+    public synchronized FolderId getParent(ObjectId objectId) {
         return Objects.requireNonNull(bookmarkToParent.get(objectId));
     }
 
@@ -84,7 +84,7 @@ public final class Bookmarks {
      * @param objectId object id to update the bookmark for
      * @param name     new name of the bookmark
      */
-    public void update(ObjectId objectId, String name) {
+    public synchronized void update(ObjectId objectId, String name) {
         var bookmark = bookmarks.computeIfPresent(objectId, (_, _) -> new Bookmark(objectId, name));
         if (bookmark == null) {
             throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
@@ -98,7 +98,7 @@ public final class Bookmarks {
      * @param objectId id of the bookmark to move
      * @param folderId id of the folder to move the bookmark to
      */
-    public void move(ObjectId objectId, FolderId folderId) {
+    public synchronized void move(ObjectId objectId, FolderId folderId) {
         var bookmark = bookmarks.get(objectId);
         if (bookmark == null) {
             throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
@@ -118,7 +118,7 @@ public final class Bookmarks {
      *
      * @param objectId object id to remove bookmark for
      */
-    public void delete(ObjectId objectId) {
+    public synchronized void delete(ObjectId objectId) {
         var bookmark = bookmarks.remove(objectId);
         if (bookmark == null) {
             throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
@@ -134,7 +134,10 @@ public final class Bookmarks {
      * @param name           name of the new folder
      * @return id of the newly created folder
      */
-    public FolderId createFolder(FolderId parentFolderId, String name) {
+    public synchronized FolderId createFolder(FolderId parentFolderId, String name) {
+        if (!folders.containsKey(parentFolderId)) {
+            throw new IllegalArgumentException("Folder with folderId " + parentFolderId + " does not exist");
+        }
         var id = FolderId.random();
         var folder = new Folder(id, name);
         folders.put(id, folder);
@@ -149,7 +152,7 @@ public final class Bookmarks {
      * @param folderId folder id to check
      * @return a folder if it exists for the given folder id, {@link Optional#empty()} otherwise
      */
-    public Optional<Folder> getFolder(FolderId folderId) {
+    public synchronized Optional<Folder> getFolder(FolderId folderId) {
         return Optional.ofNullable(folders.get(folderId));
     }
 
@@ -159,7 +162,7 @@ public final class Bookmarks {
      * @param folderId id of the folder to get folders from
      * @return a list of folders contained in the given folder
      */
-    public List<Folder> getAllFoldersInFolder(FolderId folderId) {
+    public synchronized List<Folder> getAllFoldersInFolder(FolderId folderId) {
         return folders.entrySet().stream()
             .filter(entry -> folderId.equals(folderToParent.get(entry.getKey())))
             .map(Map.Entry::getValue)
@@ -172,7 +175,7 @@ public final class Bookmarks {
      * @param folderId id of the folder to get the parent for
      * @return the id of the parent folder, {@link Optional#empty()} if the folder is the root folder
      */
-    public Optional<FolderId> getParent(FolderId folderId) {
+    public synchronized Optional<FolderId> getParent(FolderId folderId) {
         return Optional.ofNullable(folderToParent.get(folderId));
     }
 
@@ -182,7 +185,10 @@ public final class Bookmarks {
      * @param folderId folder id to update the folder for
      * @param name     new name of the folder
      */
-    public void updateFolder(FolderId folderId, String name) {
+    public synchronized void updateFolder(FolderId folderId, String name) {
+        if (folderId.equals(rootFolderId())) {
+            throw new IllegalArgumentException("Cannot update the root folder");
+        }
         var folder = folders.computeIfPresent(folderId, (_, _) -> new Folder(folderId, name));
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
@@ -196,7 +202,10 @@ public final class Bookmarks {
      * @param folderId          id of the folder to move
      * @param newParentFolderId id of the new parent folder to move the folder to
      */
-    public void moveFolder(FolderId folderId, FolderId newParentFolderId) {
+    public synchronized void moveFolder(FolderId folderId, FolderId newParentFolderId) {
+        if (folderId.equals(rootFolderId())) {
+            throw new IllegalArgumentException("Cannot move the root folder");
+        }
         var folder = folders.get(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
@@ -219,7 +228,10 @@ public final class Bookmarks {
      *
      * @param folderId folder id to remove
      */
-    public void deleteFolder(FolderId folderId) {
+    public synchronized void deleteFolder(FolderId folderId) {
+        if (folderId.equals(rootFolderId())) {
+            throw new IllegalArgumentException("Cannot delete the root folder");
+        }
         var removed = folders.remove(folderId);
         if (removed == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
@@ -237,7 +249,7 @@ public final class Bookmarks {
      * @param potentialDescendant id of the potential descendant folder
      * @return {@code true} if the folder is a descendant of the other folder, {@code false} otherwise
      */
-    public boolean isDescendant(FolderId folderId, FolderId potentialDescendant) {
+    public synchronized boolean isDescendant(FolderId folderId, FolderId potentialDescendant) {
         var current = potentialDescendant;
         while (true) {
             if (current.equals(folderId)) {
