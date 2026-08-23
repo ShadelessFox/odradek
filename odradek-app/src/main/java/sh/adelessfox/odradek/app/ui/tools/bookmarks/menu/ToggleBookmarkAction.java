@@ -41,7 +41,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public Optional<String> getText(ActionContext context) {
-        return Optional.of(exists(context) ? "Remove Bookmark" : "Add Bookmark");
+        return Optional.of(exists(context) ? "Delete Bookmark" : "Add Bookmark");
     }
 
     @Override
