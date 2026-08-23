@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
@@ -8,13 +9,17 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.util.Gatherers;
 
 import javax.swing.*;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 final class BookmarkTransferHandler extends TransferHandler {
+    private static final DataFlavor FLAVOR = new DataFlavor(Payload.class, "Odradek Bookmarks");
+
     private final StructuredTree<BookmarkStructure> tree;
 
     BookmarkTransferHandler(StructuredTree<BookmarkStructure> tree) {
@@ -23,17 +28,31 @@ final class BookmarkTransferHandler extends TransferHandler {
 
     @Override
     public int getSourceActions(JComponent c) {
-        return getSelection().isEmpty() ? NONE : MOVE;
+        return MOVE;
     }
 
     @Override
     protected Transferable createTransferable(JComponent c) {
-        return new BookmarkTransferable(getSelection());
+        return new Payload(selectedObjects(), selectedFolders());
     }
 
     @Override
     public boolean canImport(TransferSupport support) {
-        return support.isDataFlavorSupported(BookmarkTransferable.bookmarkListFlavor);
+        if (!support.isDataFlavorSupported(FLAVOR)) {
+            return false;
+        }
+        var data = getData(support);
+        var target = findDropFolder(support).orElse(null);
+        if (target == null) {
+            return false;
+        }
+        var bookmarks = Application.getInstance().bookmarks();
+        for (FolderId folder : data.folders()) {
+            if (bookmarks.isDescendant(folder, target)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -41,44 +60,81 @@ final class BookmarkTransferHandler extends TransferHandler {
         if (!canImport(support)) {
             return false;
         }
-        var ids = getTransferable(support);
-        var location = (JTree.DropLocation) support.getDropLocation();
+        var data = getData(support);
+        var target = findDropFolder(support).orElse(null);
+        if (target != null) {
+            var bookmarks = Application.getInstance().bookmarks();
+            data.bookmarks().forEach(id -> bookmarks.move(id, target));
+            data.folders().forEach(id -> bookmarks.move(id, target));
+            return true;
+        }
+        return false;
+    }
 
+    private static Payload getData(TransferSupport support) {
+        try {
+            return (Payload) support.getTransferable().getTransferData(FLAVOR);
+        } catch (UnsupportedFlavorException | IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private Optional<FolderId> findDropFolder(TransferSupport support) {
+        var location = (JTree.DropLocation) support.getDropLocation();
         var path = location.getPath();
+        if (path == null) {
+            return Optional.empty();
+        }
         for (int i = path.getPathCount() - 1; i >= 0; i--) {
             var component = path.getPathComponent(i);
             if (component instanceof TreeItem<?> item) {
                 component = item.getValue();
             }
             if (component instanceof BookmarkStructure.Folder folder) {
-                moveBookmarks(folder, ids);
-                return true;
+                return Optional.of(folder.id());
             }
-            path = path.getParentPath();
         }
-        return false;
+        return Optional.empty();
     }
 
-    private static void moveBookmarks(BookmarkStructure.Folder folder, List<ObjectId> ids) {
-        for (ObjectId id : ids) {
-            Application.getInstance().bookmarks().move(id, folder.id());
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<ObjectId> getTransferable(TransferSupport support) {
-        try {
-            return (List<ObjectId>) support.getTransferable().getTransferData(BookmarkTransferable.bookmarkListFlavor);
-        } catch (UnsupportedFlavorException | IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private List<ObjectId> getSelection() {
+    private List<ObjectId> selectedObjects() {
         return tree.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.Bookmark.class))
             .map(BookmarkStructure.Bookmark::id)
             .toList();
+    }
+
+    private List<FolderId> selectedFolders() {
+        return tree.get(DataKeys.SELECTION_LIST).stream()
+            .flatMap(Collection::stream)
+            .gather(Gatherers.instanceOf(BookmarkStructure.Folder.class))
+            .map(BookmarkStructure.Folder::id)
+            .toList();
+    }
+
+    private record Payload(List<ObjectId> bookmarks, List<FolderId> folders) implements Transferable {
+        Payload {
+            bookmarks = List.copyOf(bookmarks);
+            folders = List.copyOf(folders);
+        }
+
+        @Override
+        public DataFlavor[] getTransferDataFlavors() {
+            return new DataFlavor[]{FLAVOR};
+        }
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            return flavor.equals(FLAVOR);
+        }
+
+        @Override
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
+            if (flavor.equals(FLAVOR)) {
+                return this;
+            }
+            throw new UnsupportedFlavorException(flavor);
+        }
     }
 }

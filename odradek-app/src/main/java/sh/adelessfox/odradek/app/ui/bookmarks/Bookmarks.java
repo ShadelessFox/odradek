@@ -181,8 +181,25 @@ public final class Bookmarks {
         if (newParentFolder == null) {
             throw new IllegalArgumentException("Folder with folderId " + newParentFolderId + " does not exist");
         }
+        if (isDescendant(folderId, newParentFolderId)) {
+            throw new IllegalArgumentException("Cannot move folder " + folderId + " into its descendant " + newParentFolderId);
+        }
         var oldParentFolder = folderToParent.put(folderId, newParentFolderId);
         eventBus.publish(new BookmarkEvent.FolderMoved(folder, oldParentFolder, newParentFolderId));
+    }
+
+    public boolean isDescendant(FolderId folderId, FolderId potentialDescendant) {
+        var current = potentialDescendant;
+        while (true) {
+            if (current.equals(folderId)) {
+                return true;
+            }
+            var parent = getParent(current);
+            if (parent.isEmpty()) {
+                return false;
+            }
+            current = parent.get();
+        }
     }
 
     public FolderId rootFolderId() {
