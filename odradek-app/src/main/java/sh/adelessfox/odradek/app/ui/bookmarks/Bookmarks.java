@@ -33,16 +33,18 @@ public final class Bookmarks {
      * @param parentFolderId id of the folder to add the bookmark to
      * @param objectId       an object id to add bookmark for
      * @param name           name of the bookmark
-     * @return {@code true} if bookmark was added, {@code false} otherwise
      */
-    public synchronized boolean create(FolderId parentFolderId, ObjectId objectId, String name) {
-        var bookmark = new Bookmark(objectId, name);
-        if (bookmarks.putIfAbsent(objectId, bookmark) == null) {
-            bookmarkToParent.put(objectId, parentFolderId);
-            eventBus.publish(new BookmarkEvent.BookmarkAdded(bookmark));
-            return true;
+    public synchronized void create(FolderId parentFolderId, ObjectId objectId, String name) {
+        if (!folders.containsKey(parentFolderId)) {
+            throw new IllegalArgumentException("Folder with folderId " + parentFolderId + " does not exist");
         }
-        return false;
+        if (bookmarks.containsKey(objectId)) {
+            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " already exists");
+        }
+        var bookmark = new Bookmark(objectId, name);
+        bookmarks.put(objectId, bookmark);
+        bookmarkToParent.put(objectId, parentFolderId);
+        eventBus.publish(new BookmarkEvent.BookmarkAdded(bookmark));
     }
 
     /**

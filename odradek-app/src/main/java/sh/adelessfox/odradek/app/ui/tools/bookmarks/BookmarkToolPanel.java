@@ -71,7 +71,6 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     public JComponent createComponent() {
         tree = new StructuredTree<>(new BookmarkStructure.Folder(repository, repository.rootFolderId(), "Root"));
         tree.setShowsRootHandles(true);
-        // tree.setRootVisible(false);
         tree.setLabelProvider(new BookmarkLabelProvider());
         tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
@@ -89,7 +88,11 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.setDropMode(DropMode.ON);
         tree.setTransferHandler(new BookmarkTransferHandler(tree));
 
-        eventBus.subscribe(BookmarkEvent.class, _ -> tree.getModel().refresh());
+        eventBus.subscribe(BookmarkEvent.class, _ -> {
+            // TODO figure out a better way to refresh the tree without losing selection
+            tree.setSelectionPath(null);
+            tree.getModel().refresh();
+        });
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadSettings(settings);
