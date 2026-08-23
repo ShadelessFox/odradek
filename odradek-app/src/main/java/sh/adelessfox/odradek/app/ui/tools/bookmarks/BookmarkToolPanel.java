@@ -88,7 +88,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.setDropMode(DropMode.ON);
         tree.setTransferHandler(new BookmarkTransferHandler(tree));
 
-        eventBus.subscribe(BookmarkEvent.class, _ -> SwingUtilities.invokeLater(tree.getModel()::refresh));
+        eventBus.subscribe(BookmarkEvent.class, e -> SwingUtilities.invokeLater(() -> handleBookmarkEvent(e)));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadSettings(settings);
@@ -107,6 +107,25 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     @Override
     public void setFocus() {
         tree.requestFocusInWindow();
+    }
+
+    private void handleBookmarkEvent(BookmarkEvent event) {
+        var folders = switch (event) {
+            case BookmarkEvent.BookmarkAdded(_, var parent) -> List.of(parent);
+            case BookmarkEvent.BookmarkUpdated(_, var parent) -> List.of(parent);
+            case BookmarkEvent.BookmarkRemoved(_, var parent) -> List.of(parent);
+            case BookmarkEvent.BookmarkMoved(_, var oldParent, var newParent) -> List.of(oldParent, newParent);
+            case BookmarkEvent.FolderAdded(_, var parent) -> List.of(parent);
+            case BookmarkEvent.FolderUpdated(_, var parent) -> List.of(parent);
+            case BookmarkEvent.FolderRemoved(_, var parent) -> List.of(parent);
+            case BookmarkEvent.FolderMoved(_, var oldParent, var newParent) -> List.of(oldParent, newParent);
+        };
+
+        for (var folderId : folders) {
+            tree.getModel()
+                .findLoadedPath(e -> e instanceof BookmarkStructure.Folder folder && folder.id().equals(folderId))
+                .ifPresent(tree.getModel()::refresh);
+        }
     }
 
     private void loadSettings(Settings settings) {

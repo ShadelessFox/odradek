@@ -107,6 +107,31 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     }
 
     /**
+     * Finds a path to an already loaded element in the tree.
+     *
+     * @param predicate predicate used to identify the element
+     * @return the path to the element, or an empty optional if it is not loaded
+     */
+    public Optional<TreePath> findLoadedPath(Predicate<T> predicate) {
+        return findLoadedPath(getRootNode(), predicate);
+    }
+
+    private Optional<TreePath> findLoadedPath(Node<T> node, Predicate<T> predicate) {
+        if (predicate.test(node.structure)) {
+            return Optional.of(getNodePath(node));
+        }
+        if (node.children != null) {
+            for (Node<T> child : node.children) {
+                var result = findLoadedPath(child, predicate);
+                if (result.isPresent()) {
+                    return result;
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * Refreshes the entire tree, recomputing the children of each node
      */
     public void refresh() {

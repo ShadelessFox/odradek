@@ -50,6 +50,9 @@ class StructuredTreeModelTest {
             var sourcePath = new TreePath(new Object[]{rootItem, sourceItem});
             var targetPath = new TreePath(new Object[]{rootItem, targetItem});
 
+            assertEquals(sourcePath, model.findLoadedPath(element -> element == source).orElseThrow());
+            assertEquals(targetPath, model.findLoadedPath(element -> element == target).orElseThrow());
+
             tree.expandPath(sourcePath);
             tree.expandPath(targetPath);
             tree.setSelectionPath(sourcePath.pathByAddingChild(childItem));

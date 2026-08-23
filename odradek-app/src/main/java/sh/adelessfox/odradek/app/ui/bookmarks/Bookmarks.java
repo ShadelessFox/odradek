@@ -44,7 +44,7 @@ public final class Bookmarks {
         var bookmark = new Bookmark(objectId, name);
         bookmarks.put(objectId, bookmark);
         bookmarkToParent.put(objectId, parentFolderId);
-        eventBus.publish(new BookmarkEvent.BookmarkAdded(bookmark));
+        eventBus.publish(new BookmarkEvent.BookmarkAdded(bookmark, parentFolderId));
     }
 
     /**
@@ -91,7 +91,7 @@ public final class Bookmarks {
         if (bookmark == null) {
             throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
         }
-        eventBus.publish(new BookmarkEvent.BookmarkUpdated(bookmark));
+        eventBus.publish(new BookmarkEvent.BookmarkUpdated(bookmark, getParent(objectId)));
     }
 
     /**
@@ -109,8 +109,8 @@ public final class Bookmarks {
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
         }
-        var oldFolderId = bookmarkToParent.put(objectId, folderId);
-        if (oldFolderId == null || !oldFolderId.equals(folderId)) {
+        var oldFolderId = Objects.requireNonNull(bookmarkToParent.put(objectId, folderId));
+        if (!oldFolderId.equals(folderId)) {
             eventBus.publish(new BookmarkEvent.BookmarkMoved(bookmark, oldFolderId, folderId));
         }
     }
@@ -125,8 +125,8 @@ public final class Bookmarks {
         if (bookmark == null) {
             throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
         }
-        bookmarkToParent.remove(objectId);
-        eventBus.publish(new BookmarkEvent.BookmarkRemoved(bookmark));
+        var parent = Objects.requireNonNull(bookmarkToParent.remove(objectId));
+        eventBus.publish(new BookmarkEvent.BookmarkRemoved(bookmark, parent));
     }
 
     /**
@@ -144,7 +144,7 @@ public final class Bookmarks {
         var folder = new Folder(id, name);
         folders.put(id, folder);
         folderToParent.put(id, parentFolderId);
-        eventBus.publish(new BookmarkEvent.FolderAdded(folder));
+        eventBus.publish(new BookmarkEvent.FolderAdded(folder, parentFolderId));
         return id;
     }
 
@@ -195,7 +195,7 @@ public final class Bookmarks {
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
         }
-        eventBus.publish(new BookmarkEvent.FolderUpdated(folder));
+        eventBus.publish(new BookmarkEvent.FolderUpdated(folder, getParent(folderId).orElseThrow()));
     }
 
     /**
@@ -219,7 +219,7 @@ public final class Bookmarks {
         if (isDescendant(folderId, newParentFolderId)) {
             throw new IllegalArgumentException("Cannot move folder " + folderId + " into its descendant " + newParentFolderId);
         }
-        var oldParentFolder = folderToParent.put(folderId, newParentFolderId);
+        var oldParentFolder = Objects.requireNonNull(folderToParent.put(folderId, newParentFolderId));
         eventBus.publish(new BookmarkEvent.FolderMoved(folder, oldParentFolder, newParentFolderId));
     }
 
@@ -238,10 +238,10 @@ public final class Bookmarks {
         if (removed == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
         }
-        folderToParent.remove(folderId);
+        var parent = Objects.requireNonNull(folderToParent.remove(folderId));
         getAllInFolder(folderId).forEach(bookmark -> delete(bookmark.objectId()));
         getAllFoldersInFolder(folderId).forEach(folder -> deleteFolder(folder.id()));
-        eventBus.publish(new BookmarkEvent.FolderRemoved(removed));
+        eventBus.publish(new BookmarkEvent.FolderRemoved(removed, parent));
     }
 
     /**
