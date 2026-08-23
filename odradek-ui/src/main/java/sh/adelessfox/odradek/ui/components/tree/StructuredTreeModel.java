@@ -162,11 +162,17 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             }
 
             if (!removed.isEmpty()) {
-                treeNodesRemoved(node, removed.stream().mapToInt(Integer::intValue).toArray());
+                treeNodesRemoved(
+                    node,
+                    removed.stream().mapToInt(Integer::intValue).toArray(),
+                    removed.stream().map(oldChildren::get).toArray());
             }
 
             if (!added.isEmpty()) {
-                treeNodesInserted(node, added.stream().mapToInt(Integer::intValue).toArray());
+                treeNodesInserted(
+                    node,
+                    added.stream().mapToInt(Integer::intValue).toArray(),
+                    added.stream().map(node.children::get).toArray());
             }
         }
 
@@ -211,15 +217,15 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         }
     }
 
-    private void treeNodesInserted(Node<T> parent, int[] children) {
+    private void treeNodesInserted(Node<T> parent, int[] indices, Object[] children) {
         var path = getNodePath(parent);
-        var event = new TreeModelEvent(this, path, children, null);
+        var event = new TreeModelEvent(this, path, indices, children);
         listeners.broadcast().treeNodesInserted(event);
     }
 
-    private void treeNodesRemoved(Node<T> parent, int[] children) {
+    private void treeNodesRemoved(Node<T> parent, int[] indices, Object[] children) {
         var path = getNodePath(parent);
-        var event = new TreeModelEvent(this, path, children, null);
+        var event = new TreeModelEvent(this, path, indices, children);
         listeners.broadcast().treeNodesRemoved(event);
     }
 
