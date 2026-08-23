@@ -65,7 +65,7 @@ final class BookmarkTransferHandler extends TransferHandler {
         if (target != null) {
             var bookmarks = Application.getInstance().bookmarks();
             data.bookmarks().forEach(id -> bookmarks.move(id, target));
-            data.folders().forEach(id -> bookmarks.move(id, target));
+            data.folders().forEach(id -> bookmarks.moveFolder(id, target));
             return true;
         }
         return false;

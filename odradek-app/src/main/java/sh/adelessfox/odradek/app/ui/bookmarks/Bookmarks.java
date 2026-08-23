@@ -5,10 +5,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * A repository of bookmarks.
@@ -20,7 +17,6 @@ public final class Bookmarks {
     private final Map<FolderId, Folder> folders = new LinkedHashMap<>();
     private final Map<ObjectId, FolderId> bookmarkToParent = new LinkedHashMap<>();
     private final Map<FolderId, FolderId> folderToParent = new LinkedHashMap<>();
-
     private final FolderId root = FolderId.random();
 
     @Inject
@@ -60,14 +56,11 @@ public final class Bookmarks {
     }
 
     /**
-     * Retrieves all bookmarks in the repository.
+     * Returns all bookmarks contained in the given folder.
      *
-     * @return all bookmarks in the repository
+     * @param folderId id of the folder to get bookmarks from
+     * @return a list of bookmarks contained in the given folder
      */
-    public List<Bookmark> getAll() {
-        return List.copyOf(bookmarks.values());
-    }
-
     public List<Bookmark> getAllInFolder(FolderId folderId) {
         return bookmarks.entrySet().stream()
             .filter(entry -> folderId.equals(bookmarkToParent.get(entry.getKey())))
@@ -76,19 +69,48 @@ public final class Bookmarks {
     }
 
     /**
+     * Returns the parent folder id of the given bookmark.
+     *
+     * @param objectId id of the bookmark to get the parent for
+     * @return the id of the parent folder
+     */
+    public FolderId getParent(ObjectId objectId) {
+        return Objects.requireNonNull(bookmarkToParent.get(objectId));
+    }
+
+    /**
      * Updates a bookmark for the given object id in the repository.
      *
      * @param objectId object id to update the bookmark for
      * @param name     new name of the bookmark
-     * @return {@code true} if the bookmark was updated, {@code false} otherwise
      */
-    public boolean update(ObjectId objectId, String name) {
+    public void update(ObjectId objectId, String name) {
         var bookmark = bookmarks.computeIfPresent(objectId, (_, _) -> new Bookmark(objectId, name));
-        if (bookmark != null) {
-            eventBus.publish(new BookmarkEvent.BookmarkUpdated(bookmark));
-            return true;
+        if (bookmark == null) {
+            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
         }
-        return false;
+        eventBus.publish(new BookmarkEvent.BookmarkUpdated(bookmark));
+    }
+
+    /**
+     * Moves a bookmark to a different folder in the repository.
+     *
+     * @param objectId id of the bookmark to move
+     * @param folderId id of the folder to move the bookmark to
+     */
+    public void move(ObjectId objectId, FolderId folderId) {
+        var bookmark = bookmarks.get(objectId);
+        if (bookmark == null) {
+            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
+        }
+        var folder = folders.get(folderId);
+        if (folder == null) {
+            throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
+        }
+        var oldFolderId = bookmarkToParent.put(objectId, folderId);
+        if (oldFolderId == null || !oldFolderId.equals(folderId)) {
+            eventBus.publish(new BookmarkEvent.BookmarkMoved(bookmark, oldFolderId, folderId));
+        }
     }
 
     /**
@@ -105,10 +127,13 @@ public final class Bookmarks {
         eventBus.publish(new BookmarkEvent.BookmarkRemoved(bookmark));
     }
 
-    public FolderId createFolder(String name) {
-        return createFolder(root, name);
-    }
-
+    /**
+     * Creates a new folder in the repository.
+     *
+     * @param parentFolderId id of the parent folder to add the new folder to
+     * @param name           name of the new folder
+     * @return id of the newly created folder
+     */
     public FolderId createFolder(FolderId parentFolderId, String name) {
         var id = FolderId.random();
         var folder = new Folder(id, name);
@@ -118,18 +143,22 @@ public final class Bookmarks {
         return id;
     }
 
-    public Optional<FolderId> getParent(FolderId folderId) {
-        return Optional.ofNullable(folderToParent.get(folderId));
+    /**
+     * Returns a folder for the given folder id if it's present in the repository.
+     *
+     * @param folderId folder id to check
+     * @return a folder if it exists for the given folder id, {@link Optional#empty()} otherwise
+     */
+    public Optional<Folder> getFolder(FolderId folderId) {
+        return Optional.ofNullable(folders.get(folderId));
     }
 
-    public Optional<FolderId> getParent(ObjectId objectId) {
-        return Optional.ofNullable(bookmarkToParent.get(objectId));
-    }
-
-    public List<Folder> getAllFolders() {
-        return List.copyOf(folders.values());
-    }
-
+    /**
+     * Returns all folders contained in the given folder.
+     *
+     * @param folderId id of the folder to get folders from
+     * @return a list of folders contained in the given folder
+     */
     public List<Folder> getAllFoldersInFolder(FolderId folderId) {
         return folders.entrySet().stream()
             .filter(entry -> folderId.equals(folderToParent.get(entry.getKey())))
@@ -137,42 +166,37 @@ public final class Bookmarks {
             .toList();
     }
 
-    public boolean updateFolder(FolderId folderId, String name) {
+    /**
+     * Returns the parent folder id of the given folder.
+     *
+     * @param folderId id of the folder to get the parent for
+     * @return the id of the parent folder, {@link Optional#empty()} if the folder is the root folder
+     */
+    public Optional<FolderId> getParent(FolderId folderId) {
+        return Optional.ofNullable(folderToParent.get(folderId));
+    }
+
+    /**
+     * Updates a folder for the given folder id in the repository.
+     *
+     * @param folderId folder id to update the folder for
+     * @param name     new name of the folder
+     */
+    public void updateFolder(FolderId folderId, String name) {
         var folder = folders.computeIfPresent(folderId, (_, _) -> new Folder(folderId, name));
-        if (folder != null) {
-            eventBus.publish(new BookmarkEvent.FolderUpdated(folder));
-            return true;
-        }
-        return false;
-    }
-
-    public void deleteFolder(FolderId folderId) {
-        var removed = folders.remove(folderId);
-        if (removed == null) {
-            throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
-        }
-        folderToParent.remove(folderId);
-        getAllInFolder(folderId).forEach(bookmark -> delete(bookmark.objectId()));
-        getAllFoldersInFolder(folderId).forEach(folder -> deleteFolder(folder.id()));
-        eventBus.publish(new BookmarkEvent.FolderRemoved(removed));
-    }
-
-    public void move(ObjectId objectId, FolderId folderId) {
-        var bookmark = bookmarks.get(objectId);
-        if (bookmark == null) {
-            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
-        }
-        var folder = folders.get(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
         }
-        var oldFolderId = bookmarkToParent.put(objectId, folderId);
-        if (oldFolderId == null || !oldFolderId.equals(folderId)) {
-            eventBus.publish(new BookmarkEvent.BookmarkMoved(bookmark, oldFolderId, folderId));
-        }
+        eventBus.publish(new BookmarkEvent.FolderUpdated(folder));
     }
 
-    public void move(FolderId folderId, FolderId newParentFolderId) {
+    /**
+     * Moves a folder to a different parent folder in the repository.
+     *
+     * @param folderId          id of the folder to move
+     * @param newParentFolderId id of the new parent folder to move the folder to
+     */
+    public void moveFolder(FolderId folderId, FolderId newParentFolderId) {
         var folder = folders.get(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
@@ -188,6 +212,31 @@ public final class Bookmarks {
         eventBus.publish(new BookmarkEvent.FolderMoved(folder, oldParentFolder, newParentFolderId));
     }
 
+    /**
+     * Deletes a folder for the given folder id in the repository.
+     * <p>
+     * This method also deletes all bookmarks and folders contained in the folder recursively.
+     *
+     * @param folderId folder id to remove
+     */
+    public void deleteFolder(FolderId folderId) {
+        var removed = folders.remove(folderId);
+        if (removed == null) {
+            throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
+        }
+        folderToParent.remove(folderId);
+        getAllInFolder(folderId).forEach(bookmark -> delete(bookmark.objectId()));
+        getAllFoldersInFolder(folderId).forEach(folder -> deleteFolder(folder.id()));
+        eventBus.publish(new BookmarkEvent.FolderRemoved(removed));
+    }
+
+    /**
+     * Checks if a folder is a descendant of another folder.
+     *
+     * @param folderId            id of the folder to check
+     * @param potentialDescendant id of the potential descendant folder
+     * @return {@code true} if the folder is a descendant of the other folder, {@code false} otherwise
+     */
     public boolean isDescendant(FolderId folderId, FolderId potentialDescendant) {
         var current = potentialDescendant;
         while (true) {
@@ -202,6 +251,13 @@ public final class Bookmarks {
         }
     }
 
+    /**
+     * Returns the root folder id of the repository.
+     * <p>
+     * The id of the root folder is guaranteed to never change during the lifetime of the repository.
+     *
+     * @return the id of the root folder
+     */
     public FolderId rootFolderId() {
         return root;
     }

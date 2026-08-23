@@ -120,7 +120,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
                 case Settings.BookmarkState.Bookmark bookmark ->
                     repository.create(folderId, bookmark.objectId(), bookmark.name());
                 case Settings.BookmarkState.Folder folder ->
-                    deserialize(repository.createFolder(folder.name()), folder.children());
+                    deserialize(repository.createFolder(folderId, folder.name()), folder.children());
             }
         }
     }

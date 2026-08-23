@@ -58,7 +58,7 @@ abstract class AbstractBookmarkAction extends Action {
 
     private static Optional<FolderId> folderIdOf(BookmarkStructure structure) {
         return switch (structure) {
-            case BookmarkStructure.Bookmark bookmark -> Application.getInstance().bookmarks().getParent(bookmark.id());
+            case BookmarkStructure.Bookmark bookmark -> Optional.of(bookmarks().getParent(bookmark.id()));
             case BookmarkStructure.Folder folder -> Optional.of(folder.id());
         };
     }
