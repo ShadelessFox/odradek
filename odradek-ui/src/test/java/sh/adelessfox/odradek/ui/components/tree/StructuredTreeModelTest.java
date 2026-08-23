@@ -10,11 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 class StructuredTreeModelTest {
     @Test
-    void movingSelectedChildDoesNotDuplicateIt() throws Exception {
+    void movingSelectedChildPreservesSelectionWithoutDuplicatingIt() throws Exception {
         SwingUtilities.invokeAndWait(() -> {
             var child = new Structure("child", false);
             var remaining = new Structure("remaining", false);
@@ -59,18 +60,38 @@ class StructuredTreeModelTest {
 
             source.children.remove(child);
             target.children.add(child);
-            model.refresh();
+            tree.updatePreservingSelection((first, second) -> first.id.equals(second.id), model::refresh);
 
             assertEquals(1, model.getChildCount(sourceItem));
             assertEquals(1, model.getChildCount(targetItem));
             assertEquals(1, visibleOccurrences(tree, child));
-            assertTrue(tree.isSelectionEmpty());
+            assertSame(child, tree.getSelectionPathComponent());
+            assertEquals(targetPath, tree.getSelectionPath().getParentPath());
             assertEquals(1, removedChildren.get().length);
             assertSame(childItem, removedChildren.get()[0]);
 
             tree.collapsePath(sourcePath);
             tree.expandPath(sourcePath);
             assertEquals(1, visibleOccurrences(tree, child));
+        });
+    }
+
+    @Test
+    void renamingSelectedChildPreservesSelection() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            var child = new Structure("child", "Old name", false);
+            var root = new Structure("root", true, child);
+            var tree = new StructuredTree<>(root);
+            var model = tree.getModel();
+            var rootItem = model.getRoot();
+            var childItem = model.getChild(rootItem, 0);
+            tree.setSelectionPath(new TreePath(new Object[]{rootItem, childItem}));
+
+            var renamed = new Structure("child", "New name", false);
+            root.children.set(0, renamed);
+            tree.updatePreservingSelection((first, second) -> first.id.equals(second.id), model::refresh);
+
+            assertSame(renamed, tree.getSelectionPathComponent());
         });
     }
 
@@ -86,11 +107,17 @@ class StructuredTreeModelTest {
     }
 
     private static final class Structure implements TreeStructure<Structure> {
+        private final String id;
         private final String name;
         private final boolean folder;
         private final List<Structure> children = new ArrayList<>();
 
         private Structure(String name, boolean folder, Structure... children) {
+            this(name, name, folder, children);
+        }
+
+        private Structure(String id, String name, boolean folder, Structure... children) {
+            this.id = id;
             this.name = name;
             this.folder = folder;
             this.children.addAll(List.of(children));

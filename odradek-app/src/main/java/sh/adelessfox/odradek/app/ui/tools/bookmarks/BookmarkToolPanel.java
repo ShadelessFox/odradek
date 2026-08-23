@@ -121,11 +121,13 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
             case BookmarkEvent.FolderMoved(_, var oldParent, var newParent) -> List.of(oldParent, newParent);
         };
 
-        for (var folderId : folders) {
-            tree.getModel()
-                .findLoadedPath(e -> e instanceof BookmarkStructure.Folder folder && folder.id().equals(folderId))
-                .ifPresent(tree.getModel()::refresh);
-        }
+        tree.updatePreservingSelection(BookmarkStructure::sameAs, () -> {
+            for (var folderId : folders) {
+                tree.getModel()
+                    .findLoadedPath(e -> e instanceof BookmarkStructure.Folder folder && folder.id().equals(folderId))
+                    .ifPresent(tree.getModel()::refresh);
+            }
+        });
     }
 
     private void loadSettings(Settings settings) {

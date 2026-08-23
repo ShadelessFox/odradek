@@ -21,6 +21,9 @@ import java.util.EventObject;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContext {
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
@@ -76,6 +79,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         });
 
         setLargeModel(true);
+        setExpandsSelectedPaths(true);
 
         // Required for TreeLabelProvider#getToolTip
         ToolTipManager.sharedInstance().registerComponent(this);
@@ -85,6 +89,33 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         for (int i = 0; i < getRowCount(); i++) {
             expandRow(i);
         }
+    }
+
+    /**
+     * Runs an update and restores selection by matching the old and new elements.
+     *
+     * @param sameElement identifies elements whose mutable properties or location may have changed
+     * @param update      update that can replace or move tree nodes
+     */
+    public void updatePreservingSelection(BiPredicate<? super T, ? super T> sameElement, Runnable update) {
+        var selection = getSelectionPaths();
+        if (selection == null) {
+            update.run();
+            return;
+        }
+
+        var elements = Stream.of(selection)
+            .map(this::getLastPathComponent)
+            .toList();
+
+        update.run();
+
+        var paths = elements.stream()
+            .map(element -> getModel().findLoadedPath(candidate -> sameElement.test(element, candidate)))
+            .flatMap(Optional::stream)
+            .toArray(TreePath[]::new);
+
+        setSelectionPaths(paths);
     }
 
     @Override
@@ -117,7 +148,6 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public String getToolTipText(MouseEvent event) {
         if (event == null) {
             return null;
@@ -139,7 +169,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
                 return null;
             }
 
-            var element = (T) getElement(path.getLastPathComponent());
+            var element = unwrap(path.getLastPathComponent());
             if (element == null) {
                 return null;
             }
@@ -189,7 +219,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             this.labelProvider = labelProvider;
 
             if (labelProvider != null) {
-                setCellRenderer(new LabelProviderTreeCellRenderer<>(labelProvider));
+                setCellRenderer(new LabelProviderTreeCellRenderer<>(labelProvider, this::unwrap));
             } else {
                 setCellRenderer(null);
             }
@@ -217,10 +247,6 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         }
     }
 
-    public Object getSelectionPathComponent() {
-        return getLastPathComponent(getSelectionPath());
-    }
-
     private void notifyTreeAction(EventObject event, BiConsumer<TreeActionListener, TreeActionEvent> consumer) {
         var paths = getSelectionPaths();
         if (paths == null) {
@@ -239,25 +265,37 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
         consumer.accept(actionListeners.broadcast(), new TreeActionEvent(event, path, getRowForPath(path)));
     }
 
-    public Object getLastPathComponent(TreePath path) {
+    public T getSelectionPathComponent() {
+        return getLastPathComponent(getSelectionPath());
+    }
+
+    public T getLastPathComponent(TreePath path) {
         if (path == null) {
             return null;
         }
-        return getElement(path.getLastPathComponent());
+        return unwrap(path.getLastPathComponent());
     }
 
-    private static Object getElement(Object value) {
+    @SuppressWarnings("unchecked")
+    private T unwrap(Object value) {
         if (value instanceof TreeItem<?> item) {
             value = item.getValue();
         }
-        return value;
+        return (T) value;
     }
 
     private static class LabelProviderTreeCellRenderer<T> extends StyledTreeCellRenderer<T> {
         private final TreeLabelProvider<T> labelProvider;
+        private final Function<Object, T> mapper;
 
-        public LabelProviderTreeCellRenderer(TreeLabelProvider<T> labelProvider) {
+        public LabelProviderTreeCellRenderer(TreeLabelProvider<T> labelProvider, Function<Object, T> mapper) {
             this.labelProvider = labelProvider;
+            this.mapper = mapper;
+        }
+
+        @Override
+        protected T getValue(Object value) {
+            return mapper.apply(value);
         }
 
         @Override
@@ -270,11 +308,9 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             boolean leaf,
             int row
         ) {
-            @SuppressWarnings("unchecked")
-            var element = (T) getElement(value);
             var text = switch (labelProvider) {
-                case StyledTreeLabelProvider<T> p -> p.getStyledText(element);
-                case TreeLabelProvider<T> p -> p.getText(element).map(StyledText::of);
+                case StyledTreeLabelProvider<T> p -> p.getStyledText(value);
+                case TreeLabelProvider<T> p -> p.getText(value).map(StyledText::of);
             };
             return text.orElse(StyledText.of());
         }
@@ -289,9 +325,7 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
             boolean leaf,
             int row
         ) {
-            @SuppressWarnings("unchecked")
-            var element = (T) getElement(value);
-            return labelProvider.getIcon(element).orElse(null);
+            return labelProvider.getIcon(value).orElse(null);
         }
     }
 }

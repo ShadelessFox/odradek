@@ -45,4 +45,12 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
             return id;
         }
     }
+
+    default boolean sameAs(BookmarkStructure other) {
+        return switch (this) {
+            case Folder a when other instanceof Folder b -> a.id.equals(b.id);
+            case Bookmark a when other instanceof Bookmark b -> a.id.equals(b.id);
+            default -> false;
+        };
+    }
 }

@@ -93,7 +93,6 @@ public final class ObjectViewer implements Viewer, Focusable {
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
-        tree.setExpandsSelectedPaths(true);
         tree.setTransferHandler(new ObjectEditorTransferHandler());
         tree.setLabelProvider(new ObjectEditorLabelProvider());
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
