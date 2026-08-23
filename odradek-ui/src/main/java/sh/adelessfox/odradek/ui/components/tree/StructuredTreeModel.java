@@ -322,7 +322,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
                 index = children.indexOf(child);
             }
             if (index < 0) {
-                log.warn("Child {} not found in parent {}", child.structure, structure);
+                log.trace("Child {} not found in parent {}", child.structure, structure);
             }
             return index;
         }

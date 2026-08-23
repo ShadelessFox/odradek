@@ -1,5 +1,8 @@
 package sh.adelessfox.odradek.event;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -9,6 +12,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
 public final class DefaultEventBus implements EventBus {
+    private static final Logger log = LoggerFactory.getLogger(DefaultEventBus.class);
+
     private final Map<Class<?>, Set<Consumer<?>>> subscribers = new ConcurrentHashMap<>();
     private final List<Event.Sticky> stickyEvents = new CopyOnWriteArrayList<>();
 
@@ -39,6 +44,8 @@ public final class DefaultEventBus implements EventBus {
 
     @Override
     public <T extends Event> void publish(T event) {
+        log.debug("Publishing event: {}", event);
+
         if (event instanceof Event.Sticky sticky) {
             stickyEvents.add(sticky);
         }
