@@ -10,6 +10,7 @@ import java.util.Objects;
 public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer implements TreeCellRenderer {
     private JTree tree;
     private boolean selected;
+    private boolean dropCell;
 
     private Color foregroundSelectionColor;
     private Color foregroundNonSelectionColor;
@@ -44,8 +45,9 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
     ) {
         this.tree = tree;
         this.selected = selected;
+        this.dropCell = isDropCell(tree, row);
 
-        if (selected) {
+        if (selected || dropCell) {
             setBackground(backgroundSelectionColor);
             setForeground(foregroundSelectionColor);
         } else {
@@ -66,7 +68,7 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
 
     @Override
     protected boolean isSelected() {
-        return selected;
+        return selected || dropCell;
     }
 
     @Override
@@ -101,4 +103,11 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
         boolean leaf,
         int row
     );
+
+    private static boolean isDropCell(JTree tree, int row) {
+        var dropLocation = tree.getDropLocation();
+        return dropLocation != null &&
+            dropLocation.getChildIndex() == -1 &&
+            tree.getRowForPath(dropLocation.getPath()) == row;
+    }
 }
