@@ -1,51 +1,29 @@
 package sh.adelessfox.odradek.app.ui.settings.gson;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
-import sh.adelessfox.odradek.app.ui.settings.Settings;
-import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.app.ui.settings.Settings.BookmarkState;
 
 import java.lang.reflect.Type;
-import java.util.List;
 
-public final class BookmarkStateAdapter
-    implements JsonSerializer<Settings.BookmarkState>, JsonDeserializer<Settings.BookmarkState> {
-
-    private static final TypeToken<?> ELEMENT_LIST = TypeToken.getParameterized(List.class, Settings.BookmarkState.class);
-
+public final class BookmarkStateAdapter implements JsonSerializer<BookmarkState>, JsonDeserializer<BookmarkState> {
     @Override
-    public Settings.BookmarkState deserialize(
+    public BookmarkState deserialize(
         JsonElement json,
         Type typeOfT,
         JsonDeserializationContext context
     ) throws JsonParseException {
-        var object = json.getAsJsonObject();
-        var folder = object.has("children");
-        if (folder) {
-            var name = object.get("name").getAsString();
-            var children = context.<List<Settings.BookmarkState>>deserialize(object.getAsJsonArray("children"), ELEMENT_LIST.getType());
-            return new Settings.BookmarkState.Folder(name, children);
+        if (json.getAsJsonObject().has("children")) {
+            return context.<BookmarkState.Folder>deserialize(json, BookmarkState.Folder.class);
         } else {
-            var objectId = context.<ObjectId>deserialize(object.get("objectId"), ObjectId.class);
-            var name = object.get("name").getAsString();
-            return new Settings.BookmarkState.Bookmark(objectId, name);
+            return context.<BookmarkState.Bookmark>deserialize(json, BookmarkState.Bookmark.class);
         }
     }
 
     @Override
-    public JsonElement serialize(Settings.BookmarkState src, Type typeOfSrc, JsonSerializationContext context) {
-        var object = new JsonObject();
-        switch (src) {
-            case Settings.BookmarkState.Folder folder -> {
-                object.addProperty("name", folder.name());
-                object.add("children", context.serialize(folder.children(), ELEMENT_LIST.getType()));
-            }
-            case Settings.BookmarkState.Bookmark bookmark -> {
-                object.addProperty("name", bookmark.name());
-                object.add("objectId", context.serialize(bookmark.objectId(), ObjectId.class));
-            }
-            default -> throw new JsonParseException("Unknown BookmarkState type: " + src.getClass().getName());
-        }
-        return object;
+    public JsonElement serialize(BookmarkState src, Type typeOfSrc, JsonSerializationContext context) {
+        return switch (src) {
+            case BookmarkState.Folder folder -> context.serialize(folder, BookmarkState.Folder.class);
+            case BookmarkState.Bookmark bookmark -> context.serialize(bookmark, BookmarkState.Bookmark.class);
+        };
     }
 }
