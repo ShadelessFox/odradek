@@ -4,6 +4,10 @@ import java.awt.*;
 import java.util.EnumSet;
 
 abstract class StyledCellRenderer extends StyledComponent {
+    public StyledCellRenderer() {
+        setOpaque(false);
+    }
+
     @Override
     public void setText(StyledText text) {
         if (isSelected() && isFocused()) {

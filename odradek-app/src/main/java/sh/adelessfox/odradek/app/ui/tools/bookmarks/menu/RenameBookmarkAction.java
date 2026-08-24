@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
@@ -13,12 +12,12 @@ import java.util.Optional;
 public class RenameBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
-        var bookmarks = Application.getInstance().bookmarks();
-        var bookmark = objects(context)
+        var bookmarks = bookmarks();
+        var bookmark = selectedObjects(context)
             .map(bookmarks::get).flatMap(Optional::stream)
             .findFirst();
         bookmark.ifPresent(b -> {
-            var name = promptName(b.objectId(), b.name());
+            var name = promptName("New Bookmark", "Enter name for " + b.objectId() + ":", b.name());
             if (name != null) {
                 bookmarks.update(b.objectId(), name);
             }
@@ -27,8 +26,8 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        var bookmarks = Application.getInstance().bookmarks();
-        return objects(context)
+        var bookmarks = bookmarks();
+        return selectedObjects(context)
             .map(bookmarks::get)
             .map(Optional::isPresent)
             .limit(2).count() == 1;

@@ -8,6 +8,7 @@
     <logger name="sh.adelessfox.odradek.game.hfw.storage.StreamingObjectReader" level="INFO"/>
     <logger name="sh.adelessfox.odradek.game.ds2.storage.StreamingObjectReader" level="INFO"/>
     <logger name="sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel" level="INFO"/>
+    <logger name="sh.adelessfox.odradek.event.DefaultEventBus" level="INFO"/>
     <logger name="sh.adelessfox.odradek.viewer.model.viewport.Viewport" level="INFO"/>
 
     <root level="debug">

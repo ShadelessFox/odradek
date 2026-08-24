@@ -10,6 +10,7 @@ import java.util.Objects;
 public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer implements TreeCellRenderer {
     private JTree tree;
     private boolean selected;
+    private boolean dropCell;
 
     private Color foregroundSelectionColor;
     private Color foregroundNonSelectionColor;
@@ -31,7 +32,6 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
         backgroundNonSelectionColor = UIManager.getColor("Tree.textBackground");
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Component getTreeCellRendererComponent(
         JTree tree,
@@ -44,8 +44,9 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
     ) {
         this.tree = tree;
         this.selected = selected;
+        this.dropCell = isDropCell(tree, row);
 
-        if (selected) {
+        if (selected || dropCell) {
             setBackground(backgroundSelectionColor);
             setForeground(foregroundSelectionColor);
         } else {
@@ -53,25 +54,41 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
             setForeground(foregroundNonSelectionColor);
         }
 
-        Icon icon = getIcon(tree, (T) value, selected, expanded, focused, leaf, row);
-        if (icon != null && !tree.isEnabled()) {
-            icon = Objects.requireNonNullElse(UIManager.getLookAndFeel().getDisabledIcon(tree, icon), icon);
-        }
+        var typedValue = getValue(value);
 
-        setLeadingIcon(icon);
+        setLeadingIcon(getIconOrDisabledIcon(tree, typedValue, selected, expanded, leaf, row, focused));
         setFont(tree.getFont());
-        setText(getText(tree, (T) value, selected, expanded, focused, leaf, row));
+        setText(getText(tree, typedValue, selected, expanded, focused, leaf, row));
+
         return this;
     }
 
+    protected abstract T getValue(Object value);
+
     @Override
     protected boolean isSelected() {
-        return selected;
+        return selected || dropCell;
     }
 
     @Override
     protected boolean isFocused() {
         return FlatUIUtils.isPermanentFocusOwner(tree);
+    }
+
+    private Icon getIconOrDisabledIcon(
+        JTree tree,
+        T value,
+        boolean selected,
+        boolean expanded,
+        boolean leaf,
+        int row,
+        boolean focused
+    ) {
+        Icon icon = getIcon(tree, value, selected, expanded, focused, leaf, row);
+        if (icon != null && !tree.isEnabled()) {
+            icon = Objects.requireNonNullElse(UIManager.getLookAndFeel().getDisabledIcon(tree, icon), icon);
+        }
+        return icon;
     }
 
     protected Icon getIcon(
@@ -101,4 +118,11 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
         boolean leaf,
         int row
     );
+
+    private static boolean isDropCell(JTree tree, int row) {
+        var dropLocation = tree.getDropLocation();
+        return dropLocation != null &&
+            dropLocation.getChildIndex() == -1 &&
+            tree.getRowForPath(dropLocation.getPath()) == row;
+    }
 }

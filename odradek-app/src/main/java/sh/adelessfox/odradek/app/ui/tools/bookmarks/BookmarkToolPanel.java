@@ -3,9 +3,9 @@ package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.Application;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.Settings;
 import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
@@ -20,6 +20,8 @@ import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookmarkToolPanel implements ToolPanel, Focusable {
     public static final String ID = "bookmarks";
@@ -67,9 +69,8 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
 
     @Override
     public JComponent createComponent() {
-        tree = new StructuredTree<>(new BookmarkStructure.Root(repository));
+        tree = new StructuredTree<>(new BookmarkStructure.Folder(repository, repository.rootFolderId(), "Root"));
         tree.setShowsRootHandles(true);
-        tree.setRootVisible(false);
         tree.setLabelProvider(new BookmarkLabelProvider());
         tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
@@ -82,7 +83,12 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         }));
         Actions.installContextMenu(tree, BookmarkMenu.ID, tree);
 
-        eventBus.subscribe(BookmarkEvent.class, _ -> tree.getModel().refresh());
+        // Setup drag-n-drop
+        tree.setDragEnabled(true);
+        tree.setDropMode(DropMode.ON);
+        tree.setTransferHandler(new BookmarkTransferHandler(tree));
+
+        eventBus.subscribe(BookmarkEvent.class, e -> SwingUtilities.invokeLater(() -> handleBookmarkEvent(e)));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadSettings(settings);
@@ -103,15 +109,59 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.requestFocusInWindow();
     }
 
-    private void loadSettings(Settings settings) {
-        settings.bookmarks().ifPresent(bookmarks -> {
-            for (Bookmark bookmark : bookmarks) {
-                this.repository.create(bookmark.objectId(), bookmark.name());
+    private void handleBookmarkEvent(BookmarkEvent event) {
+        var folders = switch (event) {
+            case BookmarkEvent.BookmarkAdded(_, var parent) -> List.of(parent);
+            case BookmarkEvent.BookmarkUpdated(_, var parent) -> List.of(parent);
+            case BookmarkEvent.BookmarkRemoved(_, var parent) -> List.of(parent);
+            case BookmarkEvent.BookmarkMoved(_, var oldParent, var newParent) -> List.of(oldParent, newParent);
+            case BookmarkEvent.FolderAdded(_, var parent) -> List.of(parent);
+            case BookmarkEvent.FolderUpdated(_, var parent) -> List.of(parent);
+            case BookmarkEvent.FolderRemoved(_, var parent) -> List.of(parent);
+            case BookmarkEvent.FolderMoved(_, var oldParent, var newParent) -> List.of(oldParent, newParent);
+        };
+
+        tree.updatePreservingSelection(BookmarkStructure::sameAs, () -> {
+            for (var folderId : folders) {
+                tree.getModel()
+                    .findLoadedPath(e -> e instanceof BookmarkStructure.Folder folder && folder.id().equals(folderId))
+                    .ifPresent(tree.getModel()::refresh);
             }
         });
     }
 
+    private void loadSettings(Settings settings) {
+        settings.bookmarks().ifPresent(bookmarks -> deserialize(repository.rootFolderId(), bookmarks));
+    }
+
+    private void deserialize(FolderId folderId, List<Settings.BookmarkState> children) {
+        for (Settings.BookmarkState child : children) {
+            switch (child) {
+                case Settings.BookmarkState.Bookmark bookmark ->
+                    repository.create(folderId, bookmark.objectId(), bookmark.name());
+                case Settings.BookmarkState.Folder folder ->
+                    deserialize(repository.createFolder(folderId, folder.name()), folder.children());
+            }
+        }
+    }
+
     private void saveSettings(Settings settings) {
-        settings.bookmarks().set(repository.getAll());
+        var children = new ArrayList<Settings.BookmarkState>();
+        serialize(repository.rootFolderId(), children);
+        settings.bookmarks().set(children);
+    }
+
+    private void serialize(FolderId folderId, List<Settings.BookmarkState> output) {
+        var folders = repository.getAllFoldersInFolder(folderId);
+        for (var folder : folders) {
+            var children = new ArrayList<Settings.BookmarkState>();
+            serialize(folder.id(), children);
+            output.add(new Settings.BookmarkState.Folder(folder.name(), children));
+        }
+
+        var bookmarks = repository.getAllInFolder(folderId);
+        for (var bookmark : bookmarks) {
+            output.add(new Settings.BookmarkState.Bookmark(bookmark.objectId(), bookmark.name()));
+        }
     }
 }

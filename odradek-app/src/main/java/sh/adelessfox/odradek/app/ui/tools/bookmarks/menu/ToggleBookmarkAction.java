@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.tools.graph.menu.GraphMenu;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
@@ -17,12 +16,12 @@ import java.util.Optional;
 public class ToggleBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
-        var bookmarks = Application.getInstance().bookmarks();
-        objects(context).forEach(id -> {
+        var bookmarks = bookmarks();
+        selectedObjects(context).forEach(id -> {
             if (bookmarks.get(id).isEmpty()) {
-                var name = promptName(id, "New bookmark");
+                var name = promptName("New Bookmark", "Enter name for " + id + ":", "New bookmark");
                 if (name != null) {
-                    bookmarks.create(id, name);
+                    bookmarks.create(bookmarks.rootFolderId(), id, name);
                 }
             } else {
                 bookmarks.delete(id);
@@ -32,9 +31,9 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        var bookmarks = Application.getInstance().bookmarks();
+        var bookmarks = bookmarks();
         // Ensure we either have all bookmarked or none bookmarked
-        return objects(context)
+        return selectedObjects(context)
             .map(bookmarks::get)
             .map(Optional::isPresent)
             .distinct().limit(2).count() == 1;
@@ -51,8 +50,8 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
     }
 
     private static boolean exists(ActionContext context) {
-        var bookmarks = Application.getInstance().bookmarks();
-        var present = objects(context)
+        var bookmarks = bookmarks();
+        var present = selectedObjects(context)
             .map(bookmarks::get)
             .flatMap(Optional::stream)
             .findFirst();
