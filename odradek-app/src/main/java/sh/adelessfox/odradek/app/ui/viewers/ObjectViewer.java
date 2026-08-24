@@ -470,7 +470,7 @@ public final class ObjectViewer implements Viewer, Focusable {
             if (!(element instanceof ObjectStructure.Node)) {
                 return Optional.empty();
             }
-            return Optional.of(Fugue.getIcon("blue-document"));
+            return Optional.of(Fugue.getIcon("document"));
         }
 
         @Override

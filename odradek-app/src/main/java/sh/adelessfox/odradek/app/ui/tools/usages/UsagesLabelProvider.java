@@ -43,7 +43,7 @@ final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructu
     @Override
     public Optional<Icon> getIcon(UsagesStructure element) {
         return switch (element) {
-            case UsagesStructure.Object _ -> Optional.of(Fugue.getIcon("blue-document"));
+            case UsagesStructure.Object _ -> Optional.of(Fugue.getIcon("document"));
             case UsagesStructure.Link(var type, _) -> Optional.of(getIcon(type));
             default -> Optional.empty();
         };
@@ -58,8 +58,8 @@ final class UsagesLabelProvider implements StyledTreeLabelProvider<UsagesStructu
 
     private static Icon getIcon(UsagesStructure.Type type) {
         return switch (type) {
-            case INCOMING -> Fugue.getIcon("blue-document-import");
-            case OUTGOING -> Fugue.getIcon("blue-document-export");
+            case INCOMING -> Fugue.getIcon("document-import");
+            case OUTGOING -> Fugue.getIcon("document-export");
         };
     }
 

@@ -67,7 +67,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
         @Override
         public Icon icon() {
-            return Fugue.getIcon("blue-document");
+            return Fugue.getIcon("document");
         }
     }
 

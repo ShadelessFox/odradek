@@ -33,8 +33,8 @@ final class GraphLabelProvider implements StyledTreeLabelProvider<GraphStructure
             case GraphStructure.GroupObject object -> {
                 boolean bookmarked = findBookmark(object).isPresent();
                 yield bookmarked
-                    ? Fugue.getIcon("blue-document-bookmark")
-                    : Fugue.getIcon("blue-document");
+                    ? Fugue.getIcon("document-bookmark")
+                    : Fugue.getIcon("document");
             }
             case GraphStructure.GraphRoots _,
                  GraphStructure.GroupRoots _ -> Fugue.getIcon("folder-stamp");
