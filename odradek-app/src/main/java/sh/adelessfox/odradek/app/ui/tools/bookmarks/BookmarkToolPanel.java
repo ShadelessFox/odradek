@@ -54,7 +54,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
 
         @Override
         public Icon icon() {
-            return Fugue.getIcon("blue-document-bookmark");
+            return Fugue.getIcon("document-bookmark");
         }
     }
 
@@ -75,9 +75,9 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
-            if (component instanceof BookmarkStructure.Bookmark bookmark) {
+            if (component instanceof BookmarkStructure.ObjectBookmark bookmark) {
                 var manager = Application.getInstance().editors();
-                var input = new ObjectEditorInputLazy(bookmark.id());
+                var input = new ObjectEditorInputLazy(bookmark.objectId());
                 manager.openEditor(input);
             }
         }));
@@ -138,7 +138,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         for (Settings.BookmarkState child : children) {
             switch (child) {
                 case Settings.BookmarkState.Bookmark bookmark ->
-                    repository.create(folderId, bookmark.objectId(), bookmark.name());
+                    repository.create(folderId, bookmark.key(), bookmark.name());
                 case Settings.BookmarkState.Folder folder ->
                     deserialize(repository.createFolder(folderId, folder.name()), folder.children());
             }
@@ -161,7 +161,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
 
         var bookmarks = repository.getAllInFolder(folderId);
         for (var bookmark : bookmarks) {
-            output.add(new Settings.BookmarkState.Bookmark(bookmark.objectId(), bookmark.name()));
+            output.add(new Settings.BookmarkState.Bookmark(bookmark.key(), bookmark.name()));
         }
     }
 }

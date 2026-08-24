@@ -24,8 +24,11 @@ final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStr
                         .build();
                 }
             }
-            case BookmarkStructure.Bookmark b -> StyledText.builder()
-                .add(b.id().toString(), StyledFragment.GRAYED).add(" ").add(b.name())
+            case BookmarkStructure.GroupBookmark(_, var key, var name) -> StyledText.builder()
+                .add(String.valueOf(key.groupId()), StyledFragment.GRAYED).add(" ").add(name)
+                .build();
+            case BookmarkStructure.ObjectBookmark(_, var key, var name) -> StyledText.builder()
+                .add(key.objectId().toString(), StyledFragment.GRAYED).add(" ").add(name)
                 .build();
         };
     }
@@ -40,7 +43,8 @@ final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStr
                     yield Optional.of(Fugue.getIcon("folder"));
                 }
             }
-            case BookmarkStructure.Bookmark _ -> Optional.of(Fugue.getIcon("blue-document"));
+            case BookmarkStructure.GroupBookmark _ -> Optional.of(Fugue.getIcon("folder-bookmark"));
+            case BookmarkStructure.ObjectBookmark _ -> Optional.of(Fugue.getIcon("document-bookmark"));
         };
     }
 

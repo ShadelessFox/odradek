@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.graph;
 
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
@@ -307,7 +309,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         StreamingGraph graph,
         StreamingGraph.Group group,
         boolean filterable
-    ) implements GraphStructure, Comparable<Group> {
+    ) implements GraphStructure, Bookmarkable, Comparable<Group> {
         @Override
         public int compareTo(Group o) {
             return Integer.compare(group.id(), o.group.id());
@@ -321,6 +323,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         public int hashCode() {
             return group.id();
+        }
+
+        @Override
+        public BookmarkKey bookmarkKey() {
+            return new BookmarkKey.OfGroup(group.id());
         }
 
         @Override
@@ -449,7 +456,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         StreamingGraph graph,
         StreamingGraph.Group group,
         int indexAndIncludeGroupId
-    ) implements GraphStructure, ObjectTypeHolder, ObjectIdHolder {
+    ) implements GraphStructure, ObjectTypeHolder, ObjectIdHolder, Bookmarkable {
         public GroupObject(
             StreamingGraph graph,
             StreamingGraph.Group group,
@@ -476,6 +483,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         @Override
         public ObjectId objectId() {
             return new ObjectId(group.id(), index());
+        }
+
+        @Override
+        public BookmarkKey bookmarkKey() {
+            return new BookmarkKey.OfObject(objectId());
         }
 
         @Override

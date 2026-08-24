@@ -7,7 +7,7 @@ import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
-@ActionRegistration(text = "Rename Folder\u2026", icon = "fugue:folder--pencil", keystroke = "F2")
+@ActionRegistration(text = "Rename Folder\u2026", icon = "fugue:folder--pencil")
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 2)
 public final class RenameFolderAction extends AbstractBookmarkAction {
     @Override

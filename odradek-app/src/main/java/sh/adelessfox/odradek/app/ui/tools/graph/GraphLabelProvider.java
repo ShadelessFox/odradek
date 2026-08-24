@@ -2,7 +2,8 @@ package sh.adelessfox.odradek.app.ui.tools.graph;
 
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmark;
-import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
@@ -16,8 +17,9 @@ final class GraphLabelProvider implements StyledTreeLabelProvider<GraphStructure
     public Optional<StyledText> getStyledText(GraphStructure element) {
         var builder = StyledText.builder()
             .add(element.toString());
-        if (element instanceof GraphStructure.GroupObject object) {
-            findBookmark(object).ifPresent(bookmark -> builder.add(" " + bookmark.name(), StyledFragment.GRAYED));
+        if (element instanceof Bookmarkable bookmarkable) {
+            findBookmark(bookmarkable.bookmarkKey())
+                .ifPresent(bookmark -> builder.add(" " + bookmark.name(), StyledFragment.GRAYED));
         }
         return builder.build();
     }
@@ -26,12 +28,19 @@ final class GraphLabelProvider implements StyledTreeLabelProvider<GraphStructure
     public Optional<Icon> getIcon(GraphStructure element) {
         return Optional.ofNullable(switch (element) {
             case GraphStructure.Graph _ -> null;
-            case GraphStructure.GraphGroups _, GraphStructure.GraphObjects _ -> Fugue.getIcon("folders-stack");
-            case GraphStructure.Group _ -> Fugue.getIcon("folders");
+            case GraphStructure.GraphGroups _, GraphStructure.GraphObjects _ -> Fugue.getIcon("folders");
+            case GraphStructure.Group group -> {
+                var key = new BookmarkKey.OfGroup(group.group().id());
+                var bookmarked = findBookmark(key).isPresent();
+                yield bookmarked
+                    ? Fugue.getIcon("folder-bookmark")
+                    : Fugue.getIcon("folder");
+            }
             case GraphStructure.GroupDependencies _ -> Fugue.getIcon("folder-export");
             case GraphStructure.GroupDependents _ -> Fugue.getIcon("folder-import");
             case GraphStructure.GroupObject object -> {
-                boolean bookmarked = findBookmark(object).isPresent();
+                var key = new BookmarkKey.OfObject(object.objectId());
+                var bookmarked = findBookmark(key).isPresent();
                 yield bookmarked
                     ? Fugue.getIcon("document-bookmark")
                     : Fugue.getIcon("document");
@@ -45,7 +54,7 @@ final class GraphLabelProvider implements StyledTreeLabelProvider<GraphStructure
         });
     }
 
-    private static Optional<Bookmark> findBookmark(ObjectIdHolder holder) {
-        return Application.getInstance().bookmarks().get(holder.objectId());
+    private static Optional<Bookmark> findBookmark(BookmarkKey key) {
+        return Application.getInstance().bookmarks().get(key);
     }
 }

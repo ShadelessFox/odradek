@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.app.ui.bookmarks;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.decima.ObjectId;
 
 import java.util.*;
 
@@ -13,9 +12,9 @@ import java.util.*;
 @Singleton
 public final class Bookmarks {
     private final EventBus eventBus;
-    private final Map<ObjectId, Bookmark> bookmarks = new LinkedHashMap<>();
+    private final Map<BookmarkKey, Bookmark> bookmarks = new LinkedHashMap<>();
     private final Map<FolderId, Folder> folders = new LinkedHashMap<>();
-    private final Map<ObjectId, FolderId> bookmarkToParent = new LinkedHashMap<>();
+    private final Map<BookmarkKey, FolderId> bookmarkToParent = new LinkedHashMap<>();
     private final Map<FolderId, FolderId> folderToParent = new LinkedHashMap<>();
     private final FolderId root = FolderId.random();
 
@@ -28,33 +27,33 @@ public final class Bookmarks {
     /**
      * Creates a new bookmark to the repository if it doesn't exist already.
      * <p>
-     * Whether a bookmark exists or not is determined by its {@link Bookmark#objectId()}.
+     * Whether a bookmark exists or not is determined by its {@link Bookmark#key()}.
      *
      * @param parentFolderId id of the folder to add the bookmark to
-     * @param objectId       an object id to add bookmark for
+     * @param key       an object id to add bookmark for
      * @param name           name of the bookmark
      */
-    public synchronized void create(FolderId parentFolderId, ObjectId objectId, String name) {
+    public synchronized void create(FolderId parentFolderId, BookmarkKey key, String name) {
         if (!folders.containsKey(parentFolderId)) {
             throw new IllegalArgumentException("Folder with folderId " + parentFolderId + " does not exist");
         }
-        if (bookmarks.containsKey(objectId)) {
-            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " already exists");
+        if (bookmarks.containsKey(key)) {
+            throw new IllegalArgumentException("Bookmark with key " + key + " already exists");
         }
-        var bookmark = new Bookmark(objectId, name);
-        bookmarks.put(objectId, bookmark);
-        bookmarkToParent.put(objectId, parentFolderId);
+        var bookmark = new Bookmark(key, name);
+        bookmarks.put(key, bookmark);
+        bookmarkToParent.put(key, parentFolderId);
         eventBus.publish(new BookmarkEvent.BookmarkAdded(bookmark, parentFolderId));
     }
 
     /**
      * Returns a bookmark for the given object id if it's present in the repository.
      *
-     * @param objectId object id to check
+     * @param key object id to check
      * @return a bookmark if it exists for the given object id, {@link Optional#empty()} otherwise
      */
-    public synchronized Optional<Bookmark> get(ObjectId objectId) {
-        return Optional.ofNullable(bookmarks.get(objectId));
+    public synchronized Optional<Bookmark> get(BookmarkKey key) {
+        return Optional.ofNullable(bookmarks.get(key));
     }
 
     /**
@@ -73,43 +72,43 @@ public final class Bookmarks {
     /**
      * Returns the parent folder id of the given bookmark.
      *
-     * @param objectId id of the bookmark to get the parent for
+     * @param key id of the bookmark to get the parent for
      * @return the id of the parent folder
      */
-    public synchronized FolderId getParent(ObjectId objectId) {
-        return Objects.requireNonNull(bookmarkToParent.get(objectId));
+    public synchronized FolderId getParent(BookmarkKey key) {
+        return Objects.requireNonNull(bookmarkToParent.get(key));
     }
 
     /**
      * Updates a bookmark for the given object id in the repository.
      *
-     * @param objectId object id to update the bookmark for
+     * @param key object id to update the bookmark for
      * @param name     new name of the bookmark
      */
-    public synchronized void update(ObjectId objectId, String name) {
-        var bookmark = bookmarks.computeIfPresent(objectId, (_, _) -> new Bookmark(objectId, name));
+    public synchronized void update(BookmarkKey key, String name) {
+        var bookmark = bookmarks.computeIfPresent(key, (_, _) -> new Bookmark(key, name));
         if (bookmark == null) {
-            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
+            throw new IllegalArgumentException("Bookmark with key " + key + " does not exist");
         }
-        eventBus.publish(new BookmarkEvent.BookmarkUpdated(bookmark, getParent(objectId)));
+        eventBus.publish(new BookmarkEvent.BookmarkUpdated(bookmark, getParent(key)));
     }
 
     /**
      * Moves a bookmark to a different folder in the repository.
      *
-     * @param objectId id of the bookmark to move
+     * @param key id of the bookmark to move
      * @param folderId id of the folder to move the bookmark to
      */
-    public synchronized void move(ObjectId objectId, FolderId folderId) {
-        var bookmark = bookmarks.get(objectId);
+    public synchronized void move(BookmarkKey key, FolderId folderId) {
+        var bookmark = bookmarks.get(key);
         if (bookmark == null) {
-            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
+            throw new IllegalArgumentException("Bookmark with key " + key + " does not exist");
         }
         var folder = folders.get(folderId);
         if (folder == null) {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
         }
-        var oldFolderId = Objects.requireNonNull(bookmarkToParent.put(objectId, folderId));
+        var oldFolderId = Objects.requireNonNull(bookmarkToParent.put(key, folderId));
         if (!oldFolderId.equals(folderId)) {
             eventBus.publish(new BookmarkEvent.BookmarkMoved(bookmark, oldFolderId, folderId));
         }
@@ -118,14 +117,14 @@ public final class Bookmarks {
     /**
      * Deletes a bookmark for the given object id in the repository.
      *
-     * @param objectId object id to remove bookmark for
+     * @param key object id to remove bookmark for
      */
-    public synchronized void delete(ObjectId objectId) {
-        var bookmark = bookmarks.remove(objectId);
+    public synchronized void delete(BookmarkKey key) {
+        var bookmark = bookmarks.remove(key);
         if (bookmark == null) {
-            throw new IllegalArgumentException("Bookmark with objectId " + objectId + " does not exist");
+            throw new IllegalArgumentException("Bookmark with key " + key + " does not exist");
         }
-        var parent = Objects.requireNonNull(bookmarkToParent.remove(objectId));
+        var parent = Objects.requireNonNull(bookmarkToParent.remove(key));
         eventBus.publish(new BookmarkEvent.BookmarkRemoved(bookmark, parent));
     }
 
@@ -239,7 +238,7 @@ public final class Bookmarks {
             throw new IllegalArgumentException("Folder with folderId " + folderId + " does not exist");
         }
         var parent = Objects.requireNonNull(folderToParent.remove(folderId));
-        getAllInFolder(folderId).forEach(bookmark -> delete(bookmark.objectId()));
+        getAllInFolder(folderId).forEach(bookmark -> delete(bookmark.key()));
         getAllFoldersInFolder(folderId).forEach(folder -> deleteFolder(folder.id()));
         eventBus.publish(new BookmarkEvent.FolderRemoved(removed, parent));
     }

@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.settings;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.annotations.JsonAdapter;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
 import sh.adelessfox.odradek.app.ui.settings.gson.BookmarkStateAdapter;
 import sh.adelessfox.odradek.app.ui.settings.gson.EditorStateAdapter;
 import sh.adelessfox.odradek.game.decima.ObjectId;
@@ -61,7 +62,7 @@ public final class Settings {
         record Folder(String name, List<BookmarkState> children) implements BookmarkState {
         }
 
-        record Bookmark(ObjectId objectId, String name) implements BookmarkState {
+        record Bookmark(BookmarkKey key, String name) implements BookmarkState {
         }
     }
 

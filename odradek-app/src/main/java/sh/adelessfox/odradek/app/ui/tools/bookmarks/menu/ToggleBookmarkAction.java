@@ -10,21 +10,21 @@ import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import java.util.Optional;
 
 @ActionRegistration(text = "Toggle Bookmark", icon = "fugue:blue-document-bookmark")
-@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_UTIL)
+@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_UTIL, order = 101)
 @ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_UTIL)
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 1)
 public class ToggleBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
         var bookmarks = bookmarks();
-        selectedObjects(context).forEach(id -> {
-            if (bookmarks.get(id).isEmpty()) {
-                var name = promptName("New Bookmark", "Enter name for " + id + ":", "New bookmark");
+        selectedKeys(context).forEach(key -> {
+            if (bookmarks.get(key).isEmpty()) {
+                var name = promptName("New Bookmark", "Enter name for " + key + ":", "New bookmark");
                 if (name != null) {
-                    bookmarks.create(bookmarks.rootFolderId(), id, name);
+                    bookmarks.create(bookmarks.rootFolderId(), key, name);
                 }
             } else {
-                bookmarks.delete(id);
+                bookmarks.delete(key);
             }
         });
     }
@@ -33,7 +33,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
     public boolean isVisible(ActionContext context) {
         var bookmarks = bookmarks();
         // Ensure we either have all bookmarked or none bookmarked
-        return selectedObjects(context)
+        return selectedKeys(context)
             .map(bookmarks::get)
             .map(Optional::isPresent)
             .distinct().limit(2).count() == 1;
@@ -51,7 +51,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
 
     private static boolean exists(ActionContext context) {
         var bookmarks = bookmarks();
-        var present = selectedObjects(context)
+        var present = selectedKeys(context)
             .map(bookmarks::get)
             .flatMap(Optional::stream)
             .findFirst();

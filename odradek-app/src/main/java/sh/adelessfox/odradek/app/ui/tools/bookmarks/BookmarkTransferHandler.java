@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
-import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -34,7 +34,7 @@ final class BookmarkTransferHandler extends TransferHandler {
 
     @Override
     protected Transferable createTransferable(JComponent c) {
-        return new Payload(selectedObjects(), selectedFolders());
+        return new Payload(selectedBookmarks(), selectedFolders());
     }
 
     @Override
@@ -53,7 +53,7 @@ final class BookmarkTransferHandler extends TransferHandler {
                 return false;
             }
         }
-        for (ObjectId bookmark : data.bookmarks()) {
+        for (BookmarkKey bookmark : data.bookmarks()) {
             if (bookmarks.getParent(bookmark).equals(target)) {
                 return false;
             }
@@ -107,11 +107,11 @@ final class BookmarkTransferHandler extends TransferHandler {
         return Optional.empty();
     }
 
-    private List<ObjectId> selectedObjects() {
+    private List<BookmarkKey> selectedBookmarks() {
         return tree.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.Bookmark.class))
-            .map(BookmarkStructure.Bookmark::id)
+            .map(BookmarkStructure.Bookmark::key)
             .toList();
     }
 
@@ -123,7 +123,7 @@ final class BookmarkTransferHandler extends TransferHandler {
             .toList();
     }
 
-    private record Payload(List<ObjectId> bookmarks, List<FolderId> folders) implements Transferable {
+    private record Payload(List<BookmarkKey> bookmarks, List<FolderId> folders) implements Transferable {
         Payload {
             bookmarks = List.copyOf(bookmarks);
             folders = List.copyOf(folders);

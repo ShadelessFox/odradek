@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.game.decima.ObjectId;
@@ -18,7 +20,10 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
                 .map(f -> new Folder(repository, f.id(), f.name()))
                 .sorted(Comparator.comparing(Folder::name));
             var bookmarks = repository.getAllInFolder(id).stream()
-                .map(b -> new Bookmark(repository, b.objectId(), b.name()))
+                .map(b -> switch (b.key()) {
+                    case BookmarkKey.OfGroup k -> new GroupBookmark(repository, k, b.name());
+                    case BookmarkKey.OfObject k -> new ObjectBookmark(repository, k, b.name());
+                })
                 .sorted(Comparator.comparing(Bookmark::name));
             return Stream.concat(folders, bookmarks).toList();
         }
@@ -29,7 +34,30 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
         }
     }
 
-    record Bookmark(Bookmarks repository, ObjectId id, String name) implements BookmarkStructure, ObjectIdHolder {
+    sealed interface Bookmark extends BookmarkStructure, Bookmarkable {
+        BookmarkKey key();
+
+        String name();
+
+        @Override
+        default BookmarkKey bookmarkKey() {
+            return key();
+        }
+    }
+
+    record GroupBookmark(Bookmarks repository, BookmarkKey.OfGroup key, String name) implements Bookmark {
+        @Override
+        public List<? extends BookmarkStructure> getChildren() {
+            return List.of();
+        }
+
+        @Override
+        public boolean hasChildren() {
+            return false;
+        }
+    }
+
+    record ObjectBookmark(Bookmarks repository, BookmarkKey.OfObject key, String name) implements Bookmark, ObjectIdHolder {
         @Override
         public List<? extends BookmarkStructure> getChildren() {
             return List.of();
@@ -42,14 +70,15 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
 
         @Override
         public ObjectId objectId() {
-            return id;
+            return key.objectId();
         }
     }
 
     default boolean sameAs(BookmarkStructure other) {
         return switch (this) {
             case Folder a when other instanceof Folder b -> a.id.equals(b.id);
-            case Bookmark a when other instanceof Bookmark b -> a.id.equals(b.id);
+            case GroupBookmark a when other instanceof GroupBookmark b -> a.key.equals(b.key);
+            case ObjectBookmark a when other instanceof ObjectBookmark b -> a.key.equals(b.key);
             default -> false;
         };
     }

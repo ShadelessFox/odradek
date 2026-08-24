@@ -1,11 +1,11 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkStructure;
-import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -58,16 +58,16 @@ abstract class AbstractBookmarkAction extends Action {
 
     private static Optional<FolderId> folderIdOf(BookmarkStructure structure) {
         return switch (structure) {
-            case BookmarkStructure.Bookmark bookmark -> Optional.of(bookmarks().getParent(bookmark.id()));
+            case BookmarkStructure.Bookmark bookmark -> Optional.of(bookmarks().getParent(bookmark.key()));
             case BookmarkStructure.Folder folder -> Optional.of(folder.id());
         };
     }
 
-    protected static Stream<ObjectId> selectedObjects(ActionContext context) {
+    protected static Stream<BookmarkKey> selectedKeys(ActionContext context) {
         return context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
-            .gather(Gatherers.instanceOf(ObjectIdHolder.class))
-            .map(ObjectIdHolder::objectId);
+            .gather(Gatherers.instanceOf(Bookmarkable.class))
+            .map(Bookmarkable::bookmarkKey);
     }
 
     protected static Bookmarks bookmarks() {

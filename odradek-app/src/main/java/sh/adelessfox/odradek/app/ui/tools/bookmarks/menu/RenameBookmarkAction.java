@@ -7,19 +7,19 @@ import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 
 import java.util.Optional;
 
-@ActionRegistration(text = "Rename Bookmark\u2026", icon = "fugue:bookmark--pencil", keystroke = "F2")
+@ActionRegistration(text = "Rename Bookmark\u2026", icon = "fugue:bookmark--pencil")
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 0)
 public class RenameBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
         var bookmarks = bookmarks();
-        var bookmark = selectedObjects(context)
+        var bookmark = selectedKeys(context)
             .map(bookmarks::get).flatMap(Optional::stream)
             .findFirst();
         bookmark.ifPresent(b -> {
-            var name = promptName("New Bookmark", "Enter name for " + b.objectId() + ":", b.name());
+            var name = promptName("New Bookmark", "Enter name for " + b.key() + ":", b.name());
             if (name != null) {
-                bookmarks.update(b.objectId(), name);
+                bookmarks.update(b.key(), name);
             }
         });
     }
@@ -27,7 +27,7 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
     @Override
     public boolean isVisible(ActionContext context) {
         var bookmarks = bookmarks();
-        return selectedObjects(context)
+        return selectedKeys(context)
             .map(bookmarks::get)
             .map(Optional::isPresent)
             .limit(2).count() == 1;
