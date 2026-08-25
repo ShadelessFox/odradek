@@ -10,31 +10,30 @@ import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
     record Folder(Bookmarks repository, FolderId id, String name) implements BookmarkStructure {
         @Override
-        public List<? extends BookmarkStructure> getChildren() {
-            var folders = repository.getAllFoldersInFolder(id).stream()
-                .map(f -> new Folder(repository, f.id(), f.name()))
-                .sorted(Comparator.comparing(Folder::name));
-            var bookmarks = repository.getAllInFolder(id).stream()
-                .map(b -> switch (b.key()) {
-                    case BookmarkKey.OfGroup k -> new GroupBookmark(repository, k, b.name());
-                    case BookmarkKey.OfObject k -> new ObjectBookmark(repository, k, b.name());
-                })
-                .sorted(Comparator.comparing(Bookmark::name));
-            return Stream.concat(folders, bookmarks).toList();
+        public boolean equals(Object object) {
+            return object instanceof Folder folder && Objects.equals(id, folder.id);
         }
 
         @Override
-        public boolean hasChildren() {
-            return true;
+        public int hashCode() {
+            return Objects.hashCode(id);
         }
     }
 
     sealed interface Bookmark extends BookmarkStructure, Bookmarkable {
+        static Bookmark forKey(Bookmarks repository, BookmarkKey key, String name) {
+            return switch (key) {
+                case BookmarkKey.OfGroup k -> new GroupBookmark(repository, k, name);
+                case BookmarkKey.OfObject k -> new ObjectBookmark(repository, k, name);
+            };
+        }
+
         BookmarkKey key();
 
         String name();
@@ -47,39 +46,54 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
 
     record GroupBookmark(Bookmarks repository, BookmarkKey.OfGroup key, String name) implements Bookmark {
         @Override
-        public List<? extends BookmarkStructure> getChildren() {
-            return List.of();
+        public boolean equals(Object object) {
+            return object instanceof GroupBookmark that && Objects.equals(key, that.key);
         }
 
         @Override
-        public boolean hasChildren() {
-            return false;
+        public int hashCode() {
+            return Objects.hashCode(key);
         }
     }
 
     record ObjectBookmark(Bookmarks repository, BookmarkKey.OfObject key, String name) implements Bookmark, ObjectIdHolder {
         @Override
-        public List<? extends BookmarkStructure> getChildren() {
-            return List.of();
-        }
-
-        @Override
-        public boolean hasChildren() {
-            return false;
-        }
-
-        @Override
         public ObjectId objectId() {
             return key.objectId();
         }
+
+        @Override
+        public boolean equals(Object object) {
+            return object instanceof ObjectBookmark that && Objects.equals(key, that.key);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(key);
+        }
     }
 
-    default boolean sameAs(BookmarkStructure other) {
+    @Override
+    default List<? extends BookmarkStructure> getChildren() {
         return switch (this) {
-            case Folder a when other instanceof Folder b -> a.id.equals(b.id);
-            case GroupBookmark a when other instanceof GroupBookmark b -> a.key.equals(b.key);
-            case ObjectBookmark a when other instanceof ObjectBookmark b -> a.key.equals(b.key);
-            default -> false;
+            case Folder(var repository, var id, _) -> {
+                var folders = repository.getAllFoldersInFolder(id).stream()
+                    .map(folder -> new Folder(repository, folder.id(), folder.name()))
+                    .sorted(Comparator.comparing(Folder::name));
+                var bookmarks = repository.getAllInFolder(id).stream()
+                    .map(bookmark -> Bookmark.forKey(repository, bookmark.key(), bookmark.name()))
+                    .sorted(Comparator.comparing(Bookmark::name));
+                yield Stream.concat(folders, bookmarks).toList();
+            }
+            case Bookmark _ -> List.of();
+        };
+    }
+
+    @Override
+    default boolean hasChildren() {
+        return switch (this) {
+            case Folder _ -> true;
+            case Bookmark _ -> false;
         };
     }
 }

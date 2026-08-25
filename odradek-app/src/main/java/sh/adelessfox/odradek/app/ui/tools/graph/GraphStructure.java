@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.app.ui.tools.graph;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
@@ -139,8 +138,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
     }
 
-    record GroupedByGroup(GroupableByGroup parent, StreamingGraph.Group group,
-                          int[] indices) implements GraphStructure {
+    record GroupedByGroup(
+        GroupableByGroup parent,
+        StreamingGraph.Group group,
+        int[] indices
+    ) implements GraphStructure {
         List<? extends GraphStructure> getGroupedChildren() {
             return IntStream.of(indices)
                 .mapToObj(index -> parent.toGroupObject(group, index, false))
@@ -311,6 +313,11 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         boolean filterable
     ) implements GraphStructure, Bookmarkable, Comparable<Group> {
         @Override
+        public BookmarkKey bookmarkKey() {
+            return new BookmarkKey.OfGroup(group.id());
+        }
+
+        @Override
         public int compareTo(Group o) {
             return Integer.compare(group.id(), o.group.id());
         }
@@ -326,18 +333,12 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         }
 
         @Override
-        public BookmarkKey bookmarkKey() {
-            return new BookmarkKey.OfGroup(group.id());
-        }
-
-        @Override
         public String toString() {
             return "Group " + group.id();
         }
     }
 
-    record GroupDependencies(StreamingGraph graph,
-                             StreamingGraph.Group group) implements GraphStructure {
+    record GroupDependencies(StreamingGraph graph, StreamingGraph.Group group) implements GraphStructure {
         @Override
         public boolean equals(Object o) {
             return o instanceof GroupDependencies that && Objects.equals(group, that.group);
@@ -374,7 +375,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     final class GroupObjects extends GroupableByType implements GraphStructure {
         private final StreamingGraph.Group group;
 
-        public GroupObjects(StreamingGraph graph, StreamingGraph.Group group) {
+        GroupObjects(StreamingGraph graph, StreamingGraph.Group group) {
             super(graph);
             this.group = group;
         }
@@ -413,7 +414,7 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
     final class GroupRoots extends GroupableByType implements GraphStructure {
         private final StreamingGraph.Group group;
 
-        public GroupRoots(
+        GroupRoots(
             StreamingGraph graph,
             StreamingGraph.Group group
         ) {
@@ -456,8 +457,8 @@ public sealed interface GraphStructure extends TreeStructure<GraphStructure> {
         StreamingGraph graph,
         StreamingGraph.Group group,
         int indexAndIncludeGroupId
-    ) implements GraphStructure, ObjectTypeHolder, ObjectIdHolder, Bookmarkable {
-        public GroupObject(
+    ) implements GraphStructure, ObjectTypeHolder, Bookmarkable {
+        GroupObject(
             StreamingGraph graph,
             StreamingGraph.Group group,
             int index,
