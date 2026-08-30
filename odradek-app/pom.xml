@@ -148,7 +148,6 @@
         <dependency>
             <groupId>wtf.reversed</groupId>
             <artifactId>reversed-toolbox</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -162,7 +161,6 @@
                         <path>
                             <groupId>io.github.jbock-java</groupId>
                             <artifactId>dapper-compiler</artifactId>
-                            <version>2.41.2</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
