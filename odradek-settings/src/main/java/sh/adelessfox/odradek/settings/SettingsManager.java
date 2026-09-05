@@ -80,7 +80,9 @@ public final class SettingsManager implements Settings {
     }
 
     private static Gson createGson() {
-        var builder = new GsonBuilder().setPrettyPrinting().serializeNulls();
+        var builder = new GsonBuilder()
+            .setPrettyPrinting()
+            .serializeNulls();
         ServiceLoader.load(GsonAdapterProvider.class).stream()
             .map(ServiceLoader.Provider::get)
             .sorted(Comparator.comparingInt(GsonAdapterProvider::order))
