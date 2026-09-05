@@ -6,11 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
-import sh.adelessfox.odradek.app.ui.settings.Settings;
-import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.settings.Settings;
+import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
@@ -18,6 +19,7 @@ import sh.adelessfox.odradek.ui.util.Dialogs;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Optional;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -79,17 +81,17 @@ public final class Application {
 
         // Ensure settings are initialized and loaded after everything else
         var settings = component.settings();
-        settings.theme().ifPresent(theme -> {
-            FlatLaf.setup(theme.createLookAndFeel());
-            FlatLaf.updateUI();
-        });
+
+        var theme = settings.get(ApplicationSettings.THEME).value();
+        FlatLaf.setup(theme.createLookAndFeel());
+        FlatLaf.updateUI();
 
         // And now we can show the frame
         frame.setVisible(true);
     }
 
     private static void loadFrameSettings(Settings settings, JFrame frame) {
-        settings.window().ifPresent(window -> {
+        settings.get(ApplicationSettings.WINDOW).value().ifPresent(window -> {
             if (window.maximized()) {
                 frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
             } else {
@@ -99,17 +101,10 @@ public final class Application {
     }
 
     private static void saveFrameSettings(Settings settings, JFrame frame) {
-        var state = frame.getExtendedState();
         var bounds = frame.getBounds();
-        var maximized = (state & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
-
-        settings.window().set(new Settings.WindowState(
-            bounds.x,
-            bounds.y,
-            bounds.width,
-            bounds.height,
-            maximized
-        ));
+        var maximized = (frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
+        var state = new ApplicationSettings.WindowState(bounds.x, bounds.y, bounds.width, bounds.height, maximized);
+        settings.get(ApplicationSettings.WINDOW).set(Optional.of(state));
     }
 
     public DecimaGame game() {

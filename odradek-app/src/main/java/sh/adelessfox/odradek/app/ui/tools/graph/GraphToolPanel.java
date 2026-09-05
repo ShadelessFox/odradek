@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.Filter;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.FilterOption;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.FilterResult;
@@ -203,7 +204,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override
             public Optional<TypeInfo> getType(JTree tree, Object value) {
-                if (!Application.getInstance().settings().showObjectPreview().orElse(false)) {
+                if (!Application.getInstance().settings().get(ApplicationSettings.SHOW_OBJECT_PREVIEW).value()) {
                     return Optional.empty();
                 }
                 if (value instanceof ObjectIdHolder provider) {

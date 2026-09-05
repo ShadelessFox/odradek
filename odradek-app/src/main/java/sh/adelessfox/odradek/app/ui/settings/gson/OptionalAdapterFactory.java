@@ -7,17 +7,17 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import sh.adelessfox.odradek.app.ui.settings.Setting;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
+import java.util.Optional;
 
-public final class SettingAdapterFactory implements TypeAdapterFactory {
+public final class OptionalAdapterFactory implements TypeAdapterFactory {
     @Override
     @SuppressWarnings("unchecked")
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
         var rawType = typeToken.getRawType();
-        if (!Setting.class.isAssignableFrom(rawType)) {
+        if (!Optional.class.isAssignableFrom(rawType)) {
             return null;
         }
 
@@ -30,7 +30,7 @@ public final class SettingAdapterFactory implements TypeAdapterFactory {
         return adapter;
     }
 
-    private static final class Adapter<E> extends TypeAdapter<Setting<E>> {
+    private static final class Adapter<E> extends TypeAdapter<Optional<E>> {
         private final TypeAdapter<E> elementTypeAdapter;
 
         Adapter(TypeAdapter<E> elementTypeAdapter) {
@@ -38,7 +38,7 @@ public final class SettingAdapterFactory implements TypeAdapterFactory {
         }
 
         @Override
-        public void write(JsonWriter out, Setting<E> value) throws IOException {
+        public void write(JsonWriter out, Optional<E> value) throws IOException {
             var inner = value.orElse(null);
             if (inner == null) {
                 out.nullValue();
@@ -48,12 +48,12 @@ public final class SettingAdapterFactory implements TypeAdapterFactory {
         }
 
         @Override
-        public Setting<E> read(JsonReader in) throws IOException {
+        public Optional<E> read(JsonReader in) throws IOException {
             if (in.peek() == JsonToken.NULL) {
                 in.nextNull();
-                return new Setting<>();
+                return Optional.empty();
             }
-            return new Setting<>(elementTypeAdapter.read(in));
+            return Optional.ofNullable(elementTypeAdapter.read(in));
         }
     }
 }

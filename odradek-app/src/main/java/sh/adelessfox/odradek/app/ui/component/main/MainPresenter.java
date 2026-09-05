@@ -4,16 +4,18 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
-import sh.adelessfox.odradek.app.ui.settings.Settings;
-import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.settings.Settings;
+import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Singleton
 public class MainPresenter implements Presenter<MainView> {
@@ -48,16 +50,16 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private void loadEditors(Settings settings) {
-        settings.editors().ifPresent(state -> loadContainer(editorManager.getRoot(), state));
+        settings.get(ApplicationSettings.EDITORS).value().ifPresent(s -> loadContainer(editorManager.getRoot(), s));
     }
 
     private void saveEditors(Settings settings) {
-        settings.editors().set(saveContainer(editorManager.getRoot()));
+        settings.get(ApplicationSettings.EDITORS).set(Optional.of(saveContainer(editorManager.getRoot())));
     }
 
-    private void loadContainer(EditorStackContainer container, Settings.EditorState state) {
+    private void loadContainer(EditorStackContainer container, ApplicationSettings.EditorState state) {
         switch (state) {
-            case Settings.EditorState.Leaf leaf -> {
+            case ApplicationSettings.EditorState.Leaf leaf -> {
                 var stack = container.getEditorStack();
                 for (int i = 0; i < leaf.objects().size(); i++) {
                     var input = new ObjectEditorInputLazy(leaf.objects().get(i));
@@ -65,7 +67,7 @@ public class MainPresenter implements Presenter<MainView> {
                     editorManager.openEditor(input, stack, select ? EditorManager.Activation.REVEAL : EditorManager.Activation.NO);
                 }
             }
-            case Settings.EditorState.Split split -> {
+            case ApplicationSettings.EditorState.Split split -> {
                 var result = container.split(split.orientation(), split.proportion(), false);
                 loadContainer(result.left(), split.left());
                 loadContainer(result.right(), split.right());
@@ -73,12 +75,12 @@ public class MainPresenter implements Presenter<MainView> {
         }
     }
 
-    private Settings.EditorState saveContainer(EditorStackContainer container) {
+    private ApplicationSettings.EditorState saveContainer(EditorStackContainer container) {
         if (container.isSplit()) {
             var left = saveContainer(container.getLeftContainer());
             var right = saveContainer(container.getRightContainer());
 
-            return new Settings.EditorState.Split(
+            return new ApplicationSettings.EditorState.Split(
                 left,
                 right,
                 container.getOrientation(),
@@ -99,7 +101,7 @@ public class MainPresenter implements Presenter<MainView> {
                 }
             }
 
-            return new Settings.EditorState.Leaf(
+            return new ApplicationSettings.EditorState.Leaf(
                 objects,
                 selection
             );

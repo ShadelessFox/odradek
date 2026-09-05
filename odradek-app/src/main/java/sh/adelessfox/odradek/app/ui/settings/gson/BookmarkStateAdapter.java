@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.ui.settings.gson;
 
 import com.google.gson.*;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.settings.Settings.BookmarkState;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings.BookmarkState;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 
 import java.lang.reflect.Type;

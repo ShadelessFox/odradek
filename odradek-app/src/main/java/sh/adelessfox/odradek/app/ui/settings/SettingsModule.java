@@ -5,6 +5,8 @@ import dagger.Provides;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.settings.Settings;
+import sh.adelessfox.odradek.settings.SettingsManager;
 
 import java.nio.file.Path;
 
@@ -18,6 +20,6 @@ public interface SettingsModule {
 
     @Provides
     static Settings provideSettings(SettingsManager manager) {
-        return manager.get();
+        return manager;
     }
 }

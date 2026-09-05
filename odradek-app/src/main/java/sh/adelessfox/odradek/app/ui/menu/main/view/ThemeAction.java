@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.menu.main.view;
 import com.formdev.flatlaf.FlatLaf;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
-import sh.adelessfox.odradek.app.ui.settings.Settings;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.ui.actions.*;
 
 import java.util.List;
@@ -20,16 +20,16 @@ public final class ThemeAction extends Action {
     public static final class Placeholder extends Action implements ActionProvider {
         @Override
         public List<? extends Action> create(ActionContext context) {
-            return Stream.of(Settings.Theme.values())
+            return Stream.of(ApplicationSettings.Theme.values())
                 .map(ChangeThemeAction::new)
                 .toList();
         }
     }
 
     private static final class ChangeThemeAction extends Action implements Action.Radio {
-        private final Settings.Theme theme;
+        private final ApplicationSettings.Theme theme;
 
-        ChangeThemeAction(Settings.Theme theme) {
+        ChangeThemeAction(ApplicationSettings.Theme theme) {
             this.theme = theme;
         }
 
@@ -42,7 +42,7 @@ public final class ThemeAction extends Action {
             FlatLaf.setup(theme.createLookAndFeel());
             FlatLaf.updateUI();
 
-            var setting = Application.getInstance().settings().theme();
+            var setting = Application.getInstance().settings().get(ApplicationSettings.THEME);
             setting.set(theme);
         }
 
@@ -53,8 +53,8 @@ public final class ThemeAction extends Action {
 
         @Override
         public boolean isSelected(ActionContext context) {
-            var setting = Application.getInstance().settings().theme();
-            return setting.orElse(null) == theme;
+            var setting = Application.getInstance().settings().get(ApplicationSettings.THEME);
+            return setting.value() == theme;
         }
     }
 }
