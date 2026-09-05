@@ -18,6 +18,11 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Manages settings, providing methods to retrieve and modify settings values.
+ * <p>
+ * This class is thread-safe and supports automatic saving of settings to a specified file path.
+ */
 public final class SettingsManager implements Settings {
     private static final Logger log = LoggerFactory.getLogger(SettingsManager.class);
 
