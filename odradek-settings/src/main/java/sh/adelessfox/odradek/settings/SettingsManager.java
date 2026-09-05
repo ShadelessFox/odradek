@@ -142,8 +142,7 @@ public final class SettingsManager implements Settings {
 
         @Override
         public synchronized void set(T value) {
-            Objects.requireNonNull(value, "value");
-            this.value = value;
+            this.value = Objects.requireNonNull(value, "value");
         }
 
         @Override
