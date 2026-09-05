@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class SettingsKey<T> {
@@ -20,6 +21,13 @@ public final class SettingsKey<T> {
 
     public static <T> SettingsKey<T> of(String name, Class<T> type, Supplier<? extends T> defaultSupplier) {
         return new SettingsKey<>(name, type, defaultSupplier);
+    }
+
+    public static <T> SettingsKey<Optional<T>> optionalOf(
+        String name,
+        Class<T> type
+    ) {
+        return new SettingsKey<>(name, TypeToken.getParameterized(Optional.class, type).getType(), Optional::empty);
     }
 
     public static <T> SettingsKey<List<T>> listOf(
@@ -39,7 +47,7 @@ public final class SettingsKey<T> {
     }
 
     T createDefault() {
-        return defaultSupplier.get();
+        return Objects.requireNonNull(defaultSupplier.get(), "null default value for settings key '" + name + "'");
     }
 
     @Override

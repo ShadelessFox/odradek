@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Singleton
 public class MainPresenter implements Presenter<MainView> {
@@ -49,11 +50,11 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private void loadEditors(Settings settings) {
-        loadContainer(editorManager.getRoot(), settings.get(ApplicationSettings.EDITORS).value());
+        settings.get(ApplicationSettings.EDITORS).value().ifPresent(s -> loadContainer(editorManager.getRoot(), s));
     }
 
     private void saveEditors(Settings settings) {
-        settings.get(ApplicationSettings.EDITORS).set(saveContainer(editorManager.getRoot()));
+        settings.get(ApplicationSettings.EDITORS).set(Optional.of(saveContainer(editorManager.getRoot())));
     }
 
     private void loadContainer(EditorStackContainer container, ApplicationSettings.EditorState state) {

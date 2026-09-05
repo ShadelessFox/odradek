@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.ui.tools.ToolPanel;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Optional;
 
 @Singleton
 public class MainView implements View<JComponent> {
@@ -64,9 +65,9 @@ public class MainView implements View<JComponent> {
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) ->
-                    settings.get(ApplicationSettings.TOOLS).ifPresent(center::setState);
+                    settings.get(ApplicationSettings.TOOLS).value().ifPresent(center::setState);
                 case SettingsEvent.BeforeSave(var settings) ->
-                    settings.get(ApplicationSettings.TOOLS).set(center.getState());
+                    settings.get(ApplicationSettings.TOOLS).set(Optional.of(center.getState()));
             }
         });
 

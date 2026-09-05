@@ -13,17 +13,18 @@ import sh.adelessfox.odradek.ui.tools.ToolState;
 
 import javax.swing.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public final class ApplicationSettings {
-    public static final SettingsKey<WindowState> WINDOW =
-        SettingsKey.of("window", WindowState.class, () -> null);
+    public static final SettingsKey<Optional<WindowState>> WINDOW =
+        SettingsKey.optionalOf("window", WindowState.class);
 
-    public static final SettingsKey<ToolState> TOOLS =
-        SettingsKey.of("tools", ToolState.class, () -> null);
+    public static final SettingsKey<Optional<ToolState>> TOOLS =
+        SettingsKey.optionalOf("tools", ToolState.class);
 
-    public static final SettingsKey<EditorState> EDITORS =
-        SettingsKey.of("editors", EditorState.class, EditorState::empty);
+    public static final SettingsKey<Optional<EditorState>> EDITORS =
+        SettingsKey.optionalOf("editors", EditorState.class);
 
     public static final SettingsKey<List<BookmarkState>> BOOKMARKS =
         SettingsKey.listOf("bookmarks", BookmarkState.class, List::of);
@@ -45,10 +46,6 @@ public final class ApplicationSettings {
 
     @JsonAdapter(EditorStateAdapter.class)
     public sealed interface EditorState {
-        static EditorState empty() {
-            return new Leaf(List.of(), 0);
-        }
-
         record Split(
             EditorState left,
             EditorState right,

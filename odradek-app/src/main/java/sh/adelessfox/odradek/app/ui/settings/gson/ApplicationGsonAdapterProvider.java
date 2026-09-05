@@ -10,6 +10,7 @@ import java.util.OptionalInt;
 public final class ApplicationGsonAdapterProvider implements GsonAdapterProvider {
     @Override
     public void configure(GsonBuilder builder) {
+        builder.registerTypeAdapterFactory(new OptionalAdapterFactory());
         builder.registerTypeHierarchyAdapter(Path.class, new PathTypeAdapter().nullSafe());
         builder.registerTypeAdapter(OptionalInt.class, new OptionalIntTypeAdapter());
         builder.registerTypeAdapter(ObjectId.class, new ObjectIdTypeAdapter().nullSafe());

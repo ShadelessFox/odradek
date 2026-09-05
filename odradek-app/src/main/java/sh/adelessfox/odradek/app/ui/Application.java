@@ -19,6 +19,7 @@ import sh.adelessfox.odradek.ui.util.Dialogs;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.util.Optional;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
@@ -90,7 +91,7 @@ public final class Application {
     }
 
     private static void loadFrameSettings(Settings settings, JFrame frame) {
-        settings.get(ApplicationSettings.WINDOW).ifPresent(window -> {
+        settings.get(ApplicationSettings.WINDOW).value().ifPresent(window -> {
             if (window.maximized()) {
                 frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
             } else {
@@ -103,7 +104,7 @@ public final class Application {
         var bounds = frame.getBounds();
         var maximized = (frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
         var state = new ApplicationSettings.WindowState(bounds.x, bounds.y, bounds.width, bounds.height, maximized);
-        settings.get(ApplicationSettings.WINDOW).set(state);
+        settings.get(ApplicationSettings.WINDOW).set(Optional.of(state));
     }
 
     public DecimaGame game() {
