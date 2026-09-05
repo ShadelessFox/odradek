@@ -27,7 +27,7 @@ public final class ApplicationSettings {
         SettingsKey.optionalOf("editors", EditorState.class);
 
     public static final SettingsKey<List<BookmarkState>> BOOKMARKS =
-        SettingsKey.listOf("bookmarks", BookmarkState.class, List::of);
+        SettingsKey.listOf("bookmarks", BookmarkState.class);
 
     public static final SettingsKey<Theme> THEME =
         SettingsKey.of("theme", Theme.class, () -> Theme.LIGHT);

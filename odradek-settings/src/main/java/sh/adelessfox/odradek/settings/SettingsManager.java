@@ -150,5 +150,10 @@ public final class SettingsManager implements Settings {
         public synchronized void reset() {
             value = key.createDefault();
         }
+
+        @Override
+        public String toString() {
+            return "MutableSetting[key=" + key + ", value=" + value + "]";
+        }
     }
 }
