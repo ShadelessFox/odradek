@@ -39,7 +39,7 @@ public final class SettingsKey<T> {
     }
 
     T createDefault() {
-        return Objects.requireNonNull(defaultSupplier.get(), "null default value for settings key '" + name + "'");
+        return defaultSupplier.get();
     }
 
     @Override
