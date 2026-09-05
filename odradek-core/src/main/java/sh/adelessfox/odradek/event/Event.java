@@ -1,5 +1,8 @@
 package sh.adelessfox.odradek.event;
 
+/**
+ * Represents an event that can be published and subscribed to.
+ */
 public interface Event {
     /**
      * Marker interface for events that should be sticky.
