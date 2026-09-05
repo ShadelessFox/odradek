@@ -5,6 +5,7 @@ import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.viewers.menu.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
@@ -479,7 +480,7 @@ public final class ObjectViewer implements Viewer, Focusable {
                 return Optional.empty();
             }
             var settings = Application.getInstance().settings();
-            if (settings.showObjectTypeInformation().orElse(false)) {
+            if (settings.get(ApplicationSettings.SHOW_OBJECT_TYPE_INFORMATION).value()) {
                 return Optional.of(getElementToolTip(node));
             }
             return Optional.empty();
@@ -489,7 +490,7 @@ public final class ObjectViewer implements Viewer, Focusable {
     private static class ObjectPreviewObjectProvider implements PreviewManager.PreviewObjectProvider {
         @Override
         public Optional<TypeInfo> getType(JTree tree, Object value) {
-            if (!Application.getInstance().settings().showObjectPreview().orElse(false)) {
+            if (!Application.getInstance().settings().get(ApplicationSettings.SHOW_OBJECT_PREVIEW).value()) {
                 return Optional.empty();
             }
             return get(value).map(TypedObject::getType);

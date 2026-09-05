@@ -7,3 +7,6 @@ target/
 
 # Misc
 .data/
+
+# Experiments
+odradek-app/src/main/java/sh/adelessfox/odradek/app/tools/*

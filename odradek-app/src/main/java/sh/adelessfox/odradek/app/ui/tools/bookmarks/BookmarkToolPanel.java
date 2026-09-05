@@ -7,10 +7,11 @@ import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
-import sh.adelessfox.odradek.app.ui.settings.Settings;
-import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.settings.Settings;
+import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -131,37 +132,37 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     }
 
     private void loadSettings(Settings settings) {
-        settings.bookmarks().ifPresent(bookmarks -> deserialize(repository.rootFolderId(), bookmarks));
+        deserialize(repository.rootFolderId(), settings.get(ApplicationSettings.BOOKMARKS).value());
     }
 
-    private void deserialize(FolderId folderId, List<Settings.BookmarkState> children) {
-        for (Settings.BookmarkState child : children) {
+    private void deserialize(FolderId folderId, List<ApplicationSettings.BookmarkState> children) {
+        for (var child : children) {
             switch (child) {
-                case Settings.BookmarkState.Bookmark bookmark ->
+                case ApplicationSettings.BookmarkState.Bookmark bookmark ->
                     repository.create(folderId, bookmark.key(), bookmark.name());
-                case Settings.BookmarkState.Folder folder ->
+                case ApplicationSettings.BookmarkState.Folder folder ->
                     deserialize(repository.createFolder(folderId, folder.name()), folder.children());
             }
         }
     }
 
     private void saveSettings(Settings settings) {
-        var children = new ArrayList<Settings.BookmarkState>();
+        var children = new ArrayList<ApplicationSettings.BookmarkState>();
         serialize(repository.rootFolderId(), children);
-        settings.bookmarks().set(children);
+        settings.get(ApplicationSettings.BOOKMARKS).set(children);
     }
 
-    private void serialize(FolderId folderId, List<Settings.BookmarkState> output) {
+    private void serialize(FolderId folderId, List<ApplicationSettings.BookmarkState> output) {
         var folders = repository.getAllFoldersInFolder(folderId);
         for (var folder : folders) {
-            var children = new ArrayList<Settings.BookmarkState>();
+            var children = new ArrayList<ApplicationSettings.BookmarkState>();
             serialize(folder.id(), children);
-            output.add(new Settings.BookmarkState.Folder(folder.name(), children));
+            output.add(new ApplicationSettings.BookmarkState.Folder(folder.name(), children));
         }
 
         var bookmarks = repository.getAllInFolder(folderId);
         for (var bookmark : bookmarks) {
-            output.add(new Settings.BookmarkState.Bookmark(bookmark.key(), bookmark.name()));
+            output.add(new ApplicationSettings.BookmarkState.Bookmark(bookmark.key(), bookmark.name()));
         }
     }
 }

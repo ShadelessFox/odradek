@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.settings;
+package sh.adelessfox.odradek.settings;
 
 import sh.adelessfox.odradek.event.Event;
 

@@ -3,11 +3,12 @@ package sh.adelessfox.odradek.app.ui.component.main;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.View;
-import sh.adelessfox.odradek.app.ui.settings.SettingsEvent;
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
 import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.tools.ToolContainer;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
@@ -62,8 +63,10 @@ public class MainView implements View<JComponent> {
         eventBus.subscribe(MainEvent.ShowPanel.class, event -> center.openPanel(event.id(), event.focus()));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
-                case SettingsEvent.AfterLoad(var settings) -> settings.tools().ifPresent(center::setState);
-                case SettingsEvent.BeforeSave(var settings) -> settings.tools().set(center.getState());
+                case SettingsEvent.AfterLoad(var settings) ->
+                    settings.get(ApplicationSettings.TOOLS).ifPresent(center::setState);
+                case SettingsEvent.BeforeSave(var settings) ->
+                    settings.get(ApplicationSettings.TOOLS).set(center.getState());
             }
         });
 

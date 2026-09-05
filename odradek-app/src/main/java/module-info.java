@@ -13,6 +13,7 @@ module odradek.app {
     requires odradek.core;
     requires odradek.game.decima;
     requires odradek.rtti;
+    requires odradek.settings;
     requires odradek.ui;
     requires org.slf4j;
 
@@ -46,7 +47,6 @@ module odradek.app {
     opens sh.adelessfox.odradek.app to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;
     opens sh.adelessfox.odradek.app.ui to info.picocli;
-    opens sh.adelessfox.odradek.app.ui.bookmarks to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings.gson to com.google.gson;
 
@@ -88,6 +88,9 @@ module odradek.app {
 
     provides sh.adelessfox.odradek.app.util.GameLocator
         with sh.adelessfox.odradek.app.util.steam.SteamGameLocator;
+
+    provides sh.adelessfox.odradek.settings.gson.GsonAdapterProvider
+        with sh.adelessfox.odradek.app.ui.settings.gson.ApplicationGsonAdapterProvider;
 
     uses sh.adelessfox.odradek.app.util.GameLocator;
 }

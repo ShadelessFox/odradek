@@ -36,6 +36,7 @@
         <module>odradek-opengl</module>
         <module>odradek-rtti-generator</module>
         <module>odradek-rtti</module>
+        <module>odradek-settings</module>
         <module>odradek-ui</module>
         <module>odradek-viewer-audio</module>
         <module>odradek-viewer-font</module>
@@ -105,6 +106,11 @@
             <dependency>
                 <groupId>sh.adelessfox</groupId>
                 <artifactId>odradek-ui</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>sh.adelessfox</groupId>
+                <artifactId>odradek-settings</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
