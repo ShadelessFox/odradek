@@ -166,6 +166,8 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
 
         UIManager.addPropertyChangeListener(this);
         UIManager.getDefaults().addPropertyChangeListener(this);
+
+        updatePanelsTreeUI();
     }
 
     @Override
@@ -181,7 +183,10 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
         if (!"lookAndFeel".equals(event.getPropertyName())) {
             return;
         }
+        updatePanelsTreeUI();
+    }
 
+    private void updatePanelsTreeUI() {
         for (ToolPanelState state : panelById.values()) {
             // Unless a better way to toggle visibility of individual components
             // is found without altering the hierarchy, use this to aid in
@@ -190,10 +195,6 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
 
             if (state.component != null) {
                 SwingUtilities.updateComponentTreeUI(state.component);
-            }
-
-            if (state.header != null) {
-                SwingUtilities.updateComponentTreeUI(state.header);
             }
         }
     }
@@ -608,7 +609,7 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
         private static ToolButtonRepainter instance;
         private final KeyboardFocusManager keyboardFocusManager;
 
-         static synchronized void install() {
+        static synchronized void install() {
             if (instance != null) {
                 return;
             }
