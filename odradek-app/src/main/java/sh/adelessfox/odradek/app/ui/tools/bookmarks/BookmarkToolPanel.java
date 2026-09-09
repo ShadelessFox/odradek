@@ -59,20 +59,20 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         }
     }
 
-    private final Bookmarks repository;
+    private final Bookmarks bookmarks;
     private final EventBus eventBus;
     private StructuredTree<BookmarkStructure> tree;
 
-    private BookmarkToolPanel(Bookmarks repository, EventBus eventBus) {
-        this.repository = repository;
+    private BookmarkToolPanel(Bookmarks bookmarks, EventBus eventBus) {
+        this.bookmarks = bookmarks;
         this.eventBus = eventBus;
     }
 
     @Override
     public JComponent createComponent() {
-        tree = new StructuredTree<>(new BookmarkStructure.Folder(repository, repository.rootFolderId(), "Root"));
+        tree = new StructuredTree<>(new BookmarkStructure.Folder(bookmarks, bookmarks.rootFolderId(), "Root"));
         tree.setShowsRootHandles(true);
-        tree.setLabelProvider(new BookmarkLabelProvider());
+        tree.setLabelProvider(new BookmarkLabelProvider(bookmarks));
         tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
@@ -87,7 +87,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         // Setup drag-n-drop
         tree.setDragEnabled(true);
         tree.setDropMode(DropMode.ON);
-        tree.setTransferHandler(new BookmarkTransferHandler(tree));
+        tree.setTransferHandler(new BookmarkTransferHandler(bookmarks, tree));
 
         eventBus.subscribe(BookmarkEvent.class, e -> SwingUtilities.invokeLater(() -> handleBookmarkEvent(e)));
         eventBus.subscribe(SettingsEvent.class, event -> {
@@ -132,35 +132,35 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     }
 
     private void loadSettings(Settings settings) {
-        deserialize(repository.rootFolderId(), settings.get(ApplicationSettings.BOOKMARKS).value());
+        deserialize(bookmarks.rootFolderId(), settings.get(ApplicationSettings.BOOKMARKS).value());
     }
 
     private void deserialize(FolderId folderId, List<ApplicationSettings.BookmarkState> children) {
         for (var child : children) {
             switch (child) {
                 case ApplicationSettings.BookmarkState.Bookmark bookmark ->
-                    repository.create(folderId, bookmark.key(), bookmark.name());
+                    bookmarks.create(folderId, bookmark.key(), bookmark.name());
                 case ApplicationSettings.BookmarkState.Folder folder ->
-                    deserialize(repository.createFolder(folderId, folder.name()), folder.children());
+                    deserialize(bookmarks.createFolder(folderId, folder.name()), folder.children());
             }
         }
     }
 
     private void saveSettings(Settings settings) {
         var children = new ArrayList<ApplicationSettings.BookmarkState>();
-        serialize(repository.rootFolderId(), children);
+        serialize(bookmarks.rootFolderId(), children);
         settings.get(ApplicationSettings.BOOKMARKS).set(children);
     }
 
     private void serialize(FolderId folderId, List<ApplicationSettings.BookmarkState> output) {
-        var folders = repository.getAllFoldersInFolder(folderId);
+        var folders = bookmarks.getAllFoldersInFolder(folderId);
         for (var folder : folders) {
             var children = new ArrayList<ApplicationSettings.BookmarkState>();
             serialize(folder.id(), children);
             output.add(new ApplicationSettings.BookmarkState.Folder(folder.name(), children));
         }
 
-        var bookmarks = repository.getAllInFolder(folderId);
+        var bookmarks = this.bookmarks.getAllInFolder(folderId);
         for (var bookmark : bookmarks) {
             output.add(new ApplicationSettings.BookmarkState.Bookmark(bookmark.key(), bookmark.name()));
         }

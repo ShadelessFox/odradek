@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
@@ -21,9 +21,11 @@ import java.util.Optional;
 final class BookmarkTransferHandler extends TransferHandler {
     private static final DataFlavor FLAVOR = new DataFlavor(Payload.class, "Odradek Bookmarks");
 
+    private final Bookmarks bookmarks;
     private final StructuredTree<BookmarkStructure> tree;
 
-    BookmarkTransferHandler(StructuredTree<BookmarkStructure> tree) {
+    BookmarkTransferHandler(Bookmarks bookmarks, StructuredTree<BookmarkStructure> tree) {
+        this.bookmarks = bookmarks;
         this.tree = tree;
     }
 
@@ -47,7 +49,6 @@ final class BookmarkTransferHandler extends TransferHandler {
         if (target == null) {
             return false;
         }
-        var bookmarks = Application.getInstance().bookmarks();
         for (FolderId folder : data.folders()) {
             if (bookmarks.isDescendant(folder, target)) {
                 return false;
@@ -69,7 +70,6 @@ final class BookmarkTransferHandler extends TransferHandler {
         var data = getData(support);
         var target = findDropFolder(support).orElse(null);
         if (target != null) {
-            var bookmarks = Application.getInstance().bookmarks();
             data.bookmarks().forEach(id -> bookmarks.move(id, target));
             data.folders().forEach(id -> bookmarks.moveFolder(id, target));
             return true;
