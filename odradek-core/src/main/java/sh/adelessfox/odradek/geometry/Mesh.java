@@ -61,7 +61,14 @@ public record Mesh(
         Check.argument(length == count * elementSize, "array length must be equal to count * elementSize");
     }
 
-    public Bounds computeBounds() {
+    /**
+     * Computes bounds of indexed vertices in mesh-local space.
+     * Meshes without indices have no bounds.
+     */
+    public Optional<Bounds> computeBounds() {
+        if (indices.length() == 0) {
+            return Optional.empty();
+        }
         var builder = Bounds.builder();
 
         for (int i = 0; i < indices().length(); i++) {
@@ -73,6 +80,6 @@ public record Mesh(
             builder.add(x, y, z);
         }
 
-        return builder.build();
+        return Optional.of(builder.build());
     }
 }

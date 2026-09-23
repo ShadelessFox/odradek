@@ -104,10 +104,9 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void renderNode(GpuNode node, Frustum frustum, ViewportContext context) {
-        // FIXME frustum test is incorrect! Is something wrong with bounding boxes?
-        // if (!frustum.test(node.bbox())) {
-        //     return;
-        // }
+        if (!frustum.test(node.worldBounds())) {
+            return;
+        }
         for (GpuMesh primitive : node.meshes()) {
             program.set("u_model", node.transform());
             program.set("u_color", primitive.color());
@@ -137,21 +136,29 @@ public final class RenderMeshesPass implements RenderPass {
         return flags;
     }
 
-    private GpuNode uploadNode(Node node, Matrix4 transform) {
-        var meshes = node.model().stream()
-            .flatMap(mesh -> mesh.meshes().stream())
+    private Optional<GpuNode> uploadNode(Node node, Matrix4 worldTransform) {
+        var model = node.model().orElse(null);
+        if (model == null) {
+            return Optional.empty();
+        }
+        var worldBounds = model.computeBounds(worldTransform).orElse(null);
+        if (worldBounds == null) {
+            return Optional.empty();
+        }
+        var meshes = model.meshes().stream()
             .map(this::uploadPrimitive)
             .flatMap(Optional::stream)
             .toList();
-
-        var bbox = node.computeBounds()
-            .map(b -> b.transform(transform))
-            .orElse(Bounds.EMPTY);
-
-        return new GpuNode(meshes, transform, bbox);
+        if (meshes.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(new GpuNode(meshes, worldTransform, worldBounds));
     }
 
     private Optional<GpuMesh> uploadPrimitive(Mesh mesh) {
+        if (mesh.indices().length() == 0) {
+            return Optional.empty();
+        }
         try (var vao = new VertexArray().bind()) {
             var indices = vao.createElementBuffer();
             indices.put(mesh.indices().asBuffer(), 0);
@@ -199,18 +206,10 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void cacheScene(Scene scene) {
-        for (Node node : scene.nodes()) {
-            cacheNodeRecursively(node, node.matrix());
-        }
-    }
-
-    private void cacheNodeRecursively(Node node, Matrix4 transform) {
-        if (node.model().isPresent()) {
-            nodes.add(uploadNode(node, transform));
-        }
-        for (Node child : node.children()) {
-            cacheNodeRecursively(child, transform.multiply(child.matrix()));
-        }
+        scene.accept((node, worldTransform) -> {
+            uploadNode(node, worldTransform).ifPresent(nodes::add);
+            return true;
+        });
     }
 
     private BufferedImage loadImage() throws IOException {
@@ -231,7 +230,7 @@ public final class RenderMeshesPass implements RenderPass {
         );
     }
 
-    private record GpuNode(List<GpuMesh> meshes, Matrix4 transform, Bounds bbox) {
+    private record GpuNode(List<GpuMesh> meshes, Matrix4 transform, Bounds worldBounds) {
         void dispose() {
             for (GpuMesh mesh : meshes) {
                 mesh.dispose();

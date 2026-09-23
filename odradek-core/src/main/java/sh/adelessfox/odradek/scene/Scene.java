@@ -20,6 +20,9 @@ public record Scene(List<Node> nodes) {
         }
     }
 
+    /**
+     * Computes world-space bounds of all indexed geometry in the scene.
+     */
     public Optional<Bounds> computeBounds() {
         return nodes.stream()
             .map(Node::computeBounds)

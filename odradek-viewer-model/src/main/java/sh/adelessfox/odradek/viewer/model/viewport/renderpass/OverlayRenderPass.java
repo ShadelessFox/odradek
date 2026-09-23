@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import com.formdev.flatlaf.util.UIScale;
 import sh.adelessfox.odradek.geometry.Mesh;
-import sh.adelessfox.odradek.geometry.Model;
 import sh.adelessfox.odradek.scene.Bone;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
@@ -87,8 +86,9 @@ public class OverlayRenderPass implements RenderPass {
             }
             if (context.isShowBounds()) {
                 for (OverlayMesh mesh : node.meshes()) {
-                    debug.aabb(mesh.bounds().transform(node.transform()), mesh.color());
+                    debug.aabb(mesh.worldBounds(), mesh.color());
                 }
+                node.worldBounds().ifPresent(bounds -> debug.aabb(bounds, new Vector3(1, 1, 1)));
             }
         }
     }
@@ -127,20 +127,33 @@ public class OverlayRenderPass implements RenderPass {
 
     private void cacheSceneNodes(Scene scene) {
         nodes.clear();
-        for (Node node : scene.nodes()) {
-            cacheNodeRecursively(node, node.matrix());
-        }
+        scene.accept((node, worldTransform) -> {
+            computeNode(node, worldTransform).ifPresent(nodes::add);
+            return true;
+        });
     }
 
-    private void cacheNodeRecursively(Node node, Matrix4 transform) {
-        var meshes = node.model().map(Model::meshes).orElse(List.of());
-        var overlayMeshes = meshes.stream()
-            .map(mesh -> new OverlayMesh(mesh, mesh.computeBounds(), computeRandomColor(mesh.hashCode())))
+    private Optional<OverlayNode> computeNode(Node node, Matrix4 worldTransform) {
+        var worldBounds = node.model().flatMap(model -> model.computeBounds(worldTransform));
+        var meshes = node.model().stream()
+            .flatMap(model -> model.meshes().stream())
+            .map(mesh -> cacheNode(mesh, worldTransform))
+            .flatMap(Optional::stream)
             .toList();
-        nodes.add(new OverlayNode(node.skeleton(), overlayMeshes, transform));
-        for (Node child : node.children()) {
-            cacheNodeRecursively(child, transform.multiply(child.matrix()));
+        if (meshes.isEmpty() && node.skeleton().isEmpty()) {
+            return Optional.empty();
         }
+        return Optional.of(new OverlayNode(node.skeleton(), meshes, worldTransform, worldBounds));
+    }
+
+    private static Optional<OverlayMesh> cacheNode(Mesh mesh, Matrix4 worldTransform) {
+        var bounds = mesh.computeBounds().orElse(null);
+        if (bounds == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new OverlayMesh(
+            bounds.transform(worldTransform),
+            computeRandomColor(mesh.hashCode())));
     }
 
     private static Vector3 computeRandomColor(int seed) {
@@ -173,9 +186,14 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
-    private record OverlayNode(Optional<Skeleton> skeleton, List<OverlayMesh> meshes, Matrix4 transform) {
+    private record OverlayNode(
+        Optional<Skeleton> skeleton,
+        List<OverlayMesh> meshes,
+        Matrix4 transform,
+        Optional<Bounds> worldBounds
+    ) {
     }
 
-    private record OverlayMesh(Mesh mesh, Bounds bounds, Vector3 color) {
+    private record OverlayMesh(Bounds worldBounds, Vector3 color) {
     }
 }

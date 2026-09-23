@@ -60,17 +60,26 @@ public record Node(
         }
     }
 
+    /**
+     * Computes bounds of this node and its descendants in this node's parent space.
+     * The result already includes this node's matrix.
+     */
     public Optional<Bounds> computeBounds() {
+        return computeBounds(Matrix4.IDENTITY);
+    }
+
+    private Optional<Bounds> computeBounds(Matrix4 parentTransform) {
+        var transform = parentTransform.multiply(matrix);
         var bbox1 = model.stream()
-            .map(Model::computeBounds);
+            .map(model -> model.computeBounds(transform))
+            .flatMap(Optional::stream);
 
         var bbox2 = children.stream()
-            .map(Node::computeBounds)
+            .map(child -> child.computeBounds(transform))
             .flatMap(Optional::stream);
 
         return Stream.concat(bbox1, bbox2)
-            .reduce(Bounds::combine)
-            .map(bbox -> bbox.transform(matrix));
+            .reduce(Bounds::combine);
     }
 
     public static final class Builder {

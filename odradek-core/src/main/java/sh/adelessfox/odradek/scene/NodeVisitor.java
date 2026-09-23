@@ -8,7 +8,7 @@ public interface NodeVisitor {
      * Visits a node.
      *
      * @param node      the node to visit
-     * @param transform the accumulated transform
+     * @param transform the accumulated node-local-to-world transform, including this node's matrix
      * @return {@code true} to continue visiting child nodes, {@code false} to skip them
      */
     boolean visit(Node node, Matrix4 transform);

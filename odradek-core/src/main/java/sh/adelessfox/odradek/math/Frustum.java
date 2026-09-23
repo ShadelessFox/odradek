@@ -14,6 +14,7 @@ public record Frustum(List<Vector4> planes) {
         planes = List.copyOf(planes);
     }
 
+    /** Extracts inward-facing planes for OpenGL's {@code -w <= x, y, z <= w} clip volume. */
     public static Frustum of(Matrix4 m) {
         var m1 = new Vector4(m.m11(), m.m12(), m.m13(), m.m14());
         var m2 = new Vector4(m.m21(), m.m22(), m.m23(), m.m24());
@@ -29,6 +30,11 @@ public record Frustum(List<Vector4> planes) {
         return new Frustum(planes);
     }
 
+    /**
+     * Returns whether the box may intersect the frustum. The box must be expressed
+     * in the input space of the matrix used to construct this frustum (world space
+     * for a projection-view matrix).
+     */
     public boolean test(Bounds bounds) {
         return test(bounds.minX(), bounds.minY(), bounds.minZ(), bounds.maxX(), bounds.maxY(), bounds.maxZ());
     }
