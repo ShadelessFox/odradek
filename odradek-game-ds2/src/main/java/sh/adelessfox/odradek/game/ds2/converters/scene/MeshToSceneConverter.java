@@ -48,6 +48,7 @@ public final class MeshToSceneConverter
             || DS2.PrefabResource.class.isAssignableFrom(cls)
             || DS2.PrefabInstance.class.isAssignableFrom(cls)
             || DS2.MockupGeometry.class.isAssignableFrom(cls)
+            || DS2.ModelPartResource.class.isAssignableFrom(cls)
             || DS2.ArtPartsCoverModelSettingResource.class.isAssignableFrom(cls)
             || DS2.ArtPartsModelResource.class.isAssignableFrom(cls)
             || DS2.ArtPartsDataResource.class.isAssignableFrom(cls);
@@ -76,6 +77,7 @@ public final class MeshToSceneConverter
             case DS2.ControlledEntityResource r -> convertControlledEntityResource(context, r, game);
             case DS2.PrefabResource r -> convertPrefabResource(context, r, game);
             case DS2.PrefabInstance r -> convertPrefabInstance(context, r, game);
+            case DS2.ModelPartResource r -> convertModelPartResource(context, r, game);
             case DS2.MockupGeometry r -> convertMockupGeometry(context, r, game);
             case DS2.ArtPartsCoverModelSettingResource r -> convertArtPartsCoverModelSettingResource(context, r, game);
             case DS2.ArtPartsModelResource r -> convertArtPartsModelResource(context, r, game);
