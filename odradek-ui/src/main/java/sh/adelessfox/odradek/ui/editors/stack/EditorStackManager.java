@@ -71,10 +71,21 @@ public final class EditorStackManager implements EditorManager {
 
     @Override
     public void openEditorInNewTab(EditorInput input, EditorStack stack, Activation activation) {
-        var history = new EditorHistory(createEditorComponent(input));
+        openEditorInNewTab(new History(List.of(input), 0), stack, activation);
+    }
+
+    @Override
+    public void openEditorInNewTab(History state, EditorStack stack, Activation activation) {
+        var entries = state.inputs().stream().map(this::createEditorComponent).toList();
+        var history = new EditorHistory(entries, state.selection());
         int index = activation == Activation.NO ? stack.getTabCount() : stack.getSelectedIndex() + 1;
-        stack.insertEditor(input, history, index);
+        stack.insertEditor(history.current().editor.getInput(), history, index);
         reveal(history, activation);
+    }
+
+    @Override
+    public Optional<History> getHistory(Editor editor) {
+        return findEditorHistory(e -> e == editor).map(EditorHistory::snapshot);
     }
 
     private static void reveal(EditorHistory history, Activation activation) {

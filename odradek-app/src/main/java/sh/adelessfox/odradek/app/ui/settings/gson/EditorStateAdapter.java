@@ -11,6 +11,7 @@ import java.util.List;
 
 public final class EditorStateAdapter implements JsonSerializer<EditorState>, JsonDeserializer<EditorState> {
     private static final TypeToken<?> OBJECT_ID_LIST = TypeToken.getParameterized(List.class, ObjectId.class);
+    private static final TypeToken<?> EDITOR_LIST = TypeToken.getParameterized(List.class, EditorState.Editor.class);
 
     @Override
     public EditorState deserialize(
@@ -22,9 +23,17 @@ public final class EditorStateAdapter implements JsonSerializer<EditorState>, Js
         var type = object.get("type").getAsString();
         return switch (type) {
             case "leaf" -> {
-                var objects = context.<List<ObjectId>>deserialize(object.get("objects"), OBJECT_ID_LIST.getType());
+                List<EditorState.Editor> editors;
+                if (object.has("tabs")) {
+                    editors = context.deserialize(object.get("tabs"), EDITOR_LIST.getType());
+                } else {
+                    var objects = context.<List<ObjectId>>deserialize(object.get("objects"), OBJECT_ID_LIST.getType());
+                    editors = objects.stream()
+                        .map(id -> new EditorState.Editor(List.of(id), 0))
+                        .toList();
+                }
                 var selection = object.get("selection").getAsInt();
-                yield new EditorState.Leaf(objects, selection);
+                yield new EditorState.Leaf(editors, selection);
             }
             case "split" -> {
                 var left = context.<EditorState>deserialize(object.get("left"), EditorState.class);
@@ -43,8 +52,8 @@ public final class EditorStateAdapter implements JsonSerializer<EditorState>, Js
         switch (src) {
             case EditorState.Leaf leaf -> {
                 object.addProperty("type", "leaf");
+                object.add("tabs", context.serialize(leaf.editors(), EDITOR_LIST.getType()));
                 object.addProperty("selection", leaf.selection());
-                object.add("objects", context.serialize(leaf.objects(), OBJECT_ID_LIST.getType()));
             }
             case EditorState.Split split -> {
                 object.addProperty("type", "split");

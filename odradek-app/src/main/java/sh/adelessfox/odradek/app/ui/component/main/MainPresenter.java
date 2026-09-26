@@ -61,12 +61,23 @@ public class MainPresenter implements Presenter<MainView> {
         switch (state) {
             case ApplicationSettings.EditorState.Leaf leaf -> {
                 var stack = container.getEditorStack();
-                for (int i = 0; i < leaf.objects().size(); i++) {
-                    var input = new ObjectEditorInputLazy(leaf.objects().get(i));
-                    editorManager.openEditorInNewTab(input, stack, EditorManager.Activation.NO);
+                int selection = 0;
+                for (int i = 0; i < leaf.editors().size(); i++) {
+                    var tab = leaf.editors().get(i);
+                    if (tab.history().isEmpty()) {
+                        continue;
+                    }
+                    if (i == leaf.selection()) {
+                        selection = stack.getTabCount();
+                    }
+                    var inputs = tab.history().stream()
+                        .map(ObjectEditorInputLazy::new)
+                        .toList();
+                    var history = new EditorManager.History(inputs, Math.clamp(tab.selection(), 0, inputs.size() - 1));
+                    editorManager.openEditorInNewTab(history, stack, EditorManager.Activation.NO);
                 }
-                if (!leaf.objects().isEmpty()) {
-                    stack.setSelectedIndex(Math.clamp(leaf.selection(), 0, stack.getTabCount() - 1));
+                if (stack.getTabCount() > 0) {
+                    stack.setSelectedIndex(selection);
                 }
             }
             case ApplicationSettings.EditorState.Split split -> {
@@ -92,19 +103,31 @@ public class MainPresenter implements Presenter<MainView> {
             var stack = container.getEditorStack();
             var selected = stack.getSelectedEditor().orElse(null);
 
-            var objects = new ArrayList<ObjectId>();
+            var tabs = new ArrayList<ApplicationSettings.EditorState.Editor>();
             int selection = 0;
             for (Editor editor : stack.getEditors()) {
+                if (!(editor.getInput() instanceof ObjectIdHolder)) {
+                    continue;
+                }
                 if (editor == selected) {
-                    selection = objects.size();
+                    selection = tabs.size();
                 }
-                if (editor.getInput() instanceof ObjectIdHolder holder) {
-                    objects.add(holder.objectId());
+                var history = editorManager.getHistory(editor).orElseThrow();
+                var objects = new ArrayList<ObjectId>();
+                int current = 0;
+                for (int i = 0; i < history.inputs().size(); i++) {
+                    if (history.inputs().get(i) instanceof ObjectIdHolder holder) {
+                        if (i == history.selection()) {
+                            current = objects.size();
+                        }
+                        objects.add(holder.objectId());
+                    }
                 }
+                tabs.add(new ApplicationSettings.EditorState.Editor(objects, current));
             }
 
             return new ApplicationSettings.EditorState.Leaf(
-                objects,
+                tabs,
                 selection
             );
         }

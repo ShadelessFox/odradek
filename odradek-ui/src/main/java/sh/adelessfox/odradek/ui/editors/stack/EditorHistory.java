@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
 import sh.adelessfox.odradek.ui.editors.Editor;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -21,9 +22,13 @@ final class EditorHistory extends JComponent {
     private int index;
     private boolean active;
 
-    EditorHistory(EditorComponent initial) {
-        entries.add(initial);
-        cards.add(initial, "0");
+    EditorHistory(List<EditorComponent> entries, int selection) {
+        this.entries.addAll(entries);
+        this.index = selection;
+
+        for (int i = 0; i < entries.size(); i++) {
+            cards.add(entries.get(i), Integer.toString(i));
+        }
 
         navigationToolBar.setOpaque(false);
         navigationToolBar.add(Box.createHorizontalGlue());
@@ -38,6 +43,13 @@ final class EditorHistory extends JComponent {
 
     EditorComponent current() {
         return entries.get(index);
+    }
+
+    EditorManager.History snapshot() {
+        var inputs = entries.stream()
+            .map(entry -> entry.editor.getInput())
+            .toList();
+        return new EditorManager.History(inputs, index);
     }
 
     JToolBar getNavigationToolBar() {

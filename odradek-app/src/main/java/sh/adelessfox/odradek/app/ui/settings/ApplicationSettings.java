@@ -46,6 +46,7 @@ public final class ApplicationSettings {
 
     @JsonAdapter(EditorStateAdapter.class)
     public sealed interface EditorState {
+        /** A split container with two child containers. */
         record Split(
             EditorState left,
             EditorState right,
@@ -54,7 +55,12 @@ public final class ApplicationSettings {
         ) implements EditorState {
         }
 
-        record Leaf(List<ObjectId> objects, int selection) implements EditorState {
+        /** A stack with a list of editors. */
+        record Leaf(List<Editor> editors, int selection) implements EditorState {
+        }
+
+        /** A single editor with a history of opened objects. */
+        record Editor(List<ObjectId> history, int selection) {
         }
     }
 
