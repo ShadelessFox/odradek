@@ -1,0 +1,46 @@
+package sh.adelessfox.odradek.app.ui.tools.graph.menu;
+
+import sh.adelessfox.odradek.app.ui.menu.MenuIds;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
+import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
+import sh.adelessfox.odradek.rtti.TypeInfo;
+import sh.adelessfox.odradek.ui.actions.Action;
+import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.ui.actions.ActionContribution;
+import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
+import sh.adelessfox.odradek.util.Gatherers;
+
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
+@ActionRegistration(text = "Copy Object &Type", icon = "fugue:blue-document-copy")
+@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_UTIL)
+@ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_UTIL)
+@ActionContribution(parent = BookmarkMenu.ID)
+public class CopyTypeToClipboardAction extends Action {
+    @Override
+    public void perform(ActionContext context) {
+        var ids = context.get(DataKeys.SELECTION_LIST).stream()
+            .flatMap(Collection::stream)
+            .gather(Gatherers.instanceOf(ObjectTypeHolder.class))
+            .map(ObjectTypeHolder::objectType)
+            .map(TypeInfo::name)
+            .collect(Collectors.joining(", "));
+
+        var clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        var contents = new StringSelection(ids);
+        clipboard.setContents(contents, contents);
+    }
+
+    @Override
+    public boolean isVisible(ActionContext context) {
+        return context.get(DataKeys.SELECTION_LIST).stream()
+            .flatMap(Collection::stream)
+            .anyMatch(ObjectIdHolder.class::isInstance);
+    }
+}

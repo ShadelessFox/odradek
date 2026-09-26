@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.editors;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.util.TypePath;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
@@ -17,6 +18,16 @@ public record ObjectEditorInput(
 ) implements EditorInput, ObjectIdHolder {
     public ObjectEditorInput(Game game, TypedObject object, ObjectId objectId) {
         this(game, object, objectId, Optional.empty());
+    }
+
+    public static Optional<EditorInput> fromLink(Game game, Object value) {
+        // TODO introduce a dedicated reference type like it was before. This seems weird and ugly
+        return switch (value) {
+            case ObjectWithIdHolder<?> holder when holder.object() instanceof TypedObject object ->
+                Optional.of(new ObjectEditorInput(game, object, holder.objectId()));
+            case ObjectIdHolder holder -> Optional.of(new ObjectEditorInputLazy(holder.objectId()));
+            case null, default -> Optional.empty();
+        };
     }
 
     @Override

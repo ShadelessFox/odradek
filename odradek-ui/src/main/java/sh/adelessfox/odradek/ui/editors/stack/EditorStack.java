@@ -25,7 +25,7 @@ public final class EditorStack extends FlatTabbedPane {
     }
 
     private final EditorStackManager manager;
-    private EditorComponent lastEditor;
+    private EditorHistory lastEditor;
 
     EditorStack(EditorStackManager manager) {
         this.manager = manager;
@@ -37,24 +37,27 @@ public final class EditorStack extends FlatTabbedPane {
         setTabCloseCallback((_, index) -> manager.closeEditor(getEditorAt(index)));
         setStyle("selectedBackground: @componentBackground");
 
-        getModel().addChangeListener(_ -> {
-            var newEditor = (EditorComponent) getSelectedComponent();
+        addChangeListener(_ -> {
+            var newEditor = (EditorHistory) getSelectedComponent();
             if (lastEditor == newEditor) {
                 return;
             }
 
             // Deactivate last editor
-            if (lastEditor != null && lastEditor.hasComponent()) {
-                lastEditor.editor.deactivate();
+            if (lastEditor != null) {
+                lastEditor.deactivate();
             }
 
             // Retrieve new editor. If it doesn't exist, then this stack is empty; otherwise, activate
             lastEditor = newEditor;
             if (lastEditor == null) {
                 getContainer().compact();
-            } else if (lastEditor.hasComponent()) {
-                lastEditor.editor.activate();
+            } else {
+                lastEditor.activate();
             }
+
+            // Update the navigation toolbar. It might be hidden if there's just a single entry in the history
+            setTrailingComponent(lastEditor == null ? null : lastEditor.getNavigationToolBar());
         });
 
         addMouseListener(new MouseAdapter() {
@@ -85,41 +88,8 @@ public final class EditorStack extends FlatTabbedPane {
         return "EditorStackUI";
     }
 
-    void insertEditor(EditorInput input, EditorComponent component, int index) {
+    void insertEditor(EditorInput input, EditorHistory component, int index) {
         insertTab(input.getName(), null, component, input.getDescription(), index);
-    }
-
-    void reopenEditor(EditorComponent oldComponent, EditorInput newInput, EditorComponent newComponent) {
-        int index = indexOfComponent(oldComponent);
-        boolean selected = getSelectedIndex() == index;
-
-        if (index < 0) {
-            throw new IllegalArgumentException("Old component is not in this stack");
-        }
-
-        Editor oldEditor = oldComponent.editor;
-        Editor newEditor = newComponent.editor;
-
-        if (oldComponent.hasComponent()) {
-            if (selected) {
-                oldEditor.deactivate();
-            }
-            oldEditor.dispose();
-        }
-
-        setComponentAt(index, newComponent);
-        setTitleAt(index, newInput.getName());
-        setToolTipTextAt(index, newInput.getDescription());
-
-        if (selected) {
-            lastEditor = newComponent;
-            newEditor.activate();
-
-            if (oldEditor.isFocused()) {
-                // Restore focus
-                newEditor.setFocus();
-            }
-        }
     }
 
     public boolean move(Editor sourceEditor, EditorStack targetStack) {
@@ -227,7 +197,7 @@ public final class EditorStack extends FlatTabbedPane {
 
     public Optional<Editor> getSelectedEditor() {
         if (lastEditor != null) {
-            return Optional.of(lastEditor.editor);
+            return Optional.of(lastEditor.current().editor);
         }
         return Optional.empty();
     }

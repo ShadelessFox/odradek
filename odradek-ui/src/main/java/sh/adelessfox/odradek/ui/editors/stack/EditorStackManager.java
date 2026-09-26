@@ -27,7 +27,7 @@ public final class EditorStackManager implements EditorManager {
     private static final Integer OVERLAY_LAYER = JLayeredPane.POPUP_LAYER - 1;
 
     private final EditorStackContainer root;
-    private final EditorSite sharedSite = new MyEditorSite();
+    private final EditorSite sharedSite = () -> this;
 
     private EditorStackDropOverlay overlay;
 
@@ -56,65 +56,62 @@ public final class EditorStackManager implements EditorManager {
 
     @Override
     public void openEditor(EditorInput input, EditorStack stack, Activation activation) {
-        EditorComponent component = findEditorComponent(e -> input.representsSameInput(e.getInput())).orElse(null);
-
-        if (component == null) {
-            var result = createEditorForInput(input);
-            var editor = result.editor();
-            var provider = result.provider();
-
-            component = new EditorComponent(
-                activation == Activation.NO ? null : editor.createComponent(),
-                editor,
-                provider);
-            stack.insertEditor(input, component, stack.getSelectedIndex() + 1);
+        var history = findEditorHistory(e -> input.representsSameInput(e.getInput())).orElse(null);
+        if (history == null) {
+            openEditorInNewTab(input, stack, activation);
         } else {
-            // Do we have to check whether this editor belongs to the given stack?
-            stack = component.getEditorStack();
+            reveal(history, activation);
         }
+    }
 
-        if (activation != Activation.NO && stack.getSelectedComponent() != component) {
+    @Override
+    public void openEditorInNewTab(EditorInput input) {
+        openEditorInNewTab(input, findActiveEditorStack(), Activation.REVEAL_AND_FOCUS);
+    }
+
+    @Override
+    public void openEditorInNewTab(EditorInput input, EditorStack stack, Activation activation) {
+        var history = new EditorHistory(createEditorComponent(input));
+        int index = activation == Activation.NO ? stack.getTabCount() : stack.getSelectedIndex() + 1;
+        stack.insertEditor(input, history, index);
+        reveal(history, activation);
+    }
+
+    private static void reveal(EditorHistory history, Activation activation) {
+        var stack = history.getEditorStack();
+        if (activation != Activation.NO && stack.getSelectedComponent() != history) {
             // Prevents focus from being transferred if not required
             stack.setFocusable(false);
-            stack.setSelectedComponent(component);
+            stack.setSelectedComponent(history);
             stack.setFocusable(true);
         }
 
         if (activation == Activation.REVEAL_AND_FOCUS) {
-            component.editor.setFocus();
+            history.current().editor.setFocus();
         }
+    }
+
+    @Override
+    public void navigate(Editor source, EditorInput input) {
+        findEditorHistory(e -> e == source).ifPresent(e -> e.navigate(createEditorComponent(input)));
     }
 
     @Override
     public void openEditor(Editor oldEditor, EditorInput newInput) {
-        EditorComponent oldComponent = findEditorComponent(e -> e.equals(oldEditor)).orElse(null);
-
-        if (oldComponent != null) {
-            EditorStack stack = (EditorStack) oldComponent.getParent();
-
-            if (stack != null) {
-                var selected = stack.getSelectedComponent() == oldComponent;
-                var result = createEditorForInput(newInput);
-
-                var newComponent = new EditorComponent(
-                    selected ? result.editor().createComponent() : null,
-                    result.editor(),
-                    result.provider()
-                );
-
-                stack.reopenEditor(oldComponent, newInput, newComponent);
-            }
-        }
+        forEachEditor(root, history -> history.find(oldEditor).map(entry -> {
+            history.replace(entry, createEditorComponent(newInput));
+            return true;
+        }));
     }
 
     @Override
     public Optional<Editor> findEditor(Predicate<EditorInput> predicate) {
-        return findEditorComponent(e -> predicate.test(e.getInput())).map(e -> e.editor);
+        return findEditorHistory(e -> predicate.test(e.getInput())).map(e -> e.current().editor);
     }
 
     @Override
     public Optional<Editor> findEditor(EditorInput input) {
-        return findEditorComponent(e -> input.representsSameInput(e.getInput())).map(e -> e.editor);
+        return findEditorHistory(e -> input.representsSameInput(e.getInput())).map(e -> e.current().editor);
     }
 
     @Override
@@ -126,6 +123,13 @@ public final class EditorStackManager implements EditorManager {
         if (ec != null) {
             return Optional.of(ec.editor);
         }
+        if (component instanceof EditorHistory history) {
+            return Optional.of(history.current().editor);
+        }
+        var history = (EditorHistory) SwingUtilities.getAncestorOfClass(EditorHistory.class, component);
+        if (history != null) {
+            return Optional.of(history.current().editor);
+        }
         return Optional.empty();
     }
 
@@ -133,7 +137,7 @@ public final class EditorStackManager implements EditorManager {
     public List<Editor> getEditors() {
         List<Editor> editors = new ArrayList<>();
         forEachEditor(root, component -> {
-            editors.add(component.editor);
+            editors.add(component.current().editor);
             return Optional.empty();
         });
         return List.copyOf(editors);
@@ -143,7 +147,7 @@ public final class EditorStackManager implements EditorManager {
     public List<Editor> getEditors(EditorStack stack) {
         List<Editor> editors = new ArrayList<>();
         forEachEditor(stack, component -> {
-            editors.add(component.editor);
+            editors.add(component.current().editor);
             return Optional.empty();
         });
         return List.copyOf(editors);
@@ -151,14 +155,10 @@ public final class EditorStackManager implements EditorManager {
 
     @Override
     public void closeEditor(Editor editor) {
-        findEditorComponent(e -> e.equals(editor)).ifPresent(component -> {
-            EditorStack stack = component.getEditorStack();
-            stack.remove(component);
-
-            if (component.hasComponent()) {
-                component.setComponent(null);
-                editor.dispose();
-            }
+        findEditorHistory(e -> e == editor).ifPresent(history -> {
+            var stack = history.getEditorStack();
+            stack.remove(history);
+            history.dispose();
         });
     }
 
@@ -169,12 +169,6 @@ public final class EditorStackManager implements EditorManager {
 
     EditorStack createStack() {
         EditorStack stack = new EditorStack(this);
-        stack.addChangeListener(_ -> {
-            EditorComponent component = (EditorComponent) stack.getSelectedComponent();
-            if (component != null && !component.hasComponent()) {
-                component.setComponent(component.editor.createComponent());
-            }
-        });
         Actions.installContextMenu(stack, EditorMenu.ID, key -> {
             if (DataKeys.EDITOR_MANAGER.is(key)) {
                 return Optional.of(this);
@@ -183,12 +177,12 @@ public final class EditorStackManager implements EditorManager {
                 return Optional.of(stack);
             }
             if (DataKeys.EDITOR.is(key) || DataKeys.SELECTION.is(key)) {
-                return getSelectedEditor(stack).map(e -> e.editor);
+                return getSelectedEditor(stack).map(e -> e.current().editor);
             }
             if (DataKeys.SELECTION_LIST.is(key)) {
-                return getSelectedEditor(stack).map(e -> List.of(e.editor));
+                return getSelectedEditor(stack).map(e -> List.of(e.current().editor));
             }
-            if (getSelectedEditor(stack).map(e -> e.editor).orElse(null) instanceof DataContext context) {
+            if (getSelectedEditor(stack).map(e -> e.current().editor).orElse(null) instanceof DataContext context) {
                 return context.get(key);
             }
             return Optional.empty();
@@ -201,8 +195,8 @@ public final class EditorStackManager implements EditorManager {
         return stack;
     }
 
-    private static Optional<EditorComponent> getSelectedEditor(EditorStack stack) {
-        return Optional.ofNullable(stack.getSelectedComponent()).map(EditorComponent.class::cast);
+    private static Optional<EditorHistory> getSelectedEditor(EditorStack stack) {
+        return Optional.ofNullable(stack.getSelectedComponent()).map(EditorHistory.class::cast);
     }
 
     private EditorStack findActiveEditorStack() {
@@ -226,23 +220,23 @@ public final class EditorStackManager implements EditorManager {
         }
     }
 
-    private Optional<EditorComponent> findEditorComponent(Predicate<Editor> predicate) {
+    private Optional<EditorHistory> findEditorHistory(Predicate<Editor> predicate) {
         return forEachEditor(root, component -> {
-            if (predicate.test(component.editor)) {
+            if (predicate.test(component.current().editor)) {
                 return Optional.of(component);
             }
             return Optional.empty();
         });
     }
 
-    private EditorResult createEditorForInput(EditorInput input) {
+    private EditorComponent createEditorComponent(EditorInput input) {
         var providers = Editor.providers(input).toList();
 
         Exception exception = null;
 
         for (Editor.Provider provider : providers) {
             try {
-                return new EditorResult(provider.createEditor(input, sharedSite), provider);
+                return new EditorComponent(provider.createEditor(input, sharedSite), provider);
             } catch (Exception e) {
                 exception = e;
             }
@@ -251,13 +245,16 @@ public final class EditorStackManager implements EditorManager {
         throw new IllegalArgumentException("Unable to find a suitable editor for input: " + input, exception);
     }
 
-    private <T> Optional<T> forEachEditor(EditorStackContainer container, Function<EditorComponent, Optional<T>> terminator) {
+    private <T> Optional<T> forEachEditor(
+        EditorStackContainer container,
+        Function<EditorHistory, Optional<T>> terminator
+    ) {
         return forEachStack(container, stack -> forEachEditor(stack, terminator));
     }
 
-    private <T> Optional<T> forEachEditor(EditorStack stack, Function<EditorComponent, Optional<T>> terminator) {
+    private <T> Optional<T> forEachEditor(EditorStack stack, Function<EditorHistory, Optional<T>> terminator) {
         for (int i = 0; i < stack.getTabCount(); i++) {
-            var component = (EditorComponent) stack.getComponentAt(i);
+            var component = (EditorHistory) stack.getComponentAt(i);
             var result = terminator.apply(component);
             if (result.isPresent()) {
                 return result;
@@ -266,7 +263,10 @@ public final class EditorStackManager implements EditorManager {
         return Optional.empty();
     }
 
-    private <T> Optional<T> forEachStack(EditorStackContainer container, Function<EditorStack, Optional<T>> terminator) {
+    private <T> Optional<T> forEachStack(
+        EditorStackContainer container,
+        Function<EditorStack, Optional<T>> terminator
+    ) {
         if (container.isLeaf()) {
             return terminator.apply(container.getEditorStack());
         }
@@ -295,16 +295,6 @@ public final class EditorStackManager implements EditorManager {
         overlay.setBounds(bounds);
 
         return overlay;
-    }
-
-    private record EditorResult(Editor editor, Editor.Provider provider) {
-    }
-
-    private class MyEditorSite implements EditorSite {
-        @Override
-        public EditorManager getManager() {
-            return EditorStackManager.this;
-        }
     }
 
     private class EditorDragSourceListener extends MouseAdapter {

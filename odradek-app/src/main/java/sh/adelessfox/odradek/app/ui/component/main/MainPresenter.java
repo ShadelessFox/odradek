@@ -63,8 +63,10 @@ public class MainPresenter implements Presenter<MainView> {
                 var stack = container.getEditorStack();
                 for (int i = 0; i < leaf.objects().size(); i++) {
                     var input = new ObjectEditorInputLazy(leaf.objects().get(i));
-                    var select = i == leaf.selection();
-                    editorManager.openEditor(input, stack, select ? EditorManager.Activation.REVEAL : EditorManager.Activation.NO);
+                    editorManager.openEditorInNewTab(input, stack, EditorManager.Activation.NO);
+                }
+                if (!leaf.objects().isEmpty()) {
+                    stack.setSelectedIndex(Math.clamp(leaf.selection(), 0, stack.getTabCount() - 1));
                 }
             }
             case ApplicationSettings.EditorState.Split split -> {

@@ -70,6 +70,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameBookmarkAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.ToggleBookmarkAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyIdToClipboardAction,
+        sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyTypeToClipboardAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.ExportObjectAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.ExportObjectAction.Placeholder,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.GroupObjectsByGroupAction,
@@ -78,6 +79,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.tools.graph.menu.SortObjectsByCountAction,
         sh.adelessfox.odradek.app.ui.tools.usages.menu.ShowUsagesAction,
         sh.adelessfox.odradek.app.ui.viewers.menu.CopyBytesToClipboardAction,
+        sh.adelessfox.odradek.app.ui.viewers.menu.OpenLinkInNewTabAction,
         sh.adelessfox.odradek.app.ui.viewers.menu.SaveBytesToFileAction;
 
     provides sh.adelessfox.odradek.ui.editors.Editor.Provider with

@@ -46,6 +46,7 @@ public final class ObjectEditor
 
     private FlatTabbedPane pane;
     private Viewer lastViewer;
+    private boolean active;
 
     private ObjectEditor(ObjectEditorInput input) {
         this.input = input;
@@ -84,23 +85,23 @@ public final class ObjectEditor
 
     @Override
     public void activate() {
-        if (lastViewer != null) {
+        if (!active && lastViewer != null) {
+            active = true;
             lastViewer.activate();
         }
     }
 
     @Override
     public void deactivate() {
-        if (lastViewer != null) {
+        if (active) {
+            active = false;
             lastViewer.deactivate();
         }
     }
 
     @Override
     public void dispose() {
-        if (lastViewer != null) {
-            lastViewer.deactivate();
-        }
+        deactivate();
         for (Viewer viewer : viewers) {
             viewer.dispose();
         }
@@ -144,11 +145,13 @@ public final class ObjectEditor
         pane.setLeadingComponent(Actions.createToolBar(ObjectEditorMenu.TOOLBAR_ID, this));
         pane.setStyle("selectedBackground: @componentBackground");
         pane.addChangeListener(_ -> {
-            if (lastViewer != null) {
+            if (active && lastViewer != null) {
                 lastViewer.deactivate();
             }
             lastViewer = viewers.get(pane.getSelectedIndex());
-            lastViewer.activate();
+            if (active) {
+                lastViewer.activate();
+            }
         });
 
         Converter.converters(object.getType()).forEach(converter -> {

@@ -9,15 +9,16 @@ final class EditorComponent extends JComponent {
     final Editor editor;
     final Editor.Provider provider;
 
-    public EditorComponent(JComponent component, Editor editor, Editor.Provider provider) {
+    public EditorComponent(Editor editor, Editor.Provider provider) {
         this.editor = editor;
         this.provider = provider;
         setLayout(new BorderLayout());
-        setComponent(component);
     }
 
-    EditorStack getEditorStack() {
-        return (EditorStack) getParent();
+    void initialize() {
+        if (!hasComponent()) {
+            setComponent(editor.createComponent());
+        }
     }
 
     boolean hasComponent() {

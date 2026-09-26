@@ -23,6 +23,16 @@ public interface EditorManager {
 
     void openEditor(EditorInput input, EditorStack stack, Activation activation);
 
+    /** Opens a new tab, even if another tab already represents this input. */
+    void openEditorInNewTab(EditorInput input);
+
+    /** Opens a new tab in the given stack. Unrevealed tabs are appended. */
+    void openEditorInNewTab(EditorInput input, EditorStack stack, Activation activation);
+
+    /** Appends an input to the source editor's tab history. */
+    void navigate(Editor source, EditorInput input);
+
+    /** Replaces an editor in its history entry, without navigating or changing tabs. */
     void openEditor(Editor editor, EditorInput input);
 
     Optional<Editor> findEditor(Predicate<EditorInput> predicate);

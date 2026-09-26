@@ -4,13 +4,10 @@ import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
-import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.viewers.menu.ObjectMenu;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
-import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
-import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
@@ -101,19 +98,10 @@ public final class ObjectViewer implements Viewer, Focusable {
             if (!(component instanceof ObjectStructure.Node node)) {
                 return;
             }
-            switch (node.value()) {
-                case ObjectWithIdHolder<?> holder when holder.object() instanceof TypedObject typedObject -> {
-                    var input = new ObjectEditorInput(game, typedObject, holder.objectId());
-                    Application.getInstance().editors().openEditor(input);
-                }
-                case ObjectIdHolder holder -> {
-                    var input = new ObjectEditorInputLazy(holder.objectId());
-                    Application.getInstance().editors().openEditor(input);
-                }
-                case null, default -> {
-                    // nothing to do
-                }
-            }
+            ObjectEditorInput.fromLink(game, node.value()).ifPresent(input -> {
+                var manager = Application.getInstance().editors();
+                manager.findEditor(tree).ifPresent(editor -> manager.navigate(editor, input));
+            });
         }));
         Actions.installContextMenu(tree, ObjectMenu.ID, tree.or(key -> {
             if (DataKeys.GAME.is(key)) {

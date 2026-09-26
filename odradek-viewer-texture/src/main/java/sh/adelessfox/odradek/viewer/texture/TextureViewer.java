@@ -107,8 +107,6 @@ public final class TextureViewer implements Viewer {
                     this.animate = false;
                 }
             });
-
-            timer.start();
         });
 
         imageToolbar.addSeparator();
@@ -127,6 +125,11 @@ public final class TextureViewer implements Viewer {
 
     @Override
     public void deactivate() {
+        stop();
+    }
+
+    @Override
+    public void dispose() {
         stop();
     }
 
