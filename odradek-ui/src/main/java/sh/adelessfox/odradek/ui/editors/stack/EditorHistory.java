@@ -15,13 +15,13 @@ final class EditorHistory extends JComponent {
     private final JPanel cards = new JPanel(new CardLayout());
     private final Action back = new NavigationAction("Back", "arrow-180", "alt LEFT", -1);
     private final Action forward = new NavigationAction("Forward", "arrow", "alt RIGHT", 1);
+    private final Action history = new HistoryAction();
     private final JToolBar navigationToolBar = new JToolBar();
 
     private int index;
     private boolean active;
 
     EditorHistory(EditorComponent initial) {
-        setLayout(new BorderLayout());
         entries.add(initial);
         cards.add(initial, "0");
 
@@ -29,9 +29,11 @@ final class EditorHistory extends JComponent {
         navigationToolBar.add(Box.createHorizontalGlue());
         navigationToolBar.add(back).setFocusable(false);
         navigationToolBar.add(forward).setFocusable(false);
+        navigationToolBar.add(history).setFocusable(false);
 
+        setLayout(new BorderLayout());
         add(cards, BorderLayout.CENTER);
-        updateNavigation();
+        showCurrentCard();
     }
 
     EditorComponent current() {
@@ -149,6 +151,31 @@ final class EditorHistory extends JComponent {
     private void updateNavigation() {
         back.setEnabled(index > 0);
         forward.setEnabled(index + 1 < entries.size());
+        history.setEnabled(entries.size() > 1);
+    }
+
+    private final class HistoryAction extends AbstractAction {
+        HistoryAction() {
+            super("History", Fugue.getIcon("clock-history"));
+            putValue(SHORT_DESCRIPTION, "Navigation history");
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            var menu = new JPopupMenu();
+            var group = new ButtonGroup();
+            for (int i = entries.size() - 1; i >= 0; i--) {
+                int targetIndex = i;
+                var input = entries.get(i).editor.getInput();
+                var item = new JRadioButtonMenuItem(input.getName(), i == index);
+                item.setToolTipText(input.getDescription());
+                item.addActionListener(_ -> show(targetIndex));
+                group.add(item);
+                menu.add(item);
+            }
+            var source = (Component) e.getSource();
+            menu.show(source, 0, source.getHeight());
+        }
     }
 
     private final class NavigationAction extends AbstractAction {
