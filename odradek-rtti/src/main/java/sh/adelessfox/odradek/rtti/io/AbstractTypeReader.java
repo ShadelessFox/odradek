@@ -11,8 +11,12 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 import java.lang.invoke.VarHandle;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 public abstract class AbstractTypeReader {
+    private final Map<ClassTypeInfo, AttributeReader[]> decodingPlans = new IdentityHashMap<>();
+
     public Object read(TypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
         return switch (info) {
             case AtomTypeInfo t -> readAtom(t, reader, factory);
@@ -40,17 +44,47 @@ public abstract class AbstractTypeReader {
         TypeFactory factory,
         Object target
     ) throws IOException {
-        for (ClassAttrInfo attr : info.orderedAttrs()) {
-            if (attr.type() instanceof AtomTypeInfo atom) {
-                // Fast path to avoid boxing overhead for primitive types
-                readerForAtom(atom).read(reader, target, info.handle(attr));
-            } else {
-                info.set(attr, target, read(attr.type(), reader, factory));
-            }
+        for (AttributeReader attribute : getOrCreateDecodingPlan(info)) {
+            attribute.read(reader, factory, target);
         }
         if (target instanceof ExtraBinaryDataHolder holder) {
             holder.deserialize(reader, factory);
         }
+    }
+
+    private AttributeReader[] getOrCreateDecodingPlan(ClassTypeInfo info) {
+        return decodingPlans.computeIfAbsent(info, this::createDecodingPlan);
+    }
+
+    private AttributeReader[] createDecodingPlan(ClassTypeInfo info) {
+        var attrs = info.orderedAttrs();
+        var plan = new AttributeReader[attrs.size()];
+        for (int i = 0; i < attrs.size(); i++) {
+            var attr = attrs.get(i);
+            var handle = info.handle(attr);
+            plan[i] = switch (attr.type()) {
+                case AtomTypeInfo t -> {
+                    var atomReader = readerForAtom(t);
+                    yield (reader, _, target) -> atomReader.read(reader, target, handle);
+                }
+                case EnumTypeInfo t -> (reader, factory, target) -> handle.set(target, readEnum(t, reader, factory));
+                case ClassTypeInfo t ->
+                    (reader, factory, target) -> handle.set(target, readCompound(t, reader, factory));
+                case ContainerTypeInfo t ->
+                    (reader, factory, target) -> handle.set(target, readContainer(t, reader, factory));
+                case PointerTypeInfo t ->
+                    (reader, factory, target) -> handle.set(target, readPointer(t, reader, factory));
+                case BitSetTypeInfo _ -> (_, _, _) -> {
+                    throw new NotImplementedException(); // TODO
+                };
+            };
+        }
+        return plan;
+    }
+
+    @FunctionalInterface
+    private interface AttributeReader {
+        void read(BinaryReader reader, TypeFactory factory, Object target) throws IOException;
     }
 
     protected Object readAtom(AtomTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
