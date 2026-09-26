@@ -53,7 +53,7 @@ final class EditorHistory extends JComponent {
     }
 
     JToolBar getNavigationToolBar() {
-        return navigationToolBar;
+        return entries.size() > 1 ? navigationToolBar : null;
     }
 
     EditorStack getEditorStack() {
@@ -164,6 +164,11 @@ final class EditorHistory extends JComponent {
         back.setEnabled(index > 0);
         forward.setEnabled(index + 1 < entries.size());
         history.setEnabled(entries.size() > 1);
+
+        var stack = getEditorStack();
+        if (stack != null && stack.getSelectedComponent() == this) {
+            stack.setTrailingComponent(getNavigationToolBar());
+        }
     }
 
     private final class HistoryAction extends AbstractAction {
