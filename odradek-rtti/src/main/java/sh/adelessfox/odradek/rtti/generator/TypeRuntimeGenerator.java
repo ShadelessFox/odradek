@@ -6,9 +6,7 @@ import sh.adelessfox.odradek.rtti.data.Value;
 import java.lang.classfile.*;
 import java.lang.classfile.attribute.*;
 import java.lang.constant.*;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.TypeDescriptor;
-import java.lang.invoke.VarHandle;
+import java.lang.invoke.*;
 import java.lang.reflect.AccessFlag;
 import java.lang.runtime.ObjectMethods;
 import java.util.*;
@@ -38,7 +36,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         )
     );
 
-    private final Map<ClassTypeInfo, Class<?>> classes = new IdentityHashMap<>();
+    private final Map<ClassTypeInfo, RuntimeClassInfo> classes = new IdentityHashMap<>();
     private final MethodHandles.Lookup lookup;
     private final String packageName;
     private final String className;
@@ -58,7 +56,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     }
 
     public VarHandle getHandle(ClassTypeInfo info, ClassAttrInfo attr) {
-        var clazz = generateClass(info);
+        var clazz = getOrGenerateClass(info).clazz();
         try {
             var type = toClassDesc(attr.type(), true).resolveConstantDesc(lookup);
             return MethodHandles
@@ -69,21 +67,20 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public Object newInstance(ClassTypeInfo info) {
-        var clazz = generateClass(info);
+        var constructor = getOrGenerateClass(info).constructor();
         try {
-            return clazz.newInstance();
-        } catch (ReflectiveOperationException e) {
+            return constructor.invoke();
+        } catch (Throwable e) {
             throw new AssertionError(e);
         }
     }
 
-    private Class<?> generateClass(ClassTypeInfo info) {
+    private RuntimeClassInfo getOrGenerateClass(ClassTypeInfo info) {
         return classes.computeIfAbsent(info, this::generateClass0);
     }
 
-    private Class<?> generateClass0(ClassTypeInfo info) {
+    private RuntimeClassInfo generateClass0(ClassTypeInfo info) {
         var desc = toImplClassDesc(info);
         var data = ClassFile.of().build(desc, cb -> {
             cb.withFlags(AccessFlag.PUBLIC, AccessFlag.FINAL);
@@ -184,11 +181,14 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             var thisClass = lookup.findClass(packageName + '.' + className + '$' + info);
             var thisLookup = MethodHandles.privateLookupIn(thisClass, lookup);
             var thisClassPod = thisLookup.defineClass(data);
+            var thisClassConstructor = thisLookup.findConstructor(
+                thisClassPod,
+                MethodType.methodType(void.class));
 
             // Bind $type
             bindTypeVariable(thisClassPod, info);
 
-            return thisClassPod;
+            return new RuntimeClassInfo(thisClassPod, thisClassConstructor);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -481,5 +481,8 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     }
 
     private record BoostrapAttrInfo(ClassAttrInfo attr, DirectMethodHandleDesc handle) {
+    }
+
+    private record RuntimeClassInfo(Class<?> clazz, MethodHandle constructor) {
     }
 }
