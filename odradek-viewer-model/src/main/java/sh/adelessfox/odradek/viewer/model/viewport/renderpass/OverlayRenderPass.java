@@ -17,8 +17,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class OverlayRenderPass implements RenderPass {
-    private static final int MAX_JOINTS_TO_DISPLAY_NAMES_FOR = 128;
-
     private DebugRenderer debug;
     private Scene scene;
     private List<OverlayNode> nodes;
@@ -82,7 +80,7 @@ public class OverlayRenderPass implements RenderPass {
         }
         for (OverlayNode node : nodes) {
             if (context.isShowSkeletons()) {
-                node.skeleton().ifPresent(skeleton -> renderSkeleton(skeleton, node.transform(), camera));
+                node.skeleton().ifPresent(skeleton -> renderSkeleton(skeleton, node.transform(), camera, context));
             }
             if (context.isShowBounds()) {
                 for (OverlayMesh mesh : node.meshes()) {
@@ -93,7 +91,7 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
-    private void renderSkeleton(Skeleton skeleton, Matrix4 transform, Camera camera) {
+    private void renderSkeleton(Skeleton skeleton, Matrix4 transform, Camera camera, ViewportContext context) {
         var matrices = new ArrayList<Matrix4>(skeleton.bones().size());
 
         for (Bone bone : skeleton.bones()) {
@@ -117,7 +115,7 @@ public class OverlayRenderPass implements RenderPass {
             var distance = position.distance(camera.position());
             debug.point(position, new Vector3(1, 0, 1), 2.0f / distance, false);
 
-            if (skeleton.bones().size() <= MAX_JOINTS_TO_DISPLAY_NAMES_FOR) {
+            if (context.isShowBoneNames()) {
                 debug.projectedText(bone.name(), position, camera, new Vector3(1, 1, 1), 4.0f / distance);
             }
 
