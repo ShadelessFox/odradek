@@ -4,6 +4,7 @@ public final class ViewportContext {
     private boolean showBounds;
     private boolean showCameraOrigin;
     private boolean showSkeletons;
+    private boolean showBoneNames;
     private boolean showVertexColors;
     private boolean showVertexUVs;
     private boolean showWireframe;
@@ -35,6 +36,14 @@ public final class ViewportContext {
 
     public void setShowSkeletons(boolean showSkeletons) {
         this.showSkeletons = showSkeletons;
+    }
+
+    public boolean isShowBoneNames() {
+        return showBoneNames;
+    }
+
+    public void setShowBoneNames(boolean showBoneNames) {
+        this.showBoneNames = showBoneNames;
     }
 
     public boolean isShowVertexColors() {

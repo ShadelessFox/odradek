@@ -8,6 +8,7 @@ import sh.adelessfox.odradek.geometry.Mesh;
 import sh.adelessfox.odradek.geometry.Model;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
+import sh.adelessfox.odradek.scene.Skeleton;
 import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.math.Matrix4;
@@ -15,6 +16,9 @@ import wtf.reversed.toolbox.math.Matrix4;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public final class CastSceneExporter
     extends BaseCastExporter<Scene>
@@ -23,7 +27,7 @@ public final class CastSceneExporter
     @Override
     protected void export(Scene object, CastNodes.Root root) {
         for (Node node : object.nodes()) {
-            exportNode(node, Matrix4.IDENTITY, root);
+            exportNode(node, Matrix4.IDENTITY, root, new HashMap<>());
         }
     }
 
@@ -32,32 +36,53 @@ public final class CastSceneExporter
         return "model.cast";
     }
 
-    private static void exportNode(Node node, Matrix4 transform, CastNodes.Root root) {
+    private static void exportNode(
+        Node node,
+        Matrix4 parentTransform,
+        CastNodes.Root root,
+        Map<SkeletonInstance, CastNodes.Model> models
+    ) {
+        var transform = parentTransform.multiply(node.matrix());
+        var skeleton = node.skeleton().orElse(null);
         node.model().ifPresent(m -> {
-            var trs = transform.decompose();
-            var pos = trs.translation();
-            var rot = trs.rotation();
-            var scl = trs.scale();
+            CastNodes.Model model;
+            if (skeleton == null) {
+                model = createModel(node, transform, null, root);
+            } else {
+                model = models.computeIfAbsent(
+                    new SkeletonInstance(skeleton, transform),
+                    _ -> createModel(node, transform, skeleton, root));
+            }
 
-            var model = root.createModel();
-            model.setPosition(new Vec3(pos.x(), pos.y(), pos.z()));
-            model.setRotation(new Vec4(rot.x(), rot.y(), rot.z(), rot.w()));
-            model.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
-
-            node.name().ifPresent(model::setName);
-            node.skeleton().ifPresent(skeleton -> mapSkeleton(model.createSkeleton(), skeleton));
-
-            exportModel(model, m);
+            mapModel(model, m, node.name().or(m::name));
         });
 
         for (Node child : node.children()) {
-            exportNode(child, transform.multiply(child.matrix()), root);
+            exportNode(child, transform, root, models);
         }
     }
 
-    private static void exportModel(CastNodes.Model model, Model nodeModel) {
+    private static CastNodes.Model createModel(Node node, Matrix4 transform, Skeleton skeleton, CastNodes.Root root) {
+        var trs = transform.decompose();
+        var pos = trs.translation();
+        var rot = trs.rotation();
+        var scl = trs.scale();
+
+        var model = root.createModel();
+        model.setPosition(new Vec3(pos.x(), pos.y(), pos.z()));
+        model.setRotation(new Vec4(rot.x(), rot.y(), rot.z(), rot.w()));
+        model.setScale(new Vec3(scl.x(), scl.y(), scl.z()));
+        node.name().ifPresent(model::setName);
+        if (skeleton != null) {
+            mapSkeleton(model.createSkeleton(), skeleton);
+        }
+        return model;
+    }
+
+    private static void mapModel(CastNodes.Model model, Model nodeModel, Optional<String> name) {
         for (Mesh mesh : nodeModel.meshes()) {
             var result = model.createMesh();
+            name.ifPresent(result::setName);
             result.setFaceBuffer(mesh.indices().asBuffer());
             result.setVertexPositionBuffer(mesh.positions().asBuffer());
 
@@ -95,5 +120,8 @@ public final class CastSceneExporter
 
     private static IntBuffer mapColorBuffer(ByteBuffer buffer) {
         return buffer.asIntBuffer();
+    }
+
+    private record SkeletonInstance(Skeleton skeleton, Matrix4 transform) {
     }
 }

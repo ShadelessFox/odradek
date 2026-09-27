@@ -230,7 +230,7 @@ public final class MeshToSceneConverter
         DS2.SkinnedModelResource resource,
         DS2Game game
     ) {
-        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeletonIfAbsent(context, resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
             .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
             .toList();
@@ -308,7 +308,7 @@ public final class MeshToSceneConverter
         //     log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
         //     return Optional.empty();
         // }
-        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeletonIfAbsent(context, resource.general().skeleton().get()).orElse(null);
         var mesh = convertMesh(
             resource.shadingGroups(),
             resource.primitives(),
@@ -320,6 +320,10 @@ public final class MeshToSceneConverter
             .skeleton(skeleton)
             .build();
         return Optional.of(node);
+    }
+
+    private static Optional<Skeleton> convertSkeletonIfAbsent(Context context, DS2.Skeleton skeleton) {
+        return context.skeletons.computeIfAbsent(skeleton.general().objectUUID(), _ -> convertSkeleton(skeleton));
     }
 
     private static Optional<Skeleton> convertSkeleton(DS2.Skeleton skeleton) {
@@ -400,5 +404,6 @@ public final class MeshToSceneConverter
 
     private static final class Context {
         private final Map<DS2.GGUUID, Node> resources = new HashMap<>();
+        private final Map<DS2.GGUUID, Optional<Skeleton>> skeletons = new HashMap<>();
     }
 }

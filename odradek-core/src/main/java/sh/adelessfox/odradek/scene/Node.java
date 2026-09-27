@@ -7,6 +7,16 @@ import wtf.reversed.toolbox.math.Matrix4;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * A node in a scene graph.
+ *
+ * @param name     an optional name for the node
+ * @param model    an optional model to render at this node. Can be shared with other nodes to achieve instancing.
+ * @param skeleton an optional skeleton in this node's local coordinate space, used for skinning the {@code model}
+ *                 when present. May exist without a model and be shared with other nodes. Not inherited by child nodes.
+ * @param children child nodes of this node
+ * @param matrix   the transformation matrix of this node relative to its parent
+ */
 public record Node(
     Optional<String> name,
     Optional<Model> model,

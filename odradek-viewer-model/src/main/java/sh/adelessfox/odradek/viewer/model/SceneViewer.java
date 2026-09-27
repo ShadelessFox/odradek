@@ -131,7 +131,8 @@ public record SceneViewer(Scene scene) implements Viewer {
                 .property("Show vertex UVs", context::isShowVertexUVs, context::setShowVertexUVs)
                 .property("Show vertex colors", context::isShowVertexColors, context::setShowVertexColors)
                 .property("Show bounds", context::isShowBounds, context::setShowBounds)
-                .property("Show skeletons", context::isShowSkeletons, context::setShowSkeletons)));
+                .property("Show skeletons", context::isShowSkeletons, context::setShowSkeletons)
+                .property("Show bone names", context::isShowBoneNames, context::setShowBoneNames)));
 
         // @formatter:on
 
