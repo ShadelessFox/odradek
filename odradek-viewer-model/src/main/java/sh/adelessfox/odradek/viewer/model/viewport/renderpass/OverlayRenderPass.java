@@ -21,8 +21,8 @@ public class OverlayRenderPass implements RenderPass {
 
     private DebugRenderer debug;
     private Scene scene;
+    private List<OverlayNode> nodes;
     private SceneStatistics statistics;
-    private final List<OverlayNode> nodes = new ArrayList<>();
 
     @Override
     public void init() throws IOException {
@@ -43,8 +43,8 @@ public class OverlayRenderPass implements RenderPass {
         if (scene != null && camera != null) {
             if (this.scene != scene) {
                 this.scene = scene;
+                this.nodes = collectSceneNodes(scene);
                 this.statistics = SceneStatistics.collect(scene);
-                cacheSceneNodes(scene);
             }
 
             renderNodes(camera, context);
@@ -125,25 +125,28 @@ public class OverlayRenderPass implements RenderPass {
         }
     }
 
-    private void cacheSceneNodes(Scene scene) {
-        nodes.clear();
+    private static List<OverlayNode> collectSceneNodes(Scene scene) {
+        var nodes = new ArrayList<OverlayNode>();
+        var skeletons = new HashSet<SkeletonInstance>();
         scene.accept((node, worldTransform) -> {
-            computeNode(node, worldTransform).ifPresent(nodes::add);
+            var skeleton = node.skeleton().filter(s -> skeletons.add(new SkeletonInstance(s, worldTransform)));
+            computeNode(node, worldTransform, skeleton).ifPresent(nodes::add);
             return true;
         });
+        return List.copyOf(nodes);
     }
 
-    private Optional<OverlayNode> computeNode(Node node, Matrix4 worldTransform) {
+    private static Optional<OverlayNode> computeNode(Node node, Matrix4 worldTransform, Optional<Skeleton> skeleton) {
         var worldBounds = node.model().flatMap(model -> model.computeBounds(worldTransform));
         var meshes = node.model().stream()
             .flatMap(model -> model.meshes().stream())
             .map(mesh -> cacheNode(mesh, worldTransform))
             .flatMap(Optional::stream)
             .toList();
-        if (meshes.isEmpty() && node.skeleton().isEmpty()) {
+        if (meshes.isEmpty() && skeleton.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(new OverlayNode(node.skeleton(), meshes, worldTransform, worldBounds));
+        return Optional.of(new OverlayNode(skeleton, meshes, worldTransform, worldBounds));
     }
 
     private static Optional<OverlayMesh> cacheNode(Mesh mesh, Matrix4 worldTransform) {
@@ -195,5 +198,8 @@ public class OverlayRenderPass implements RenderPass {
     }
 
     private record OverlayMesh(Bounds worldBounds, Vector3 color) {
+    }
+
+    private record SkeletonInstance(Skeleton skeleton, Matrix4 transform) {
     }
 }
