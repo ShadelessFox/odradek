@@ -200,7 +200,7 @@ public final class MeshToSceneConverter
         HFW.SkinnedModelResource resource,
         HFWGame game
     ) {
-        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeletonIfAbsent(context, resource.general().skeleton().get()).orElse(null);
         var parts = resource.general().modelPartResources().stream()
             .flatMap(part -> convertModelPartResource(context, part.get(), game).stream())
             .toList();
@@ -276,7 +276,7 @@ public final class MeshToSceneConverter
             log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
             return Optional.empty();
         }
-        var skeleton = convertSkeleton(resource.general().skeleton().get()).orElse(null);
+        var skeleton = convertSkeletonIfAbsent(context, resource.general().skeleton().get()).orElse(null);
         var mesh = convertModel(
             resource.shadingGroups(),
             resource.primitives(),
@@ -288,6 +288,10 @@ public final class MeshToSceneConverter
             .skeleton(skeleton)
             .build();
         return Optional.of(node);
+    }
+
+    private static Optional<Skeleton> convertSkeletonIfAbsent(Context context, HFW.Skeleton skeleton) {
+        return context.skeletons.computeIfAbsent(skeleton.general().objectUUID(), _ -> convertSkeleton(skeleton));
     }
 
     private static Optional<Skeleton> convertSkeleton(HFW.Skeleton skeleton) {
@@ -373,5 +377,6 @@ public final class MeshToSceneConverter
 
     private static final class Context {
         private final Map<HFW.GGUUID, Node> resources = new HashMap<>();
+        private final Map<HFW.GGUUID, Optional<Skeleton>> skeletons = new HashMap<>();
     }
 }
