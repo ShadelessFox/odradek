@@ -38,7 +38,7 @@ final class EditorHistory extends JComponent {
 
         setLayout(new BorderLayout());
         add(cards, BorderLayout.CENTER);
-        showCurrentCard();
+        showCurrentCard(false, false);
     }
 
     EditorComponent current() {
@@ -107,17 +107,10 @@ final class EditorHistory extends JComponent {
         }
 
         entries.set(entryIndex, newEntry);
-        cards.remove(oldEntry);
         cards.add(newEntry, Integer.toString(entryIndex));
+        showCurrentCard(selected && wasActive, focused);
+        cards.remove(oldEntry);
         oldEntry.editor.dispose();
-
-        showCurrentCard();
-        if (selected && wasActive) {
-            activate();
-            if (focused) {
-                newEntry.editor.setFocus();
-            }
-        }
     }
 
     void dispose() {
@@ -139,14 +132,27 @@ final class EditorHistory extends JComponent {
         }
         deactivate();
         index = newIndex;
-        showCurrentCard();
-        if (wasActive) {
-            activate();
-            current().editor.setFocus();
-        }
+        showCurrentCard(wasActive, wasActive);
     }
 
-    private void showCurrentCard() {
+    private void showCurrentCard(boolean activate, boolean focus) {
+        var entry = current();
+        // CardLayout.show hides the old card first, triggering automatic focus traversal.
+        // Show and focus the destination before hiding the old card instead
+        entry.setVisible(true);
+        cards.validate();
+        if (activate) {
+            activate();
+        }
+        if (focus) {
+            entry.editor.setFocus();
+        }
+        for (var card : cards.getComponents()) {
+            if (card != entry) {
+                card.setVisible(false);
+            }
+        }
+        // Keep CardLayout's current-card index in sync with the visible component
         ((CardLayout) cards.getLayout()).show(cards, Integer.toString(index));
         updateNavigation();
         var stack = getEditorStack();
