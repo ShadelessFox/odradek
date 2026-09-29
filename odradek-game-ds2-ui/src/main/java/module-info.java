@@ -13,6 +13,7 @@ module odradek.game.ds2.ui {
         sh.adelessfox.odradek.game.ds2.ui.renderers.LocalizedTextResourceTextRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.GGUUIDRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.MurmurHashValueRenderer,
+        sh.adelessfox.odradek.game.ds2.ui.renderers.RenderTechniqueRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.RTTIHandleRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.ProgramParameterRenderer,
         sh.adelessfox.odradek.game.ds2.ui.renderers.ProgramResourceEntryPointRenderer,

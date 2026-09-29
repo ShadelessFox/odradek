@@ -19,7 +19,15 @@ public record StyledText(List<StyledFragment> fragments) {
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new Builder("", "", "");
+    }
+
+    public static Builder builder(String delimiter) {
+        return new Builder(delimiter, "", "");
+    }
+
+    public static Builder builder(String delimiter, String prefix, String suffix) {
+        return new Builder(delimiter, prefix, suffix);
     }
 
     public static StyledText of() {
@@ -39,8 +47,14 @@ public record StyledText(List<StyledFragment> fragments) {
 
     public static final class Builder {
         private final List<StyledFragment> segments = new ArrayList<>(1);
+        private final String delimiter;
+        private final String prefix;
+        private final String suffix;
 
-        private Builder() {
+        private Builder(String delimiter, String prefix, String suffix) {
+            this.delimiter = delimiter;
+            this.prefix = prefix;
+            this.suffix = suffix;
         }
 
         public Builder add(String text) {
@@ -61,14 +75,31 @@ public record StyledText(List<StyledFragment> fragments) {
         }
 
         public boolean isEmpty() {
-            return segments.isEmpty();
+            return segments.isEmpty() && prefix.isEmpty() && suffix.isEmpty();
         }
 
         public Optional<StyledText> build() {
             if (segments.isEmpty()) {
-                return Optional.empty();
+                if (prefix.isEmpty() && suffix.isEmpty()) {
+                    return Optional.empty();
+                } else {
+                    segments.add(StyledFragment.regular(prefix + suffix));
+                }
             }
-            return Optional.of(new StyledText(segments));
+            var joined = new ArrayList<StyledFragment>(segments.size() * 2 - 1);
+            if (!prefix.isEmpty()) {
+                joined.add(StyledFragment.regular(prefix));
+            }
+            for (int i = 0; i < segments.size(); i++) {
+                if (i > 0) {
+                    joined.add(StyledFragment.regular(delimiter));
+                }
+                joined.add(segments.get(i));
+            }
+            if (!suffix.isEmpty()) {
+                joined.add(StyledFragment.regular(suffix));
+            }
+            return Optional.of(new StyledText(joined));
         }
     }
 }

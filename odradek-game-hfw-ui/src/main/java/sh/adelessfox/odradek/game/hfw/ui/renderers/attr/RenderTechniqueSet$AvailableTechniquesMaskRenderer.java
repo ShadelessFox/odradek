@@ -6,21 +6,22 @@ import sh.adelessfox.odradek.rtti.ClassAttrInfo;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.ui.Renderer;
+import sh.adelessfox.odradek.ui.components.StyledFragment;
+import sh.adelessfox.odradek.ui.components.StyledText;
 
 import java.util.Optional;
-import java.util.StringJoiner;
 
-public class RenderTechniqueSet$AvailableTechniquesMaskRenderer implements Renderer.OfAttribute<HFW.RenderTechniqueSet, HFWGame> {
+public final class RenderTechniqueSet$AvailableTechniquesMaskRenderer implements Renderer.OfAttribute<HFW.RenderTechniqueSet, HFWGame> {
     @Override
-    public Optional<String> text(TypeInfo info, HFW.RenderTechniqueSet object, HFWGame game) {
+    public Optional<StyledText> styledText(TypeInfo info, HFW.RenderTechniqueSet object, HFWGame game) {
         var mask = object.general().availableTechniquesMask();
-        var buffer = new StringJoiner(", ");
+        var builder = StyledText.builder(", ", "[", "]");
         for (int i = 0; i < 32; i++) {
             if ((mask & (1 << i)) != 0) {
-                buffer.add(HFW.ERenderTechniqueType.valueOf(i).name());
+                builder.add(HFW.ERenderTechniqueType.valueOf(i).name(), StyledFragment.NAME);
             }
         }
-        return Optional.of(buffer.toString());
+        return builder.build();
     }
 
     @Override
