@@ -91,3 +91,15 @@ This project is licensed under the GPL-3.0 license.
 This project is not sponsored by or related to Guerrilla Games, Kojima Productions, Sony Interactive Entertainment, 505 Games, or others.
 
 Source code and all software made with Decima engine belong to their developers.
+
+## AI notice
+
+Disclaimer: This project is the result of countless hours of research, written by a human being, and based on knowledge gathered over the years.
+
+That said, it's important to disclose that an LLM was used to produce parts of the codebase, which were later iterated on by a human.
+
+If you're looking for a version of Odradek that does not contain LLM-generated code, <code>[088024e](https://github.com/ShadelessFox/odradek/tree/088024e3a49a97cde937527a8ef3107bbe839f77)</code>
+is the latest commit before everything went downhill.
+
+It's also worth noting that ML-based code completion was used throughout the whole development of this project, excluding some
+parts that were written before and simply carried over from older projects of mine.
