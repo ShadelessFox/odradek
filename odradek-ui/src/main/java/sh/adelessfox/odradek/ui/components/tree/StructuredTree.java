@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContextOwner {
-    private final DataContext dataContext = new DataContext();
+    private final DataContext dataContext;
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
     private TreeLabelProvider<T> labelProvider;
     private String placeholderText;
@@ -37,12 +37,22 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     private int lastRowCount = -1;
 
     public StructuredTree() {
+        this(new DataContext());
+    }
+
+    public StructuredTree(DataContext parentContext) {
         super((TreeModel) null);
+        dataContext = new DataContext(parentContext);
         setup();
     }
 
     public StructuredTree(T structure) {
+        this(structure, new DataContext());
+    }
+
+    public StructuredTree(T structure, DataContext parentContext) {
         super(new StructuredTreeModel<>(structure));
+        dataContext = new DataContext(parentContext);
         setup();
     }
 

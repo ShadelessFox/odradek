@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.texture;
 
 import com.formdev.flatlaf.extras.components.FlatSplitPane;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.TextureSet;
@@ -27,7 +28,7 @@ public final class TextureSetViewer implements Viewer {
 
     public static final class Provider implements Viewer.Provider<TextureSet> {
         @Override
-        public Viewer create(TextureSet object, Game game, Optional<?> selection) {
+        public Viewer create(TextureSet object, Game game, Optional<?> selection, DataContext parentContext) {
             return new TextureSetViewer(object);
         }
 

@@ -37,8 +37,8 @@ import java.util.function.Function;
 public final class ObjectViewer implements Viewer, Focusable {
     public static final class Provider implements Viewer.Provider<TypedObject> {
         @Override
-        public Viewer create(TypedObject object, Game game, Optional<?> selection) {
-            return new ObjectViewer(object, game, selection);
+        public Viewer create(TypedObject object, Game game, Optional<?> selection, DataContext parentContext) {
+            return new ObjectViewer(object, game, selection, parentContext);
         }
 
         @Override
@@ -54,12 +54,14 @@ public final class ObjectViewer implements Viewer, Focusable {
 
     private final TypedObject object;
     private final Game game;
+    private final DataContext parentContext;
     private StructuredTree<ObjectStructure> tree;
     private Object selection;
 
-    public ObjectViewer(TypedObject object, Game game, Optional<?> selection) {
+    public ObjectViewer(TypedObject object, Game game, Optional<?> selection, DataContext parentContext) {
         this.object = object;
         this.game = game;
+        this.parentContext = parentContext;
         this.selection = selection.orElse(null);
     }
 
@@ -88,7 +90,7 @@ public final class ObjectViewer implements Viewer, Focusable {
     }
 
     private StructuredTree<ObjectStructure> createObjectTree(Game game, TypedObject object) {
-        var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
+        var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object), parentContext);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
@@ -105,7 +107,7 @@ public final class ObjectViewer implements Viewer, Focusable {
             });
         }));
 
-        var context = new DataContext(tree.getDataContext());
+        var context = tree.getDataContext();
         context.put(DataKeys.GAME, game);
         Actions.installContextMenu(tree, ObjectMenu.ID, context);
 

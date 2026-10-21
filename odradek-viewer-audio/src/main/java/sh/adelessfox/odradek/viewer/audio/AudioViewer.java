@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.viewer.audio;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import sh.adelessfox.odradek.audio.Audio;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.Viewer;
 
@@ -11,7 +12,7 @@ import java.util.Optional;
 public final class AudioViewer implements Viewer {
     public static final class Provider implements Viewer.Provider<Audio> {
         @Override
-        public Viewer create(Audio object, Game game, Optional<?> selection) {
+        public Viewer create(Audio object, Game game, Optional<?> selection, DataContext parentContext) {
             return new AudioViewer(object);
         }
 

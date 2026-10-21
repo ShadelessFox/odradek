@@ -40,7 +40,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
 
         @Override
         public ToolPanel create(ToolSite site) {
-            return new BookmarkToolPanel(repository, eventBus);
+            return new BookmarkToolPanel(site, repository, eventBus);
         }
 
         @Override
@@ -59,18 +59,20 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         }
     }
 
+    private final ToolSite site;
     private final Bookmarks bookmarks;
     private final EventBus eventBus;
     private StructuredTree<BookmarkStructure> tree;
 
-    private BookmarkToolPanel(Bookmarks bookmarks, EventBus eventBus) {
+    private BookmarkToolPanel(ToolSite site, Bookmarks bookmarks, EventBus eventBus) {
+        this.site = site;
         this.bookmarks = bookmarks;
         this.eventBus = eventBus;
     }
 
     @Override
     public JComponent createComponent() {
-        tree = new StructuredTree<>(new BookmarkStructure.Folder(bookmarks, bookmarks.rootFolderId(), "Root"));
+        tree = new StructuredTree<>(new BookmarkStructure.Folder(bookmarks, bookmarks.rootFolderId(), "Root"), site.getDataContext());
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new BookmarkLabelProvider(bookmarks));
         tree.setPlaceholderText("No bookmarks\n\nRight-click on an object to bookmark it");

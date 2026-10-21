@@ -33,7 +33,7 @@ public final class ObjectEditor
     public static final class Provider implements Editor.Provider {
         @Override
         public Editor createEditor(EditorInput input, EditorSite site) {
-            return new ObjectEditor((ObjectEditorInput) input);
+            return new ObjectEditor((ObjectEditorInput) input, site);
         }
 
         @Override
@@ -43,15 +43,16 @@ public final class ObjectEditor
     }
 
     private final ObjectEditorInput input;
-    private final DataContext dataContext = new DataContext();
+    private final DataContext dataContext;
     private final List<Viewer> viewers = new ArrayList<>();
 
     private FlatTabbedPane pane;
     private Viewer lastViewer;
     private boolean active;
 
-    private ObjectEditor(ObjectEditorInput input) {
+    private ObjectEditor(ObjectEditorInput input, EditorSite site) {
         this.input = input;
+        dataContext = new DataContext(site.getDataContext());
         dataContext.put(DataKeys.GAME, input.game());
         dataContext.put(DataKeys.SELECTION_LIST, List.of(this));
     }
@@ -159,7 +160,7 @@ public final class ObjectEditor
                     return;
                 }
 
-                var viewer = provider.create(result.get(), game, selection);
+                var viewer = provider.create(result.get(), game, selection, dataContext);
 
                 viewers.add(viewer);
                 pane.insertTab(

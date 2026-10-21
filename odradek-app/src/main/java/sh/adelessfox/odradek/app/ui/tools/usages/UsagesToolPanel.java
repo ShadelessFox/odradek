@@ -12,7 +12,6 @@ import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.tools.graph.menu.GraphMenu;
 import sh.adelessfox.odradek.app.util.LinkDatabase;
-import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
 import sh.adelessfox.odradek.event.EventBus;
@@ -214,7 +213,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     }
 
     private JComponent createTreeView(EventBus eventBus, DecimaGame game) {
-        tree = new StructuredTree<>();
+        tree = new StructuredTree<>(site.getDataContext());
         tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
         tree.setRootVisible(false);
@@ -233,7 +232,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
             }
         }));
 
-        var context = new DataContext(tree.getDataContext());
+        var context = tree.getDataContext();
         context.put(DataKeys.GAME, game);
         Actions.installContextMenu(tree, GraphMenu.ID, context);
 

@@ -21,6 +21,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -29,11 +30,28 @@ public final class EditorStackManager implements EditorManager {
     private static final Integer OVERLAY_LAYER = JLayeredPane.POPUP_LAYER - 1;
 
     private final EditorStackContainer root;
-    private final EditorSite sharedSite = () -> this;
+    private final DataContext dataContext;
+    private final EditorSite sharedSite;
 
     private EditorStackDropOverlay overlay;
 
     public EditorStackManager() {
+        this(new DataContext());
+    }
+
+    public EditorStackManager(DataContext dataContext) {
+        this.dataContext = Objects.requireNonNull(dataContext, "dataContext");
+        sharedSite = new EditorSite() {
+            @Override
+            public EditorManager getManager() {
+                return EditorStackManager.this;
+            }
+
+            @Override
+            public DataContext getDataContext() {
+                return dataContext;
+            }
+        };
         root = new EditorStackContainer(this, createStack());
         root.addHierarchyListener(new HierarchyListener() {
             @Override
@@ -193,9 +211,12 @@ public final class EditorStackManager implements EditorManager {
                     .map(e -> e.current().editor)
                     .orElse(null);
                 if (editor instanceof DataContextOwner owner) {
-                    return lookupIn(owner.getDataContext(), key);
+                    var result = lookupIn(owner.getDataContext(), key);
+                    if (!result.isMissing()) {
+                        return result;
+                    }
                 }
-                return Lookup.missing();
+                return lookupIn(dataContext, key);
             }
         };
         context.put(DataKeys.EDITOR_MANAGER, this);

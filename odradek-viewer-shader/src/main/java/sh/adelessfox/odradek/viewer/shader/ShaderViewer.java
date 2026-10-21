@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.viewer.shader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.ProgramType;
@@ -18,7 +19,7 @@ public record ShaderViewer(Shader shader, Game game) implements Viewer {
 
     public static final class Provider implements Viewer.Provider<Shader> {
         @Override
-        public Viewer create(Shader object, Game game, Optional<?> selection) {
+        public Viewer create(Shader object, Game game, Optional<?> selection, DataContext parentContext) {
             return new ShaderViewer(object, game);
         }
 

@@ -28,23 +28,30 @@ public final class DataContexts {
     }
 
     public static DataContext focusedComponent() {
+        return focusedComponent(new DataContext());
+    }
+
+    /** Looks up focused-component data first, using the fallback only for missing bindings. */
+    public static DataContext focusedComponent(DataContext fallback) {
         return new ComponentContext(() -> {
             var manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
             var focusOwner = manager.getPermanentFocusOwner();
             return focusOwner != null ? focusOwner : manager.getFocusOwner();
-        });
+        }, Objects.requireNonNull(fallback, "fallback"));
     }
 
     public static DataContext forComponent(Component component) {
         Objects.requireNonNull(component, "component");
-        return new ComponentContext(() -> component);
+        return new ComponentContext(() -> component, new DataContext());
     }
 
     private static final class ComponentContext extends DataContext {
         private final Supplier<Component> component;
+        private final DataContext fallback;
 
-        private ComponentContext(Supplier<Component> component) {
+        private ComponentContext(Supplier<Component> component, DataContext fallback) {
             this.component = component;
+            this.fallback = fallback;
         }
 
         @Override
@@ -62,7 +69,7 @@ public final class DataContexts {
                     }
                 }
             }
-            return Lookup.missing();
+            return lookupIn(fallback, key);
         }
     }
 }

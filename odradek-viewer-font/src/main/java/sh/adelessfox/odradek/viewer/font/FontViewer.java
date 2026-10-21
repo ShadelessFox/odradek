@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.viewer.font;
 
 import com.formdev.flatlaf.FlatClientProperties;
 import net.miginfocom.swing.MigLayout;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.font.Font;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -14,7 +15,7 @@ import java.util.function.IntConsumer;
 public record FontViewer(Font font) implements Viewer {
     public static final class Provider implements Viewer.Provider<Font> {
         @Override
-        public Viewer create(Font object, Game game, Optional<?> selection) {
+        public Viewer create(Font object, Game game, Optional<?> selection, DataContext parentContext) {
             return new FontViewer(object);
         }
 

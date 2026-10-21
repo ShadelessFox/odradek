@@ -12,7 +12,6 @@ import sh.adelessfox.odradek.app.ui.tools.graph.filter.Filter;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.FilterOption;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.FilterResult;
 import sh.adelessfox.odradek.app.ui.tools.graph.menu.GraphMenu;
-import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
@@ -109,7 +108,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
             }
         });
 
-        var context = new DataContext(tree.getDataContext());
+        var context = tree.getDataContext();
         context.put(DataKeys.GAME, game);
         Actions.installContextMenu(tree, GraphMenu.ID, context);
 
@@ -185,7 +184,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
     }
 
     private StructuredTree<GraphStructure> createGraphTree() {
-        var tree = new StructuredTree<>(new GraphStructure.Graph(game.streamingGraph()));
+        var tree = new StructuredTree<>(new GraphStructure.Graph(game.streamingGraph()), site.getDataContext());
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setLabelProvider(new GraphLabelProvider());
