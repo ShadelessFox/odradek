@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.data;
+package sh.adelessfox.odradek.data;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.data;
+package sh.adelessfox.odradek.data;
 
 /** An object exposing its owned data context. */
 public interface DataContextOwner {

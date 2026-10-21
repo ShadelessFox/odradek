@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.ui.actions;
 
-import sh.adelessfox.odradek.ui.data.DataContext;
-import sh.adelessfox.odradek.ui.data.DataKey;
+import sh.adelessfox.odradek.data.DataContext;
+import sh.adelessfox.odradek.data.DataKey;
 
 import java.awt.event.ActionEvent;
 import java.util.Optional;

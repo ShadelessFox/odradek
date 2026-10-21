@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
+import sh.adelessfox.odradek.data.DataContext;
+import sh.adelessfox.odradek.data.DataContextOwner;
+import sh.adelessfox.odradek.data.DataKey;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.data.DataContext;
-import sh.adelessfox.odradek.ui.data.DataContextOwner;
-import sh.adelessfox.odradek.ui.data.DataKey;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;

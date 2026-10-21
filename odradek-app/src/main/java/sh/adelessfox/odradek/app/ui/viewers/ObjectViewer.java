@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.viewers.menu.ObjectMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.rtti.*;
@@ -19,7 +20,6 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.*;
-import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
 

@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.ui.actions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.components.SplitButton;
-import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.util.Icons;
 import sh.adelessfox.odradek.util.system.OperatingSystem;

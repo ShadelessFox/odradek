@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.ui.data;
 
+import sh.adelessfox.odradek.data.DataKey;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorManager;

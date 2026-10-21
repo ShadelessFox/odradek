@@ -1,5 +1,9 @@
 package sh.adelessfox.odradek.ui.data;
 
+import sh.adelessfox.odradek.data.DataContext;
+import sh.adelessfox.odradek.data.DataContextOwner;
+import sh.adelessfox.odradek.data.DataKey;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
