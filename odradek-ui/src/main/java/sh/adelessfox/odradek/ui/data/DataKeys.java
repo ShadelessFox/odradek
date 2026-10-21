@@ -9,14 +9,14 @@ import javax.swing.*;
 import java.util.List;
 
 public final class DataKeys {
-    public static final DataKey<JComponent> COMPONENT = DataKey.create("component");
-    public static final DataKey<Object> SELECTION = DataKey.create("selection");
-    public static final DataKey<List<Object>> SELECTION_LIST = DataKey.create("selection list");
-    public static final DataKey<Game> GAME = DataKey.create("game");
+    public static final DataKey<JComponent> COMPONENT = DataKey.of(JComponent.class).named("component");
+    public static final DataKey<Object> SELECTION = DataKey.of(Object.class).named("selection");
+    public static final DataKey<List<Object>> SELECTION_LIST = DataKey.listOf(Object.class).named("selection");
+    public static final DataKey<Game> GAME = DataKey.of(Game.class);
 
-    public static final DataKey<EditorManager> EDITOR_MANAGER = DataKey.create("editor manager");
-    public static final DataKey<EditorStack> EDITOR_STACK = DataKey.create("editor stack");
-    public static final DataKey<Editor> EDITOR = DataKey.create("editor");
+    public static final DataKey<EditorManager> EDITOR_MANAGER = DataKey.of(EditorManager.class);
+    public static final DataKey<EditorStack> EDITOR_STACK = DataKey.of(EditorStack.class);
+    public static final DataKey<Editor> EDITOR = DataKey.of(Editor.class);
 
     private DataKeys() {
     }

@@ -82,7 +82,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
                 manager.openEditor(input);
             }
         }));
-        Actions.installContextMenu(tree, BookmarkMenu.ID, tree);
+        Actions.installContextMenu(tree, BookmarkMenu.ID, tree.getDataContext());
 
         // Setup drag-n-drop
         tree.setDragEnabled(true);

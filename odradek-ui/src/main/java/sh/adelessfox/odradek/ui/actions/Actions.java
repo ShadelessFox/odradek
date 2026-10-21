@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.ui.components.SplitButton;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.util.Icons;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
@@ -40,7 +41,7 @@ public final class Actions {
         var selectionProvider = getSelectionProvider(component);
         installContextMenu(component, popupMenu, (SelectionProvider<JComponent, ?>) selectionProvider);
         populateActionBindings(component, id, new ActionContext(context, component, null), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-        DataContext.putDataContext(component, context);
+        DataContexts.putDataContext(component, context);
     }
 
     public static JToolBar createToolBar(String id, DataContext context) {
@@ -401,7 +402,7 @@ public final class Actions {
         }
 
         JPopupMenu createPopupMenu() {
-            return Actions.createPopupMenu(component, descriptor.id(), context, includeSourceAction);
+            return Actions.createPopupMenu(component, descriptor.id(), context.context(), includeSourceAction);
         }
     }
 
@@ -544,7 +545,12 @@ public final class Actions {
             var menu = new JMenu(action);
             configureAcceleratorFromAction(menu, action);
             var popupMenu = menu.getPopupMenu();
-            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(null, popupMenu, action.descriptor.id(), action.context, false));
+            popupMenu.addPopupMenuListener(new ActionPopupMenuListener(
+                null,
+                popupMenu,
+                action.descriptor.id(),
+                action.context.context(),
+                false));
             return menu;
         }
 

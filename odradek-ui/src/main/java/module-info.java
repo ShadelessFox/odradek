@@ -3,6 +3,7 @@ module odradek.ui {
 
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf;
+    requires com.google.gson;
     requires com.miglayout.swing;
     requires java.desktop;
     requires org.slf4j;

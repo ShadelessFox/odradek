@@ -108,7 +108,7 @@ final class BookmarkTransferHandler extends TransferHandler {
     }
 
     private List<BookmarkKey> selectedBookmarks() {
-        return tree.get(DataKeys.SELECTION_LIST).stream()
+        return tree.getDataContext().get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.Bookmark.class))
             .map(BookmarkStructure.Bookmark::key)
@@ -116,7 +116,7 @@ final class BookmarkTransferHandler extends TransferHandler {
     }
 
     private List<FolderId> selectedFolders() {
-        return tree.get(DataKeys.SELECTION_LIST).stream()
+        return tree.getDataContext().get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.Folder.class))
             .map(BookmarkStructure.Folder::id)

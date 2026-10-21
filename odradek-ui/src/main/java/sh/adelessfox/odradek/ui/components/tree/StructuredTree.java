@@ -4,6 +4,7 @@ import com.formdev.flatlaf.util.UIScale;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.StyledTreeCellRenderer;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataContextOwner;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.GraphicsUtils;
 import sh.adelessfox.odradek.ui.util.Listeners;
@@ -25,7 +26,8 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContext {
+public class StructuredTree<T extends TreeStructure<T>> extends JTree implements DataContextOwner {
+    private final DataContext dataContext = new DataContext();
     private final Listeners<TreeActionListener> actionListeners = new Listeners<>(TreeActionListener.class);
     private TreeLabelProvider<T> labelProvider;
     private String placeholderText;
@@ -45,6 +47,16 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     }
 
     private void setup() {
+        dataContext.put(DataKeys.COMPONENT, this);
+        dataContext.compute(DataKeys.SELECTION, () -> {
+            var paths = getSelectionPaths();
+            return paths != null && paths.length == 1 ? getLastPathComponent(paths[0]) : null;
+        });
+        dataContext.compute(DataKeys.SELECTION_LIST, () -> {
+            var paths = getSelectionPaths();
+            return paths == null ? null : Arrays.stream(paths).<Object>map(this::getLastPathComponent).toList();
+        });
+
         addMouseListener(new MouseAdapter() {
             int lastRow = -1;
 
@@ -119,23 +131,8 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     }
 
     @Override
-    public Optional<?> get(String key) {
-        if (DataKeys.COMPONENT.is(key)) {
-            return Optional.of(this);
-        }
-        if (DataKeys.SELECTION.is(key)) {
-            TreePath[] paths = getSelectionPaths();
-            if (paths != null && paths.length == 1) {
-                return Optional.of(getLastPathComponent(paths[0]));
-            }
-        }
-        if (DataKeys.SELECTION_LIST.is(key)) {
-            TreePath[] paths = getSelectionPaths();
-            if (paths != null) {
-                return Optional.of(Arrays.stream(paths).map(this::getLastPathComponent).toList());
-            }
-        }
-        return Optional.empty();
+    public DataContext getDataContext() {
+        return dataContext;
     }
 
     @Override

@@ -13,7 +13,7 @@ import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Dialogs;
 
@@ -69,7 +69,7 @@ public final class Application {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContext.focusedComponent());
+        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContexts.focusedComponent());
         JOptionPane.setRootFrame(frame);
 
         component.events().subscribe(SettingsEvent.class, event -> {

@@ -1,78 +1,117 @@
 package sh.adelessfox.odradek.ui.data;
 
-import javax.swing.*;
-import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 
-@FunctionalInterface
-public interface DataContext {
-    /**
-     * Returns a {@link DataContext} that retrieves data from the current focused component.
-     */
-    static DataContext focusedComponent() {
-        return key -> {
-            var manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-            var focusOwner = manager.getPermanentFocusOwner();
-            if (focusOwner == null) {
-                focusOwner = manager.getFocusOwner();
-            }
-            for (Component c = focusOwner; c != null; c = c.getParent()) {
-                var result = getDataContext(c).flatMap(context -> context.get(key));
-                if (result.isPresent()) {
-                    return result;
-                }
-            }
-            return Optional.empty();
-        };
+/**
+ * A registry of stable and computed values, optionally inheriting another context.
+ * Local bindings shadow inherited bindings even when their current value is empty.
+ * <p>
+ * Can be subclassed to provide additional lookup behavior by overriding {@link #lookup(DataKey)}.
+ *
+ * @see DataKey
+ */
+public class DataContext {
+    private final Map<DataKey<?>, Supplier<?>> bindings = new HashMap<>();
+    private final DataContext parent;
+
+    public DataContext() {
+        parent = null;
+    }
+
+    public DataContext(DataContext parent) {
+        this.parent = Objects.requireNonNull(parent, "parent");
+    }
+
+    /** Registers a non-null stable value, replacing any existing local binding. */
+    public final <T> void put(DataKey<T> key, T value) {
+        Objects.requireNonNull(value, "value");
+        compute(key, () -> value);
     }
 
     /**
-     * Returns an empty {@link DataContext}.
+     * Registers a provider evaluated on every lookup, replacing any existing local binding.
+     * <p>
+     * A {@code null} result means empty, not missing; it masks the parent
+     * value. Providers should be side-effect-free. Exceptions propagate to the caller.
      */
-    static DataContext empty() {
-        return _ -> Optional.empty();
+    public final <T> void compute(DataKey<T> key, Supplier<? extends T> provider) {
+        bindings.put(Objects.requireNonNull(key, "key"), Objects.requireNonNull(provider, "provider"));
     }
 
-    static Optional<DataContext> getDataContext(Component component) {
-        return switch (component) {
-            case JComponent c when c.getClientProperty(DataContext.class) instanceof DataContext context -> Optional.of(context);
-            case DataContext context -> Optional.of(context);
-            case null, default -> Optional.empty();
-        };
+    /** Returns the value, or empty for either an empty binding or a missing key. */
+    public final <T> Optional<T> get(DataKey<T> key) {
+        return lookup(key).optional();
     }
 
-    static void putDataContext(JComponent component, DataContext context) {
-        component.putClientProperty(DataContext.class, context);
+    public final <T, R> Optional<R> get(DataKey<T> key, Class<R> type) {
+        return get(key).filter(type::isInstance).map(type::cast);
     }
 
-    Optional<?> get(String key);
-
-    @SuppressWarnings("unchecked")
-    default <T> Optional<T> get(DataKey<T> key) {
-        return get(key.name()).map(x -> (T) x);
+    public final <T> T require(DataKey<T> key) {
+        return get(key).orElseThrow(() -> new IllegalStateException("Data not found for key: " + key));
     }
 
-    default <T, R> Optional<R> get(DataKey<T> key, Class<R> type) {
-        return get(key.name())
-            .filter(type::isInstance)
-            .map(type::cast);
-    }
-
-    default boolean has(DataKey<?> key) {
+    public final boolean has(DataKey<?> key) {
         return get(key).isPresent();
     }
 
-    default boolean has(DataKey<?> key, Class<?> type) {
+    public final boolean has(DataKey<?> key, Class<?> type) {
         return get(key, type).isPresent();
     }
 
-    default DataContext or(DataContext other) {
-        return key -> {
-            Optional<?> result = get(key);
-            if (result.isPresent()) {
-                return result;
+    @SuppressWarnings("unchecked")
+    protected <T> Lookup<T> lookup(DataKey<T> key) {
+        Objects.requireNonNull(key, "key");
+        var provider = bindings.get(key);
+        if (provider != null) {
+            return Lookup.ofNullable((T) provider.get());
+        }
+        return parent == null ? Lookup.missing() : lookupIn(parent, key);
+    }
+
+    /** Allows subclasses in other packages to delegate without losing absence information. */
+    protected final <T> Lookup<T> lookupIn(DataContext context, DataKey<T> key) {
+        return context.lookup(key);
+    }
+
+    public sealed interface Lookup<T> {
+        static <T> Lookup<T> missing() {
+            return new Missing<>();
+        }
+
+        static <T> Lookup<T> empty() {
+            return new Empty<>();
+        }
+
+        static <T> Lookup<T> ofNullable(T value) {
+            return value == null ? empty() : new Present<>(value);
+        }
+
+        default boolean isMissing() {
+            return this instanceof Missing<?>;
+        }
+
+        default Optional<T> optional() {
+            return switch (this) {
+                case Present<T>(var value) -> Optional.of(value);
+                case Missing<T> _, Empty<T> _ -> Optional.empty();
+            };
+        }
+
+        record Missing<T>() implements Lookup<T> {
+        }
+
+        record Empty<T>() implements Lookup<T> {
+        }
+
+        record Present<T>(T value) implements Lookup<T> {
+            public Present {
+                Objects.requireNonNull(value, "value");
             }
-            return other.get(key);
-        };
+        }
     }
 }

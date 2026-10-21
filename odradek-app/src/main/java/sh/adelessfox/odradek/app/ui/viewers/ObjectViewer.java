@@ -19,6 +19,7 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.*;
+import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
@@ -103,12 +104,11 @@ public final class ObjectViewer implements Viewer, Focusable {
                 manager.findEditor(tree).ifPresent(editor -> manager.navigate(editor, input));
             });
         }));
-        Actions.installContextMenu(tree, ObjectMenu.ID, tree.or(key -> {
-            if (DataKeys.GAME.is(key)) {
-                return Optional.of(game);
-            }
-            return Optional.empty();
-        }));
+
+        var context = new DataContext(tree.getDataContext());
+        context.put(DataKeys.GAME, game);
+        Actions.installContextMenu(tree, ObjectMenu.ID, context);
+
         PreviewManager.install(tree, game, new ObjectPreviewObjectProvider());
 
         installAutoExpandGroups(tree);

@@ -2,6 +2,8 @@ package sh.adelessfox.odradek.ui.editors.stack;
 
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataContextOwner;
+import sh.adelessfox.odradek.ui.data.DataKey;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
@@ -180,24 +182,28 @@ public final class EditorStackManager implements EditorManager {
 
     EditorStack createStack() {
         EditorStack stack = new EditorStack(this);
-        Actions.installContextMenu(stack, EditorMenu.ID, key -> {
-            if (DataKeys.EDITOR_MANAGER.is(key)) {
-                return Optional.of(this);
+        var context = new DataContext() {
+            @Override
+            protected <T> Lookup<T> lookup(DataKey<T> key) {
+                var local = super.lookup(key);
+                if (!local.isMissing()) {
+                    return local;
+                }
+                var editor = getSelectedEditor(stack)
+                    .map(e -> e.current().editor)
+                    .orElse(null);
+                if (editor instanceof DataContextOwner owner) {
+                    return lookupIn(owner.getDataContext(), key);
+                }
+                return Lookup.missing();
             }
-            if (DataKeys.EDITOR_STACK.is(key)) {
-                return Optional.of(stack);
-            }
-            if (DataKeys.EDITOR.is(key) || DataKeys.SELECTION.is(key)) {
-                return getSelectedEditor(stack).map(e -> e.current().editor);
-            }
-            if (DataKeys.SELECTION_LIST.is(key)) {
-                return getSelectedEditor(stack).map(e -> List.of(e.current().editor));
-            }
-            if (getSelectedEditor(stack).map(e -> e.current().editor).orElse(null) instanceof DataContext context) {
-                return context.get(key);
-            }
-            return Optional.empty();
-        });
+        };
+        context.put(DataKeys.EDITOR_MANAGER, this);
+        context.put(DataKeys.EDITOR_STACK, stack);
+        context.compute(DataKeys.EDITOR, () -> getSelectedEditor(stack).map(e -> e.current().editor).orElse(null));
+        context.compute(DataKeys.SELECTION, () -> getSelectedEditor(stack).map(e -> e.current().editor).orElse(null));
+        context.compute(DataKeys.SELECTION_LIST, () -> getSelectedEditor(stack).map(e -> List.<Object>of(e.current().editor)).orElse(null));
+        Actions.installContextMenu(stack, EditorMenu.ID, context);
 
         var listener = new EditorDragSourceListener(stack);
         stack.addMouseListener(listener);

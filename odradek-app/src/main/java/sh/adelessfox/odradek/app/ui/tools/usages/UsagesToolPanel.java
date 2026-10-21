@@ -23,6 +23,7 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
+import sh.adelessfox.odradek.ui.data.DataContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
@@ -232,12 +233,9 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
             }
         }));
 
-        Actions.installContextMenu(tree, GraphMenu.ID, key -> {
-            if (DataKeys.GAME.is(key)) {
-                return Optional.of(game);
-            }
-            return tree.get(key);
-        });
+        var context = new DataContext(tree.getDataContext());
+        context.put(DataKeys.GAME, game);
+        Actions.installContextMenu(tree, GraphMenu.ID, context);
 
         eventBus.subscribe(Events.ShowObject.class, event -> {
             if (database == null) {

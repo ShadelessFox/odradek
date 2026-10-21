@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContext;
+import sh.adelessfox.odradek.ui.data.DataContextOwner;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class ObjectEditor
-    implements Editor, ObjectTypeHolder, ObjectHolder<TypedObject>, Bookmarkable, DataContext {
+    implements Editor, ObjectTypeHolder, ObjectHolder<TypedObject>, Bookmarkable, DataContextOwner {
 
     public static final class Provider implements Editor.Provider {
         @Override
@@ -42,6 +43,7 @@ public final class ObjectEditor
     }
 
     private final ObjectEditorInput input;
+    private final DataContext dataContext = new DataContext();
     private final List<Viewer> viewers = new ArrayList<>();
 
     private FlatTabbedPane pane;
@@ -50,6 +52,8 @@ public final class ObjectEditor
 
     private ObjectEditor(ObjectEditorInput input) {
         this.input = input;
+        dataContext.put(DataKeys.GAME, input.game());
+        dataContext.put(DataKeys.SELECTION_LIST, List.of(this));
     }
 
     @Override
@@ -128,21 +132,15 @@ public final class ObjectEditor
     }
 
     @Override
-    public Optional<?> get(String key) {
-        if (DataKeys.GAME.is(key)) {
-            return Optional.of(input.game());
-        }
-        if (DataKeys.SELECTION_LIST.is(key)) {
-            return Optional.of(List.of(this));
-        }
-        return Optional.empty();
+    public DataContext getDataContext() {
+        return dataContext;
     }
 
     private FlatTabbedPane createRoot(Game game, TypedObject object, Optional<TypePath> selection) {
         var pane = new FlatTabbedPane();
         pane.setTabPlacement(SwingConstants.BOTTOM);
         pane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
-        pane.setLeadingComponent(Actions.createToolBar(ObjectEditorMenu.TOOLBAR_ID, this));
+        pane.setLeadingComponent(Actions.createToolBar(ObjectEditorMenu.TOOLBAR_ID, dataContext));
         pane.setStyle("selectedBackground: @componentBackground");
         pane.addChangeListener(_ -> {
             if (active && lastViewer != null) {
