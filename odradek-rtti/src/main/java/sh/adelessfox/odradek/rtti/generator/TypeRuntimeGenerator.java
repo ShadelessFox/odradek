@@ -249,6 +249,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     }
 
     // Public so generated POD classes can resolve the method handle
+    @SuppressWarnings("unused")
     public static String containerToString(Object container) {
         if (container == null) {
             return "null";
