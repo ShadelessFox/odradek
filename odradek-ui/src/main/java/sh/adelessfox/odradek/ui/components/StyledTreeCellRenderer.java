@@ -19,6 +19,7 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
 
     public StyledTreeCellRenderer() {
         updateUI();
+        setOpaque(false);
         setPadding(new Insets(3, 4, 3, 4));
     }
 

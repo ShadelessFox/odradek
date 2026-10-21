@@ -12,6 +12,10 @@ public abstract class StyledListCellRenderer<T> extends StyledCellRenderer imple
     private JList<?> list;
     private boolean selected;
 
+    public StyledListCellRenderer() {
+        setOpaque(true);
+    }
+
     @Override
     public Component getListCellRendererComponent(
         JList<? extends T> list,
