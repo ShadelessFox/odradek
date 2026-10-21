@@ -8,6 +8,7 @@ import java.lang.classfile.attribute.*;
 import java.lang.constant.*;
 import java.lang.invoke.*;
 import java.lang.reflect.AccessFlag;
+import java.lang.reflect.Array;
 import java.lang.runtime.ObjectMethods;
 import java.util.*;
 import java.util.function.Consumer;
@@ -34,6 +35,18 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             CD_MethodHandles_Lookup, CD_String, CD_TypeDescriptor,
             CD_Class, CD_String, CD_MethodHandle.arrayType()
         )
+    );
+    private static final MethodHandleDesc MHD_containerToString = MethodHandleDesc.ofMethod(
+        DirectMethodHandleDesc.Kind.STATIC,
+        TypeRuntimeGenerator.class.describeConstable().orElseThrow(),
+        "containerToString",
+        MethodTypeDesc.of(CD_String, CD_Object)
+    );
+    private static final MethodHandleDesc MHD_filterReturnValue = MethodHandleDesc.ofMethod(
+        DirectMethodHandleDesc.Kind.STATIC,
+        MethodHandles.class.describeConstable().orElseThrow(),
+        "filterReturnValue",
+        MethodTypeDesc.of(CD_MethodHandle, CD_MethodHandle, CD_MethodHandle)
     );
 
     private final Map<ClassTypeInfo, RuntimeClassInfo> classes = new IdentityHashMap<>();
@@ -235,17 +248,39 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         holder.setOrThrow(info);
     }
 
+    // Public so generated POD classes can resolve the method handle
+    public static String containerToString(Object container) {
+        if (container == null) {
+            return "null";
+        }
+        int size = container instanceof Collection<?> c ? c.size() : Array.getLength(container);
+        return switch (size) {
+            case 0 -> "[]";
+            case 1 -> "[1 item]";
+            default -> "[" + size + " items]";
+        };
+    }
+
     private static void buildToString(ClassBuilder builder, ClassDesc desc, List<BoostrapAttrInfo> attrs) {
         List<String> names = new ArrayList<>(attrs.size());
-        List<DirectMethodHandleDesc> handles = new ArrayList<>(attrs.size());
+        List<ConstantDesc> handles = new ArrayList<>(attrs.size());
 
         for (BoostrapAttrInfo attr : attrs) {
-            if (attr.attr().type() instanceof ContainerTypeInfo) {
-                // Exclude containers from toString (IDEA: show 'N items' instead)
-                continue;
-            }
             names.add(toDisplayName(attr.attr()));
-            handles.add(attr.handle());
+            if (attr.attr().type() instanceof ContainerTypeInfo) {
+                handles.add(DynamicConstantDesc.ofNamed(
+                    BSM_INVOKE,
+                    DEFAULT_NAME,
+                    CD_MethodHandle,
+                    MHD_filterReturnValue,
+                    attr.handle(),
+                    MHD_containerToString.asType(MethodTypeDesc.of(
+                        CD_String,
+                        attr.handle().invocationType().returnType()))
+                ));
+            } else {
+                handles.add(attr.handle());
+            }
         }
 
         List<ConstantDesc> args = new ArrayList<>();
