@@ -4,9 +4,6 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkDataKeys;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkPersistence;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.component.main.MainView;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
@@ -20,6 +17,9 @@ import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.settings.SettingsManager;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkDataKeys;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkPersistence;
+import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
@@ -93,13 +93,13 @@ public final class Application {
     /** Creates shared services and completes their bindings on the EDT before constructing the main UI. */
     static DataContext initializeContext(DecimaGame game, Path config, EventBus events, Settings settings) {
         var context = new DataContext();
-        context.put(DataKeys.GAME, game);
         context.put(ApplicationDataKeys.CONFIG_PATH, config);
-        context.put(DataKeys.EVENT_BUS, events);
         context.put(ApplicationDataKeys.SETTINGS, settings);
+        context.put(DataKeys.EDITOR_MANAGER, new EditorStackManager(context));
+        context.put(DataKeys.EVENT_BUS, events);
+        context.put(DataKeys.GAME, game);
         var bookmarks = new Bookmarks(events);
         context.put(BookmarkDataKeys.BOOKMARKS, bookmarks);
-        context.put(DataKeys.EDITOR_MANAGER, new EditorStackManager(context));
         new BookmarkPersistence(bookmarks, settings, events);
         return context;
     }

@@ -1,9 +1,9 @@
-package sh.adelessfox.odradek.app.ui.bookmarks;
+package sh.adelessfox.odradek.ui.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkSettings.BookmarkState;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkSettings.BookmarkState;
 
 import java.util.ArrayList;
 import java.util.List;

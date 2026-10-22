@@ -1,6 +1,6 @@
-package sh.adelessfox.odradek.app.ui.tools.bookmarks;
+package sh.adelessfox.odradek.ui.bookmarks.internal;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;

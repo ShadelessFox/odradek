@@ -1,10 +1,11 @@
-package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
+package sh.adelessfox.odradek.ui.bookmarks.internal.menu;
 
-import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkStructure;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
+import sh.adelessfox.odradek.ui.bookmarks.internal.BookmarkStructure;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;

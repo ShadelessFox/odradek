@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
+package sh.adelessfox.odradek.ui.bookmarks;
 
 public final class BookmarkMenu {
     public static final String ID = "BookmarkMenu";

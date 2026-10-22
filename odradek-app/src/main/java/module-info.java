@@ -13,6 +13,7 @@ module odradek.app {
     requires odradek.rtti;
     requires odradek.settings;
     requires odradek.ui;
+    requires odradek.ui.bookmarks;
     requires org.slf4j;
 
     requires wtf.reversed.toolbox;
@@ -45,8 +46,6 @@ module odradek.app {
     opens sh.adelessfox.odradek.app to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;
     opens sh.adelessfox.odradek.app.ui to info.picocli;
-    opens sh.adelessfox.odradek.app.ui.bookmarks to com.google.gson;
-    opens sh.adelessfox.odradek.app.ui.bookmarks.gson to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings.gson to com.google.gson;
 
@@ -64,11 +63,6 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction.Placeholder,
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectPreviewAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectTypeInformationAction,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.CreateFolderAction,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.DeleteFolderAction,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameFolderAction,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameBookmarkAction,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.ToggleBookmarkAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyIdToClipboardAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyTypeToClipboardAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.ExportObjectAction,
@@ -87,7 +81,6 @@ module odradek.app {
 
     provides sh.adelessfox.odradek.ui.tools.ToolPanel.Provider with
         sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel.Provider,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel.Provider,
         sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel.Provider;
 
     provides sh.adelessfox.odradek.ui.Viewer.Provider with

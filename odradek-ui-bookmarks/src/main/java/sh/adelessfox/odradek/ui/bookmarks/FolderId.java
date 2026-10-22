@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.bookmarks;
+package sh.adelessfox.odradek.ui.bookmarks;
 
 import java.util.UUID;
 

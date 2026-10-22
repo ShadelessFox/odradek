@@ -1,10 +1,10 @@
 package sh.adelessfox.odradek.app.ui.tools.usages.menu;
 
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
-import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.*;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 

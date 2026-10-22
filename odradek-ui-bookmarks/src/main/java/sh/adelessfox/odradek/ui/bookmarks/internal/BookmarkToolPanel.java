@@ -1,12 +1,12 @@
-package sh.adelessfox.odradek.app.ui.tools.bookmarks;
+package sh.adelessfox.odradek.ui.bookmarks.internal;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkDataKeys;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkDataKeys;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkEvent;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
+import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;

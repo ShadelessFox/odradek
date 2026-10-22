@@ -1,8 +1,8 @@
-package sh.adelessfox.odradek.app.ui.tools.bookmarks;
+package sh.adelessfox.odradek.ui.bookmarks.internal;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.data.DataKeys;

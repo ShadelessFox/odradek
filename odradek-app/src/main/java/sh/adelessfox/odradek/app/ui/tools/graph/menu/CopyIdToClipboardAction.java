@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
-import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.*;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.util.Gatherers;

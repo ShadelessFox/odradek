@@ -1,8 +1,6 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.data.DataContextOwner;
 import sh.adelessfox.odradek.game.Converter;
@@ -16,6 +14,8 @@ import sh.adelessfox.odradek.rtti.util.TypePath;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.Viewer;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;

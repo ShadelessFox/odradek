@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.bookmarks;
+package sh.adelessfox.odradek.ui.bookmarks;
 
 import sh.adelessfox.odradek.event.EventBus;
 
