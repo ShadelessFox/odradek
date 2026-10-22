@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.settings.Settings;
@@ -21,15 +22,18 @@ import java.util.Optional;
 public class MainPresenter implements Presenter<MainView> {
     private final MainView view;
     private final EditorManager editorManager;
+    private final DecimaGame game;
 
     @Inject
     MainPresenter(
         EditorManager editorManager,
         MainView view,
-        EventBus eventBus
+        EventBus eventBus,
+        DecimaGame game
     ) {
         this.view = view;
         this.editorManager = editorManager;
+        this.game = game;
 
         eventBus.subscribe(MainEvent.ShowObject.class, event -> openObject(event.objectId()));
         eventBus.subscribe(SettingsEvent.class, event -> {
@@ -46,7 +50,7 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private void openObject(ObjectId objectId) {
-        editorManager.openEditor(new ObjectEditorInputLazy(objectId));
+        editorManager.openEditor(new ObjectEditorInputLazy(game, objectId));
     }
 
     private void loadEditors(Settings settings) {
@@ -71,7 +75,7 @@ public class MainPresenter implements Presenter<MainView> {
                         selection = stack.getTabCount();
                     }
                     var inputs = tab.history().stream()
-                        .map(ObjectEditorInputLazy::new)
+                        .map(objectId -> new ObjectEditorInputLazy(game, objectId))
                         .toList();
                     var history = new EditorManager.History(inputs, Math.clamp(tab.selection(), 0, inputs.size() - 1));
                     editorManager.openEditorInNewTab(history, stack, EditorManager.Activation.NO);

@@ -16,7 +16,7 @@ abstract class AbstractGroupableAction<T extends GraphStructure.Groupable<T, ?>,
     public void perform(ActionContext context) {
         @SuppressWarnings("unchecked")
         var groupable = (GraphStructure.Groupable<T, O>) context.get(DataKeys.SELECTION, getType()).orElseThrow();
-        var tree = context.get(DataKeys.COMPONENT, StructuredTree.class).orElseThrow();
+        var tree = context.require(DataKeys.COMPONENT, StructuredTree.class);
 
         var option = getOption();
         var options = groupable.options();

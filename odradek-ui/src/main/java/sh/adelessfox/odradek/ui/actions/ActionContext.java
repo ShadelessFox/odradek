@@ -19,6 +19,10 @@ public record ActionContext(DataContext context, Object source, ActionEvent even
         return context.require(key);
     }
 
+    public <T, R> R require(DataKey<T> key, Class<R> type) {
+        return context.require(key, type);
+    }
+
     public boolean has(DataKey<?> key) {
         return context.has(key);
     }

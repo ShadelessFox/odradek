@@ -4,52 +4,43 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
-import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContexts;
-import sh.adelessfox.odradek.ui.editors.EditorManager;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Dialogs;
 
 import javax.swing.*;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Optional;
 
 public final class Application {
     private static final Logger log = LoggerFactory.getLogger(Application.class);
-    private static Application application;
+    private static boolean started;
 
-    private final ApplicationComponent component;
-
-    private Application(ApplicationComponent component) {
-        this.component = component;
-    }
-
-    public static Application getInstance() {
-        if (application == null) {
-            throw new IllegalStateException("Application is not running");
-        }
-        return application;
+    private Application() {
     }
 
     public static synchronized void start(ApplicationParameters params) throws IOException {
-        if (application != null) {
+        if (started) {
             throw new IllegalStateException("Application is already running");
         }
 
         var game = (DecimaGame) Game.load(params.sourcePath());
         var component = DaggerApplicationComponent.builder()
+            .context(new DataContext())
             .game(game)
             .config(params.configPath())
             .build();
 
-        application = new Application(component);
+        started = true;
 
         log.info("Starting the application");
         SwingUtilities.invokeLater(() -> run(component, params));
@@ -61,7 +52,15 @@ public final class Application {
             Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
         });
 
+        // Settings publishes a sticky AfterLoad event. Bind all services before creating
+        // UI subscribers, which may restore panels/editors synchronously on subscription.
+        var theme = component.settings().get(ApplicationSettings.THEME).value();
+        FlatLaf.setup(theme.createLookAndFeel());
+        FlatLaf.updateUI();
+        var context = initializeContext(component, params.configPath());
+
         var frame = new JFrame();
+        DataContexts.putDataContext(frame.getRootPane(), context);
         frame.add(component.presenter().getRoot());
         frame.setTitle("Odradek - " + params.sourcePath());
         frame.setIconImages(FlatSVGUtils.createWindowIconImages(Application.class.getResource("application.svg")));
@@ -69,7 +68,7 @@ public final class Application {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContexts.focusedComponent());
+        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContexts.focusedComponent(context));
         JOptionPane.setRootFrame(frame);
 
         component.events().subscribe(SettingsEvent.class, event -> {
@@ -79,15 +78,20 @@ public final class Application {
             }
         });
 
-        // Ensure settings are initialized and loaded after everything else
-        var settings = component.settings();
-
-        var theme = settings.get(ApplicationSettings.THEME).value();
-        FlatLaf.setup(theme.createLookAndFeel());
-        FlatLaf.updateUI();
-
         // And now we can show the frame
         frame.setVisible(true);
+    }
+
+    /** Completes shared bindings on the EDT before requesting the presenter from Dagger. */
+    static DataContext initializeContext(ApplicationComponent component, Path config) {
+        var context = component.context();
+        context.put(DataKeys.GAME, component.game());
+        context.put(ApplicationDataKeys.CONFIG_PATH, config);
+        context.put(ApplicationDataKeys.EVENT_BUS, component.events());
+        context.put(ApplicationDataKeys.BOOKMARKS, component.bookmarks());
+        context.put(ApplicationDataKeys.SETTINGS, component.settings());
+        context.put(DataKeys.EDITOR_MANAGER, component.editors());
+        return context;
     }
 
     private static void loadFrameSettings(Settings settings, JFrame frame) {
@@ -105,25 +109,5 @@ public final class Application {
         var maximized = (frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
         var state = new ApplicationSettings.WindowState(bounds.x, bounds.y, bounds.width, bounds.height, maximized);
         settings.get(ApplicationSettings.WINDOW).set(Optional.of(state));
-    }
-
-    public DecimaGame game() {
-        return component.game();
-    }
-
-    public EditorManager editors() {
-        return component.editors();
-    }
-
-    public Bookmarks bookmarks() {
-        return component.bookmarks();
-    }
-
-    public EventBus events() {
-        return component.events();
-    }
-
-    public Settings settings() {
-        return component.settings();
     }
 }

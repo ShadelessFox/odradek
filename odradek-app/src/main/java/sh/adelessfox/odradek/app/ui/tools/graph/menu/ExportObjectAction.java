@@ -57,7 +57,7 @@ public class ExportObjectAction extends Action {
     public static class Placeholder extends Action implements ActionProvider {
         @Override
         public List<? extends Action> create(ActionContext context) {
-            var game = context.get(DataKeys.GAME, DecimaGame.class).orElseThrow();
+            var game = context.require(DataKeys.GAME, DecimaGame.class);
             return exporters(context)
                 .gather(Gatherers.groupingBy(x -> x.exporter().namespace().orElse("")))
                 .sorted(Map.Entry.comparingByKey())

@@ -12,7 +12,7 @@ import java.util.Optional;
 public class RenameBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
-        var bookmarks = bookmarks();
+        var bookmarks = bookmarks(context);
         var bookmark = selectedKeys(context)
             .map(bookmarks::get).flatMap(Optional::stream)
             .findFirst();
@@ -26,7 +26,7 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        var bookmarks = bookmarks();
+        var bookmarks = bookmarks(context);
         return selectedKeys(context)
             .map(bookmarks::get)
             .map(Optional::isPresent)

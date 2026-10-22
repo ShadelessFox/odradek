@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
@@ -48,7 +48,7 @@ abstract class AbstractBookmarkAction extends Action {
         var folders = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.class))
-            .flatMap(structure -> folderIdOf(structure).stream())
+            .flatMap(structure -> folderIdOf(context, structure).stream())
             .collect(Collectors.toSet());
         return switch (folders.size()) {
             case 1 -> Optional.of(folders.iterator().next());
@@ -56,9 +56,9 @@ abstract class AbstractBookmarkAction extends Action {
         };
     }
 
-    private static Optional<FolderId> folderIdOf(BookmarkStructure structure) {
+    private static Optional<FolderId> folderIdOf(ActionContext context, BookmarkStructure structure) {
         return switch (structure) {
-            case BookmarkStructure.Bookmark bookmark -> Optional.of(bookmarks().getParent(bookmark.key()));
+            case BookmarkStructure.Bookmark bookmark -> Optional.of(bookmarks(context).getParent(bookmark.key()));
             case BookmarkStructure.Folder folder -> Optional.of(folder.id());
         };
     }
@@ -70,7 +70,7 @@ abstract class AbstractBookmarkAction extends Action {
             .map(Bookmarkable::bookmarkKey);
     }
 
-    protected static Bookmarks bookmarks() {
-        return Application.getInstance().bookmarks();
+    protected static Bookmarks bookmarks(ActionContext context) {
+        return context.require(ApplicationDataKeys.BOOKMARKS);
     }
 }

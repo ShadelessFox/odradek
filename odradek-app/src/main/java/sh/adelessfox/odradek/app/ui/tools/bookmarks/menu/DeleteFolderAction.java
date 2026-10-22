@@ -15,20 +15,20 @@ public final class DeleteFolderAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
         var folder = context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class).orElseThrow();
-        if (!needsConfirmation(folder) || confirmDeletion(folder)) {
-            bookmarks().deleteFolder(folder.id());
+        if (!needsConfirmation(context, folder) || confirmDeletion(folder)) {
+            bookmarks(context).deleteFolder(folder.id());
         }
     }
 
     @Override
     public boolean isVisible(ActionContext context) {
         return context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class)
-            .filter(folder -> !folder.id().equals(bookmarks().rootFolderId()))
+            .filter(folder -> !folder.id().equals(bookmarks(context).rootFolderId()))
             .isPresent();
     }
 
-    private static boolean needsConfirmation(BookmarkStructure.Folder folder) {
-        var bookmarks = bookmarks();
+    private static boolean needsConfirmation(ActionContext context, BookmarkStructure.Folder folder) {
+        var bookmarks = bookmarks(context);
         return !bookmarks.getAllInFolder(folder.id()).isEmpty()
             || !bookmarks.getAllFoldersInFolder(folder.id()).isEmpty();
     }

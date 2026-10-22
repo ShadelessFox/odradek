@@ -13,7 +13,7 @@ public final class CreateFolderAction extends AbstractBookmarkAction {
         var parent = enclosingFolder(context).orElseThrow();
         var name = promptName("New Folder", "Enter folder name:", "New folder");
         if (name != null) {
-            bookmarks().createFolder(parent, name);
+            bookmarks(context).createFolder(parent, name);
         }
     }
 

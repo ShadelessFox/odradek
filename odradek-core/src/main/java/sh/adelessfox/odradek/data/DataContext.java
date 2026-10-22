@@ -55,6 +55,12 @@ public class DataContext {
         return get(key).orElseThrow(() -> new IllegalStateException("Data not found for key: " + key));
     }
 
+    /** Requires a value of the given type, failing for missing, empty, or incompatible values. */
+    public final <T, R> R require(DataKey<T> key, Class<R> type) {
+        return get(key, type).orElseThrow(() -> new IllegalStateException(
+            "Data not found for key: " + key + " and type: " + type.getTypeName()));
+    }
+
     public final boolean has(DataKey<?> key) {
         return get(key).isPresent();
     }

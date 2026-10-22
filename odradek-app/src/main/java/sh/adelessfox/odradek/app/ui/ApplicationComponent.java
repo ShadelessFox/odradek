@@ -7,6 +7,7 @@ import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.settings.SettingsModule;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.settings.Settings;
@@ -17,6 +18,8 @@ import java.nio.file.Path;
 @Singleton
 @Component(modules = {ApplicationModule.class, SettingsModule.class})
 interface ApplicationComponent {
+    DataContext context();
+
     MainPresenter presenter();
 
     EditorManager editors();
@@ -31,6 +34,9 @@ interface ApplicationComponent {
 
     @Component.Builder
     interface Builder {
+        @BindsInstance
+        Builder context(DataContext context);
+
         @BindsInstance
         Builder game(DecimaGame game);
 

@@ -16,7 +16,7 @@ import java.util.Optional;
 public class ToggleBookmarkAction extends AbstractBookmarkAction {
     @Override
     public void perform(ActionContext context) {
-        var bookmarks = bookmarks();
+        var bookmarks = bookmarks(context);
         selectedKeys(context).forEach(key -> {
             if (bookmarks.get(key).isEmpty()) {
                 var name = promptName("New Bookmark", "Enter name for " + key + ":", "New bookmark");
@@ -31,7 +31,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        var bookmarks = bookmarks();
+        var bookmarks = bookmarks(context);
         // Ensure we either have all bookmarked or none bookmarked
         return selectedKeys(context)
             .map(bookmarks::get)
@@ -50,7 +50,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
     }
 
     private static boolean exists(ActionContext context) {
-        var bookmarks = bookmarks();
+        var bookmarks = bookmarks(context);
         var present = selectedKeys(context)
             .map(bookmarks::get)
             .flatMap(Optional::stream)

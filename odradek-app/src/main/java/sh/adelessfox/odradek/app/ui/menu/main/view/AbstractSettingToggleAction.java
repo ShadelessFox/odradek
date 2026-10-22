@@ -7,14 +7,14 @@ import sh.adelessfox.odradek.ui.actions.ActionContext;
 abstract class AbstractSettingToggleAction extends Action implements Action.Check {
     @Override
     public void perform(ActionContext context) {
-        var setting = getSetting();
+        var setting = getSetting(context);
         setting.set(!setting.value());
     }
 
     @Override
     public boolean isChecked(ActionContext context) {
-        return getSetting().value();
+        return getSetting(context).value();
     }
 
-    protected abstract Setting<Boolean> getSetting();
+    protected abstract Setting<Boolean> getSetting(ActionContext context);
 }

@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.menu.main.view;
 
 import com.formdev.flatlaf.FlatLaf;
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -42,7 +42,7 @@ public final class ThemeAction extends Action {
             FlatLaf.setup(theme.createLookAndFeel());
             FlatLaf.updateUI();
 
-            var setting = Application.getInstance().settings().get(ApplicationSettings.THEME);
+            var setting = context.require(ApplicationDataKeys.SETTINGS).get(ApplicationSettings.THEME);
             setting.set(theme);
         }
 
@@ -53,7 +53,7 @@ public final class ThemeAction extends Action {
 
         @Override
         public boolean isSelected(ActionContext context) {
-            var setting = Application.getInstance().settings().get(ApplicationSettings.THEME);
+            var setting = context.require(ApplicationDataKeys.SETTINGS).get(ApplicationSettings.THEME);
             return setting.value() == theme;
         }
     }

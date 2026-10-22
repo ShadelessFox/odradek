@@ -4,7 +4,8 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
@@ -18,6 +19,7 @@ import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
@@ -42,18 +44,19 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
     @Singleton
     public static final class Provider implements ToolPanel.Provider {
-        private final EventBus eventBus;
-        private final DecimaGame game;
-
         @Inject
-        Provider(EventBus eventBus, DecimaGame game) {
-            this.eventBus = eventBus;
-            this.game = game;
+        public Provider() {
         }
 
         @Override
         public ToolPanel create(ToolSite site) {
-            return new GraphToolPanel(site, eventBus, game);
+            var context = site.getDataContext();
+            return new GraphToolPanel(
+                site,
+                context.require(ApplicationDataKeys.EVENT_BUS),
+                context.require(DataKeys.GAME, DecimaGame.class),
+                context.require(ApplicationDataKeys.BOOKMARKS),
+                context.require(ApplicationDataKeys.SETTINGS));
         }
 
         @Override
@@ -77,14 +80,24 @@ public class GraphToolPanel implements ToolPanel, Focusable {
     private final ToolSite site;
     private final EventBus eventBus;
     private final DecimaGame game;
+    private final Bookmarks bookmarks;
+    private final Settings settings;
 
     private StructuredTree<GraphStructure> tree;
     private SearchTextField filterField;
 
-    private GraphToolPanel(ToolSite site, EventBus eventBus, DecimaGame game) {
+    private GraphToolPanel(
+        ToolSite site,
+        EventBus eventBus,
+        DecimaGame game,
+        Bookmarks bookmarks,
+        Settings settings
+    ) {
         this.site = site;
         this.eventBus = eventBus;
         this.game = game;
+        this.bookmarks = bookmarks;
+        this.settings = settings;
     }
 
     @Override
@@ -187,7 +200,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         var tree = new StructuredTree<>(new GraphStructure.Graph(game.streamingGraph()), site.getDataContext());
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
-        tree.setLabelProvider(new GraphLabelProvider());
+        tree.setLabelProvider(new GraphLabelProvider(bookmarks));
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof GraphStructure.GroupObject groupObject) {
@@ -201,7 +214,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         PreviewManager.install(tree, game, new PreviewManager.PreviewObjectProvider() {
             @Override
             public Optional<TypeInfo> getType(JTree tree, Object value) {
-                if (!Application.getInstance().settings().get(ApplicationSettings.SHOW_OBJECT_PREVIEW).value()) {
+                if (!settings.get(ApplicationSettings.SHOW_OBJECT_PREVIEW).value()) {
                     return Optional.empty();
                 }
                 if (value instanceof ObjectIdHolder provider) {

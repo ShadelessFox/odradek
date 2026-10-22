@@ -15,14 +15,14 @@ public final class RenameFolderAction extends AbstractBookmarkAction {
         var folder = context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class).orElseThrow();
         var name = promptName("Rename Folder", "Enter new name for folder '" + folder.name() + "':", folder.name());
         if (name != null) {
-            bookmarks().updateFolder(folder.id(), name);
+            bookmarks(context).updateFolder(folder.id(), name);
         }
     }
 
     @Override
     public boolean isVisible(ActionContext context) {
         return context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class)
-            .filter(folder -> !folder.id().equals(bookmarks().rootFolderId()))
+            .filter(folder -> !folder.id().equals(bookmarks(context).rootFolderId()))
             .isPresent();
     }
 }

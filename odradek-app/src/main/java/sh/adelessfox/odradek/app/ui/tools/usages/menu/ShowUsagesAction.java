@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.usages.menu;
 
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
@@ -21,8 +21,8 @@ import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 public final class ShowUsagesAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
-        var eventBus = Application.getInstance().events();
+        var holder = context.require(DataKeys.SELECTION, ObjectIdHolder.class);
+        var eventBus = context.require(ApplicationDataKeys.EVENT_BUS);
         eventBus.publish(new MainEvent.ShowPanel(UsagesToolPanel.ID, true));
         eventBus.publish(new MainEvent.ShowUsages(holder.objectId()));
     }

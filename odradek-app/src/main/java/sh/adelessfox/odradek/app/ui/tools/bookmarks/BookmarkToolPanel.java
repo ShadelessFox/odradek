@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
@@ -10,12 +10,15 @@ import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
+import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -29,18 +32,19 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
 
     @Singleton
     public static final class Provider implements ToolPanel.Provider {
-        private final Bookmarks repository;
-        private final EventBus eventBus;
-
         @Inject
-        Provider(Bookmarks repository, EventBus eventBus) {
-            this.repository = repository;
-            this.eventBus = eventBus;
+        public Provider() {
         }
 
         @Override
         public ToolPanel create(ToolSite site) {
-            return new BookmarkToolPanel(site, repository, eventBus);
+            var context = site.getDataContext();
+            return new BookmarkToolPanel(
+                site,
+                context.require(ApplicationDataKeys.BOOKMARKS),
+                context.require(ApplicationDataKeys.EVENT_BUS),
+                context.require(DataKeys.EDITOR_MANAGER),
+                context.require(DataKeys.GAME, DecimaGame.class));
         }
 
         @Override
@@ -62,12 +66,22 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     private final ToolSite site;
     private final Bookmarks bookmarks;
     private final EventBus eventBus;
+    private final EditorManager editorManager;
+    private final DecimaGame game;
     private StructuredTree<BookmarkStructure> tree;
 
-    private BookmarkToolPanel(ToolSite site, Bookmarks bookmarks, EventBus eventBus) {
+    private BookmarkToolPanel(
+        ToolSite site,
+        Bookmarks bookmarks,
+        EventBus eventBus,
+        EditorManager editorManager,
+        DecimaGame game
+    ) {
         this.site = site;
         this.bookmarks = bookmarks;
         this.eventBus = eventBus;
+        this.editorManager = editorManager;
+        this.game = game;
     }
 
     @Override
@@ -79,9 +93,8 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof BookmarkStructure.ObjectBookmark bookmark) {
-                var manager = Application.getInstance().editors();
-                var input = new ObjectEditorInputLazy(bookmark.objectId());
-                manager.openEditor(input);
+                var input = new ObjectEditorInputLazy(game, bookmark.objectId());
+                editorManager.openEditor(input);
             }
         }));
         Actions.installContextMenu(tree, BookmarkMenu.ID, tree.getDataContext());
