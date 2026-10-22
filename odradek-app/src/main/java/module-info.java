@@ -45,6 +45,8 @@ module odradek.app {
     opens sh.adelessfox.odradek.app to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;
     opens sh.adelessfox.odradek.app.ui to info.picocli;
+    opens sh.adelessfox.odradek.app.ui.bookmarks to com.google.gson;
+    opens sh.adelessfox.odradek.app.ui.bookmarks.gson to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings.gson to com.google.gson;
 
