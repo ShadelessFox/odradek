@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
@@ -18,14 +16,12 @@ import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 import java.util.ArrayList;
 import java.util.Optional;
 
-@Singleton
 public class MainPresenter implements Presenter<MainView> {
     private final MainView view;
     private final EditorManager editorManager;
     private final DecimaGame game;
 
-    @Inject
-    MainPresenter(
+    public MainPresenter(
         EditorManager editorManager,
         MainView view,
         EventBus eventBus,

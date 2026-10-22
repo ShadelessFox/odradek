@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
@@ -16,12 +14,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
 
-@Singleton
 public class MainView implements View<JComponent> {
     private final JPanel root;
 
-    @Inject
-    MainView(
+    public MainView(
         EditorManager editorManager,
         EventBus eventBus,
         DataContext context

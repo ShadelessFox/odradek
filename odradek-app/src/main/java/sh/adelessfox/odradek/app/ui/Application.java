@@ -4,16 +4,23 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
+import sh.adelessfox.odradek.app.ui.component.main.MainView;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.data.DataContext;
+import sh.adelessfox.odradek.event.DefaultEventBus;
+import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
+import sh.adelessfox.odradek.settings.SettingsManager;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
 import sh.adelessfox.odradek.ui.util.Dialogs;
 
 import javax.swing.*;
@@ -34,19 +41,13 @@ public final class Application {
         }
 
         var game = (DecimaGame) Game.load(params.sourcePath());
-        var component = DaggerApplicationComponent.builder()
-            .context(new DataContext())
-            .game(game)
-            .config(params.configPath())
-            .build();
-
         started = true;
 
         log.info("Starting the application");
-        SwingUtilities.invokeLater(() -> run(component, params));
+        SwingUtilities.invokeLater(() -> run(game, params));
     }
 
-    private static void run(ApplicationComponent component, ApplicationParameters params) {
+    private static void run(DecimaGame game, ApplicationParameters params) {
         Thread.setDefaultUncaughtExceptionHandler((_, e) -> {
             log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
             Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
@@ -54,14 +55,19 @@ public final class Application {
 
         // Settings publishes a sticky AfterLoad event. Bind all services before creating
         // UI subscribers, which may restore panels/editors synchronously on subscription.
-        var theme = component.settings().get(ApplicationSettings.THEME).value();
+        var events = new DefaultEventBus();
+        var settings = new SettingsManager(params.configPath().resolve("settings.json"), events);
+        var theme = settings.get(ApplicationSettings.THEME).value();
         FlatLaf.setup(theme.createLookAndFeel());
         FlatLaf.updateUI();
-        var context = initializeContext(component, params.configPath());
+        var context = initializeContext(game, params.configPath(), events, settings);
+        var editors = context.require(DataKeys.EDITOR_MANAGER);
+        var view = new MainView(editors, events, context);
+        var presenter = new MainPresenter(editors, view, events, game);
 
         var frame = new JFrame();
         DataContexts.putDataContext(frame.getRootPane(), context);
-        frame.add(component.presenter().getRoot());
+        frame.add(presenter.getRoot());
         frame.setTitle("Odradek - " + params.sourcePath());
         frame.setIconImages(FlatSVGUtils.createWindowIconImages(Application.class.getResource("application.svg")));
         frame.setSize(1280, 720);
@@ -71,10 +77,10 @@ public final class Application {
         Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContexts.focusedComponent(context));
         JOptionPane.setRootFrame(frame);
 
-        component.events().subscribe(SettingsEvent.class, event -> {
+        events.subscribe(SettingsEvent.class, event -> {
             switch (event) {
-                case SettingsEvent.AfterLoad(var settings) -> loadFrameSettings(settings, frame);
-                case SettingsEvent.BeforeSave(var settings) -> saveFrameSettings(settings, frame);
+                case SettingsEvent.AfterLoad(var state) -> loadFrameSettings(state, frame);
+                case SettingsEvent.BeforeSave(var state) -> saveFrameSettings(state, frame);
             }
         });
 
@@ -82,15 +88,15 @@ public final class Application {
         frame.setVisible(true);
     }
 
-    /** Completes shared bindings on the EDT before requesting the presenter from Dagger. */
-    static DataContext initializeContext(ApplicationComponent component, Path config) {
-        var context = component.context();
-        context.put(DataKeys.GAME, component.game());
+    /** Creates shared services and completes their bindings on the EDT before constructing the main UI. */
+    static DataContext initializeContext(DecimaGame game, Path config, EventBus events, Settings settings) {
+        var context = new DataContext();
+        context.put(DataKeys.GAME, game);
         context.put(ApplicationDataKeys.CONFIG_PATH, config);
-        context.put(ApplicationDataKeys.EVENT_BUS, component.events());
-        context.put(ApplicationDataKeys.BOOKMARKS, component.bookmarks());
-        context.put(ApplicationDataKeys.SETTINGS, component.settings());
-        context.put(DataKeys.EDITOR_MANAGER, component.editors());
+        context.put(ApplicationDataKeys.EVENT_BUS, events);
+        context.put(ApplicationDataKeys.SETTINGS, settings);
+        context.put(ApplicationDataKeys.BOOKMARKS, new Bookmarks(events));
+        context.put(DataKeys.EDITOR_MANAGER, new EditorStackManager(context));
         return context;
     }
 

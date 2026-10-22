@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.app.ui.bookmarks;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.event.EventBus;
 
 import java.util.*;
@@ -9,7 +7,6 @@ import java.util.*;
 /**
  * A repository of bookmarks.
  */
-@Singleton
 public final class Bookmarks {
     private final EventBus eventBus;
     private final Map<BookmarkKey, Bookmark> bookmarks = new LinkedHashMap<>();
@@ -18,8 +15,7 @@ public final class Bookmarks {
     private final Map<FolderId, FolderId> folderToParent = new LinkedHashMap<>();
     private final FolderId root = FolderId.random();
 
-    @Inject
-    Bookmarks(EventBus eventBus) {
+    public Bookmarks(EventBus eventBus) {
         this.eventBus = eventBus;
         this.folders.put(root, new Folder(root, "Root"));
     }

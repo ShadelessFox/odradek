@@ -6,9 +6,7 @@ module odradek.app {
     requires com.github.weisj.jsvg;
     requires com.google.gson;
     requires com.miglayout.swing;
-    requires dagger;
     requires info.picocli;
-    requires jakarta.inject;
     requires java.desktop;
     requires odradek.core;
     requires odradek.game.decima;
