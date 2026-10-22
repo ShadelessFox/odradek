@@ -85,6 +85,11 @@ module odradek.app {
     provides sh.adelessfox.odradek.ui.editors.Editor.Provider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditor.Provider;
 
+    provides sh.adelessfox.odradek.ui.tools.ToolPanel.Provider with
+        sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel.Provider,
+        sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel.Provider,
+        sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel.Provider;
+
     provides sh.adelessfox.odradek.ui.Viewer.Provider with
         sh.adelessfox.odradek.app.ui.viewers.ObjectViewer.Provider;
 

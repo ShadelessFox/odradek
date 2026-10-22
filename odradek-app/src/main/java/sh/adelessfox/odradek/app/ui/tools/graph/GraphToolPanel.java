@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.app.ui.tools.graph;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
@@ -42,12 +40,7 @@ import java.util.function.Predicate;
 public class GraphToolPanel implements ToolPanel, Focusable {
     public static final String ID = "graph";
 
-    @Singleton
     public static final class Provider implements ToolPanel.Provider {
-        @Inject
-        public Provider() {
-        }
-
         @Override
         public ToolPanel create(ToolSite site) {
             var context = site.getDataContext();
@@ -72,6 +65,11 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         @Override
         public Icon icon() {
             return Fugue.getIcon("document");
+        }
+
+        @Override
+        public Placement placement() {
+            return new Placement(Placement.Anchor.LEFT, true);
         }
     }
 

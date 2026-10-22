@@ -1,8 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.usages;
 
 import com.formdev.flatlaf.extras.components.FlatScrollPane;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +40,7 @@ import java.util.concurrent.ExecutionException;
 public final class UsagesToolPanel implements ToolPanel, Focusable {
     public static final String ID = "usages";
 
-    @Singleton
     public static final class Provider implements ToolPanel.Provider {
-        @Inject
-        public Provider() {
-        }
-
         @Override
         public ToolPanel create(ToolSite site) {
             var context = site.getDataContext();
@@ -72,6 +65,16 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         @Override
         public Icon icon() {
             return Fugue.getIcon("magnifier-left");
+        }
+
+        @Override
+        public Placement placement() {
+            return new Placement(Placement.Anchor.BOTTOM, true);
+        }
+
+        @Override
+        public int order() {
+            return 200;
         }
     }
 

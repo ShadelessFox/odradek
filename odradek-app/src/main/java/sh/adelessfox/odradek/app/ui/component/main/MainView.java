@@ -4,9 +4,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
-import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
-import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.settings.SettingsEvent;
@@ -24,14 +22,11 @@ public class MainView implements View<JComponent> {
 
     @Inject
     MainView(
-        GraphToolPanel.Provider graphPresenter,
-        BookmarkToolPanel.Provider bookmarkPanel,
-        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
         EventBus eventBus,
         DataContext context
     ) {
-        var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus, context);
+        var center = buildCenter(editorManager, eventBus, context);
         var bottom = buildBottom();
 
         root = new JPanel(new BorderLayout());
@@ -45,17 +40,12 @@ public class MainView implements View<JComponent> {
     }
 
     private static JComponent buildCenter(
-        GraphToolPanel.Provider graphPresenter,
-        BookmarkToolPanel.Provider bookmarkPanel,
-        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
         EventBus eventBus,
         DataContext context
     ) {
         var center = new ToolContainer(context);
-        center.addPanel(graphPresenter, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
-        center.addPanel(bookmarkPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
-        center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.BOTTOM, true));
+        ToolPanel.providers().forEach(provider -> center.addPanel(provider, provider.placement()));
         center.setCenter(editorManager.getRoot());
 
         // The initial state

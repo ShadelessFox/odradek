@@ -1,7 +1,5 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
@@ -30,12 +28,7 @@ import java.util.List;
 public class BookmarkToolPanel implements ToolPanel, Focusable {
     public static final String ID = "bookmarks";
 
-    @Singleton
     public static final class Provider implements ToolPanel.Provider {
-        @Inject
-        public Provider() {
-        }
-
         @Override
         public ToolPanel create(ToolSite site) {
             var context = site.getDataContext();
@@ -60,6 +53,16 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         @Override
         public Icon icon() {
             return Fugue.getIcon("document-bookmark");
+        }
+
+        @Override
+        public Placement placement() {
+            return new Placement(Placement.Anchor.LEFT, false);
+        }
+
+        @Override
+        public int order() {
+            return 100;
         }
     }
 

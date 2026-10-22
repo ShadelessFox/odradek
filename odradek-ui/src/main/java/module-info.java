@@ -30,6 +30,7 @@ module odradek.ui {
     uses sh.adelessfox.odradek.ui.Viewer.Provider;
     uses sh.adelessfox.odradek.ui.actions.Action;
     uses sh.adelessfox.odradek.ui.editors.Editor.Provider;
+    uses sh.adelessfox.odradek.ui.tools.ToolPanel.Provider;
 
     provides com.formdev.flatlaf.FlatDefaultsAddon with
         sh.adelessfox.odradek.ui.components.laf.OdradekDefaultsAddon;
