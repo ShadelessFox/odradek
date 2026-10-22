@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkDataKeys;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkPersistence;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.component.main.MainView;
@@ -93,10 +95,12 @@ public final class Application {
         var context = new DataContext();
         context.put(DataKeys.GAME, game);
         context.put(ApplicationDataKeys.CONFIG_PATH, config);
-        context.put(ApplicationDataKeys.EVENT_BUS, events);
+        context.put(DataKeys.EVENT_BUS, events);
         context.put(ApplicationDataKeys.SETTINGS, settings);
-        context.put(ApplicationDataKeys.BOOKMARKS, new Bookmarks(events));
+        var bookmarks = new Bookmarks(events);
+        context.put(BookmarkDataKeys.BOOKMARKS, bookmarks);
         context.put(DataKeys.EDITOR_MANAGER, new EditorStackManager(context));
+        new BookmarkPersistence(bookmarks, settings, events);
         return context;
     }
 

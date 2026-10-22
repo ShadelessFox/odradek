@@ -1,10 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
+import sh.adelessfox.odradek.app.ui.bookmarks.*;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkStructure;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
@@ -71,6 +67,6 @@ abstract class AbstractBookmarkAction extends Action {
     }
 
     protected static Bookmarks bookmarks(ActionContext context) {
-        return context.require(ApplicationDataKeys.BOOKMARKS);
+        return context.require(BookmarkDataKeys.BOOKMARKS);
     }
 }

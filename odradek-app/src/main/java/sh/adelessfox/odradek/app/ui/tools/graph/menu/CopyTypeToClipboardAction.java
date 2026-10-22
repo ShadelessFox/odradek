@@ -1,14 +1,10 @@
 package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
-import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
-import sh.adelessfox.odradek.ui.actions.ActionContribution;
-import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.util.Gatherers;
@@ -19,7 +15,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @ActionRegistration(text = "Copy Object &Type", icon = "fugue:blue-document-copy")
-@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_UTIL)
+@ActionContribution(parent = MenuIds.GRAPH_MENU, group = MenuIds.GROUP_UTIL)
 @ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_UTIL)
 @ActionContribution(parent = BookmarkMenu.ID)
 public class CopyTypeToClipboardAction extends Action {

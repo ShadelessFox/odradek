@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.app.ui.tools.graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkDataKeys;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
@@ -10,7 +11,6 @@ import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.Filter;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.FilterOption;
 import sh.adelessfox.odradek.app.ui.tools.graph.filter.FilterResult;
-import sh.adelessfox.odradek.app.ui.tools.graph.menu.GraphMenu;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
@@ -20,6 +20,7 @@ import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -46,9 +47,9 @@ public class GraphToolPanel implements ToolPanel, Focusable {
             var context = site.getDataContext();
             return new GraphToolPanel(
                 site,
-                context.require(ApplicationDataKeys.EVENT_BUS),
+                context.require(DataKeys.EVENT_BUS),
                 context.require(DataKeys.GAME, DecimaGame.class),
-                context.require(ApplicationDataKeys.BOOKMARKS),
+                context.require(BookmarkDataKeys.BOOKMARKS),
                 context.require(ApplicationDataKeys.SETTINGS));
         }
 
@@ -121,7 +122,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
         var context = tree.getDataContext();
         context.put(DataKeys.GAME, game);
-        Actions.installContextMenu(tree, GraphMenu.ID, context);
+        Actions.installContextMenu(tree, MenuIds.GRAPH_MENU, context);
 
         site.setLeadingComponent(filterField);
 

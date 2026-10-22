@@ -1,24 +1,20 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkDataKeys;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkSettings;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.settings.Settings;
-import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class BookmarkToolPanel implements ToolPanel, Focusable {
@@ -30,8 +26,8 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
             var context = site.getDataContext();
             return new BookmarkToolPanel(
                 site,
-                context.require(ApplicationDataKeys.BOOKMARKS),
-                context.require(ApplicationDataKeys.EVENT_BUS));
+                context.require(BookmarkDataKeys.BOOKMARKS),
+                context.require(DataKeys.EVENT_BUS));
         }
 
         @Override
@@ -95,12 +91,6 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.setTransferHandler(new BookmarkTransferHandler(bookmarks, tree));
 
         eventBus.subscribe(BookmarkEvent.class, e -> SwingUtilities.invokeLater(() -> handleBookmarkEvent(e)));
-        eventBus.subscribe(SettingsEvent.class, event -> {
-            switch (event) {
-                case SettingsEvent.AfterLoad(var settings) -> loadSettings(settings);
-                case SettingsEvent.BeforeSave(var settings) -> saveSettings(settings);
-            }
-        });
 
         return new JScrollPane(tree);
     }
@@ -139,40 +129,5 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
                     .ifPresent(tree.getModel()::refresh);
             }
         });
-    }
-
-    private void loadSettings(Settings settings) {
-        deserialize(bookmarks.rootFolderId(), settings.get(BookmarkSettings.BOOKMARKS).value());
-    }
-
-    private void deserialize(FolderId folderId, List<BookmarkSettings.BookmarkState> children) {
-        for (var child : children) {
-            switch (child) {
-                case BookmarkSettings.BookmarkState.Bookmark bookmark ->
-                    bookmarks.create(folderId, bookmark.key(), bookmark.name());
-                case BookmarkSettings.BookmarkState.Folder folder ->
-                    deserialize(bookmarks.createFolder(folderId, folder.name()), folder.children());
-            }
-        }
-    }
-
-    private void saveSettings(Settings settings) {
-        var children = new ArrayList<BookmarkSettings.BookmarkState>();
-        serialize(bookmarks.rootFolderId(), children);
-        settings.get(BookmarkSettings.BOOKMARKS).set(children);
-    }
-
-    private void serialize(FolderId folderId, List<BookmarkSettings.BookmarkState> output) {
-        var folders = bookmarks.getAllFoldersInFolder(folderId);
-        for (var folder : folders) {
-            var children = new ArrayList<BookmarkSettings.BookmarkState>();
-            serialize(folder.id(), children);
-            output.add(new BookmarkSettings.BookmarkState.Folder(folder.name(), children));
-        }
-
-        var bookmarks = this.bookmarks.getAllInFolder(folderId);
-        for (var bookmark : bookmarks) {
-            output.add(new BookmarkSettings.BookmarkState.Bookmark(bookmark.key(), bookmark.name()));
-        }
     }
 }

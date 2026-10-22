@@ -4,10 +4,11 @@ import sh.adelessfox.odradek.app.ui.tools.graph.GraphStructure.GroupableByGroup;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "Sort by count")
-@ActionContribution(parent = GraphMenu.ID)
+@ActionContribution(parent = MenuIds.GRAPH_MENU)
 public class SortGroupsByCountAction extends AbstractGroupableAction<GroupableByGroup, GroupableByGroup.Option> {
     @Override
     public boolean isVisible(ActionContext context) {

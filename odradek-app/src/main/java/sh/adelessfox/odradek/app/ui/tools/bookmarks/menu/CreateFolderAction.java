@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.actions.MenuIds;
 
 @ActionRegistration(text = "New Folder\u2026", icon = "fugue:folder--plus", keystroke = "ctrl shift N")
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_MISC, order = 0)
