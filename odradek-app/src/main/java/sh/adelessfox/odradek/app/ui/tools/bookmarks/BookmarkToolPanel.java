@@ -4,19 +4,15 @@ import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
-import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.event.EventBus;
-import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
-import sh.adelessfox.odradek.ui.data.DataKeys;
-import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
@@ -35,9 +31,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
             return new BookmarkToolPanel(
                 site,
                 context.require(ApplicationDataKeys.BOOKMARKS),
-                context.require(ApplicationDataKeys.EVENT_BUS),
-                context.require(DataKeys.EDITOR_MANAGER),
-                context.require(DataKeys.GAME, DecimaGame.class));
+                context.require(ApplicationDataKeys.EVENT_BUS));
         }
 
         @Override
@@ -69,22 +63,16 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     private final ToolSite site;
     private final Bookmarks bookmarks;
     private final EventBus eventBus;
-    private final EditorManager editorManager;
-    private final DecimaGame game;
     private StructuredTree<BookmarkStructure> tree;
 
     private BookmarkToolPanel(
         ToolSite site,
         Bookmarks bookmarks,
-        EventBus eventBus,
-        EditorManager editorManager,
-        DecimaGame game
+        EventBus eventBus
     ) {
         this.site = site;
         this.bookmarks = bookmarks;
         this.eventBus = eventBus;
-        this.editorManager = editorManager;
-        this.game = game;
     }
 
     @Override
@@ -96,8 +84,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (component instanceof BookmarkStructure.ObjectBookmark bookmark) {
-                var input = new ObjectEditorInputLazy(game, bookmark.objectId());
-                editorManager.openEditor(input);
+                eventBus.publish(new BookmarkEvent.OpenRequested(bookmark.objectId()));
             }
         }));
         Actions.installContextMenu(tree, BookmarkMenu.ID, tree.getDataContext());
@@ -138,7 +125,12 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
             case BookmarkEvent.FolderUpdated(_, var parent) -> List.of(parent);
             case BookmarkEvent.FolderRemoved(_, var parent) -> List.of(parent);
             case BookmarkEvent.FolderMoved(_, var oldParent, var newParent) -> List.of(oldParent, newParent);
+            case BookmarkEvent.OpenRequested _ -> List.of();
         };
+
+        if (folders.isEmpty()) {
+            return;
+        }
 
         tree.updatePreservingSelection(BookmarkStructure::equals, () -> {
             for (var folderId : folders) {

@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
@@ -32,6 +33,7 @@ public class MainPresenter implements Presenter<MainView> {
         this.game = game;
 
         eventBus.subscribe(MainEvent.ShowObject.class, event -> openObject(event.objectId()));
+        eventBus.subscribe(BookmarkEvent.OpenRequested.class, event -> openObject(event.objectId()));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadEditors(settings);
