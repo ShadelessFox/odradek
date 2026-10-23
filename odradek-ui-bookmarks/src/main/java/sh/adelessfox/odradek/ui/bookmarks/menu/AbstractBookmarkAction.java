@@ -1,9 +1,9 @@
-package sh.adelessfox.odradek.ui.bookmarks.internal.menu;
+package sh.adelessfox.odradek.ui.bookmarks.menu;
 
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.bookmarks.*;
-import sh.adelessfox.odradek.ui.bookmarks.internal.BookmarkStructure;
+import sh.adelessfox.odradek.ui.bookmarks.toolpanel.BookmarkStructure;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.util.Gatherers;
 
@@ -66,7 +66,7 @@ abstract class AbstractBookmarkAction extends Action {
             .map(Bookmarkable::bookmarkKey);
     }
 
-    protected static Bookmarks bookmarks(ActionContext context) {
+    protected static BookmarkRepository bookmarks(ActionContext context) {
         return context.require(BookmarkDataKeys.BOOKMARKS);
     }
 }

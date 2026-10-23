@@ -4,7 +4,7 @@ import sh.adelessfox.odradek.data.DataKey;
 
 /** Context bindings owned by the bookmark feature. */
 public final class BookmarkDataKeys {
-    public static final DataKey<Bookmarks> BOOKMARKS = DataKey.of(Bookmarks.class);
+    public static final DataKey<BookmarkRepository> BOOKMARKS = DataKey.of(BookmarkRepository.class);
 
     private BookmarkDataKeys() {
     }

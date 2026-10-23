@@ -194,7 +194,7 @@ public final class EditorStackManager implements EditorManager {
     }
 
     @Override
-    public EditorStackContainer getRoot() {
+    public EditorStackContainer getComponent() {
         return root;
     }
 

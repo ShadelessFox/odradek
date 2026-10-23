@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
 import sh.adelessfox.odradek.app.ui.component.browser.BrowserDialog;
 import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
@@ -61,16 +62,23 @@ public class Main implements Runnable {
             System.exit(1);
         }
 
-        try {
-            Application.start(new ApplicationParameters(configPath, sourcePath));
-        } catch (IOException e) {
-            log.error("Failed to start the application", e);
-            JOptionPane.showMessageDialog(
-                null,
-                "Failed to start the application: " + e.getMessage(),
-                "Odradek",
-                JOptionPane.ERROR_MESSAGE);
-        }
+        SwingUtilities.invokeLater(() -> {
+            Thread.setDefaultUncaughtExceptionHandler((_, e) -> {
+                log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
+                Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
+            });
+
+            try {
+                Application.start(new ApplicationParameters(configPath, sourcePath));
+            } catch (IOException e) {
+                log.error("Failed to start the application", e);
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Failed to start the application: " + e.getMessage(),
+                    "Odradek",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
 
     private static void setupUI(boolean setupInspectors) {

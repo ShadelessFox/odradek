@@ -24,7 +24,7 @@ public interface EditorManager {
         }
     }
 
-    EditorStackContainer getRoot();
+    EditorStackContainer getComponent();
 
     void openEditor(EditorInput input);
 

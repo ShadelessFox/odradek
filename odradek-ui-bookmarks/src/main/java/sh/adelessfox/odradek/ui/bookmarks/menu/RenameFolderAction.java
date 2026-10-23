@@ -1,11 +1,11 @@
-package sh.adelessfox.odradek.ui.bookmarks.internal.menu;
+package sh.adelessfox.odradek.ui.bookmarks.menu;
 
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
-import sh.adelessfox.odradek.ui.bookmarks.internal.BookmarkStructure;
+import sh.adelessfox.odradek.ui.bookmarks.toolpanel.BookmarkStructure;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 @ActionRegistration(text = "Rename Folder\u2026", icon = "fugue:folder--pencil")

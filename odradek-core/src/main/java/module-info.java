@@ -8,6 +8,8 @@ module odradek.core {
     requires java.net.http; // sh.adelessfox.odradek.audio.VgmstreamDownloader
     requires org.slf4j;
 
+    uses sh.adelessfox.odradek.service.ApplicationService.Provider;
+
     exports sh.adelessfox.odradek.animation;
     exports sh.adelessfox.odradek.audio.container.at9;
     exports sh.adelessfox.odradek.audio.container.riff;
@@ -24,6 +26,7 @@ module odradek.core {
     exports sh.adelessfox.odradek.parsing.util;
     exports sh.adelessfox.odradek.parsing;
     exports sh.adelessfox.odradek.scene;
+    exports sh.adelessfox.odradek.service;
     exports sh.adelessfox.odradek.texture;
     exports sh.adelessfox.odradek.util.system;
     exports sh.adelessfox.odradek.util;

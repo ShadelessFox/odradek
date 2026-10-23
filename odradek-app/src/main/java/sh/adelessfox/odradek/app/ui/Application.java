@@ -13,21 +13,19 @@ import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
+import sh.adelessfox.odradek.service.ApplicationService;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.settings.SettingsManager;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkDataKeys;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkPersistence;
-import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
 import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
-import sh.adelessfox.odradek.ui.util.Dialogs;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public final class Application {
@@ -46,28 +44,45 @@ public final class Application {
         started = true;
 
         log.info("Starting the application");
-        SwingUtilities.invokeLater(() -> run(game, params));
+        run(game, params);
     }
 
     private static void run(DecimaGame game, ApplicationParameters params) {
-        Thread.setDefaultUncaughtExceptionHandler((_, e) -> {
-            log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
-            Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
-        });
-
-        // Settings publishes a sticky AfterLoad event. Bind all services before creating
-        // UI subscribers, which may restore panels/editors synchronously on subscription.
         var events = new DefaultEventBus();
         var settings = new SettingsManager(params.configPath().resolve("settings.json"), events);
+
+        var context = new DataContext();
+        context.put(ApplicationDataKeys.CONFIG_PATH, params.configPath());
+        context.put(ApplicationDataKeys.SETTINGS, settings);
+        context.put(DataKeys.EVENT_BUS, events);
+        context.put(DataKeys.GAME, game);
+
         var theme = settings.get(ApplicationSettings.THEME).value();
         FlatLaf.setup(theme.createLookAndFeel());
         FlatLaf.updateUI();
-        var context = initializeContext(game, params.configPath(), events, settings);
-        var editors = context.require(DataKeys.EDITOR_MANAGER);
-        var view = new MainView(editors, events, context);
-        var presenter = new MainPresenter(editors, view, events, game);
+
+        var editors = new EditorStackManager(context);
+        context.put(DataKeys.EDITOR_MANAGER, editors);
+
+        var services = new ArrayList<ApplicationService>();
+        ApplicationService.providers().forEach(provider -> services.add(provider.create(context)));
 
         var frame = new JFrame();
+        var view = new MainView(editors, events, context);
+        var presenter = new MainPresenter(editors, view, events, game);
+        configureFrame(frame, presenter, context, events, params);
+        frame.setVisible(true);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(settings, services, game), "Odradek Shutdown"));
+    }
+
+    private static void configureFrame(
+        JFrame frame,
+        MainPresenter presenter,
+        DataContext context,
+        EventBus events,
+        ApplicationParameters params
+    ) {
         DataContexts.putDataContext(frame.getRootPane(), context);
         frame.add(presenter.getRoot());
         frame.setTitle("Odradek - " + params.sourcePath());
@@ -85,23 +100,39 @@ public final class Application {
                 case SettingsEvent.BeforeSave(var state) -> saveFrameSettings(state, frame);
             }
         });
-
-        // And now we can show the frame
-        frame.setVisible(true);
     }
 
-    /** Creates shared services and completes their bindings on the EDT before constructing the main UI. */
-    static DataContext initializeContext(DecimaGame game, Path config, EventBus events, Settings settings) {
-        var context = new DataContext();
-        context.put(ApplicationDataKeys.CONFIG_PATH, config);
-        context.put(ApplicationDataKeys.SETTINGS, settings);
-        context.put(DataKeys.EDITOR_MANAGER, new EditorStackManager(context));
-        context.put(DataKeys.EVENT_BUS, events);
-        context.put(DataKeys.GAME, game);
-        var bookmarks = new Bookmarks(events);
-        context.put(BookmarkDataKeys.BOOKMARKS, bookmarks);
-        new BookmarkPersistence(bookmarks, settings, events);
-        return context;
+    private static void shutdown(SettingsManager settings, List<ApplicationService> services, Game game) {
+        try {
+            settings.save();
+        } catch (RuntimeException failure) {
+            log.error("Failed to save settings", failure);
+        } finally {
+            dispose(settings, services, game);
+        }
+    }
+
+    private static void dispose(SettingsManager settings, List<ApplicationService> services, Game game) {
+        if (settings != null) {
+            settings.close();
+        }
+        disposeServices(services);
+        try {
+            game.close();
+        } catch (IOException failure) {
+            log.error("Failed to close game", failure);
+        }
+    }
+
+    static void disposeServices(List<ApplicationService> services) {
+        for (var service : services) {
+            try {
+                service.dispose();
+            } catch (RuntimeException failure) {
+                log.error("Failed to dispose of service {}", service.getClass().getName(), failure);
+            }
+        }
+        services.clear();
     }
 
     private static void loadFrameSettings(Settings settings, JFrame frame) {

@@ -1,7 +1,7 @@
-package sh.adelessfox.odradek.ui.bookmarks.internal;
+package sh.adelessfox.odradek.ui.bookmarks.toolpanel;
 
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkRepository;
 import sh.adelessfox.odradek.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
@@ -21,10 +21,10 @@ import java.util.Optional;
 final class BookmarkTransferHandler extends TransferHandler {
     private static final DataFlavor FLAVOR = new DataFlavor(Payload.class, "Odradek Bookmarks");
 
-    private final Bookmarks bookmarks;
+    private final BookmarkRepository bookmarks;
     private final StructuredTree<BookmarkStructure> tree;
 
-    BookmarkTransferHandler(Bookmarks bookmarks, StructuredTree<BookmarkStructure> tree) {
+    BookmarkTransferHandler(BookmarkRepository bookmarks, StructuredTree<BookmarkStructure> tree) {
         this.bookmarks = bookmarks;
         this.tree = tree;
     }

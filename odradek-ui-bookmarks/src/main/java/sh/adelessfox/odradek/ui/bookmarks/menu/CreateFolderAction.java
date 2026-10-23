@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.bookmarks.internal.menu;
+package sh.adelessfox.odradek.ui.bookmarks.menu;
 
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;

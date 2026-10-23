@@ -42,7 +42,7 @@ public class MainView implements View<JComponent> {
     ) {
         var center = new ToolContainer(context);
         ToolPanel.providers().forEach(provider -> center.addPanel(provider, provider.placement()));
-        center.setCenter(editorManager.getRoot());
+        center.setCenter(editorManager.getComponent());
 
         // The initial state
         center.openPanel(GraphToolPanel.ID, true);

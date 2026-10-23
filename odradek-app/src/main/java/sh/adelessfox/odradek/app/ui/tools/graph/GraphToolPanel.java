@@ -20,7 +20,7 @@ import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkDataKeys;
-import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkRepository;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
 import sh.adelessfox.odradek.ui.components.ValidationPopup;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
@@ -79,7 +79,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
     private final ToolSite site;
     private final EventBus eventBus;
     private final DecimaGame game;
-    private final Bookmarks bookmarks;
+    private final BookmarkRepository bookmarks;
     private final Settings settings;
 
     private StructuredTree<GraphStructure> tree;
@@ -89,7 +89,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         ToolSite site,
         EventBus eventBus,
         DecimaGame game,
-        Bookmarks bookmarks,
+        BookmarkRepository bookmarks,
         Settings settings
     ) {
         this.site = site;

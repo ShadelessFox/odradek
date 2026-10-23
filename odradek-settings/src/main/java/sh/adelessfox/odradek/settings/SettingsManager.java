@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * This class is thread-safe and supports automatic saving of settings to a specified file path.
  */
-public final class SettingsManager implements Settings {
+public final class SettingsManager implements Settings, AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(SettingsManager.class);
 
     private final Path path;
@@ -31,6 +32,8 @@ public final class SettingsManager implements Settings {
     private final Gson gson;
     private final JsonObject document;
     private final Map<String, Entry<?>> entries = new HashMap<>();
+    private ScheduledExecutorService autoSaveExecutor;
+    private boolean closed;
 
     public SettingsManager(Path path, EventBus eventBus) {
         this(path, eventBus, true);
@@ -42,17 +45,23 @@ public final class SettingsManager implements Settings {
         this.gson = createGson();
         this.document = load(path, gson).orElseGet(JsonObject::new);
 
-        eventBus.publish(new SettingsEvent.AfterLoad(this));
+        try {
+            eventBus.publish(new SettingsEvent.AfterLoad(this));
 
-        if (autoSave) {
-            // noinspection resource
-            Executors.newSingleThreadScheduledExecutor(r -> {
-                var thread = new Thread(r);
-                thread.setName("Odradek Settings Saver");
-                return thread;
-            }).scheduleAtFixedRate(this::save, 5, 5, TimeUnit.MINUTES);
-
-            Runtime.getRuntime().addShutdownHook(new Thread(this::save));
+            synchronized (this) {
+                // AfterLoad callbacks may close the manager before construction completes.
+                if (autoSave && !closed) {
+                    autoSaveExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
+                        var thread = new Thread(r);
+                        thread.setName("Odradek Settings Saver");
+                        return thread;
+                    });
+                    autoSaveExecutor.scheduleAtFixedRate(this::save, 5, 5, TimeUnit.MINUTES);
+                }
+            }
+        } catch (RuntimeException | Error e) {
+            close();
+            throw e;
         }
     }
 
@@ -107,8 +116,17 @@ public final class SettingsManager implements Settings {
         }
     }
 
-    synchronized void save() {
+    /**
+     * Publishes {@link SettingsEvent.BeforeSave} and writes settings unless already closed.
+     */
+    public synchronized void save() {
+        if (closed) {
+            return;
+        }
         eventBus.publish(new SettingsEvent.BeforeSave(this));
+        if (closed) {
+            return;
+        }
         for (var entry : entries.values()) {
             document.add(entry.key.name(), entry.toJson(gson));
         }
@@ -122,6 +140,22 @@ public final class SettingsManager implements Settings {
             }
         } catch (IOException e) {
             log.error("Error while saving settings", e);
+        }
+    }
+
+    /**
+     * Stops automatic saving without saving settings. Call {@link #save()} before closing
+     * when settings should be persisted. Repeated calls have no effect.
+     */
+    @Override
+    public synchronized void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
+        if (autoSaveExecutor != null) {
+            // Do not wait for termination: a queued save may be waiting for this monitor.
+            autoSaveExecutor.shutdownNow();
         }
     }
 

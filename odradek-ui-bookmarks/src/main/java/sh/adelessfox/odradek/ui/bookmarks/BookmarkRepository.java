@@ -7,7 +7,7 @@ import java.util.*;
 /**
  * A repository of bookmarks.
  */
-public final class Bookmarks {
+public final class BookmarkRepository {
     private final EventBus eventBus;
     private final Map<BookmarkKey, Bookmark> bookmarks = new LinkedHashMap<>();
     private final Map<FolderId, Folder> folders = new LinkedHashMap<>();
@@ -15,7 +15,7 @@ public final class Bookmarks {
     private final Map<FolderId, FolderId> folderToParent = new LinkedHashMap<>();
     private final FolderId root = FolderId.random();
 
-    public Bookmarks(EventBus eventBus) {
+    public BookmarkRepository(EventBus eventBus) {
         this.eventBus = eventBus;
         this.folders.put(root, new Folder(root, "Root"));
     }

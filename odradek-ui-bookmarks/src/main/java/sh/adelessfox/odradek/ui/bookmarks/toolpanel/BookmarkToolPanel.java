@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.bookmarks.internal;
+package sh.adelessfox.odradek.ui.bookmarks.toolpanel;
 
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.ui.Focusable;
@@ -6,7 +6,7 @@ import sh.adelessfox.odradek.ui.actions.Actions;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkDataKeys;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
-import sh.adelessfox.odradek.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.ui.bookmarks.BookmarkRepository;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -57,13 +57,13 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
     }
 
     private final ToolSite site;
-    private final Bookmarks bookmarks;
+    private final BookmarkRepository bookmarks;
     private final EventBus eventBus;
     private StructuredTree<BookmarkStructure> tree;
 
     private BookmarkToolPanel(
         ToolSite site,
-        Bookmarks bookmarks,
+        BookmarkRepository bookmarks,
         EventBus eventBus
     ) {
         this.site = site;

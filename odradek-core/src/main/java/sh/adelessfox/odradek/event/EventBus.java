@@ -8,6 +8,11 @@ import java.util.function.Consumer;
  * @see Event
  */
 public interface EventBus {
+    interface Subscription {
+        /** Removes the listener from this subscription's topic. */
+        void unsubscribe();
+    }
+
     /**
      * Subscribes a subscriber to a specific topic.
      * <p>
@@ -17,24 +22,7 @@ public interface EventBus {
      * @param subscriber the subscriber that will receive events of the specified type
      * @param <T>        the type of the event
      */
-    <T extends Event> void subscribe(Class<? extends T> topic, Consumer<T> subscriber);
-
-    /**
-     * Unsubscribes a subscriber from all topics it is subscribed to.
-     *
-     * @param subscriber the subscriber to unsubscribe
-     * @param <T>        the type of the event
-     */
-    <T extends Event> void unsubscribe(Consumer<T> subscriber);
-
-    /**
-     * Unsubscribes a subscriber from a specific topic.
-     *
-     * @param topic      the class of the event to unsubscribe from
-     * @param subscriber the subscriber to unsubscribe
-     * @param <T>        the type of the event
-     */
-    <T extends Event> void unsubscribe(Class<? extends T> topic, Consumer<T> subscriber);
+    <T extends Event> Subscription subscribe(Class<? extends T> topic, Consumer<T> subscriber);
 
     /**
      * Publishes an event to all subscribers of the event's type.

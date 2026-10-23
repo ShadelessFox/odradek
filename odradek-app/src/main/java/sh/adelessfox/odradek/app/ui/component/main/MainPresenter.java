@@ -52,11 +52,11 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private void loadEditors(Settings settings) {
-        settings.get(ApplicationSettings.EDITORS).value().ifPresent(s -> loadContainer(editorManager.getRoot(), s));
+        settings.get(ApplicationSettings.EDITORS).value().ifPresent(s -> loadContainer(editorManager.getComponent(), s));
     }
 
     private void saveEditors(Settings settings) {
-        settings.get(ApplicationSettings.EDITORS).set(Optional.of(saveContainer(editorManager.getRoot())));
+        settings.get(ApplicationSettings.EDITORS).set(Optional.of(saveContainer(editorManager.getComponent())));
     }
 
     private void loadContainer(EditorStackContainer container, ApplicationSettings.EditorState state) {
