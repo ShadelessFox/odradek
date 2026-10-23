@@ -20,8 +20,9 @@ public class OpenObjectAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var game = context.require(DataKeys.GAME, DecimaGame.class);
-        var editorManager = context.require(DataKeys.EDITOR_MANAGER);
-        String result = (String) JOptionPane.showInputDialog(
+        var editors = context.require(DataKeys.EDITOR_MANAGER);
+
+        var result = (String) JOptionPane.showInputDialog(
             JOptionPane.getRootFrame(),
             "Enter [Group ID] : [Object Index]",
             "Open Object",
@@ -35,6 +36,6 @@ public class OpenObjectAction extends Action {
         }
 
         lastInput = result;
-        editorManager.openEditor(new ObjectEditorInputLazy(game, ObjectId.valueOf(result.strip())));
+        editors.openEditor(new ObjectEditorInputLazy(game, ObjectId.valueOf(result.strip())));
     }
 }

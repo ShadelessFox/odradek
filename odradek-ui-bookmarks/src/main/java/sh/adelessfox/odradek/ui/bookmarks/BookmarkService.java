@@ -38,7 +38,7 @@ public final class BookmarkService implements ApplicationService {
 
     @Override
     public void dispose() {
-        subscription.unsubscribe();
+        subscription.dispose();
     }
 
     private void load(FolderId folderId, List<BookmarkState> children) {

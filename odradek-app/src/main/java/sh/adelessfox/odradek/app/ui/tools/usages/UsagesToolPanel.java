@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.app.util.LinkDatabase;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
@@ -16,7 +17,6 @@ import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
@@ -244,7 +244,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
 
         var context = tree.getDataContext();
         context.put(DataKeys.GAME, game);
-        Actions.installContextMenu(tree, MenuIds.GRAPH_MENU, context);
+        Actions.installContextMenu(tree, GraphMenu.ID, context);
 
         eventBus.subscribe(Events.ShowObject.class, event -> {
             if (database == null) {

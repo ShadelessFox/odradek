@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorMenu;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
@@ -42,7 +43,7 @@ import static java.nio.file.StandardOpenOption.*;
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", description = "Export selected resources in a supported format", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_EXPORT)
 @ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_EXPORT)
-@ActionContribution(parent = MenuIds.GRAPH_MENU, group = MenuIds.GROUP_EXPORT)
+@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_EXPORT)
 @ActionContribution(parent = MainMenu.File.ID, group = MenuIds.GROUP_EXPORT)
 @ActionContribution(parent = ObjectEditorMenu.TOOLBAR_ID)
 public class ExportObjectAction extends Action {

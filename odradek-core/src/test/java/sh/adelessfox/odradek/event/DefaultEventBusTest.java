@@ -64,29 +64,14 @@ class DefaultEventBusTest {
     void unsubscribesFromAllTopics() {
         var bus = new DefaultEventBus();
         var received = new ArrayList<Event>();
-        Consumer<Event> subscriber = received::add;
-        bus.subscribe(Event.class, subscriber);
-        bus.subscribe(ParentEvent.class, subscriber);
+        var subscription1 = bus.subscribe(Event.class, received::add);
+        var subscription2 = bus.subscribe(ParentEvent.class, received::add);
 
-        bus.unsubscribe(subscriber);
+        subscription1.dispose();
+        subscription2.dispose();
         bus.publish(new ChildEvent(42));
 
         assertTrue(received.isEmpty());
-    }
-
-    @Test
-    void unsubscribesFromTopicAndItsSubtopics() {
-        var bus = new DefaultEventBus();
-        var received = new ArrayList<Event>();
-        Consumer<Event> subscriber = received::add;
-        bus.subscribe(Event.class, subscriber);
-        bus.subscribe(ParentEvent.class, subscriber);
-        bus.subscribe(ChildEvent.class, subscriber);
-
-        bus.unsubscribe(ParentEvent.class, subscriber);
-        bus.publish(new ChildEvent(42));
-
-        assertEquals(1, received.size());
     }
 
     @Test

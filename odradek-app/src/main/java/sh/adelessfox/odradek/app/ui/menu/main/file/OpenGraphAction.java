@@ -16,7 +16,8 @@ public class OpenGraphAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var game = context.require(DataKeys.GAME, DecimaGame.class);
-        context.require(DataKeys.EDITOR_MANAGER).openEditor(new ObjectEditorInput(
+        var editors = context.require(DataKeys.EDITOR_MANAGER);
+        editors.openEditor(new ObjectEditorInput(
             game,
             game.streamingGraph().resource(),
             new ObjectId(0, 0)));

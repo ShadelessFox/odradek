@@ -62,23 +62,21 @@ public class Main implements Runnable {
             System.exit(1);
         }
 
-        SwingUtilities.invokeLater(() -> {
-            Thread.setDefaultUncaughtExceptionHandler((_, e) -> {
-                log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
-                Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
-            });
-
-            try {
-                Application.start(new ApplicationParameters(configPath, sourcePath));
-            } catch (IOException e) {
-                log.error("Failed to start the application", e);
-                JOptionPane.showMessageDialog(
-                    null,
-                    "Failed to start the application: " + e.getMessage(),
-                    "Odradek",
-                    JOptionPane.ERROR_MESSAGE);
-            }
+        Thread.setDefaultUncaughtExceptionHandler((_, e) -> {
+            log.error("Uncaught exception in thread '{}'", Thread.currentThread().getName(), e);
+            Dialogs.showExceptionDialog(JOptionPane.getRootFrame(), e.toString(), e);
         });
+
+        try {
+            Application.start(new ApplicationParameters(configPath, sourcePath));
+        } catch (IOException e) {
+            log.error("Failed to start the application", e);
+            JOptionPane.showMessageDialog(
+                null,
+                "Failed to start the application: " + e.getMessage(),
+                "Odradek",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private static void setupUI(boolean setupInspectors) {

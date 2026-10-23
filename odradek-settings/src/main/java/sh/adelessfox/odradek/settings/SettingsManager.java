@@ -49,7 +49,7 @@ public final class SettingsManager implements Settings, AutoCloseable {
             eventBus.publish(new SettingsEvent.AfterLoad(this));
 
             synchronized (this) {
-                // AfterLoad callbacks may close the manager before construction completes.
+                // AfterLoad callbacks may close the manager before construction completes
                 if (autoSave && !closed) {
                     autoSaveExecutor = Executors.newSingleThreadScheduledExecutor(r -> {
                         var thread = new Thread(r);

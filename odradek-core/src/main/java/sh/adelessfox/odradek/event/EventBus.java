@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public interface EventBus {
     interface Subscription {
         /** Removes the listener from this subscription's topic. */
-        void unsubscribe();
+        void dispose();
     }
 
     /**

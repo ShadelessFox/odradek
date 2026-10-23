@@ -10,7 +10,7 @@ import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import java.util.Optional;
 
 @ActionRegistration(text = "Toggle Bookmark", icon = "fugue:blue-document-bookmark")
-@ActionContribution(parent = MenuIds.GRAPH_MENU, group = MenuIds.GROUP_UTIL, order = 101)
+@ActionContribution(parent = "GraphMenu", group = MenuIds.GROUP_UTIL, order = 101)
 @ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_UTIL)
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 1)
 public class ToggleBookmarkAction extends AbstractBookmarkAction {

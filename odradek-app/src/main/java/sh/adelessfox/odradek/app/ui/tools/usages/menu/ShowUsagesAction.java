@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.usages.menu;
 
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -9,7 +10,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 
 @ActionRegistration(text = "Show &Usages", icon = "fugue:chain", keystroke = "alt F7")
-@ActionContribution(parent = MenuIds.GRAPH_MENU, group = MenuIds.GROUP_MISC)
+@ActionContribution(parent = GraphMenu.ID, group = MenuIds.GROUP_MISC)
 @ActionContribution(parent = EditorMenu.ID, group = MenuIds.GROUP_MISC)
 @ActionContribution(parent = BookmarkMenu.ID)
 public final class ShowUsagesAction extends Action {

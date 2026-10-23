@@ -18,7 +18,6 @@ import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.actions.Actions;
-import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkDataKeys;
 import sh.adelessfox.odradek.ui.bookmarks.BookmarkRepository;
 import sh.adelessfox.odradek.ui.components.SearchTextField;
@@ -122,7 +121,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
         var context = tree.getDataContext();
         context.put(DataKeys.GAME, game);
-        Actions.installContextMenu(tree, MenuIds.GRAPH_MENU, context);
+        Actions.installContextMenu(tree, GraphMenu.ID, context);
 
         site.setLeadingComponent(filterField);
 

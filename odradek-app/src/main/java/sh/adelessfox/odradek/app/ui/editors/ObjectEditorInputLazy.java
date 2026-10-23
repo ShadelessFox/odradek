@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.rtti.util.TypePath;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
 import sh.adelessfox.odradek.ui.editors.lazy.LazyEditorInput;
 
-import java.util.Objects;
 import java.util.Optional;
 
 public record ObjectEditorInputLazy(
@@ -16,10 +15,6 @@ public record ObjectEditorInputLazy(
     Optional<TypePath> selection,
     boolean canLoadImmediately
 ) implements LazyEditorInput, ObjectIdHolder {
-    public ObjectEditorInputLazy {
-        Objects.requireNonNull(game, "game");
-    }
-
     public ObjectEditorInputLazy(DecimaGame game, ObjectId objectId, Optional<TypePath> selection) {
         this(game, objectId, selection, true);
     }
