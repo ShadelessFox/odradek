@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.graph;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.Bookmarkable;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;

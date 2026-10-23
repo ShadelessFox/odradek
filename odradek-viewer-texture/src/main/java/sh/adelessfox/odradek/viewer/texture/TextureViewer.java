@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.viewer.texture;
 import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.extras.components.FlatToggleButton;
 import com.formdev.flatlaf.extras.components.FlatToolBar;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
@@ -24,7 +25,7 @@ import java.util.Optional;
 public final class TextureViewer implements Viewer {
     public static final class Provider implements Viewer.Provider<Texture> {
         @Override
-        public Viewer create(Texture object, Game game, Optional<?> selection) {
+        public Viewer create(Texture object, Game game, Optional<?> selection, DataContext parentContext) {
             return new TextureViewer(object);
         }
 

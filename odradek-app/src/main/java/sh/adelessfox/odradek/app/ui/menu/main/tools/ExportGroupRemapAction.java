@@ -2,12 +2,13 @@ package sh.adelessfox.odradek.app.ui.menu.main.tools;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.util.Dialogs;
 
 import javax.swing.*;
@@ -26,6 +27,7 @@ public class ExportGroupRemapAction extends Action {
 
     @Override
     public void perform(ActionContext context) {
+        var game = context.require(DataKeys.GAME, DecimaGame.class);
         var output = chooseOutputPath().orElse(null);
         if (output == null) {
             return;
@@ -34,7 +36,6 @@ public class ExportGroupRemapAction extends Action {
         try (var writer = Files.newBufferedWriter(output)) {
             writer.write("GroupIndex,GroupId");
 
-            var game = Application.getInstance().game();
             var groups = game.streamingGraph().groups();
             for (int i = 0; i < groups.size(); i++) {
                 writer.newLine();

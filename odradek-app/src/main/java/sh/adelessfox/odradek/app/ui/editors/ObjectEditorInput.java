@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.app.ui.editors;
 
 import sh.adelessfox.odradek.game.Game;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.ObjectWithIdHolder;
@@ -25,7 +26,8 @@ public record ObjectEditorInput(
         return switch (value) {
             case ObjectWithIdHolder<?> holder when holder.object() instanceof TypedObject object ->
                 Optional.of(new ObjectEditorInput(game, object, holder.objectId()));
-            case ObjectIdHolder holder -> Optional.of(new ObjectEditorInputLazy(holder.objectId()));
+            case ObjectIdHolder holder when game instanceof DecimaGame decimaGame ->
+                Optional.of(new ObjectEditorInputLazy(decimaGame, holder.objectId()));
             case null, default -> Optional.empty();
         };
     }
@@ -43,10 +45,10 @@ public record ObjectEditorInput(
     @Override
     public boolean representsSameInput(EditorInput other) {
         if (other instanceof ObjectEditorInput o) {
-            return objectId.equals(o.objectId);
+            return game == o.game && objectId.equals(o.objectId);
         }
         if (other instanceof ObjectEditorInputLazy o) {
-            return objectId.equals(o.objectId());
+            return game == o.game() && objectId.equals(o.objectId());
         }
         return false;
     }

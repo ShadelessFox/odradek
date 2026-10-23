@@ -1,17 +1,19 @@
 package sh.adelessfox.odradek.app.ui.viewers;
 
 import sh.adelessfox.odradek.NotImplementedException;
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.component.PreviewManager;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.viewers.menu.ObjectMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.util.TypePath;
+import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.ui.Focusable;
 import sh.adelessfox.odradek.ui.Renderer;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -20,6 +22,7 @@ import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.*;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -36,8 +39,8 @@ import java.util.function.Function;
 public final class ObjectViewer implements Viewer, Focusable {
     public static final class Provider implements Viewer.Provider<TypedObject> {
         @Override
-        public Viewer create(TypedObject object, Game game, Optional<?> selection) {
-            return new ObjectViewer(object, game, selection);
+        public Viewer create(TypedObject object, Game game, Optional<?> selection, DataContext parentContext) {
+            return new ObjectViewer(object, game, selection, parentContext);
         }
 
         @Override
@@ -53,12 +56,18 @@ public final class ObjectViewer implements Viewer, Focusable {
 
     private final TypedObject object;
     private final Game game;
+    private final DataContext parentContext;
+    private final EditorManager editorManager;
+    private final Settings settings;
     private StructuredTree<ObjectStructure> tree;
     private Object selection;
 
-    public ObjectViewer(TypedObject object, Game game, Optional<?> selection) {
+    public ObjectViewer(TypedObject object, Game game, Optional<?> selection, DataContext parentContext) {
         this.object = object;
         this.game = game;
+        this.parentContext = parentContext;
+        this.editorManager = parentContext.require(DataKeys.EDITOR_MANAGER);
+        this.settings = parentContext.require(ApplicationDataKeys.SETTINGS);
         this.selection = selection.orElse(null);
     }
 
@@ -87,29 +96,27 @@ public final class ObjectViewer implements Viewer, Focusable {
     }
 
     private StructuredTree<ObjectStructure> createObjectTree(Game game, TypedObject object) {
-        var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object));
+        var tree = new StructuredTree<>(new ObjectStructure.Compound(game, object.getType(), object), parentContext);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setTransferHandler(new ObjectEditorTransferHandler());
-        tree.setLabelProvider(new ObjectEditorLabelProvider());
+        tree.setLabelProvider(new ObjectEditorLabelProvider(settings));
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             var component = event.getLastPathComponent();
             if (!(component instanceof ObjectStructure.Node node)) {
                 return;
             }
             ObjectEditorInput.fromLink(game, node.value()).ifPresent(input -> {
-                var manager = Application.getInstance().editors();
-                manager.findEditor(tree).ifPresent(editor -> manager.navigate(editor, input));
+                editorManager.findEditor(tree).ifPresent(editor -> editorManager.navigate(editor, input));
             });
         }));
-        Actions.installContextMenu(tree, ObjectMenu.ID, tree.or(key -> {
-            if (DataKeys.GAME.is(key)) {
-                return Optional.of(game);
-            }
-            return Optional.empty();
-        }));
-        PreviewManager.install(tree, game, new ObjectPreviewObjectProvider());
+
+        var context = tree.getDataContext();
+        context.put(DataKeys.GAME, game);
+        Actions.installContextMenu(tree, ObjectMenu.ID, context);
+
+        PreviewManager.install(tree, game, new ObjectPreviewObjectProvider(settings));
 
         installAutoExpandGroups(tree);
         expandTreeGroups(tree);
@@ -444,6 +451,12 @@ public final class ObjectViewer implements Viewer, Focusable {
     }
 
     private static class ObjectEditorLabelProvider implements StyledTreeLabelProvider<ObjectStructure> {
+        private final Settings settings;
+
+        ObjectEditorLabelProvider(Settings settings) {
+            this.settings = settings;
+        }
+
         @Override
         public Optional<StyledText> getStyledText(ObjectStructure element) {
             return switch (element) {
@@ -467,7 +480,6 @@ public final class ObjectViewer implements Viewer, Focusable {
             if (!(element instanceof ObjectStructure.Node node)) {
                 return Optional.empty();
             }
-            var settings = Application.getInstance().settings();
             if (settings.get(ApplicationSettings.SHOW_OBJECT_TYPE_INFORMATION).value()) {
                 return Optional.of(getElementToolTip(node));
             }
@@ -476,9 +488,15 @@ public final class ObjectViewer implements Viewer, Focusable {
     }
 
     private static class ObjectPreviewObjectProvider implements PreviewManager.PreviewObjectProvider {
+        private final Settings settings;
+
+        ObjectPreviewObjectProvider(Settings settings) {
+            this.settings = settings;
+        }
+
         @Override
         public Optional<TypeInfo> getType(JTree tree, Object value) {
-            if (!Application.getInstance().settings().get(ApplicationSettings.SHOW_OBJECT_PREVIEW).value()) {
+            if (!settings.get(ApplicationSettings.SHOW_OBJECT_PREVIEW).value()) {
                 return Optional.empty();
             }
             return get(value).map(TypedObject::getType);

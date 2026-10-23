@@ -1,8 +1,11 @@
 package sh.adelessfox.odradek.ui.tools;
 
+import sh.adelessfox.odradek.data.DataContextOwner;
+
 import javax.swing.*;
 
-public interface ToolSite {
+/** Tool host services and header controls. The context is shared amongst all tool panels. */
+public interface ToolSite extends DataContextOwner {
     /**
      * Sets the leading component of the associated tool panel's header.
      *

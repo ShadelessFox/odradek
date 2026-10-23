@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.ui.viewers.menu;
 
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.viewers.ObjectStructure;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
@@ -17,7 +16,7 @@ public final class OpenLinkInNewTabAction extends Action {
     public void perform(ActionContext context) {
         var node = context.get(DataKeys.SELECTION, ObjectStructure.Node.class).orElseThrow();
         ObjectEditorInput.fromLink(node.game(), node.value())
-            .ifPresent(input -> Application.getInstance().editors().openEditorInNewTab(input));
+            .ifPresent(input -> context.require(DataKeys.EDITOR_MANAGER).openEditorInNewTab(input));
     }
 
     @Override

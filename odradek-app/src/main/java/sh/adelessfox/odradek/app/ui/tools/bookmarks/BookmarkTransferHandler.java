@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkRepository;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.FolderId;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.TreeItem;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -21,10 +21,10 @@ import java.util.Optional;
 final class BookmarkTransferHandler extends TransferHandler {
     private static final DataFlavor FLAVOR = new DataFlavor(Payload.class, "Odradek Bookmarks");
 
-    private final Bookmarks bookmarks;
+    private final BookmarkRepository bookmarks;
     private final StructuredTree<BookmarkStructure> tree;
 
-    BookmarkTransferHandler(Bookmarks bookmarks, StructuredTree<BookmarkStructure> tree) {
+    BookmarkTransferHandler(BookmarkRepository bookmarks, StructuredTree<BookmarkStructure> tree) {
         this.bookmarks = bookmarks;
         this.tree = tree;
     }
@@ -108,7 +108,7 @@ final class BookmarkTransferHandler extends TransferHandler {
     }
 
     private List<BookmarkKey> selectedBookmarks() {
-        return tree.get(DataKeys.SELECTION_LIST).stream()
+        return tree.getDataContext().get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.Bookmark.class))
             .map(BookmarkStructure.Bookmark::key)
@@ -116,7 +116,7 @@ final class BookmarkTransferHandler extends TransferHandler {
     }
 
     private List<FolderId> selectedFolders() {
-        return tree.get(DataKeys.SELECTION_LIST).stream()
+        return tree.getDataContext().get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.Folder.class))
             .map(BookmarkStructure.Folder::id)

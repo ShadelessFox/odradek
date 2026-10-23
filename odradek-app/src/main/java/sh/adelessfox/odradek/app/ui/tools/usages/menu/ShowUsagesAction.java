@@ -1,16 +1,11 @@
 package sh.adelessfox.odradek.app.ui.tools.usages.menu;
 
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
-import sh.adelessfox.odradek.app.ui.menu.MenuIds;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
-import sh.adelessfox.odradek.app.ui.tools.graph.menu.GraphMenu;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
-import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
-import sh.adelessfox.odradek.ui.actions.ActionContribution;
-import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 
@@ -21,8 +16,8 @@ import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 public final class ShowUsagesAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var holder = context.get(DataKeys.SELECTION, ObjectIdHolder.class).orElseThrow();
-        var eventBus = Application.getInstance().events();
+        var holder = context.require(DataKeys.SELECTION, ObjectIdHolder.class);
+        var eventBus = context.require(DataKeys.EVENT_BUS);
         eventBus.publish(new MainEvent.ShowPanel(UsagesToolPanel.ID, true));
         eventBus.publish(new MainEvent.ShowUsages(holder.objectId()));
     }

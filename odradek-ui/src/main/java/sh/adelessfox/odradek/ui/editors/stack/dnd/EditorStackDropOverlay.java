@@ -68,7 +68,7 @@ public final class EditorStackDropOverlay extends JComponent {
      * @param screenY     The current screen Y coordinate of the mouse
      */
     public void update(EditorStack sourceStack, int screenX, int screenY) {
-        var newTarget = determineDropTarget(manager.getRoot(), sourceStack, screenX, screenY);
+        var newTarget = determineDropTarget(manager.getComponent(), sourceStack, screenX, screenY);
         if (!Objects.equals(target, newTarget)) {
             target = newTarget;
             setCursor(determineCursor(newTarget));

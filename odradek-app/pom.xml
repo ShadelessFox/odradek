@@ -144,10 +144,6 @@
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.github.jbock-java</groupId>
-            <artifactId>dapper</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>wtf.reversed</groupId>
@@ -157,18 +153,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>io.github.jbock-java</groupId>
-                            <artifactId>dapper-compiler</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

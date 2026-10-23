@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
-import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkRepository;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.Bookmarkable;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.FolderId;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
@@ -14,7 +14,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructure> {
-    record Folder(Bookmarks repository, FolderId id, String name) implements BookmarkStructure {
+    record Folder(BookmarkRepository repository, FolderId id, String name) implements BookmarkStructure {
         @Override
         public boolean equals(Object object) {
             return object instanceof Folder folder && Objects.equals(id, folder.id);
@@ -27,7 +27,7 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
     }
 
     sealed interface Bookmark extends BookmarkStructure, Bookmarkable {
-        static Bookmark forKey(Bookmarks repository, BookmarkKey key, String name) {
+        static Bookmark forKey(BookmarkRepository repository, BookmarkKey key, String name) {
             return switch (key) {
                 case BookmarkKey.OfGroup k -> new GroupBookmark(repository, k, name);
                 case BookmarkKey.OfObject k -> new ObjectBookmark(repository, k, name);
@@ -44,7 +44,7 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
         }
     }
 
-    record GroupBookmark(Bookmarks repository, BookmarkKey.OfGroup key, String name) implements Bookmark {
+    record GroupBookmark(BookmarkRepository repository, BookmarkKey.OfGroup key, String name) implements Bookmark {
         @Override
         public boolean equals(Object object) {
             return object instanceof GroupBookmark that && Objects.equals(key, that.key);
@@ -56,7 +56,7 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
         }
     }
 
-    record ObjectBookmark(Bookmarks repository, BookmarkKey.OfObject key, String name) implements Bookmark, ObjectIdHolder {
+    record ObjectBookmark(BookmarkRepository repository, BookmarkKey.OfObject key, String name) implements Bookmark, ObjectIdHolder {
         @Override
         public ObjectId objectId() {
             return key.objectId();

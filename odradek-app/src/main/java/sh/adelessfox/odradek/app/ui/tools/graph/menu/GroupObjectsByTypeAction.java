@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphStructure.GroupableByType;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;

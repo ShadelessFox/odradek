@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.settings.gson;
+package sh.adelessfox.odradek.app.ui.settings.adapters;
 
 import com.google.gson.GsonBuilder;
 import sh.adelessfox.odradek.game.decima.ObjectId;

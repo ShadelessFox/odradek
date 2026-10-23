@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.menu;
+package sh.adelessfox.odradek.ui.actions;
 
 public final class MenuIds {
     public static final String GROUP_MISC = "2000,Misc";
@@ -7,6 +7,4 @@ public final class MenuIds {
 
     private MenuIds() {
     }
-
-
 }

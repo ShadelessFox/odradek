@@ -6,9 +6,7 @@ module odradek.app {
     requires com.github.weisj.jsvg;
     requires com.google.gson;
     requires com.miglayout.swing;
-    requires dagger;
     requires info.picocli;
-    requires jakarta.inject;
     requires java.desktop;
     requires odradek.core;
     requires odradek.game.decima;
@@ -48,7 +46,9 @@ module odradek.app {
     opens sh.adelessfox.odradek.app.cli to info.picocli;
     opens sh.adelessfox.odradek.app.ui to info.picocli;
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
-    opens sh.adelessfox.odradek.app.ui.settings.gson to com.google.gson;
+    opens sh.adelessfox.odradek.app.ui.settings.adapters to com.google.gson;
+    opens sh.adelessfox.odradek.app.ui.tools.bookmarks.settings to com.google.gson;
+    opens sh.adelessfox.odradek.app.ui.tools.bookmarks.settings.adapters to com.google.gson;
 
     provides sh.adelessfox.odradek.ui.actions.Action with
         sh.adelessfox.odradek.app.ui.menu.main.MainMenu.File,
@@ -66,8 +66,8 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectTypeInformationAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.CreateFolderAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.DeleteFolderAction,
-        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameFolderAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameBookmarkAction,
+        sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.RenameFolderAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.ToggleBookmarkAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyIdToClipboardAction,
         sh.adelessfox.odradek.app.ui.tools.graph.menu.CopyTypeToClipboardAction,
@@ -85,6 +85,11 @@ module odradek.app {
     provides sh.adelessfox.odradek.ui.editors.Editor.Provider with
         sh.adelessfox.odradek.app.ui.editors.ObjectEditor.Provider;
 
+    provides sh.adelessfox.odradek.ui.tools.ToolPanel.Provider with
+        sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel.Provider,
+        sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel.Provider,
+        sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel.Provider;
+
     provides sh.adelessfox.odradek.ui.Viewer.Provider with
         sh.adelessfox.odradek.app.ui.viewers.ObjectViewer.Provider;
 
@@ -92,7 +97,7 @@ module odradek.app {
         with sh.adelessfox.odradek.app.util.steam.SteamGameLocator;
 
     provides sh.adelessfox.odradek.settings.gson.GsonAdapterProvider
-        with sh.adelessfox.odradek.app.ui.settings.gson.ApplicationGsonAdapterProvider;
+        with sh.adelessfox.odradek.app.ui.settings.adapters.ApplicationGsonAdapterProvider;
 
     uses sh.adelessfox.odradek.app.util.GameLocator;
 }

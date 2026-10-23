@@ -3,6 +3,7 @@ module odradek.core {
 
     requires transitive wtf.reversed.toolbox;
     requires be.twofold.tinybcdec; // sh.adelessfox.odradek.texture.processing.TileUnpacker#decompress
+    requires com.google.gson;
     requires com.kichik.pecoff4j; // sh.adelessfox.odradek.util.system.ProductVersion
     requires java.net.http; // sh.adelessfox.odradek.audio.VgmstreamDownloader
     requires org.slf4j;
@@ -13,6 +14,7 @@ module odradek.core {
     exports sh.adelessfox.odradek.audio.container.wave;
     exports sh.adelessfox.odradek.audio.container.wwise;
     exports sh.adelessfox.odradek.audio;
+    exports sh.adelessfox.odradek.data;
     exports sh.adelessfox.odradek.event;
     exports sh.adelessfox.odradek.font;
     exports sh.adelessfox.odradek.geometry;

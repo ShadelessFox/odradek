@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarks;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkRepository;
 import sh.adelessfox.odradek.ui.components.StyledFragment;
 import sh.adelessfox.odradek.ui.components.StyledText;
 import sh.adelessfox.odradek.ui.components.tree.StyledTreeLabelProvider;
@@ -10,9 +10,9 @@ import javax.swing.*;
 import java.util.Optional;
 
 final class BookmarkLabelProvider implements StyledTreeLabelProvider<BookmarkStructure> {
-    private final Bookmarks bookmarks;
+    private final BookmarkRepository bookmarks;
 
-    BookmarkLabelProvider(Bookmarks bookmarks) {
+    BookmarkLabelProvider(BookmarkRepository bookmarks) {
         this.bookmarks = bookmarks;
     }
 

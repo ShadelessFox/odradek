@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.bookmarks;
+package sh.adelessfox.odradek.app.ui.tools.bookmarks.data;
 
 import sh.adelessfox.odradek.game.decima.ObjectId;
 

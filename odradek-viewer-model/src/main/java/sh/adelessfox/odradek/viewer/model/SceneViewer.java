@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.model;
 
 import com.formdev.flatlaf.extras.components.FlatToolBar;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.ui.Viewer;
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
 public record SceneViewer(Scene scene) implements Viewer {
     public static final class Provider implements Viewer.Provider<Scene> {
         @Override
-        public Viewer create(Scene object, Game game, Optional<?> selection) {
+        public Viewer create(Scene object, Game game, Optional<?> selection, DataContext parentContext) {
             return new SceneViewer(object);
         }
 

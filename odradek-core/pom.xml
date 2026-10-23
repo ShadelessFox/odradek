@@ -13,6 +13,10 @@
     <dependencies>
         <!-- External dependencies -->
         <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
             <groupId>be.twofold</groupId>
             <artifactId>tinybcdec</artifactId>
             <version>1.0</version>

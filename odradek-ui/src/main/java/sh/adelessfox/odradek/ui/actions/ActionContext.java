@@ -1,25 +1,34 @@
 package sh.adelessfox.odradek.ui.actions;
 
-import sh.adelessfox.odradek.ui.data.DataContext;
-import sh.adelessfox.odradek.ui.data.DataKey;
+import sh.adelessfox.odradek.data.DataContext;
+import sh.adelessfox.odradek.data.DataKey;
 
 import java.awt.event.ActionEvent;
 import java.util.Optional;
 
-public record ActionContext(DataContext context, Object source, ActionEvent event) implements DataContext {
-    @Override
-    public Optional<?> get(String key) {
-        return context.get(key);
-    }
-
-    @Override
+public record ActionContext(DataContext context, Object source, ActionEvent event) {
     public <T> Optional<T> get(DataKey<T> key) {
         return context.get(key);
     }
 
-    @Override
     public <T, R> Optional<R> get(DataKey<T> key, Class<R> type) {
         return context.get(key, type);
+    }
+
+    public <T> T require(DataKey<T> key) {
+        return context.require(key);
+    }
+
+    public <T, R> R require(DataKey<T> key, Class<R> type) {
+        return context.require(key, type);
+    }
+
+    public boolean has(DataKey<?> key) {
+        return context.has(key);
+    }
+
+    public boolean has(DataKey<?> key, Class<?> type) {
+        return context.has(key, type);
     }
 
     ActionContext withEvent(ActionEvent event) {

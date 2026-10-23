@@ -1,11 +1,11 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkEvent;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.settings.Settings;
@@ -17,21 +17,23 @@ import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
 import java.util.ArrayList;
 import java.util.Optional;
 
-@Singleton
 public class MainPresenter implements Presenter<MainView> {
     private final MainView view;
     private final EditorManager editorManager;
+    private final DecimaGame game;
 
-    @Inject
-    MainPresenter(
+    public MainPresenter(
         EditorManager editorManager,
         MainView view,
-        EventBus eventBus
+        EventBus eventBus,
+        DecimaGame game
     ) {
         this.view = view;
         this.editorManager = editorManager;
+        this.game = game;
 
         eventBus.subscribe(MainEvent.ShowObject.class, event -> openObject(event.objectId()));
+        eventBus.subscribe(BookmarkEvent.OpenRequested.class, event -> openObject(event.objectId()));
         eventBus.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var settings) -> loadEditors(settings);
@@ -46,15 +48,15 @@ public class MainPresenter implements Presenter<MainView> {
     }
 
     private void openObject(ObjectId objectId) {
-        editorManager.openEditor(new ObjectEditorInputLazy(objectId));
+        editorManager.openEditor(new ObjectEditorInputLazy(game, objectId));
     }
 
     private void loadEditors(Settings settings) {
-        settings.get(ApplicationSettings.EDITORS).value().ifPresent(s -> loadContainer(editorManager.getRoot(), s));
+        settings.get(ApplicationSettings.EDITORS).value().ifPresent(s -> loadContainer(editorManager.getComponent(), s));
     }
 
     private void saveEditors(Settings settings) {
-        settings.get(ApplicationSettings.EDITORS).set(Optional.of(saveContainer(editorManager.getRoot())));
+        settings.get(ApplicationSettings.EDITORS).set(Optional.of(saveContainer(editorManager.getComponent())));
     }
 
     private void loadContainer(EditorStackContainer container, ApplicationSettings.EditorState state) {
@@ -71,7 +73,7 @@ public class MainPresenter implements Presenter<MainView> {
                         selection = stack.getTabCount();
                     }
                     var inputs = tab.history().stream()
-                        .map(ObjectEditorInputLazy::new)
+                        .map(objectId -> new ObjectEditorInputLazy(game, objectId))
                         .toList();
                     var history = new EditorManager.History(inputs, Math.clamp(tab.selection(), 0, inputs.size() - 1));
                     editorManager.openEditorInNewTab(history, stack, EditorManager.Activation.NO);

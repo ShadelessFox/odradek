@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.ui;
 
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.util.Reflections;
 
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
  */
 public interface Viewer extends Activable, Disposable {
     interface Provider<T> {
-        Viewer create(T object, Game game, Optional<?> selection);
+        Viewer create(T object, Game game, Optional<?> selection, DataContext parentContext);
 
         String name();
 

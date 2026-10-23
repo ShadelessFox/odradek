@@ -3,6 +3,7 @@ package sh.adelessfox.odradek.ui.tools;
 import com.formdev.flatlaf.ui.FlatLineBorder;
 import com.formdev.flatlaf.util.UIScale;
 import net.miginfocom.swing.MigLayout;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.components.LineBorder;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public final class ToolContainer extends JComponent implements ToolManager, PropertyChangeListener {
+    private final DataContext dataContext;
     private final Map<String, ToolPanelState> panelById = new HashMap<>();
     private final Map<ToolPanel.Placement, List<ToolPanelState>> groupByPlacement = new HashMap<>();
 
@@ -28,6 +30,11 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
     private boolean showToolNames;
 
     public ToolContainer() {
+        this(new DataContext());
+    }
+
+    public ToolContainer(DataContext dataContext) {
+        this.dataContext = Objects.requireNonNull(dataContext, "dataContext");
         container = new SplitterContainer();
         leftButtons = new ToolButtonPanel();
         rightButtons = new ToolButtonPanel();
@@ -429,6 +436,11 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
         ToolPanelState(ToolPanel.Provider provider, ToolPanel.Placement placement) {
             this.provider = provider;
             this.placement = placement;
+        }
+
+        @Override
+        public DataContext getDataContext() {
+            return dataContext;
         }
 
         private JComponent getOrCreateComponent() {

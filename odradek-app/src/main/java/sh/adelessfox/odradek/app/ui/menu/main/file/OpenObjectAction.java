@@ -1,13 +1,14 @@
 package sh.adelessfox.odradek.app.ui.menu.main.file;
 
-import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import javax.swing.*;
 
@@ -18,7 +19,10 @@ public class OpenObjectAction extends Action {
 
     @Override
     public void perform(ActionContext context) {
-        String result = (String) JOptionPane.showInputDialog(
+        var game = context.require(DataKeys.GAME, DecimaGame.class);
+        var editors = context.require(DataKeys.EDITOR_MANAGER);
+
+        var result = (String) JOptionPane.showInputDialog(
             JOptionPane.getRootFrame(),
             "Enter [Group ID] : [Object Index]",
             "Open Object",
@@ -32,6 +36,6 @@ public class OpenObjectAction extends Action {
         }
 
         lastInput = result;
-        Application.getInstance().editors().openEditor(new ObjectEditorInputLazy(ObjectId.valueOf(result.strip())));
+        editors.openEditor(new ObjectEditorInputLazy(game, ObjectId.valueOf(result.strip())));
     }
 }

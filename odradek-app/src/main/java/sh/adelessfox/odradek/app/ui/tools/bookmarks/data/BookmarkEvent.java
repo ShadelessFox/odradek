@@ -1,8 +1,12 @@
-package sh.adelessfox.odradek.app.ui.bookmarks;
+package sh.adelessfox.odradek.app.ui.tools.bookmarks.data;
 
 import sh.adelessfox.odradek.event.Event;
+import sh.adelessfox.odradek.game.decima.ObjectId;
 
 public sealed interface BookmarkEvent extends Event {
+    record OpenRequested(ObjectId objectId) implements BookmarkEvent {
+    }
+
     record BookmarkAdded(Bookmark bookmark, FolderId parent) implements BookmarkEvent {
     }
 

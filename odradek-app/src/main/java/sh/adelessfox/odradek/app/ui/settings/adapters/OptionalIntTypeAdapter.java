@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.ui.settings.gson;
+package sh.adelessfox.odradek.app.ui.settings.adapters;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;

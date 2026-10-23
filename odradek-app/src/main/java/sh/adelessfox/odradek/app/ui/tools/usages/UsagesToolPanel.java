@@ -1,16 +1,13 @@
 package sh.adelessfox.odradek.app.ui.tools.usages;
 
 import com.formdev.flatlaf.extras.components.FlatScrollPane;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
-import sh.adelessfox.odradek.app.ui.tools.graph.menu.GraphMenu;
+import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.app.util.LinkDatabase;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
@@ -24,6 +21,7 @@ import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTreeModel;
 import sh.adelessfox.odradek.ui.components.tree.TreeActionListener;
 import sh.adelessfox.odradek.ui.data.DataKeys;
+import sh.adelessfox.odradek.ui.editors.EditorManager;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Dialogs;
@@ -42,22 +40,16 @@ import java.util.concurrent.ExecutionException;
 public final class UsagesToolPanel implements ToolPanel, Focusable {
     public static final String ID = "usages";
 
-    @Singleton
     public static final class Provider implements ToolPanel.Provider {
-        private final DecimaGame game;
-        private final EventBus appEventBus;
-        private final Path config;
-
-        @Inject
-        public Provider(DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
-            this.game = game;
-            this.appEventBus = appEventBus;
-            this.config = config;
-        }
-
         @Override
         public ToolPanel create(ToolSite site) {
-            return new UsagesToolPanel(site, game, appEventBus, config);
+            var context = site.getDataContext();
+            return new UsagesToolPanel(
+                site,
+                context.require(DataKeys.GAME, DecimaGame.class),
+                context.require(DataKeys.EVENT_BUS),
+                context.require(ApplicationDataKeys.CONFIG_PATH),
+                context.require(DataKeys.EDITOR_MANAGER));
         }
 
         @Override
@@ -74,6 +66,16 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         public Icon icon() {
             return Fugue.getIcon("magnifier-left");
         }
+
+        @Override
+        public Placement placement() {
+            return new Placement(Placement.Anchor.BOTTOM, true);
+        }
+
+        @Override
+        public int order() {
+            return 200;
+        }
     }
 
     private static final Logger log = LoggerFactory.getLogger(UsagesToolPanel.class);
@@ -87,6 +89,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     private final DecimaGame game;
     private final EventBus appEventBus;
     private final Path config;
+    private final EditorManager editorManager;
 
     private final List<ObjectId> queue = new ArrayList<>();
     private int queueIndex;
@@ -95,11 +98,18 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     private StructuredTree<UsagesStructure> tree;
     private ObjectId pendingObjectId;
 
-    private UsagesToolPanel(ToolSite site, DecimaGame game, EventBus appEventBus, @Named("config") Path config) {
+    private UsagesToolPanel(
+        ToolSite site,
+        DecimaGame game,
+        EventBus appEventBus,
+        Path config,
+        EditorManager editorManager
+    ) {
         this.site = site;
         this.game = game;
         this.appEventBus = appEventBus;
         this.config = config;
+        this.editorManager = editorManager;
     }
 
     @Override
@@ -213,7 +223,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
     }
 
     private JComponent createTreeView(EventBus eventBus, DecimaGame game) {
-        tree = new StructuredTree<>();
+        tree = new StructuredTree<>(site.getDataContext());
         tree.setLabelProvider(new UsagesLabelProvider(game));
         tree.setShowsRootHandles(true);
         tree.setRootVisible(false);
@@ -221,23 +231,20 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         tree.addActionListener(TreeActionListener.treePathClickedAdapter(event -> {
             switch (event.getLastPathComponent()) {
                 case UsagesStructure.Link link when link.type() == UsagesStructure.Type.INCOMING -> {
-                    var input = new ObjectEditorInputLazy(link.objectId(), Optional.of(link.link().path()));
-                    Application.getInstance().editors().openEditor(input);
+                    var input = new ObjectEditorInputLazy(game, link.objectId(), Optional.of(link.link().path()));
+                    editorManager.openEditor(input);
                 }
                 case ObjectIdHolder holder -> {
-                    var input = new ObjectEditorInputLazy(holder.objectId());
-                    Application.getInstance().editors().openEditor(input);
+                    var input = new ObjectEditorInputLazy(game, holder.objectId());
+                    editorManager.openEditor(input);
                 }
                 default -> { /* do nothing */ }
             }
         }));
 
-        Actions.installContextMenu(tree, GraphMenu.ID, key -> {
-            if (DataKeys.GAME.is(key)) {
-                return Optional.of(game);
-            }
-            return tree.get(key);
-        });
+        var context = tree.getDataContext();
+        context.put(DataKeys.GAME, game);
+        Actions.installContextMenu(tree, GraphMenu.ID, context);
 
         eventBus.subscribe(Events.ShowObject.class, event -> {
             if (database == null) {

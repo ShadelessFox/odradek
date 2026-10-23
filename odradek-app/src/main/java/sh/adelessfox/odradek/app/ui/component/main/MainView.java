@@ -1,12 +1,9 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import sh.adelessfox.odradek.app.ui.component.common.View;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
-import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkToolPanel;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphToolPanel;
-import sh.adelessfox.odradek.app.ui.tools.usages.UsagesToolPanel;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.ui.editors.EditorManager;
@@ -17,19 +14,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
 
-@Singleton
 public class MainView implements View<JComponent> {
     private final JPanel root;
 
-    @Inject
-    MainView(
-        GraphToolPanel.Provider graphPresenter,
-        BookmarkToolPanel.Provider bookmarkPanel,
-        UsagesToolPanel.Provider usagesPanel,
+    public MainView(
         EditorManager editorManager,
-        EventBus eventBus
+        EventBus eventBus,
+        DataContext context
     ) {
-        var center = buildCenter(graphPresenter, bookmarkPanel, usagesPanel, editorManager, eventBus);
+        var center = buildCenter(editorManager, eventBus, context);
         var bottom = buildBottom();
 
         root = new JPanel(new BorderLayout());
@@ -43,17 +36,13 @@ public class MainView implements View<JComponent> {
     }
 
     private static JComponent buildCenter(
-        GraphToolPanel.Provider graphPresenter,
-        BookmarkToolPanel.Provider bookmarkPanel,
-        UsagesToolPanel.Provider usagesPanel,
         EditorManager editorManager,
-        EventBus eventBus
+        EventBus eventBus,
+        DataContext context
     ) {
-        var center = new ToolContainer();
-        center.addPanel(graphPresenter, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, true));
-        center.addPanel(bookmarkPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.LEFT, false));
-        center.addPanel(usagesPanel, new ToolPanel.Placement(ToolPanel.Placement.Anchor.BOTTOM, true));
-        center.setCenter(editorManager.getRoot());
+        var center = new ToolContainer(context);
+        ToolPanel.providers().forEach(provider -> center.addPanel(provider, provider.placement()));
+        center.setCenter(editorManager.getComponent());
 
         // The initial state
         center.openPanel(GraphToolPanel.ID, true);
