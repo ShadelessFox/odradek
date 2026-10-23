@@ -33,6 +33,12 @@ public final class ApplicationSettings {
     public static final SettingsKey<Boolean> SHOW_OBJECT_TYPE_INFORMATION =
         SettingsKey.of("showObjectTypeInformation", Boolean.class, () -> false);
 
+    public static final SettingsKey<Boolean> GETTING_STARTED_SHOWN =
+        SettingsKey.of("gettingStartedShown", Boolean.class, () -> false);
+
+    public static final SettingsKey<Boolean> SHOW_GETTING_STARTED_ON_STARTUP =
+        SettingsKey.of("showGettingStartedOnStartup", Boolean.class, () -> false);
+
     private ApplicationSettings() {
     }
 

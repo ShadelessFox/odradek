@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.component.main.MainView;
+import sh.adelessfox.odradek.app.ui.component.onboarding.OnboardingDialog;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkDataKeys;
@@ -73,6 +74,12 @@ public final class Application {
         frame.setVisible(true);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(settings, bookmarks, game), "Odradek Shutdown"));
+
+        SwingUtilities.invokeLater(() -> {
+            if (frame.isShowing() && OnboardingDialog.shouldShowOnStartup(settings)) {
+                OnboardingDialog.showGuide(frame, settings);
+            }
+        });
     }
 
     private static void configureFrame(

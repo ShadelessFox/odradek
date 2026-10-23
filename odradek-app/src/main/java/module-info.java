@@ -45,6 +45,7 @@ module odradek.app {
     opens sh.adelessfox.odradek.app to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;
     opens sh.adelessfox.odradek.app.ui to info.picocli;
+    opens sh.adelessfox.odradek.app.ui.component.onboarding to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.settings.adapters to com.google.gson;
     opens sh.adelessfox.odradek.app.ui.tools.bookmarks.settings to com.google.gson;
@@ -58,6 +59,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.file.OpenGraphAction,
         sh.adelessfox.odradek.app.ui.menu.main.file.OpenObjectAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.AboutAction,
+        sh.adelessfox.odradek.app.ui.menu.main.help.GettingStartedAction,
         sh.adelessfox.odradek.app.ui.menu.main.help.ReportAnIssueAction,
         sh.adelessfox.odradek.app.ui.menu.main.tools.ExportGroupRemapAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction,

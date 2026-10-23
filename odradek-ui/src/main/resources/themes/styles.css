@@ -1,5 +1,26 @@
+body {
+    background-color: $Panel.background;
+    color: $Label.foreground;
+}
+
 code {
     font-size: inherit;
     font-family: Monospaced;
     color: $StyledFragment.nameForeground;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 12px;
+    margin-bottom: 4px;
+}
+
+p, pre {
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+ul, ol {
+    margin-left: 20px;
+    margin-top: 4px;
+    margin-bottom: 8px;
 }

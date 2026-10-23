@@ -1,0 +1,99 @@
+[
+  {
+    "label": "Welcome",
+    "title": "Welcome to Odradek",
+    "body": [
+      "<p>Odradek is an asset viewer and exporter for <b>Horizon Forbidden West</b> and <b>Death Stranding 2</b>.</p>",
+      "<p>This guide covers the Graph panel, filtering, object references, bookmarks, and exporting. You can leave it open while using the app.</p>"
+    ]
+  },
+  {
+    "label": "Graph",
+    "title": "The Graph panel",
+    "body": [
+      "<p>The <b>streaming graph</b> is the game's index of resources and their dependencies. An <b>object</b> is a resource or piece of game data; a <b>group</b> contains related objects.</p>",
+      "<p>These objects are packed into game data files, not stored as a separate named file for each asset. The graph identifies objects by <b>group ID and object index</b>, not source filenames. That's why Odradek shows IDs and types rather than a familiar folder tree.</p>",
+      "<p>Browse by group under <b>Groups</b>, by type under <b>Objects</b>, or browse the game's root objects under <b>Roots</b>.</p>",
+      "<p>Double-click an object to open it, or select it and press <b>Enter</b>. Available viewers appear as tabs at the bottom of the editor.</p>",
+      "<p>A group's <b>Dependencies</b> are the groups it depends on. Its <b>Dependents</b> are groups that depend on it. Use <b>Usages</b> for references between individual objects.</p>",
+      "<h3>Object IDs</h3>",
+      "<pre>[123:4] ObjectType\n  |  |\n  |  +-- object index within the group\n  +----- group ID</pre>",
+      "<p>In this example, the group ID is 123 and the object index is 4. Inside a group, only the object index may be shown.</p>"
+    ]
+  },
+  {
+    "label": "Filtering",
+    "title": "Filtering",
+    "body": [
+      "<p>Enter a query above the graph and press <b>Enter</b>. <b>Ctrl+F</b> focuses the filter when the graph has focus.</p>",
+      "<p>Use <code>type:Texture</code> to match type names containing &ldquo;Texture&rdquo;. Bare text such as <code>Texture</code> is not a valid query. The filter does not search asset filenames or object field values.</p>",
+      "<ul>",
+      "<li><b>Match Case</b> makes type-name matching case-sensitive.</li>",
+      "<li><b>Match Whole Word</b> requires the complete type name, rather than a substring.</li>",
+      "<li>Combine conditions with <code>not</code>, <code>and</code>, and <code>or</code> (highest to lowest priority). Use parentheses to group conditions.</li>",
+      "<li><code>has:roots</code> keeps groups with root objects.</li>",
+      "<li><code>has:subgroups</code> keeps groups with dependencies; <code>has:supergroups</code> keeps groups with dependents.</li>",
+      "</ul>",
+      "<p><code>group:123</code> filters the <b>Groups</b> branch. Replace 123 with your group ID. It does not restrict the separate <b>Objects</b> or <b>Roots</b> branches.</p>",
+      "<p>Clear the query and press <b>Enter</b> to remove the filter. Invalid queries show an error and leave the previous filter active.</p>",
+      "<h3>Example queries</h3>",
+      "<p>Select query text and press <b>Ctrl+C</b> to copy it.</p>",
+      "<table cellpadding='5'>",
+      "<tr><td><code>type:Texture</code></td><td>Type names containing Texture</td></tr>",
+      "<tr><td><code>type:Mesh or type:Texture</code></td><td>Type names containing Mesh or Texture</td></tr>",
+      "<tr><td><code>group:123</code></td><td>Group 123 under Groups; replace the ID</td></tr>",
+      "<tr><td><code>has:roots</code></td><td>Groups containing root objects</td></tr>",
+      "<tr><td><code>(type:Mesh or type:Texture) and not group:123</code></td><td>Mesh or Texture types, excluding group 123 under Groups</td></tr>",
+      "</table>"
+    ]
+  },
+  {
+    "label": "Usages",
+    "title": "Object references",
+    "body": [
+      "<p>Right-click an object and choose <b>Show Usages</b>, or select it and press <b>Alt+F7</b>.</p>",
+      "<p>On first use, click <b>Scan game resources</b> to build the link database. This can take a while; the database is saved for later sessions.</p>",
+      "<ul>",
+      "<li><b>Incoming links</b> are references to this object.</li>",
+      "<li><b>Outgoing links</b> are references from this object.</li>",
+      "</ul>",
+      "<pre>Another object  -->  Selected object  -->  Referenced object\n        incoming link          outgoing link</pre>",
+      "<p>Double-click a result (or select it and press <b>Enter</b>) to open it. Incoming results also take you to the referencing field.</p>",
+      "<p>Choose <b>Show Usages</b> on a result to inspect its references. The panel's <b>Back / Forward</b> arrows return to previous usages searches.</p>"
+    ]
+  },
+  {
+    "label": "Bookmarks",
+    "title": "Bookmarks",
+    "body": [
+      "<p>Right-click an object or group in the Graph panel and choose <b>Add Bookmark</b>. Enter a name. New bookmarks appear under <b>User bookmarks</b>.</p>",
+      "<p>Open the <b>Bookmarks</b> panel using its tool-strip button. Double-click an object bookmark, or select it and press <b>Enter</b>, to open the object.</p>",
+      "<h3>Folders and names</h3>",
+      "<ul>",
+      "<li>Right-click <b>User bookmarks</b> or a folder and choose <b>New Folder...</b>. You can also press <b>Ctrl+Shift+N</b> with the folder selected.</li>",
+      "<li>Drag bookmarks or folders onto a folder to move them. Entries are sorted by name, with folders first.</li>",
+      "<li>Right-click an entry and choose <b>Rename Bookmark...</b> or <b>Rename Folder...</b> to change its name.</li>",
+      "</ul>",
+      "<h3>Removing bookmarks</h3>",
+      "<p>Right-click a bookmarked item and choose <b>Delete Bookmark</b>. To remove a folder, choose <b>Delete Folder</b> or select it and press <b>Delete</b>. Deleting a folder also removes its bookmarks and subfolders; nonempty folders require confirmation.</p>",
+      "<p>Removing a bookmark does not delete game data. Bookmarks and folders are saved with the app's settings and restored on later launches.</p>"
+    ]
+  },
+  {
+    "label": "Exporting",
+    "title": "Exporting",
+    "body": [
+      "<p>Select one or more objects, then choose <b>Export As...</b> from the right-click menu. Choose a format and an output location.</p>",
+      "<p>Use <b>Ctrl-click</b> to add objects or <b>Shift-click</b> to select a range. Selecting a group heading does <b>not</b> export its contents.</p>",
+      "<p>Only formats supported by every selected object are shown. If <b>Export As...</b> is missing, try selecting a single supported object.</p>",
+      "<h3>Common formats</h3>",
+      "<ul>",
+      "<li><b>Models:</b> CAST</li>",
+      "<li><b>Textures:</b> PNG or DDS</li>",
+      "<li><b>Audio:</b> WAV, or supported source formats such as WEM or AT9</li>",
+      "</ul>",
+      "<p>Batch and multi-file exports ask for a directory; a single-file export asks for a filename. <b>Existing output files may be overwritten.</b></p>",
+      "<p>Wait for the completion message. If some objects failed to export, check the console output for details.</p>"
+    ]
+  }
+]
