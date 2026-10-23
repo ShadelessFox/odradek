@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorMenu;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
@@ -17,7 +18,6 @@ import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.*;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkMenu;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.ui.util.Dialogs;

@@ -1,23 +1,74 @@
-package sh.adelessfox.odradek.ui.bookmarks;
+package sh.adelessfox.odradek.app.ui.bookmarks;
 
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkSettings.BookmarkState;
 import sh.adelessfox.odradek.event.EventBus;
+import sh.adelessfox.odradek.settings.Settings;
+import sh.adelessfox.odradek.settings.SettingsEvent;
 
 import java.util.*;
 
 /**
  * A repository of bookmarks.
  */
-public final class BookmarkRepository {
+public final class BookmarkRepository implements AutoCloseable {
     private final EventBus eventBus;
     private final Map<BookmarkKey, Bookmark> bookmarks = new LinkedHashMap<>();
     private final Map<FolderId, Folder> folders = new LinkedHashMap<>();
     private final Map<BookmarkKey, FolderId> bookmarkToParent = new LinkedHashMap<>();
     private final Map<FolderId, FolderId> folderToParent = new LinkedHashMap<>();
     private final FolderId root = FolderId.random();
+    private EventBus.Subscription subscription;
 
+    /** Creates an in-memory repository. */
     public BookmarkRepository(EventBus eventBus) {
         this.eventBus = eventBus;
         this.folders.put(root, new Folder(root, "Root"));
+    }
+
+    /** Restores bookmarks immediately and saves them with the supplied settings. */
+    public BookmarkRepository(Settings settings, EventBus eventBus) {
+        this(eventBus);
+        deserialize(root, settings.get(BookmarkSettings.BOOKMARKS).value());
+        subscription = eventBus.subscribe(SettingsEvent.BeforeSave.class, event -> {
+            if (event.settings() == settings) {
+                save(settings);
+            }
+        });
+    }
+
+    @Override
+    public void close() {
+        if (subscription != null) {
+            subscription.dispose();
+        }
+    }
+
+    private void save(Settings settings) {
+        List<BookmarkState> state;
+        synchronized (this) {
+            state = serialize(root);
+        }
+        settings.get(BookmarkSettings.BOOKMARKS).set(state);
+    }
+
+    private List<BookmarkState> serialize(FolderId folderId) {
+        var children = new ArrayList<BookmarkState>();
+        for (var folder : getAllFoldersInFolder(folderId)) {
+            children.add(new BookmarkState.Folder(folder.name(), serialize(folder.id())));
+        }
+        for (var bookmark : getAllInFolder(folderId)) {
+            children.add(new BookmarkState.Bookmark(bookmark.key(), bookmark.name()));
+        }
+        return List.copyOf(children);
+    }
+
+    private void deserialize(FolderId folderId, List<BookmarkState> children) {
+        for (var child : children) {
+            switch (child) {
+                case BookmarkState.Bookmark b -> create(folderId, b.key(), b.name());
+                case BookmarkState.Folder f -> deserialize(createFolder(folderId, f.name()), f.children());
+            }
+        }
     }
 
     /**

@@ -1,11 +1,11 @@
-package sh.adelessfox.odradek.ui.bookmarks.toolpanel;
+package sh.adelessfox.odradek.app.ui.bookmarks.toolpanel;
 
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkRepository;
+import sh.adelessfox.odradek.app.ui.bookmarks.Bookmarkable;
+import sh.adelessfox.odradek.app.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkRepository;
-import sh.adelessfox.odradek.ui.bookmarks.Bookmarkable;
-import sh.adelessfox.odradek.ui.bookmarks.FolderId;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
 
 import java.util.Comparator;

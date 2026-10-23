@@ -1,9 +1,9 @@
-package sh.adelessfox.odradek.ui.bookmarks.menu;
+package sh.adelessfox.odradek.app.ui.bookmarks.menu;
 
+import sh.adelessfox.odradek.app.ui.bookmarks.*;
+import sh.adelessfox.odradek.app.ui.bookmarks.toolpanel.BookmarkStructure;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContext;
-import sh.adelessfox.odradek.ui.bookmarks.*;
-import sh.adelessfox.odradek.ui.bookmarks.toolpanel.BookmarkStructure;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.util.Gatherers;
 

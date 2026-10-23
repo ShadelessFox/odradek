@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkDataKeys;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkRepository;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.component.main.MainView;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
@@ -13,7 +15,6 @@ import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
-import sh.adelessfox.odradek.service.ApplicationService;
 import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.settings.SettingsManager;
@@ -24,8 +25,6 @@ import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
 
 import javax.swing.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public final class Application {
@@ -64,8 +63,8 @@ public final class Application {
         var editors = new EditorStackManager(context);
         context.put(DataKeys.EDITOR_MANAGER, editors);
 
-        var services = new ArrayList<ApplicationService>();
-        ApplicationService.providers().forEach(provider -> services.add(provider.create(context)));
+        var bookmarks = new BookmarkRepository(settings, events);
+        context.put(BookmarkDataKeys.BOOKMARKS, bookmarks);
 
         var frame = new JFrame();
         var view = new MainView(editors, events, context);
@@ -73,7 +72,7 @@ public final class Application {
         configureFrame(frame, presenter, context, events, params);
         frame.setVisible(true);
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(settings, services, game), "Odradek Shutdown"));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(settings, bookmarks, game), "Odradek Shutdown"));
     }
 
     private static void configureFrame(
@@ -102,37 +101,19 @@ public final class Application {
         });
     }
 
-    private static void shutdown(SettingsManager settings, List<ApplicationService> services, Game game) {
+    private static void shutdown(SettingsManager settings, BookmarkRepository bookmarks, Game game) {
         try {
             settings.save();
         } catch (RuntimeException failure) {
             log.error("Failed to save settings", failure);
-        } finally {
-            dispose(settings, services, game);
         }
-    }
-
-    private static void dispose(SettingsManager settings, List<ApplicationService> services, Game game) {
-        if (settings != null) {
-            settings.close();
-        }
-        disposeServices(services);
+        settings.close();
+        bookmarks.close();
         try {
             game.close();
         } catch (IOException failure) {
             log.error("Failed to close game", failure);
         }
-    }
-
-    static void disposeServices(List<ApplicationService> services) {
-        for (var service : services) {
-            try {
-                service.dispose();
-            } catch (RuntimeException failure) {
-                log.error("Failed to dispose of service {}", service.getClass().getName(), failure);
-            }
-        }
-        services.clear();
     }
 
     private static void loadFrameSettings(Settings settings, JFrame frame) {

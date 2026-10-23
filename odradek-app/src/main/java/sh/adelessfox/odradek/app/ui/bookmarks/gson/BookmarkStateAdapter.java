@@ -1,9 +1,9 @@
-package sh.adelessfox.odradek.ui.bookmarks.gson;
+package sh.adelessfox.odradek.app.ui.bookmarks.gson;
 
 import com.google.gson.*;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkKey;
+import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkSettings.BookmarkState;
 import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkKey;
-import sh.adelessfox.odradek.ui.bookmarks.BookmarkSettings.BookmarkState;
 
 import java.lang.reflect.Type;
 

@@ -68,10 +68,6 @@
         </dependency>
         <dependency>
             <groupId>sh.adelessfox</groupId>
-            <artifactId>odradek-ui-bookmarks</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>sh.adelessfox</groupId>
             <artifactId>odradek-settings</artifactId>
         </dependency>
         <dependency>

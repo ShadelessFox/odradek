@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.ui.bookmarks;
+package sh.adelessfox.odradek.app.ui.bookmarks;
 
 import sh.adelessfox.odradek.data.DataKey;
 

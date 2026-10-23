@@ -1,8 +1,8 @@
-package sh.adelessfox.odradek.ui.bookmarks;
+package sh.adelessfox.odradek.app.ui.bookmarks;
 
 import com.google.gson.annotations.JsonAdapter;
+import sh.adelessfox.odradek.app.ui.bookmarks.gson.BookmarkStateAdapter;
 import sh.adelessfox.odradek.settings.SettingsKey;
-import sh.adelessfox.odradek.ui.bookmarks.gson.BookmarkStateAdapter;
 
 import java.util.List;
 
