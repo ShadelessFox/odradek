@@ -52,6 +52,18 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- EqualsVerifier needs reflective access to reference fields and their ObjectIds -->
+                    <argLine>
+                        --enable-preview
+                        --add-opens=odradek.game.hfw/sh.adelessfox.odradek.game.hfw.rtti.data.ref=ALL-UNNAMED
+                        --add-opens=odradek.game.decima/sh.adelessfox.odradek.game.decima=ALL-UNNAMED
+                    </argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
