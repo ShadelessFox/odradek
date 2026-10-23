@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkEvent;
 import sh.adelessfox.odradek.app.ui.component.common.Presenter;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.BookmarkEvent;
 import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;

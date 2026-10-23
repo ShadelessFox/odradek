@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.app.ui.settings;
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.google.gson.annotations.JsonAdapter;
-import sh.adelessfox.odradek.app.ui.settings.gson.EditorStateAdapter;
+import sh.adelessfox.odradek.app.ui.settings.adapters.EditorStateAdapter;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.settings.SettingsKey;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;

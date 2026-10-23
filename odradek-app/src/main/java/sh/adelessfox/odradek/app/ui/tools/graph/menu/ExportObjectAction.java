@@ -2,9 +2,9 @@ package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.ui.bookmarks.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorMenu;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
