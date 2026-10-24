@@ -16,6 +16,7 @@ final class SplitterContainer extends JPanel {
     private final Splitter bottomInnerSplitter;
 
     public SplitterContainer() {
+        setOpaque(false);
         setLayout(new BorderLayout());
 
         leftInnerSplitter = new Splitter(Splitter.Orientation.VERTICAL);

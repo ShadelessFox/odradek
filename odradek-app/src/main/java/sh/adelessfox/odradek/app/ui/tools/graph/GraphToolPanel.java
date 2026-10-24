@@ -110,7 +110,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         });
 
         filterField = createFilterField(tree);
-        filterField.setBorder(BorderFactory.createEmptyBorder());
+        filterField.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         filterField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "focus-out");
         filterField.getActionMap().put("focus-out", new AbstractAction() {
             @Override
@@ -125,7 +125,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
         site.setLeadingComponent(filterField);
 
-        return new JScrollPane(tree);
+        return ToolPanel.createScrollPane(tree);
     }
 
     @Override
@@ -150,6 +150,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         filterToolbar.add(toggleWholeWord);
 
         var filterField = new SearchTextField();
+        filterField.setOpaque(false);
         filterField.setShowClearButton(true);
         filterField.setTrailingComponent(filterToolbar);
         filterField.setPlaceholderText("Search by object type\u2026");

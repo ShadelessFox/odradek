@@ -4,6 +4,7 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.extras.FlatSVGUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.component.main.MainPresenter;
 import sh.adelessfox.odradek.app.ui.component.main.MainView;
 import sh.adelessfox.odradek.app.ui.component.onboarding.OnboardingDialog;
@@ -20,6 +21,7 @@ import sh.adelessfox.odradek.settings.Settings;
 import sh.adelessfox.odradek.settings.SettingsEvent;
 import sh.adelessfox.odradek.settings.SettingsManager;
 import sh.adelessfox.odradek.ui.actions.Actions;
+import sh.adelessfox.odradek.ui.components.FrameBackgroundPainter;
 import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.stack.EditorStackManager;
@@ -58,8 +60,7 @@ public final class Application {
         context.put(DataKeys.GAME, game);
 
         var theme = settings.get(ApplicationSettings.THEME).value();
-        FlatLaf.setup(theme.createLookAndFeel());
-        FlatLaf.updateUI();
+        setTheme(theme);
 
         var editors = new EditorStackManager(context);
         context.put(DataKeys.EDITOR_MANAGER, editors);
@@ -89,23 +90,43 @@ public final class Application {
         EventBus events,
         ApplicationParameters params
     ) {
-        DataContexts.putDataContext(frame.getRootPane(), context);
-        frame.add(presenter.getRoot());
+        frame.setContentPane(presenter.getRoot());
         frame.setTitle("Odradek - " + params.sourcePath());
         frame.setIconImages(FlatSVGUtils.createWindowIconImages(Application.class.getResource("application.svg")));
         frame.setSize(1280, 720);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        Actions.installMenuBar(frame.getRootPane(), MainMenu.ID, DataContexts.focusedComponent(context));
+        var rootPane = frame.getRootPane();
+        DataContexts.putDataContext(rootPane, context);
+        Actions.installMenuBar(rootPane, MainMenu.ID, DataContexts.focusedComponent(context));
         JOptionPane.setRootFrame(frame);
 
+        var settings = context.require(ApplicationDataKeys.SETTINGS);
+        FrameBackgroundPainter.setEnabled(rootPane, settings.get(ApplicationSettings.GRADIENT_BACKGROUND).value());
+
+        events.subscribe(MainEvent.class, event -> {
+            switch (event) {
+                case MainEvent.SetGradientBackground(var enabled) ->
+                    FrameBackgroundPainter.setEnabled(rootPane, enabled);
+                case MainEvent.SetTheme(var theme) -> {
+                    setTheme(theme);
+                    settings.get(ApplicationSettings.THEME).set(theme);
+                }
+                default -> { /* ignored */ }
+            }
+        });
         events.subscribe(SettingsEvent.class, event -> {
             switch (event) {
                 case SettingsEvent.AfterLoad(var state) -> loadFrameSettings(state, frame);
                 case SettingsEvent.BeforeSave(var state) -> saveFrameSettings(state, frame);
             }
         });
+    }
+
+    private static void setTheme(ApplicationSettings.Theme theme) {
+        FlatLaf.setup(theme.createLookAndFeel());
+        FlatLaf.updateUI();
     }
 
     private static void shutdown(SettingsManager settings, BookmarkRepository bookmarks, Game game) {

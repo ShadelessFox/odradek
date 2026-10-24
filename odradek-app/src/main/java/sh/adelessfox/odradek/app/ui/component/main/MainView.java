@@ -26,6 +26,7 @@ public class MainView implements View<JComponent> {
         var bottom = buildBottom();
 
         root = new JPanel(new BorderLayout());
+        root.setOpaque(false);
         root.add(center);
         root.add(bottom, BorderLayout.SOUTH);
     }

@@ -173,6 +173,7 @@ final class Splitter extends JComponent {
 
         Divider(Splitter splitter) {
             this.splitter = splitter;
+            setOpaque(false);
 
             var handler = new Divider.Handler();
             addMouseListener(handler);

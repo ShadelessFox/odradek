@@ -1,6 +1,5 @@
 package sh.adelessfox.odradek.app.ui.tools.usages;
 
-import com.formdev.flatlaf.extras.components.FlatScrollPane;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -258,10 +257,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
             }
         });
 
-        var pane = new FlatScrollPane();
-        pane.setViewportView(tree);
-
-        return pane;
+        return ToolPanel.createScrollPane(tree);
     }
 
     private JToolBar createToolBar(EventBus eventBus) {

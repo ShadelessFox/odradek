@@ -92,7 +92,7 @@ public class BookmarkToolPanel implements ToolPanel, Focusable {
 
         eventBus.subscribe(BookmarkEvent.class, e -> SwingUtilities.invokeLater(() -> handleBookmarkEvent(e)));
 
-        return new JScrollPane(tree);
+        return ToolPanel.createScrollPane(tree);
     }
 
     @Override

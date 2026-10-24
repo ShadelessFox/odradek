@@ -27,6 +27,9 @@ public final class ApplicationSettings {
     public static final SettingsKey<Theme> THEME =
         SettingsKey.of("theme", Theme.class, () -> Theme.LIGHT);
 
+    public static final SettingsKey<Boolean> GRADIENT_BACKGROUND =
+        SettingsKey.of("gradientBackground", Boolean.class, () -> true);
+
     public static final SettingsKey<Boolean> SHOW_OBJECT_PREVIEW =
         SettingsKey.of("showObjectPreview", Boolean.class, () -> true);
 

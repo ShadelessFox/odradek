@@ -1,9 +1,16 @@
 package sh.adelessfox.odradek.app.ui.component.main;
 
+import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
 import sh.adelessfox.odradek.event.Event;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 
 public sealed interface MainEvent extends Event {
+    record SetTheme(ApplicationSettings.Theme theme) implements MainEvent {
+    }
+
+    record SetGradientBackground(boolean enabled) implements MainEvent {
+    }
+
     record ShowPanel(String id, boolean focus) implements MainEvent {
     }
 
