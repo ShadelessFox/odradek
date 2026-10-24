@@ -27,6 +27,7 @@ module odradek.app {
     requires odradek.game.hfw;
 
     // Exporters
+    requires odradek.export.bundle;
     requires odradek.export.cast;
     requires odradek.export.dds;
     requires odradek.export.json;
