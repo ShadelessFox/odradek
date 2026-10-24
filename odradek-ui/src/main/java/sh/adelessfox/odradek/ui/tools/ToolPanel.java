@@ -44,5 +44,15 @@ public interface ToolPanel {
         return Holder.providers.stream();
     }
 
+    /** Lets a scrolling tool view reveal its container's background without tinting cell selections. */
+    static JScrollPane createScrollPane(JComponent view) {
+        view.setOpaque(false);
+        var pane = new JScrollPane(view);
+        pane.setOpaque(false);
+        pane.getViewport().setOpaque(false);
+        pane.getViewport().setScrollMode(JViewport.SIMPLE_SCROLL_MODE);
+        return pane;
+    }
+
     JComponent createComponent();
 }

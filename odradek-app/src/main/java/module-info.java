@@ -64,6 +64,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.menu.main.tools.ExportGroupRemapAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ThemeAction.Placeholder,
+        sh.adelessfox.odradek.app.ui.menu.main.view.ToggleGradientBackgroundAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectPreviewAction,
         sh.adelessfox.odradek.app.ui.menu.main.view.ToggleShowObjectTypeInformationAction,
         sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.CreateFolderAction,

@@ -1,10 +1,11 @@
 package sh.adelessfox.odradek.ui.tools;
 
+import com.formdev.flatlaf.FlatClientProperties;
 import com.formdev.flatlaf.ui.FlatLineBorder;
 import com.formdev.flatlaf.util.UIScale;
 import net.miginfocom.swing.MigLayout;
 import sh.adelessfox.odradek.data.DataContext;
-import sh.adelessfox.odradek.ui.components.LineBorder;
+import sh.adelessfox.odradek.ui.components.FrameBackgroundPainter;
 import sh.adelessfox.odradek.ui.util.Fugue;
 
 import javax.swing.*;
@@ -447,6 +448,7 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
             if (component == null) {
                 var label = new JLabel(provider.name());
                 label.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
+                label.putClientProperty(FlatClientProperties.STYLE_CLASS, "semibold");
 
                 header = new ToolPanelHeader();
                 header.setLeadingComponent(label);
@@ -454,9 +456,8 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
                 var handler = new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
-                        if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() % 2 == 0) {
-                            // TODO expand the panel
-                        } else if (SwingUtilities.isMiddleMouseButton(e)) {
+                        // TODO expand the panel on a left-button double-click
+                        if (SwingUtilities.isMiddleMouseButton(e)) {
                             closePanel(provider.id());
                         }
                     }
@@ -466,6 +467,13 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
                 label.addMouseListener(handler);
 
                 component = new JPanel(new BorderLayout()) {
+                    @Override
+                    protected void paintComponent(Graphics graphics) {
+                        if (!paintToolPanelBackground(graphics, this)) {
+                            super.paintComponent(graphics);
+                        }
+                    }
+
                     @Override
                     public void updateUI() {
                         super.updateUI();
@@ -520,6 +528,23 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
         }
     }
 
+    private static boolean paintToolPanelBackground(Graphics graphics, JComponent component) {
+        if (!FrameBackgroundPainter.paint(graphics, component)) {
+            return false;
+        }
+        var tint = UIManager.getColor("ToolPanel.backgroundTint");
+        if (tint != null) {
+            var g = (Graphics2D) graphics.create();
+            try {
+                g.setColor(tint);
+                g.fillRect(0, 0, component.getWidth(), component.getHeight());
+            } finally {
+                g.dispose();
+            }
+        }
+        return true;
+    }
+
     private static final class ToolPanelBorder extends FlatLineBorder {
         private final ToolPanel.Provider provider;
         private final Predicate<ToolPanel.Provider> focused;
@@ -552,14 +577,12 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
 
     private static final class ToolPanelHeader extends JPanel {
         private int height;
-        private Color backgroundStart;
-        private Color backgroundEnd;
 
         private JComponent leadingComponent;
         private JComponent trailingComponent;
 
         public ToolPanelHeader() {
-            setBorder(LineBorder.of(0, 0, 1, 0));
+            setOpaque(false);
             setLayout(new MigLayout("ins 0,fill,hidemode 3", "", "[grow,fill]"));
             updateUI();
         }
@@ -587,21 +610,7 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
         @Override
         public void updateUI() {
             super.updateUI();
-
             height = UIManager.getInt("ToolPanel.header.height");
-            backgroundStart = UIManager.getColor("ToolPanel.header.backgroundStart");
-            backgroundEnd = UIManager.getColor("ToolPanel.header.backgroundEnd");
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            var g2 = (Graphics2D) g.create();
-            try {
-                g2.setPaint(new GradientPaint(0, 0, backgroundStart, 0, getHeight(), backgroundEnd));
-                g2.fillRect(0, 0, getWidth(), getHeight());
-            } finally {
-                g2.dispose();
-            }
         }
 
         @Override
@@ -612,6 +621,7 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
 
     private static final class ToolButtonPanel extends JPanel {
         ToolButtonPanel() {
+            setOpaque(false);
             setLayout(new MigLayout("ins 0 4 0 4,gap 4,flowy"));
         }
     }
@@ -657,17 +667,11 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
 
         private static void repaintSelectedPaneButtons(Component c) {
             if (c instanceof ToolContainer panel) {
-                repaintSelectedPaneButton(panel);
+                panel.repaint();
             }
             for (Component c2 = c; (c2 = SwingUtilities.getAncestorOfClass(ToolContainer.class, c2)) != null; ) {
-                repaintSelectedPaneButton((ToolContainer) c2);
+                c2.repaint();
             }
-        }
-
-        private static void repaintSelectedPaneButton(ToolContainer manager) {
-            // manager.leftButtons.repaint();
-            // manager.rightButtons.repaint();
-            manager.repaint();
         }
     }
 }

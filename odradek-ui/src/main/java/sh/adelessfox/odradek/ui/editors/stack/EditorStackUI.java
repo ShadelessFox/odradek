@@ -1,12 +1,12 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
-import com.formdev.flatlaf.ui.FlatTabbedPaneUI;
+import sh.adelessfox.odradek.ui.components.laf.FlatGradientTabbedPaneUI;
 
 import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
 import java.awt.*;
 
-public final class EditorStackUI extends FlatTabbedPaneUI {
+public final class EditorStackUI extends FlatGradientTabbedPaneUI {
     private Color focusBorderColor;
 
     @SuppressWarnings("unused")
