@@ -37,7 +37,7 @@ public class AboutAction extends Action {
     static JEditorPane createContent(Consumer<URI> openLink) {
         var upstream = link(BuildInfo.upstreamUrl(), BuildInfo.upstreamUrl().toString());
         var commit = BuildInfo.commitHash()
-            .map(hash -> link(URI.create(upstream + "/commit/" + hash), hash))
+            .map(hash -> link(URI.create(BuildInfo.upstreamUrl() + "/commit/" + hash), hash))
             .orElse("unknown");
 
         var content = new JEditorPane();
