@@ -48,6 +48,18 @@ Ready-to-use distributions can be found under the `odradek-app/target/dist` dire
 #### IDE troubleshooting
 
 <details>
+<summary>Cannot resolve symbol 'BuildInfo'</summary>
+
+`BuildInfo` is generated from `odradek-app/src/main/java-templates` during Maven's
+`generate-sources` phase. Run this from the project root, then reload the Maven project:
+
+```bash
+./mvnw -q -T1C -pl odradek-app generate-sources
+```
+
+</details>
+
+<details>
 <summary>Module wtf.reversed.toolbox not found</summary>
 
 Make sure you cloned the repository with the `--recursive` flag, or run the following command in the root directory of the project:

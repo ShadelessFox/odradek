@@ -10,11 +10,15 @@
     </parent>
 
     <artifactId>odradek-app</artifactId>
+    <url>https://github.com/ShadelessFox/odradek</url>
 
     <properties>
         <target.module.path>target/modules</target.module.path>
         <image.name>odradek</image.name>
         <image.version>1.0</image.version>
+        <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss</maven.build.timestamp.format>
+        <build.date>${maven.build.timestamp}</build.date>
+        <git.commit.id.full>unknown</git.commit.id.full>
     </properties>
 
     <profiles>
@@ -153,6 +157,47 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>10.0.1</version>
+                <configuration>
+                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+                    <commitIdGenerationMode>full</commitIdGenerationMode>
+                    <includeOnlyProperties>
+                        <includeOnlyProperty>^git\.commit\.id\.full$</includeOnlyProperty>
+                    </includeOnlyProperties>
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
+                    <injectIntoSysProperties>false</injectIntoSysProperties>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>read-build-commit</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>templating-maven-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <overwrite>true</overwrite>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-build-info</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>filter-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>

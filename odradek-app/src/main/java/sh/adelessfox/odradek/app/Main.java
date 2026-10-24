@@ -20,11 +20,12 @@ import sh.adelessfox.odradek.util.system.OperatingSystem;
 import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Command(
     name = "odradek",
-    version = "0.1",
+    versionProvider = BuildVersionProvider.class,
     subcommands = {
         ExportAssetCommand.class
     },
@@ -47,6 +48,12 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
+        log.debug(
+            "Odradek {} ({}, built on {})",
+            BuildInfo.version(),
+            BuildInfo.commitHash().orElse("unknown commit"),
+            BuildInfo.buildDate().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+
         SwingUtilities.invokeLater(this::start);
     }
 
