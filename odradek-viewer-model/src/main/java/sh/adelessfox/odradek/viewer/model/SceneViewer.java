@@ -55,6 +55,7 @@ public record SceneViewer(Scene scene) implements Viewer {
         ViewportContext context = new ViewportContext();
         context.setShowVertexUVs(true);
         context.setShowVertexColors(true);
+        context.setShowShadowCasters(true);
 
         Viewport viewport = new Viewport(context);
         viewport.setBorder(LineBorder.of(1, 0, 0, 0));
@@ -127,14 +128,16 @@ public record SceneViewer(Scene scene) implements Viewer {
     private void fillScenePopupMenu(JPopupMenu menu, ViewportContext context) {
         // @formatter:off
         var panel = PropertyPanelBuilder.build(pb -> pb
-            .category("Rendering", vb -> vb
+            .category("Visibility", vb -> vb
+                .property("Show shadow casters", context::isShowShadowCasters, context::setShowShadowCasters))
+            .category("Mesh Debugging", vb -> vb
                 .property("Show wireframe", context::isShowWireframe, context::setShowWireframe)
                 .property("Show vertex UVs", context::isShowVertexUVs, context::setShowVertexUVs)
                 .property("Show vertex colors", context::isShowVertexColors, context::setShowVertexColors)
-                .property("Show bounds", context::isShowBounds, context::setShowBounds)
+                .property("Show bounds", context::isShowBounds, context::setShowBounds))
+            .category("Skeleton", vb -> vb
                 .property("Show skeletons", context::isShowSkeletons, context::setShowSkeletons)
                 .property("Show bone names", context::isShowBoneNames, context::setShowBoneNames)));
-
         // @formatter:on
 
         menu.add(panel);

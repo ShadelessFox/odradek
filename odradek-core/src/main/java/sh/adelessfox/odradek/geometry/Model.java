@@ -6,7 +6,15 @@ import wtf.reversed.toolbox.math.Matrix4;
 import java.util.List;
 import java.util.Optional;
 
-public record Model(Optional<String> name, List<Mesh> meshes) {
+public record Model(
+    Optional<String> name,
+    List<Mesh> meshes,
+    boolean shadowCaster
+) {
+    public Model(Optional<String> name, List<Mesh> meshes) {
+        this(name, meshes, false);
+    }
+
     public Model {
         if (meshes.isEmpty()) {
             throw new IllegalArgumentException("model must consist of at least one mesh");
@@ -33,5 +41,12 @@ public record Model(Optional<String> name, List<Mesh> meshes) {
             .flatMap(Optional::stream)
             .map(bounds -> bounds.transform(transform))
             .reduce(Bounds::combine);
+    }
+
+    public Model withShadowCaster(boolean shadowCaster) {
+        if (shadowCaster() == shadowCaster) {
+            return this;
+        }
+        return new Model(name, meshes, shadowCaster);
     }
 }

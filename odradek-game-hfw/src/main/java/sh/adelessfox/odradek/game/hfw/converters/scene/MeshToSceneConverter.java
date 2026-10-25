@@ -253,17 +253,16 @@ public final class MeshToSceneConverter
         HFW.StaticMeshResource resource,
         HFWGame game
     ) {
-        if (resource.lighting().drawFlags().renderType() == HFW.EDrawPartType.ShadowCasterOnly) {
-            log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
-            return Optional.empty();
-        }
-        var mesh = convertModel(
+        var model = convertModel(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
             resource.meshDescription().streamingDataSource(),
             game
         );
-        return Optional.of(Node.of(mesh));
+        if (resource.lighting().drawFlags().renderType() == HFW.EDrawPartType.ShadowCasterOnly) {
+            model = model.withShadowCaster(true);
+        }
+        return Optional.of(Node.of(model));
     }
 
     @SuppressWarnings("unused")
@@ -272,19 +271,18 @@ public final class MeshToSceneConverter
         HFW.RegularSkinnedMeshResource resource,
         HFWGame game
     ) {
-        if (resource.lighting().drawFlags().renderType() == HFW.EDrawPartType.ShadowCasterOnly) {
-            log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
-            return Optional.empty();
-        }
         var skeleton = convertSkeletonIfAbsent(context, resource.general().skeleton().get()).orElse(null);
-        var mesh = convertModel(
+        var model = convertModel(
             resource.shadingGroups(),
             resource.primitives(),
             resource.streamingDataSource(),
             game
         );
+        if (resource.lighting().drawFlags().renderType() == HFW.EDrawPartType.ShadowCasterOnly) {
+            model = model.withShadowCaster(true);
+        }
         var node = Node.builder()
-            .model(mesh)
+            .model(model)
             .skeleton(skeleton)
             .build();
         return Optional.of(node);

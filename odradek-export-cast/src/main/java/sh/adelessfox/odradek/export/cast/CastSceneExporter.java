@@ -19,6 +19,7 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public final class CastSceneExporter
     extends BaseCastExporter<Scene>
@@ -26,8 +27,18 @@ public final class CastSceneExporter
 
     @Override
     protected void export(Scene object, CastNodes.Root root) {
+        boolean[] exportShadowCasters = {true};
+        object.accept((node, _) -> {
+            // If at least one model in the scene is not a shadow caster, then skip them
+            if (node.model().filter(Predicate.not(Model::shadowCaster)).isPresent()) {
+                exportShadowCasters[0] = false;
+                return false;
+            }
+            return true;
+        });
+
         for (Node node : object.nodes()) {
-            exportNode(node, Matrix4.IDENTITY, root, new HashMap<>());
+            exportNode(node, Matrix4.IDENTITY, root, new HashMap<>(), exportShadowCasters[0]);
         }
     }
 
@@ -40,11 +51,16 @@ public final class CastSceneExporter
         Node node,
         Matrix4 parentTransform,
         CastNodes.Root root,
-        Map<SkeletonInstance, CastNodes.Model> models
+        Map<SkeletonInstance, CastNodes.Model> models,
+        boolean exportShadowCasters
     ) {
         var transform = parentTransform.multiply(node.matrix());
         var skeleton = node.skeleton().orElse(null);
         node.model().ifPresent(m -> {
+            if (m.shadowCaster() && !exportShadowCasters) {
+                return;
+            }
+
             CastNodes.Model model;
             if (skeleton == null) {
                 model = createModel(node, transform, null, root);
@@ -58,7 +74,7 @@ public final class CastSceneExporter
         });
 
         for (Node child : node.children()) {
-            exportNode(child, transform, root, models);
+            exportNode(child, transform, root, models, exportShadowCasters);
         }
     }
 

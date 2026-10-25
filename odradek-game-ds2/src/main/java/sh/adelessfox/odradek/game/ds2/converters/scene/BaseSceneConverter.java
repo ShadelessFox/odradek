@@ -18,7 +18,7 @@ import java.util.List;
 abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
     private static final Logger log = LoggerFactory.getLogger(BaseSceneConverter.class);
 
-    static Model convertMesh(
+    static Model convertModel(
         List<Ref<DS2.ShadingGroup>> shadingGroups,
         List<Ref<DS2.PrimitiveResource>> primitiveResources,
         DS2.StreamingDataSource dataSource,

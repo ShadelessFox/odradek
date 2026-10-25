@@ -8,6 +8,7 @@ public final class ViewportContext {
     private boolean showVertexColors;
     private boolean showVertexUVs;
     private boolean showWireframe;
+    private boolean showShadowCasters;
 
     private float cameraMouseSensitivity = 1.0f;
     private float cameraSpeed = 5f;
@@ -68,6 +69,14 @@ public final class ViewportContext {
 
     public void setShowWireframe(boolean showWireframe) {
         this.showWireframe = showWireframe;
+    }
+
+    public boolean isShowShadowCasters() {
+        return showShadowCasters;
+    }
+
+    public void setShowShadowCasters(boolean showShadowCasters) {
+        this.showShadowCasters = showShadowCasters;
     }
 
     public float getCameraMouseSensitivity() {

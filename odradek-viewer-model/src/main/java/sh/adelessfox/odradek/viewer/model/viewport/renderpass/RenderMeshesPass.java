@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.viewer.model.viewport.renderpass;
 
 import sh.adelessfox.odradek.geometry.Mesh;
+import sh.adelessfox.odradek.geometry.Model;
 import sh.adelessfox.odradek.geometry.Semantic;
 import sh.adelessfox.odradek.geometry.Type;
 import sh.adelessfox.odradek.math.Frustum;
@@ -8,7 +9,6 @@ import sh.adelessfox.odradek.opengl.*;
 import sh.adelessfox.odradek.rhi.AddressMode;
 import sh.adelessfox.odradek.rhi.FilterMode;
 import sh.adelessfox.odradek.rhi.SamplerDescriptor;
-import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.viewer.model.viewport.Camera;
 import sh.adelessfox.odradek.viewer.model.viewport.Viewport;
@@ -31,7 +31,7 @@ public final class RenderMeshesPass implements RenderPass {
     private static final int FLAG_HAS_COLOR = 1 << 2;
     private static final int FLAG_WIREFRAME = 1 << 3;
 
-    private final List<GpuNode> nodes = new ArrayList<>();
+    private final List<GpuModel> nodes = new ArrayList<>();
 
     private ShaderProgram program;
     private Texture diffuseTexture;
@@ -95,7 +95,7 @@ public final class RenderMeshesPass implements RenderPass {
             program.set("u_view_position", camera.position());
 
             var frustum = Frustum.of(camera.projectionView());
-            for (GpuNode node : nodes) {
+            for (GpuModel node : nodes) {
                 renderNode(node, frustum, context);
             }
         }
@@ -103,12 +103,12 @@ public final class RenderMeshesPass implements RenderPass {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    private void renderNode(GpuNode node, Frustum frustum, ViewportContext context) {
-        if (!frustum.test(node.worldBounds())) {
+    private void renderNode(GpuModel mesh, Frustum frustum, ViewportContext context) {
+        if ((mesh.shadowCaster() && !context.isShowShadowCasters()) || !frustum.test(mesh.worldBounds())) {
             return;
         }
-        for (GpuMesh primitive : node.meshes()) {
-            program.set("u_model", node.transform());
+        for (GpuMesh primitive : mesh.meshes()) {
+            program.set("u_model", mesh.transform());
             program.set("u_color", primitive.color());
             program.set("u_texture", diffuseSampler);
             program.set("u_flags", buildPrimitiveFlags(primitive, context));
@@ -136,11 +136,7 @@ public final class RenderMeshesPass implements RenderPass {
         return flags;
     }
 
-    private Optional<GpuNode> uploadNode(Node node, Matrix4 worldTransform) {
-        var model = node.model().orElse(null);
-        if (model == null) {
-            return Optional.empty();
-        }
+    private Optional<GpuModel> uploadModel(Model model, Matrix4 worldTransform) {
         var worldBounds = model.computeBounds(worldTransform).orElse(null);
         if (worldBounds == null) {
             return Optional.empty();
@@ -152,7 +148,7 @@ public final class RenderMeshesPass implements RenderPass {
         if (meshes.isEmpty()) {
             return Optional.empty();
         }
-        return Optional.of(new GpuNode(meshes, worldTransform, worldBounds));
+        return Optional.of(new GpuModel(meshes, worldTransform, worldBounds, model.shadowCaster()));
     }
 
     private Optional<GpuMesh> uploadPrimitive(Mesh mesh) {
@@ -201,13 +197,15 @@ public final class RenderMeshesPass implements RenderPass {
     }
 
     private void clearCache() {
-        nodes.forEach(GpuNode::dispose);
+        nodes.forEach(GpuModel::dispose);
         nodes.clear();
     }
 
     private void cacheScene(Scene scene) {
         scene.accept((node, worldTransform) -> {
-            uploadNode(node, worldTransform).ifPresent(nodes::add);
+            node.model()
+                .flatMap(model -> uploadModel(model, worldTransform))
+                .ifPresent(nodes::add);
             return true;
         });
     }
@@ -230,7 +228,7 @@ public final class RenderMeshesPass implements RenderPass {
         );
     }
 
-    private record GpuNode(List<GpuMesh> meshes, Matrix4 transform, Bounds worldBounds) {
+    private record GpuModel(List<GpuMesh> meshes, Matrix4 transform, Bounds worldBounds, boolean shadowCaster) {
         void dispose() {
             for (GpuMesh mesh : meshes) {
                 mesh.dispose();
