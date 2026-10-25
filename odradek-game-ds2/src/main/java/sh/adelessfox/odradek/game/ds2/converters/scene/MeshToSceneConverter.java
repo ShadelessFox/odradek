@@ -283,11 +283,10 @@ public final class MeshToSceneConverter
         DS2.StaticMeshResource resource,
         DS2Game game
     ) {
-        // TODO
-        // if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-        //     log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
-        //     return Optional.empty();
-        // }
+        if (resource.lighting().drawFlags().renderType() == DS2.EDrawPartType.ShadowCasterOnly) {
+            log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
+            return Optional.empty();
+        }
         var mesh = convertMesh(
             resource.meshDescription().shadingGroups(),
             resource.meshDescription().primitives(),
@@ -303,11 +302,10 @@ public final class MeshToSceneConverter
         DS2.RegularSkinnedMeshResource resource,
         DS2Game game
     ) {
-        // TODO
-        // if (resource.lighting().drawFlags().renderType() == EDrawPartType.ShadowCasterOnly) {
-        //     log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
-        //     return Optional.empty();
-        // }
+        if (resource.lighting().drawFlags().renderType() == DS2.EDrawPartType.ShadowCasterOnly) {
+            log.debug("Skipping shadow caster mesh {}", resource.general().objectUUID().toDisplayString());
+            return Optional.empty();
+        }
         var skeleton = convertSkeletonIfAbsent(context, resource.general().skeleton().get()).orElse(null);
         var mesh = convertMesh(
             resource.shadingGroups(),

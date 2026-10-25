@@ -66,6 +66,7 @@ import java.math.BigInteger;
         @Callback(type = "ZivaRTResource", handler = ZivaRTResourceCallback.class),
     },
     extensions = {
+        @Extension(type = "DrawFlags", extension = DrawFlagsExtension.class),
         @Extension(type = "EIndexFormat", extension = EIndexFormatExtension.class),
         @Extension(type = "ELanguage", extension = ELanguageExtension.class),
         @Extension(type = "GGUUID", extension = GGUUIDExtension.class),
