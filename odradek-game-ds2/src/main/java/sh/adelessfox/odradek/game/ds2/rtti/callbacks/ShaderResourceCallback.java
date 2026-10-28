@@ -12,8 +12,12 @@ public final class ShaderResourceCallback implements ExtraBinaryDataCallback<DS2
     @Override
     public void deserialize(BinaryReader reader, TypeFactory factory, DS2.ShaderResource object) throws IOException {
         object.size(reader.readInt());
-        object.unk04(DS2TypeReader.readCompound(DS2.GGUUID.class, reader, factory));
-        object.unk14(DS2TypeReader.readCompound(DS2.GGUUID.class, reader, factory));
-        object.unk24(DS2TypeReader.readCompound(DS2.StreamingDataSource.class, reader, factory));
+        object.shaderCacheKey(reader.readInts(4));
+        object.shaderIdentifier(reader.readInts(4));
+
+        var dataSource = DS2TypeReader.readCompound(DS2.StreamingDataSource.class, reader, factory);
+        object.streamingDataSource().channel(dataSource.channel());
+        object.streamingDataSource().offset(dataSource.offset());
+        object.streamingDataSource().length(dataSource.length());
     }
 }
