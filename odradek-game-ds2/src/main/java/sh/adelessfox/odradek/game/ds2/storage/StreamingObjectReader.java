@@ -30,7 +30,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
     private GroupResult currentGroup;
     private List<GroupResult> currentSubGroups;
 
-    private boolean resolveStreamingLinksAndLocators;
+    private boolean resolveStreamingLinks;
     private Iterator<StreamingGraph.Link> streamingLinks;
     private Iterator<StreamingGraph.Locator> streamingLocators;
     private int depth;
@@ -86,7 +86,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
         }
 
         currentSubGroups = subGroups;
-        resolveStreamingLinksAndLocators = readSubgroups;
+        resolveStreamingLinks = readSubgroups;
 
         var result = cache.get(group.id());
         if (result == null) {
@@ -155,10 +155,6 @@ public final class StreamingObjectReader extends DS2TypeReader {
     }
 
     private void resolveStreamingDataSource(DS2.StreamingDataSource dataSource) {
-        if (!resolveStreamingLinksAndLocators) {
-            return;
-        }
-
         if (dataSource.isValid()) {
             var locator = streamingLocators.next();
 
@@ -176,7 +172,7 @@ public final class StreamingObjectReader extends DS2TypeReader {
     }
 
     private Object resolveLink(PointerTypeInfo info) {
-        if (!resolveStreamingLinksAndLocators) {
+        if (!resolveStreamingLinks) {
             return null;
         }
 
