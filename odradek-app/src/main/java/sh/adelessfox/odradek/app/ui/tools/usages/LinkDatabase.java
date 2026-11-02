@@ -101,7 +101,7 @@ public final class LinkDatabase implements Closeable {
         try (BinaryWriter writer = BinaryWriter.open(path)) {
             var offsets = new int[objects];
 
-            writer.position(32 + (long) objects * Integer.BYTES);
+            writer.position(16 + (long) objects * Integer.BYTES);
             for (int i = 0; i < objects; i++) {
                 offsets[i] = Math.toIntExact(writer.position());
 
