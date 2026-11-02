@@ -11,6 +11,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import sh.adelessfox.odradek.app.cli.ExportAssetCommand;
 import sh.adelessfox.odradek.app.ui.Application;
+import sh.adelessfox.odradek.app.ui.ApplicationEventQueue;
 import sh.adelessfox.odradek.app.ui.ApplicationParameters;
 import sh.adelessfox.odradek.app.ui.component.browser.BrowserDialog;
 import sh.adelessfox.odradek.game.decima.ObjectId;
@@ -18,6 +19,7 @@ import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
@@ -87,6 +89,10 @@ public class Main implements Runnable {
     }
 
     private static void setupUI(boolean setupInspectors) {
+        Toolkit.getDefaultToolkit()
+            .getSystemEventQueue()
+            .push(new ApplicationEventQueue());
+
         if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
             // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated(true);
