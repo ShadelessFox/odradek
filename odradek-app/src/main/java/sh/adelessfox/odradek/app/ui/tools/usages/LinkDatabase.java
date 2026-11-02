@@ -1,4 +1,4 @@
-package sh.adelessfox.odradek.app.util;
+package sh.adelessfox.odradek.app.ui.tools.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInputLazy;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
-import sh.adelessfox.odradek.app.util.LinkDatabase;
 import sh.adelessfox.odradek.event.DefaultEventBus;
 import sh.adelessfox.odradek.event.Event;
 import sh.adelessfox.odradek.event.EventBus;

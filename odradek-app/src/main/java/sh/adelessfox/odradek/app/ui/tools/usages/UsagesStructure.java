@@ -2,7 +2,6 @@ package sh.adelessfox.odradek.app.ui.tools.usages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.app.util.LinkDatabase;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.ui.components.tree.TreeStructure;
