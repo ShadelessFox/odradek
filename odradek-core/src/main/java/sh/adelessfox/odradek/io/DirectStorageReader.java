@@ -12,20 +12,17 @@ import java.util.List;
  *
  * @see <a href="https://github.com/ShadelessFox/decima/wiki/Archives#directstorage-archive">DirectStorage archive format</a>
  */
-public final class DirectStorageReader extends ChunkedBinaryReader {
-    private final Header header;
-
-    private DirectStorageReader(BinaryReader reader, Header header, List<Chunk> chunks) {
+public final class DirectStorageReader extends ChunkedBinaryReader<DirectStorageReader.Chunk> {
+    private DirectStorageReader(BinaryReader reader, List<Chunk> chunks) {
         super(reader, chunks);
-        this.header = header;
     }
 
     public static BinaryReader open(Path path) throws IOException {
         var reader = BinaryReader.open(path);
         try {
             var header = Header.read(reader);
-            var chunks = reader.readObjects(header.chunkCount(), DirectStorageReader::readChunk);
-            return new DirectStorageReader(reader, header, chunks);
+            var chunks = reader.readObjects(header.chunkCount(), Chunk::read);
+            return new DirectStorageReader(reader, chunks);
         } catch (IOException e) {
             reader.close(); // don't want to leak the file handle if we fail to read the header
             throw e;
@@ -33,33 +30,15 @@ public final class DirectStorageReader extends ChunkedBinaryReader {
     }
 
     @Override
-    public long size() {
-        return header.totalSize;
-    }
-
-    @Override
-    protected void decompress(byte[] src, int srcLen, byte[] dst, int dstLen) {
-        Decompressor.lz4Block().decompress(Bytes.wrap(src, 0, srcLen), Bytes.Mutable.wrap(dst, 0, dstLen));
+    protected void decompress(Bytes.Mutable src, Bytes.Mutable dst, Chunk chunk) {
+        Decompressor.lz4Block().decompress(
+            src.slice(0, chunk.compressedSize()),
+            dst.slice(0, chunk.size()));
     }
 
     @Override
     public String toString() {
         return "DirectStorageReader[position=" + position() + ", size=" + size() + "]";
-    }
-
-    private static Chunk readChunk(BinaryReader reader) throws IOException {
-        var offset = reader.readLong();
-        var compressedOffset = reader.readLong();
-        var size = reader.readInt();
-        var compressedSize = reader.readInt();
-        var type = reader.readByte();
-        reader.skip(7); // padding
-
-        if (type != 3) { // lz4
-            throw new IllegalArgumentException("Unsupported chunk compression type: " + type);
-        }
-
-        return new Chunk(offset, compressedOffset, size, compressedSize);
     }
 
     private record Header(
@@ -90,6 +69,25 @@ public final class DirectStorageReader extends ChunkedBinaryReader {
             }
 
             return new Header(magic, versionMajor, versionMinor, chunkCount, firstChunkOffset, totalSize);
+        }
+    }
+
+    public record Chunk(
+        long offset,
+        long compressedOffset,
+        int size,
+        int compressedSize,
+        byte type
+    ) implements ChunkedBinaryReader.Chunk {
+        static Chunk read(BinaryReader reader) throws IOException {
+            var offset = reader.readLong();
+            var compressedOffset = reader.readLong();
+            var size = reader.readInt();
+            var compressedSize = reader.readInt();
+            var type = reader.readByte();
+            reader.skip(7); // padding
+
+            return new Chunk(offset, compressedOffset, size, compressedSize, type);
         }
     }
 }

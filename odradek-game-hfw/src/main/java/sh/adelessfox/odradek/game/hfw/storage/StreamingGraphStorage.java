@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.DirectStorageReader;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -92,7 +93,7 @@ public final class StreamingGraphStorage implements Closeable {
 
         synchronized (reader) {
             reader.position(offset);
-            reader.readBytes(buffer, 0, buffer.length);
+            reader.readBytes(Bytes.Mutable.wrap(buffer));
         }
 
         return buffer;
@@ -105,7 +106,6 @@ public final class StreamingGraphStorage implements Closeable {
         }
         return reader;
     }
-
 
     @Override
     public void close() throws IOException {

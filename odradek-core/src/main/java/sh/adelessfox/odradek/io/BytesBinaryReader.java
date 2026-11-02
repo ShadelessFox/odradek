@@ -1,62 +1,56 @@
 package sh.adelessfox.odradek.io;
 
-import sh.adelessfox.odradek.util.Handles;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.util.Check;
 
-import java.nio.ByteOrder;
-import java.util.Objects;
+import java.io.IOException;
 
-final class BytesBinaryReader implements BinaryReader {
-    private final byte[] array;
-    private final int offset;
-    private final int length;
-    private int position;
-    private ByteOrder order = ByteOrder.LITTLE_ENDIAN;
+final class BytesBinaryReader extends BinaryReader {
+    private final Bytes bytes;
+    private int position = 0;
 
-    BytesBinaryReader(byte[] array, int offset, int length) {
-        Objects.checkFromIndexSize(offset, length, array.length);
-        this.array = array;
-        this.offset = offset;
-        this.length = length;
+    BytesBinaryReader(Bytes bytes) {
+        super(bytes.length());
+        this.bytes = bytes;
     }
 
     @Override
-    public void readBytes(byte[] dst, int off, int len) {
-        Objects.checkFromIndexSize(off, len, dst.length);
-        System.arraycopy(array, offset + position, dst, off, len);
-        position += len;
+    public void readBytes(Bytes.Mutable target) throws IOException {
+        ensureRemaining(target.length());
+        bytes.slice(position, target.length()).copyTo(target, 0);
+        position += target.length();
     }
 
     @Override
-    public byte readByte() {
-        var value = array[offset + position];
-        position++;
-        return value;
+    public byte readByte() throws IOException {
+        ensureRemaining(Byte.BYTES);
+        byte result = bytes.get(position);
+        position += Byte.BYTES;
+        return result;
     }
 
     @Override
-    public short readShort() {
-        var value = Handles.getShort(array, offset + position, order);
+    public short readShort() throws IOException {
+        ensureRemaining(Short.BYTES);
+        short result = bytes.getShort(position);
         position += Short.BYTES;
-        return value;
+        return bigEndian ? Short.reverseBytes(result) : result;
     }
 
     @Override
-    public int readInt() {
-        var value = Handles.getInt(array, offset + position, order);
+    public int readInt() throws IOException {
+        ensureRemaining(Integer.BYTES);
+        int result = bytes.getInt(position);
         position += Integer.BYTES;
-        return value;
+        return bigEndian ? Integer.reverseBytes(result) : result;
     }
 
     @Override
-    public long readLong() {
-        var value = Handles.getLong(array, offset + position, order);
+    public long readLong() throws IOException {
+        ensureRemaining(Long.BYTES);
+        long result = bytes.getLong(position);
         position += Long.BYTES;
-        return value;
-    }
-
-    @Override
-    public long size() {
-        return length;
+        return bigEndian ? Long.reverseBytes(result) : result;
     }
 
     @Override
@@ -66,21 +60,15 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public BinaryReader position(long position) {
-        int pos = Math.toIntExact(position);
-        Objects.checkIndex(pos, length + 1);
-        this.position = pos;
+        this.position = Math.toIntExact(Check.position(position, size, "position"));
         return this;
     }
 
     @Override
-    public ByteOrder order() {
-        return order;
-    }
-
-    @Override
-    public BinaryReader order(ByteOrder order) {
-        this.order = order;
-        return this;
+    public BinaryReader slice(long offset, long length) {
+        Check.fromIndexSize(offset, length, size);
+        Bytes sliced = bytes.slice(Math.toIntExact(offset), Math.toIntExact(length));
+        return new BytesBinaryReader(sliced);
     }
 
     @Override
@@ -90,6 +78,6 @@ final class BytesBinaryReader implements BinaryReader {
 
     @Override
     public String toString() {
-        return "ByteArrayDataSource[position=" + position + ", size=" + length + "]";
+        return "ByteArrayDataSource[position=" + position + ", size=" + size + "]";
     }
 }
