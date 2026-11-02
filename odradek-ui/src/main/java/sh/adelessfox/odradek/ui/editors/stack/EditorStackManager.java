@@ -15,10 +15,7 @@ import sh.adelessfox.odradek.ui.editors.stack.dnd.EditorStackDropTarget;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +25,9 @@ import java.util.function.Predicate;
 
 public final class EditorStackManager implements EditorManager {
     private static final Integer OVERLAY_LAYER = JLayeredPane.POPUP_LAYER - 1;
+
+    private static final int MOUSE_BACK_BUTTON = 4;
+    private static final int MOUSE_FORWARD_BUTTON = 5;
 
     private final EditorStackContainer root;
     private final DataContext dataContext;
@@ -60,6 +60,43 @@ public final class EditorStackManager implements EditorManager {
                     root.removeHierarchyListener(this);
                     root.layoutContainer();
                 }
+            }
+        });
+
+        // TODO Make a part of the actions system eventually.
+        AWTEventListener listener = event -> {
+            if (!(event instanceof MouseEvent me)
+                || me.getID() != MouseEvent.MOUSE_PRESSED
+                || me.getButton() != MOUSE_BACK_BUTTON && me.getButton() != MOUSE_FORWARD_BUTTON
+                || !(me.getSource() instanceof Component source)
+                || !SwingUtilities.isDescendingFrom(source, root)
+            ) {
+                return;
+            }
+            EditorHistory history;
+            if (source instanceof EditorHistory history1) {
+                history = history1;
+            } else {
+                history = (EditorHistory) SwingUtilities.getAncestorOfClass(EditorHistory.class, source);
+            }
+            if (history == null) {
+                return;
+            }
+            if (me.getButton() == MOUSE_BACK_BUTTON) {
+                history.back();
+            } else {
+                history.forward();
+            }
+            me.consume();
+        };
+        root.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & HierarchyEvent.DISPLAYABILITY_CHANGED) == 0) {
+                return;
+            }
+            if (root.isDisplayable()) {
+                Toolkit.getDefaultToolkit().addAWTEventListener(listener, AWTEvent.MOUSE_EVENT_MASK);
+            } else {
+                Toolkit.getDefaultToolkit().removeAWTEventListener(listener);
             }
         });
     }

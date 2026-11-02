@@ -95,6 +95,14 @@ final class EditorHistory extends JComponent {
         show(entries.size() - 1);
     }
 
+    void back() {
+        show(index - 1);
+    }
+
+    void forward() {
+        show(index + 1);
+    }
+
     void replace(EditorComponent oldEntry, EditorComponent newEntry) {
         int entryIndex = entries.indexOf(oldEntry);
         boolean selected = entryIndex == index;
