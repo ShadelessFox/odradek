@@ -115,6 +115,10 @@ public final class ViewportInput extends MouseAdapter implements KeyListener, Fo
 
     @Override
     public void mouseDragged(MouseEvent e) {
+        if (!viewport.isShowing()) {
+            return;
+        }
+
         var mouse = e.getLocationOnScreen();
         var bounds = new Rectangle(viewport.getLocationOnScreen(), viewport.getSize());
 
