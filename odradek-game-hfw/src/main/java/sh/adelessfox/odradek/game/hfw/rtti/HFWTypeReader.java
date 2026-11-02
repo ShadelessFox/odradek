@@ -2,9 +2,10 @@ package sh.adelessfox.odradek.game.hfw.rtti;
 
 import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.AtomTypeInfo;
+import sh.adelessfox.odradek.rtti.ContainerTypeInfo;
+import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
-import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
 import wtf.reversed.toolbox.collect.Bytes;
@@ -38,21 +39,6 @@ public class HFWTypeReader extends AbstractTypeReader {
         }
 
         return object;
-    }
-
-    @Override
-    protected Value<?> readEnum(EnumTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        int value = switch (info.size()) {
-            case Byte.BYTES -> reader.readByte();
-            case Short.BYTES -> reader.readShort();
-            case Integer.BYTES -> reader.readInt();
-            default -> throw new IllegalArgumentException("Unexpected enum size: " + info.size());
-        };
-        if (info instanceof EnumSetTypeInfo) {
-            return info.setOf(value);
-        } else {
-            return info.valueOf(value);
-        }
     }
 
     @Override

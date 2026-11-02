@@ -11,6 +11,7 @@ import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 
 import java.io.IOException;
 import java.lang.invoke.VarHandle;
+import java.math.BigInteger;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -91,11 +92,19 @@ public abstract class AbstractTypeReader {
         return readerForAtom(info).read(reader);
     }
 
-    protected abstract Value<?> readEnum(
-        EnumTypeInfo info,
-        BinaryReader reader,
-        TypeFactory factory
-    ) throws IOException;
+    protected Value<?> readEnum(EnumTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+        int value = switch (info.size()) {
+            case Byte.BYTES -> reader.readByte();
+            case Short.BYTES -> reader.readShort();
+            case Integer.BYTES -> reader.readInt();
+            default -> throw new IllegalArgumentException("Unexpected enum size: " + info.size());
+        };
+        if (info instanceof EnumSetTypeInfo) {
+            return info.setOf(value);
+        } else {
+            return info.valueOf(value);
+        }
+    }
 
     protected abstract Object readContainer(
         ContainerTypeInfo info,
@@ -116,6 +125,8 @@ public abstract class AbstractTypeReader {
         AtomReader INT_16 = new Int16();
         AtomReader INT_32 = new Int32();
         AtomReader INT_64 = new Int64();
+        AtomReader INT_128 = new Int128(true);
+        AtomReader UINT_128 = new Int128(false);
         AtomReader FLOAT_16 = new Float16();
         AtomReader FLOAT_32 = new Float32();
         AtomReader FLOAT_64 = new Float64();
@@ -205,6 +216,28 @@ public abstract class AbstractTypeReader {
             public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
                 assert info.type() == long[].class;
                 return reader.readLongs(count);
+            }
+        }
+
+        final class Int128 implements AtomReader {
+            private final boolean signed;
+
+            public Int128(boolean signed) {
+                this.signed = signed;
+            }
+
+            @Override
+            public Object read(BinaryReader reader) throws IOException {
+                var magnitude = reader.readBytes(16);
+
+                // The value is stored in little-endian order; BigInteger expects big-endian order
+                for (int i = 0; i < 8; i++) {
+                    byte tmp = magnitude[i];
+                    magnitude[i] = magnitude[15 - i];
+                    magnitude[15 - i] = tmp;
+                }
+
+                return signed ? new BigInteger(magnitude) : new BigInteger(1, magnitude);
             }
         }
 

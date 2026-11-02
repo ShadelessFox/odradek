@@ -3,15 +3,15 @@ package sh.adelessfox.odradek.game.ds2.rtti;
 import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.game.ds2.rtti.data.MotionMatchingVecN;
 import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.rtti.*;
+import sh.adelessfox.odradek.rtti.AtomTypeInfo;
+import sh.adelessfox.odradek.rtti.ContainerTypeInfo;
+import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
-import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
 import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 public class DS2TypeReader extends AbstractTypeReader {
@@ -43,21 +43,6 @@ public class DS2TypeReader extends AbstractTypeReader {
     }
 
     @Override
-    protected Value<?> readEnum(EnumTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        int value = switch (info.size()) {
-            case Byte.BYTES -> reader.readByte();
-            case Short.BYTES -> reader.readShort();
-            case Integer.BYTES -> reader.readInt();
-            default -> throw new IllegalArgumentException("Unexpected enum size: " + info.size());
-        };
-        if (info instanceof EnumSetTypeInfo) {
-            return info.setOf(value);
-        } else {
-            return info.valueOf(value);
-        }
-    }
-
-    @Override
     protected Object readContainer(
         ContainerTypeInfo info,
         BinaryReader reader,
@@ -84,7 +69,7 @@ public class DS2TypeReader extends AbstractTypeReader {
             case "uint16", "int16" -> AtomReader.INT_16;
             case "uint", "int", "uint32", "int32", "ucs4" -> AtomReader.INT_32;
             case "uint64", "int64", "uintptr" -> AtomReader.INT_64;
-            case "uint128" -> UInt128Reader.INSTANCE;
+            case "uint128" -> AtomReader.UINT_128;
             case "HalfFloat" -> AtomReader.FLOAT_16;
             case "float" -> AtomReader.FLOAT_32;
             case "double" -> AtomReader.FLOAT_64;
@@ -135,24 +120,6 @@ public class DS2TypeReader extends AbstractTypeReader {
         }
 
         return result;
-    }
-
-    private static final class UInt128Reader implements AtomReader {
-        static final UInt128Reader INSTANCE = new UInt128Reader();
-
-        @Override
-        public Object read(BinaryReader reader) throws IOException {
-            var magnitude = reader.readBytes(16);
-
-            // The value is stored in little-endian order; BigInteger expects big-endian order
-            for (int i = 0; i < 8; i++) {
-                byte tmp = magnitude[i];
-                magnitude[i] = magnitude[15 - i];
-                magnitude[15 - i] = tmp;
-            }
-
-            return new BigInteger(1, magnitude);
-        }
     }
 
     private static final class StringHashReader implements AtomReader {
