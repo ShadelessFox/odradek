@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.ui.components;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 
@@ -54,16 +55,20 @@ public final class FrameBackgroundPainter {
         var end = UIManager.getColor("Frame.backgroundEnd");
         var offset = SwingUtilities.convertPoint(component, 0, 0, root);
 
+        int width = root.getWidth();
+        int height = root.getHeight();
+        var paint = new RadialGradientPaint(
+            new Point2D.Float(width / 10f, height / 10f),
+            Math.max(width, height) * 1.5f,
+            new Point2D.Float(0, 0),
+            new float[]{0.0f, 1.0f},
+            new Color[]{start, end},
+            MultipleGradientPaint.CycleMethod.NO_CYCLE);
+
         var g = (Graphics2D) graphics.create();
         try {
             g.translate(-offset.x, -offset.y);
-            g.setPaint(new GradientPaint(
-                0,
-                0,
-                start,
-                Math.max(1, root.getWidth()),
-                Math.max(1, root.getHeight()),
-                end));
+            g.setPaint(paint);
             g.fillRect(offset.x, offset.y, component.getWidth(), component.getHeight());
         } finally {
             g.dispose();
