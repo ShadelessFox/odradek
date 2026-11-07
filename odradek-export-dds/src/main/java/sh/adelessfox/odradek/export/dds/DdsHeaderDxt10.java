@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.export.dds;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import wtf.reversed.toolbox.collect.Bytes;
 
 record DdsHeaderDxt10(
     int dxgiFormat,
@@ -49,14 +48,12 @@ record DdsHeaderDxt10(
     // miscFlags2
     public static final int DDS_ALPHA_MODE_UNKNOWN = 0x0;
 
-    public ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(BYTES)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(dxgiFormat)
-            .putInt(resourceDimension)
-            .putInt(miscFlag)
-            .putInt(arraySize)
-            .putInt(miscFlags2)
-            .flip();
+    public Bytes toBytes() {
+        return Bytes.allocate(BYTES)
+            .setInt(0x00, dxgiFormat)
+            .setInt(0x04, resourceDimension)
+            .setInt(0x08, miscFlag)
+            .setInt(0x0C, arraySize)
+            .setInt(0x10, miscFlags2);
     }
 }

@@ -2,21 +2,20 @@ package sh.adelessfox.odradek.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.util.Reflections;
 
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.file.StandardOpenOption.*;
-
 public sealed interface Exporter<T> {
     non-sealed interface OfSingleOutput<T> extends Exporter<T> {
-        void export(T object, WritableByteChannel channel) throws IOException;
+        /** Writes an export without closing the caller-owned writer. */
+        void export(T object, BinaryWriter writer) throws IOException;
 
         String extension();
 
@@ -31,20 +30,20 @@ public sealed interface Exporter<T> {
 
         interface OutputProvider {
             /**
-             * Opens a channel for writing an output with the given name.
+             * Opens a writer for writing an output with the given name.
              * <p>
-             * Calling this method multiple times with the same name is guaranteed to return the same channel.
+             * Calling this method multiple times with the same name is guaranteed to return the same writer.
              * <p>
-             * Because the channel can be reused, it's not required to close it after writing; the provider
-             * will take care of closing all channels when the export is finished.
+             * Because the writer can be reused, it must not be closed after writing; the provider
+             * will take care of closing all writers when the export is finished.
              *
              * @param name the name of the output, e.g. "diffuse" or "normal"
-             * @return a channel for writing the output data
-             * @throws IOException              if an I/O error occurs while opening the channel
+             * @return a writer for writing the output data
+             * @throws IOException              if an I/O error occurs while opening the writer
              * @throws IllegalArgumentException if the name represents an invalid path or the path
              *                                  resolves to a location outside the export directory
              */
-            WritableByteChannel channel(String name) throws IOException;
+            BinaryWriter writer(String name) throws IOException;
         }
 
         /**
@@ -54,37 +53,46 @@ public sealed interface Exporter<T> {
             private final Logger log = LoggerFactory.getLogger(Exporter.class);
 
             private final Path root;
-            private final Map<Path, WritableByteChannel> channels = new HashMap<>();
+            private final Map<Path, BinaryWriter> writers = new HashMap<>();
 
             public DefaultOutputProvider(Path root) {
-                this.root = root;
+                this.root = root.toAbsolutePath().normalize();
             }
 
             @Override
-            public WritableByteChannel channel(String name) throws IOException {
-                var path = root.resolve(name).toAbsolutePath();
-                if (!path.startsWith(root.toAbsolutePath())) {
+            public BinaryWriter writer(String name) throws IOException {
+                var path = root.resolve(name).normalize();
+                if (!path.startsWith(root)) {
                     throw new IllegalArgumentException("Output path must be within the export directory");
                 }
-                var channel = channels.get(path);
-                if (channel == null) {
+                var writer = writers.get(path);
+                if (writer == null) {
                     Files.createDirectories(path.getParent());
-                    channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING);
-                    channels.put(path, channel);
-                    log.debug("Opened channel for output '{}': {}", name, path);
+                    writer = BinaryWriter.open(path);
+                    writers.put(path, writer);
+                    log.debug("Opened writer for output '{}': {}", name, path);
                 }
-                return channel;
+                return writer;
             }
 
             @Override
-            public void close() {
-                channels.forEach((path, channel) -> {
+            public void close() throws IOException {
+                IOException failure = null;
+                for (var writer : writers.values()) {
                     try {
-                        channel.close();
+                        writer.close();
                     } catch (IOException ex) {
-                        log.warn("Failed to close channel for path {}", path, ex);
+                        if (failure == null) {
+                            failure = ex;
+                        } else {
+                            failure.addSuppressed(ex);
+                        }
                     }
-                });
+                }
+                writers.clear();
+                if (failure != null) {
+                    throw failure;
+                }
             }
         }
 

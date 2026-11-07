@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.io;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,8 +25,9 @@ final class ChannelBinaryWriter implements BinaryWriter {
     }
 
     @Override
-    public void write(ByteBuffer src) throws IOException {
-        int remaining = src.remaining();
+    public void writeBytes(Bytes values) throws IOException {
+        var src = values.asBuffer();
+        int remaining = values.length();
         if (remaining > buffer.capacity()) {
             flush();
             writeInternal(src);
@@ -89,8 +92,9 @@ final class ChannelBinaryWriter implements BinaryWriter {
 
     @Override
     public void close() throws IOException {
-        flush();
-        channel.close();
+        try (channel) {
+            flush();
+        }
     }
 
     private void reserve(int count) throws IOException {
@@ -102,7 +106,8 @@ final class ChannelBinaryWriter implements BinaryWriter {
         }
     }
 
-    private void flush() throws IOException {
+    @Override
+    public void flush() throws IOException {
         int count = buffer.position();
         if (count > 0) {
             buffer.flip();

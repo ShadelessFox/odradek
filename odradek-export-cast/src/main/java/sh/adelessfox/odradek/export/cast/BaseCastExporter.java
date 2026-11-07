@@ -2,17 +2,16 @@ package sh.adelessfox.odradek.export.cast;
 
 import be.twofold.tinycast.*;
 import sh.adelessfox.odradek.game.Exporter;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.scene.Bone;
 import sh.adelessfox.odradek.scene.Skeleton;
 
 import java.io.IOException;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
 abstract class BaseCastExporter<T> implements Exporter.OfSingleOutput<T> {
     @Override
-    public void export(T object, WritableByteChannel channel) throws IOException {
+    public void export(T object, BinaryWriter writer) throws IOException {
         var cast = Cast.create();
         var root = cast.createRoot();
 
@@ -23,7 +22,7 @@ abstract class BaseCastExporter<T> implements Exporter.OfSingleOutput<T> {
         export(object, root);
 
         try {
-            cast.write(Channels.newOutputStream(channel));
+            cast.write(writer.asOutputStream());
         } catch (CastException e) {
             throw new IOException("Error writing cast file", e);
         }

@@ -5,15 +5,13 @@ import wtf.reversed.toolbox.io.BoolFormat;
 import wtf.reversed.toolbox.io.StringFormat;
 import wtf.reversed.toolbox.util.Check;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.*;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
-public interface BinaryWriter extends Closeable {
+public interface BinaryWriter extends Closeable, Flushable {
     @FunctionalInterface
     interface Mapper<T> {
         void write(T value, BinaryWriter writer) throws IOException;
@@ -22,8 +20,6 @@ public interface BinaryWriter extends Closeable {
     static BinaryWriter open(Path path) throws IOException {
         return ChannelBinaryWriter.open(path);
     }
-
-    void write(ByteBuffer src) throws IOException;
 
     void writeByte(byte value) throws IOException;
 
@@ -80,43 +76,66 @@ public interface BinaryWriter extends Closeable {
         }
     }
 
-    default void writeBytes(Bytes values) throws IOException {
-        write(values.asBuffer());
-    }
+    void writeBytes(Bytes values) throws IOException;
 
     default void writeShorts(Shorts values) throws IOException {
-        for (int i = 0; i < values.length(); i++) {
-            writeShort(values.get(i));
+        if (order() == ByteOrder.LITTLE_ENDIAN) {
+            writeBytes(values.asBytes());
+        } else {
+            for (int i = 0; i < values.length(); i++) {
+                writeDouble(values.get(i));
+            }
         }
+
     }
 
     default void writeInts(Ints values) throws IOException {
-        for (int i = 0; i < values.length(); i++) {
-            writeInt(values.get(i));
+        if (order() == ByteOrder.LITTLE_ENDIAN) {
+            writeBytes(values.asBytes());
+        } else {
+            for (int i = 0; i < values.length(); i++) {
+                writeInt(values.get(i));
+            }
         }
     }
 
     default void writeLongs(Longs values) throws IOException {
-        for (int i = 0; i < values.length(); i++) {
-            writeLong(values.get(i));
+        if (order() == ByteOrder.LITTLE_ENDIAN) {
+            writeBytes(values.asBytes());
+        } else {
+            for (int i = 0; i < values.length(); i++) {
+                writeLong(values.get(i));
+            }
         }
     }
 
     default void writeHalfs(Floats values) throws IOException {
-        for (int i = 0; i < values.length(); i++) {
-            writeHalf(values.get(i));
+        if (order() == ByteOrder.LITTLE_ENDIAN) {
+            writeBytes(values.asBytes());
+        } else {
+            for (int i = 0; i < values.length(); i++) {
+                writeHalf(values.get(i));
+            }
         }
     }
 
     default void writeFloats(Floats values) throws IOException {
-        for (int i = 0; i < values.length(); i++) {
-            writeFloat(values.get(i));
+        if (order() == ByteOrder.LITTLE_ENDIAN) {
+            writeBytes(values.asBytes());
+        } else {
+            for (int i = 0; i < values.length(); i++) {
+                writeFloat(values.get(i));
+            }
         }
     }
 
     default void writeDoubles(Doubles values) throws IOException {
-        for (int i = 0; i < values.length(); i++) {
-            writeDouble(values.get(i));
+        if (order() == ByteOrder.LITTLE_ENDIAN) {
+            writeBytes(values.asBytes());
+        } else {
+            for (int i = 0; i < values.length(); i++) {
+                writeDouble(values.get(i));
+            }
         }
     }
 
@@ -127,4 +146,32 @@ public interface BinaryWriter extends Closeable {
     ByteOrder order();
 
     BinaryWriter order(ByteOrder order) throws IOException;
+
+    default OutputStream asOutputStream() {
+        return new OutputStream() {
+            @Override
+            public void write(int value) throws IOException {
+                writeByte((byte) value);
+            }
+
+            @Override
+            public void write(byte[] bytes, int offset, int length) throws IOException {
+                writeBytes(Bytes.wrap(bytes, offset, length));
+            }
+
+            @Override
+            public void flush() throws IOException {
+                BinaryWriter.this.flush();
+            }
+
+            @Override
+            public void close() throws IOException {
+                flush();
+            }
+        };
+    }
+
+    default Writer asWriter(Charset charset) {
+        return new OutputStreamWriter(asOutputStream(), charset);
+    }
 }

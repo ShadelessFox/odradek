@@ -1,16 +1,16 @@
 package sh.adelessfox.odradek.export.dds;
 
 import sh.adelessfox.odradek.game.Exporter;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.texture.Texture;
 
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
 public final class TextureDdsExporter implements Exporter.OfSingleOutput<Texture> {
     @Override
-    public void export(Texture object, WritableByteChannel channel) throws IOException {
-        DdsWriter.write(object, channel);
+    public void export(Texture object, BinaryWriter writer) throws IOException {
+        DdsWriter.write(object, writer);
     }
 
     @Override

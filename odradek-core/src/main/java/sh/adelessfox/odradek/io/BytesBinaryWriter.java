@@ -22,9 +22,9 @@ public final class BytesBinaryWriter implements BinaryWriter {
     }
 
     @Override
-    public void write(ByteBuffer src) {
-        reserve(src.remaining());
-        buffer.put(src);
+    public void writeBytes(Bytes values) {
+        reserve(values.length());
+        buffer.put(values.asBuffer());
     }
 
     @Override
@@ -60,9 +60,11 @@ public final class BytesBinaryWriter implements BinaryWriter {
     public BinaryWriter position(long pos) {
         Objects.checkIndex(pos, Integer.MAX_VALUE);
         int curPos = buffer.position();
-        int newPos = Math.toIntExact(Math.max(curPos, pos));
+        int newPos = Math.toIntExact(pos);
         if (curPos != newPos) {
-            reserve(newPos - curPos);
+            if (newPos > curPos) {
+                reserve(newPos - curPos);
+            }
             buffer.position(newPos);
         }
         return this;
@@ -77,6 +79,11 @@ public final class BytesBinaryWriter implements BinaryWriter {
     public BinaryWriter order(ByteOrder order) {
         buffer.order(order);
         return this;
+    }
+
+    @Override
+    public void flush() {
+        // Do nothing
     }
 
     @Override
@@ -95,10 +102,12 @@ public final class BytesBinaryWriter implements BinaryWriter {
 
     private void reserve(int count) {
         if (buffer.remaining() < count) {
+            int position = buffer.position();
             buffer = ByteBuffer
                 .allocate(Math.max(buffer.capacity() * 2, buffer.capacity() + count))
                 .order(buffer.order())
-                .put(buffer.flip());
+                .put(buffer.duplicate().position(0).limit(length))
+                .position(position);
         }
         length = Math.max(length, buffer.position() + count);
     }

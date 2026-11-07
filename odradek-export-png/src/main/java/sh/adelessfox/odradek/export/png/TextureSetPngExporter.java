@@ -23,9 +23,9 @@ public final class TextureSetPngExporter implements Exporter.OfMultipleOutputs<T
             }
 
             var name = Filenames.withSuffix(Filenames.filename(source.path()), ".png");
-            var channel = provider.channel(name);
+            var writer = provider.writer(name);
 
-            PngWriterHelper.writeSingle(unpacked, channel);
+            PngWriterHelper.writeSingle(unpacked, writer);
         }
     }
 
