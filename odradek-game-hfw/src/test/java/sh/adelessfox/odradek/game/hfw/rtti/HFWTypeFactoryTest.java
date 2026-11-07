@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import wtf.reversed.toolbox.collect.*;
 
+import java.util.BitSet;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -49,8 +50,7 @@ class HFWTypeFactoryTest {
             .withPrefabValues(Longs.class, Longs.copyOf(new long[]{1}), Longs.copyOf(new long[]{2}))
             .withPrefabValues(Floats.class, Floats.copyOf(new float[]{1}), Floats.copyOf(new float[]{2}))
             .withPrefabValues(Doubles.class, Doubles.copyOf(new double[]{1}), Doubles.copyOf(new double[]{2}))
-            .withPrefabValues(Chars.class, Chars.copyOf(new char[]{1}), Chars.copyOf(new char[]{2}))
-            .withPrefabValues(Booleans.class, Booleans.copyOf(new boolean[]{false}), Booleans.copyOf(new boolean[]{true}))
+            .withPrefabValues(BitSet.class, BitSet.valueOf(new long[]{1}), BitSet.valueOf(new long[]{2}))
             .verify();
     }
 

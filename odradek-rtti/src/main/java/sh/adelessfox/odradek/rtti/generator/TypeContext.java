@@ -520,9 +520,9 @@ public class TypeContext {
                 case Longs values -> values.get(index);
                 case Floats values -> values.get(index);
                 case Doubles values -> values.get(index);
-                case Chars values -> values.get(index);
-                case Booleans values -> values.get(index);
-                default -> ((List<?>) object).get(index);
+                case BitSet values -> values.get(index);
+                case List<?> values -> values.get(index);
+                default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
             };
         }
 
@@ -536,10 +536,9 @@ public class TypeContext {
                 case Longs.Mutable values -> values.set(index, (long) value);
                 case Floats.Mutable values -> values.set(index, (float) value);
                 case Doubles.Mutable values -> values.set(index, (double) value);
-                case Chars.Mutable values -> values.set(index, (char) value);
-                case Booleans.Mutable values -> values.set(index, (boolean) value);
-                case Slice _ -> throw new UnsupportedOperationException("Cannot modify a read-only primitive container");
-                default -> ((List<Object>) object).set(index, value);
+                case BitSet values -> values.set(index, (boolean) value);
+                case List<?> values -> ((List<Object>) values).set(index, value);
+                default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
             }
         }
 

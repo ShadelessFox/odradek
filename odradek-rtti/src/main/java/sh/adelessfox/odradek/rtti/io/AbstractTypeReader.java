@@ -13,6 +13,7 @@ import wtf.reversed.toolbox.io.BoolFormat;
 import java.io.IOException;
 import java.lang.invoke.VarHandle;
 import java.math.BigInteger;
+import java.util.BitSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -309,7 +310,7 @@ public abstract class AbstractTypeReader {
 
             @Override
             public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == Booleans.class;
+                assert info.type() == BitSet.class;
                 return AtomReader.super.read(source, count, info);
             }
         }
@@ -327,8 +328,7 @@ public abstract class AbstractTypeReader {
 
             @Override
             public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == Chars.class;
-                return AtomReader.super.read(source, count, info);
+                throw new UnsupportedOperationException("Cannot read a container of char16 values");
             }
         }
     }
