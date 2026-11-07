@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-public final class BytesBinaryWriter implements BinaryWriter {
+public final class BytesBinaryWriter extends BinaryWriter {
     private ByteBuffer buffer;
     private int length = 0;
 
@@ -36,19 +36,19 @@ public final class BytesBinaryWriter implements BinaryWriter {
     @Override
     public void writeShort(short value) {
         reserve(Short.BYTES);
-        buffer.putShort(value);
+        buffer.putShort(bigEndian ? Short.reverseBytes(value) : value);
     }
 
     @Override
     public void writeInt(int value) {
         reserve(Integer.BYTES);
-        buffer.putInt(value);
+        buffer.putInt(bigEndian ? Integer.reverseBytes(value) : value);
     }
 
     @Override
     public void writeLong(long value) {
         reserve(Long.BYTES);
-        buffer.putLong(value);
+        buffer.putLong(bigEndian ? Long.reverseBytes(value) : value);
     }
 
     @Override
@@ -67,17 +67,6 @@ public final class BytesBinaryWriter implements BinaryWriter {
             }
             buffer.position(newPos);
         }
-        return this;
-    }
-
-    @Override
-    public ByteOrder order() {
-        return buffer.order();
-    }
-
-    @Override
-    public BinaryWriter order(ByteOrder order) {
-        buffer.order(order);
         return this;
     }
 
