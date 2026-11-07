@@ -1,5 +1,8 @@
 package sh.adelessfox.odradek.io;
 
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.BoolFormat;
+import wtf.reversed.toolbox.io.StringFormat;
 import wtf.reversed.toolbox.util.Check;
 
 import java.io.Closeable;
@@ -56,65 +59,64 @@ public interface BinaryWriter extends Closeable {
     }
 
     default void writeString(String value, StringFormat format, Charset charset) throws IOException {
-        var bytes = value.getBytes(charset);
+        var bytes = Bytes.wrap(value.getBytes(charset));
         switch (format) {
             case BYTE_LENGTH -> {
-                Check.argument(bytes.length <= 1L << 8, "string is too long for BYTE_LENGTH format");
-                writeByte((byte) bytes.length);
+                Check.argument(bytes.length() <= 1L << 8, "string is too long for BYTE_LENGTH format");
+                writeByte((byte) bytes.length());
                 writeBytes(bytes);
             }
             case SHORT_LENGTH -> {
-                Check.argument(bytes.length <= 1L << 16, "string is too long for SHORT_LENGTH format");
-                writeShort((short) bytes.length);
+                Check.argument(bytes.length() <= 1L << 16, "string is too long for SHORT_LENGTH format");
+                writeShort((short) bytes.length());
                 writeBytes(bytes);
             }
             case INT_LENGTH -> {
-                writeInt(bytes.length);
+                writeInt(bytes.length());
                 writeBytes(bytes);
             }
+            case NULL_TERM -> throw new UnsupportedOperationException("NULL_TERM strings are not supported by BinaryWriter");
             default -> throw new AssertionError();
         }
     }
 
-    default void writeBytes(byte[] values) throws IOException {
-        for (byte value : values) {
-            writeByte(value);
+    default void writeBytes(Bytes values) throws IOException {
+        write(values.asBuffer());
+    }
+
+    default void writeShorts(Shorts values) throws IOException {
+        for (int i = 0; i < values.length(); i++) {
+            writeShort(values.get(i));
         }
     }
 
-    default void writeShorts(short[] values) throws IOException {
-        for (short value : values) {
-            writeShort(value);
+    default void writeInts(Ints values) throws IOException {
+        for (int i = 0; i < values.length(); i++) {
+            writeInt(values.get(i));
         }
     }
 
-    default void writeInts(int[] values) throws IOException {
-        for (int value : values) {
-            writeInt(value);
+    default void writeLongs(Longs values) throws IOException {
+        for (int i = 0; i < values.length(); i++) {
+            writeLong(values.get(i));
         }
     }
 
-    default void writeLongs(long[] values) throws IOException {
-        for (long value : values) {
-            writeLong(value);
+    default void writeHalfs(Floats values) throws IOException {
+        for (int i = 0; i < values.length(); i++) {
+            writeHalf(values.get(i));
         }
     }
 
-    default void writeHalfs(float[] values) throws IOException {
-        for (float value : values) {
-            writeHalf(value);
+    default void writeFloats(Floats values) throws IOException {
+        for (int i = 0; i < values.length(); i++) {
+            writeFloat(values.get(i));
         }
     }
 
-    default void writeFloats(float[] values) throws IOException {
-        for (float value : values) {
-            writeFloat(value);
-        }
-    }
-
-    default void writeDoubles(double[] values) throws IOException {
-        for (double value : values) {
-            writeDouble(value);
+    default void writeDoubles(Doubles values) throws IOException {
+        for (int i = 0; i < values.length(); i++) {
+            writeDouble(values.get(i));
         }
     }
 

@@ -6,7 +6,6 @@ import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 final class DdsWriter {
@@ -32,7 +31,7 @@ final class DdsWriter {
         if (texture.kind() == TextureKind.TEXTURE_3D) {
             // The order in which surfaces are stored matches the order DDS uses.
             for (Surface surface : texture.surfaces()) {
-                channel.write(ByteBuffer.wrap(surface.data()));
+                channel.write(surface.data().asBuffer());
             }
         } else {
             int mips = texture.mips();
@@ -44,7 +43,7 @@ final class DdsWriter {
             for (int element = 0; element < elements; element++) {
                 for (int mip = 0; mip < mips; mip++) {
                     Surface surface = texture.surfaces().get(mip * elements + element);
-                    channel.write(ByteBuffer.wrap(surface.data()));
+                    channel.write(surface.data().asBuffer());
                 }
             }
         }

@@ -1,12 +1,14 @@
 package sh.adelessfox.odradek.game.ds2.rtti.data;
 
-import java.util.Arrays;
+import wtf.reversed.toolbox.collect.Floats;
 
-public record MotionMatchingVecN(float[] data) {
+public record MotionMatchingVecN(Floats data) {
     public MotionMatchingVecN {
-        if (data.length != 72) {
-            throw new IllegalArgumentException("MotionMatchingVecN must have exactly 72 floats, got " + data.length);
+        if (data.length() != 72) {
+            throw new IllegalArgumentException("MotionMatchingVecN must have exactly 72 floats, got " + data.length());
         }
-        data = Arrays.copyOf(data, 72);
+        var copy = Floats.allocate(72);
+        data.copyTo(copy, 0);
+        data = copy.asBytes().asFloats();
     }
 }

@@ -218,7 +218,8 @@ final class AudioPlayer extends JPanel implements Disposable {
         var pcm16 = audio.convert(CODEC);
         var format = new AudioFormat(pcm16.format().sampleRate(), 16, pcm16.format().channels(), true, false);
         var clip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
-        clip.open(format, pcm16.data(), 0, pcm16.data().length);
+        var data = pcm16.data().toArray();
+        clip.open(format, data, 0, data.length);
         return clip;
     }
 
@@ -306,7 +307,7 @@ final class AudioPlayer extends JPanel implements Disposable {
 
         AudioSampleProvider(Audio audio) {
             var pcm = audio.convert(CODEC);
-            samples = Bytes.wrap(pcm.data());
+            samples = pcm.data();
             channels = pcm.format().channels();
         }
 

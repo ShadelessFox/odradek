@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.audio.container.wave;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -8,13 +9,13 @@ public class WaveFormatExtensible {
     private final int size;
     private final int validBitsPerSample;
     private final int channelMask;
-    private final byte[] subFormat;
+    private final Bytes subFormat;
 
-    public WaveFormatExtensible(BinaryReader reader) throws IOException {
-        size = Short.toUnsignedInt(reader.readShort());
-        validBitsPerSample = Short.toUnsignedInt(reader.readShort());
-        channelMask = reader.readInt();
-        subFormat = reader.readBytes(16);
+    public WaveFormatExtensible(BinarySource source) throws IOException {
+        size = Short.toUnsignedInt(source.readShort());
+        validBitsPerSample = Short.toUnsignedInt(source.readShort());
+        channelMask = source.readInt();
+        subFormat = source.readBytes(16);
     }
 
     public int size() {
@@ -29,7 +30,7 @@ public class WaveFormatExtensible {
         return channelMask;
     }
 
-    public byte[] subFormat() {
+    public Bytes subFormat() {
         return subFormat;
     }
 }

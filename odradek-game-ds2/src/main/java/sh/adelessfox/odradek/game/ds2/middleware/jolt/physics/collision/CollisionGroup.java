@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.collision;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -9,10 +9,10 @@ public final class CollisionGroup {
     public int subGroupId;
     public GroupFilter groupFilter;
 
-    public static CollisionGroup restoreFromBinaryState(BinaryReader reader) throws IOException {
+    public static CollisionGroup restoreFromBinaryState(BinarySource source) throws IOException {
         CollisionGroup result = new CollisionGroup();
-        result.groupId = reader.readInt();
-        result.subGroupId = reader.readInt();
+        result.groupId = source.readInt();
+        result.subGroupId = source.readInt();
 
         return result;
     }

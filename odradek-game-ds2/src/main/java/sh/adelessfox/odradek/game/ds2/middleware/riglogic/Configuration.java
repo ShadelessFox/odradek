@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic;
 
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 
@@ -12,13 +12,13 @@ public record Configuration(
     boolean loadAnimatedMaps,
     boolean loadMachineLearnedBehavior
 ) {
-    public static Configuration read(BinaryReader reader) throws IOException {
+    public static Configuration read(BinarySource source) throws IOException {
         return new Configuration(
-            CalculationType.values()[reader.readInt()],
-            reader.readBool(BoolFormat.BYTE),
-            reader.readBool(BoolFormat.BYTE),
-            reader.readBool(BoolFormat.BYTE),
-            reader.readBool(BoolFormat.BYTE)
+            CalculationType.values()[source.readInt()],
+            source.readBool(BoolFormat.BYTE),
+            source.readBool(BoolFormat.BYTE),
+            source.readBool(BoolFormat.BYTE),
+            source.readBool(BoolFormat.BYTE)
         );
     }
 }

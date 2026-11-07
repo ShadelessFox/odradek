@@ -7,6 +7,7 @@ import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
 import java.nio.channels.WritableByteChannel;
@@ -29,8 +30,7 @@ final class PngWriterHelper {
 
         try (var writer = PngWriter.of(pngFormat, channel)) {
             var surface = texture.surfaces().getFirst();
-            var data = surface.convert(desiredFormat).data();
-            flip(data, pngFormat.bytesPerChannel());
+            var data = flip(surface.convert(desiredFormat).data(), pngFormat.bytesPerChannel());
             writer.write(data);
         }
     }
@@ -47,8 +47,7 @@ final class PngWriterHelper {
 
         try (var writer = PngWriter.ofAnimated(pngFormat, frames, 0, channel)) {
             for (var surface : texture.surfaces()) {
-                var data = surface.convert(desiredFormat).data();
-                flip(data, pngFormat.bytesPerChannel());
+                var data = flip(surface.convert(desiredFormat).data(), pngFormat.bytesPerChannel());
                 writer.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
             }
         }
@@ -109,22 +108,28 @@ final class PngWriterHelper {
         return new PngFormat(width, height, pngColorType, pngColorSpace);
     }
 
-    private static void flip(byte[] array, int bytesPerChannel) {
+    private static Bytes flip(Bytes data, int bytesPerChannel) {
+        if (bytesPerChannel == 1) {
+            return data;
+        }
+        var array = Bytes.allocate(data.length());
+        data.copyTo(array, 0);
         if (bytesPerChannel == 2) {
-            for (int i = 0; i < array.length; i += 2) {
+            for (int i = 0; i < array.length(); i += 2) {
                 swap(array, i, i + 1);
             }
         } else if (bytesPerChannel == 4) {
-            for (int i = 0; i < array.length; i += 4) {
+            for (int i = 0; i < array.length(); i += 4) {
                 swap(array, i/**/, i + 3);
                 swap(array, i + 1, i + 2);
             }
         }
+        return array;
     }
 
-    private static void swap(byte[] arr, int i, int j) {
-        byte temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+    private static void swap(Bytes.Mutable arr, int i, int j) {
+        byte temp = arr.get(i);
+        arr.set(i, arr.get(j));
+        arr.set(j, temp);
     }
 }

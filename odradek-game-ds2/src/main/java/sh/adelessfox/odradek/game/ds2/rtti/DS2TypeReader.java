@@ -2,39 +2,38 @@ package sh.adelessfox.odradek.game.ds2.rtti;
 
 import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.game.ds2.rtti.data.MotionMatchingVecN;
-import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.AtomTypeInfo;
 import sh.adelessfox.odradek.rtti.ContainerTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.rtti.io.AbstractTypeReader;
-import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class DS2TypeReader extends AbstractTypeReader {
-    public static <T> T readCompound(Class<T> cls, BinaryReader reader, TypeFactory factory) throws IOException {
+    public static <T> T readCompound(Class<T> cls, BinarySource source, TypeFactory factory) throws IOException {
         var type = factory.get(cls.getSimpleName()).asClass();
-        return cls.cast(new DS2TypeReader().readCompound(type, reader, factory));
+        return cls.cast(new DS2TypeReader().readCompound(type, source, factory));
     }
 
-    public TypedObject readObject(BinaryReader reader, TypeFactory factory) throws IOException {
-        var hash = reader.readLong();
-        var size = reader.readInt();
+    public TypedObject readObject(BinarySource source, TypeFactory factory) throws IOException {
+        var hash = source.readLong();
+        var size = source.readInt();
         var type = factory.get(DS2TypeId.of(hash)).asClass();
 
-        var start = reader.position();
-        var object = readCompound(type, reader, factory);
-        var end = reader.position();
+        var start = source.position();
+        var object = readCompound(type, source, factory);
+        var end = source.position();
 
         if (end - start != size) {
             throw new IllegalStateException(
                 "Size mismatch for %s: %d (actual) != %d (expected)".formatted(type.name(), end - start, size));
         }
 
-        int numLinks = reader.readInt();
+        int numLinks = source.readInt();
         if (numLinks != 0) {
             throw new IllegalStateException("Expected 0 links, got " + numLinks);
         }
@@ -45,17 +44,17 @@ public class DS2TypeReader extends AbstractTypeReader {
     @Override
     protected Object readContainer(
         ContainerTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory
     ) throws IOException {
         return switch (info.containerType()) {
-            case "HashMap", "HashSet" -> readHashContainer(info, reader, factory);
-            default -> readSimpleContainer(info, reader, factory);
+            case "HashMap", "HashSet" -> readHashContainer(info, source, factory);
+            default -> readSimpleContainer(info, source, factory);
         };
     }
 
     @Override
-    protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+    protected Object readPointer(PointerTypeInfo info, BinarySource source, TypeFactory factory) throws IOException {
         throw new IOException("Unexpected pointer");
     }
 
@@ -83,20 +82,20 @@ public class DS2TypeReader extends AbstractTypeReader {
 
     private Object readSimpleContainer(
         ContainerTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory
     ) throws IOException {
-        var count = reader.readInt();
+        var count = source.readInt();
         var item = info.itemType();
 
         // Fast path
         if (item instanceof AtomTypeInfo atom) {
-            return readerForAtom(atom).read(reader, count, info);
+            return readerForAtom(atom).read(source, count, info);
         }
 
         var result = info.newInstance(count);
         for (int i = 0; i < count; i++) {
-            info.set(result, i, read(item, reader, factory));
+            info.set(result, i, read(item, source, factory));
         }
 
         return result;
@@ -104,10 +103,10 @@ public class DS2TypeReader extends AbstractTypeReader {
 
     private Object readHashContainer(
         ContainerTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory
     ) throws IOException {
-        var count = reader.readInt();
+        var count = source.readInt();
         var item = info.itemType();
         var result = info.newInstance(count);
 
@@ -115,8 +114,8 @@ public class DS2TypeReader extends AbstractTypeReader {
             // NOTE: Hash is based on the key - for HashMap, and on the value - for HashSet
             //       We don't actually need to store or use it - but we'll have to compute it
             //       when serialization support is added
-            reader.skip(4); // hash
-            info.set(result, i, read(item, reader, factory));
+            source.skip(4); // hash
+            info.set(result, i, read(item, source, factory));
         }
 
         return result;
@@ -126,12 +125,12 @@ public class DS2TypeReader extends AbstractTypeReader {
         static final StringHashReader INSTANCE = new StringHashReader();
 
         @Override
-        public Object read(BinaryReader reader) throws IOException {
-            int size = reader.readInt();
+        public Object read(BinarySource source) throws IOException {
+            int size = source.readInt();
             if (size != 4) {
                 throw new IllegalArgumentException("Unexpected string hash size: " + size);
             }
-            return reader.readInt();
+            return source.readInt();
         }
     }
 
@@ -139,20 +138,20 @@ public class DS2TypeReader extends AbstractTypeReader {
         static final StringReader INSTANCE = new StringReader();
 
         @Override
-        public Object read(BinaryReader reader) throws IOException {
-            int length = reader.readInt();
+        public Object read(BinarySource source) throws IOException {
+            int length = source.readInt();
             if (length == 0) {
                 return "";
             }
 
-            var hash = reader.readInt();
-            var data = reader.readBytes(length);
-            int actual = DecimaHash.crc32().hash(Bytes.wrap(data)).asInt() & 0x7fffffff;
+            var hash = source.readInt();
+            var data = source.readBytes(length);
+            int actual = DecimaHash.crc32().hash(data).asInt() & 0x7fffffff;
             if (hash != actual) {
                 throw new IllegalArgumentException("String is corrupted - mismatched checksum");
             }
 
-            return new String(data, StandardCharsets.UTF_8);
+            return data.toString(StandardCharsets.UTF_8);
         }
     }
 
@@ -160,8 +159,8 @@ public class DS2TypeReader extends AbstractTypeReader {
         static final WStringReader INSTANCE = new WStringReader();
 
         @Override
-        public Object read(BinaryReader reader) throws IOException {
-            return reader.readString(reader.readInt() * 2, StandardCharsets.UTF_16LE);
+        public Object read(BinarySource source) throws IOException {
+            return source.readString(source.readInt() * 2, StandardCharsets.UTF_16LE);
         }
     }
 
@@ -169,8 +168,8 @@ public class DS2TypeReader extends AbstractTypeReader {
         static final MotionMatchingVecNReader INSTANCE = new MotionMatchingVecNReader();
 
         @Override
-        public Object read(BinaryReader reader) throws IOException {
-            return new MotionMatchingVecN(reader.readFloats(72));
+        public Object read(BinarySource source) throws IOException {
+            return new MotionMatchingVecN(source.readFloats(72));
         }
     }
 }

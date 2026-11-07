@@ -1,29 +1,31 @@
 package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.collision.shape;
 
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.JoltUtils;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Ints;
+import wtf.reversed.toolbox.collect.Shorts;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.util.List;
 
 public class StaticCompoundShape extends CompoundShape {
     public record Node(
-        short[] boundsMinX,
-        short[] boundsMinY,
-        short[] boundsMinZ,
-        short[] boundsMaxX,
-        short[] boundsMaxY,
-        short[] boundsMaxZ,
-        int[] nodeProperties
+        Shorts boundsMinX,
+        Shorts boundsMinY,
+        Shorts boundsMinZ,
+        Shorts boundsMaxX,
+        Shorts boundsMaxY,
+        Shorts boundsMaxZ,
+        Ints nodeProperties
     ) {
-        private static Node read(BinaryReader reader) throws IOException {
-            var boundsMinX = reader.readShorts(4);
-            var boundsMinY = reader.readShorts(4);
-            var boundsMinZ = reader.readShorts(4);
-            var boundsMaxX = reader.readShorts(4);
-            var boundsMaxY = reader.readShorts(4);
-            var boundsMaxZ = reader.readShorts(4);
-            var nodeProperties = reader.readInts(4);
+        private static Node read(BinarySource source) throws IOException {
+            var boundsMinX = source.readShorts(4);
+            var boundsMinY = source.readShorts(4);
+            var boundsMinZ = source.readShorts(4);
+            var boundsMaxX = source.readShorts(4);
+            var boundsMaxY = source.readShorts(4);
+            var boundsMaxZ = source.readShorts(4);
+            var nodeProperties = source.readInts(4);
 
             return new Node(boundsMinX, boundsMinY, boundsMinZ, boundsMaxX, boundsMaxY, boundsMaxZ, nodeProperties);
         }
@@ -32,9 +34,9 @@ public class StaticCompoundShape extends CompoundShape {
     public List<Node> nodes;
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        nodes = JoltUtils.readObjects(reader, Node::read);
+        nodes = JoltUtils.readObjects(source, Node::read);
     }
 }

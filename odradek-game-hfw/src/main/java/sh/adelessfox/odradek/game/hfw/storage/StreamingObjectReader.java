@@ -7,13 +7,14 @@ import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.util.LruWeakCache;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 import java.util.*;
@@ -109,9 +110,9 @@ public class StreamingObjectReader extends HFWTypeReader {
         int index = 0;
         for (StreamingGraph.Span span : group.spans()) {
             var data = getSpanData(span);
-            var reader = BinaryReader.wrap(data);
+            var source = BinarySource.wrap(data);
 
-            while (reader.remaining() > 0) {
+            while (source.remaining() > 0) {
                 var object = objects.get(index++);
 
                 if (log.isDebugEnabled()) {
@@ -120,11 +121,11 @@ public class StreamingObjectReader extends HFWTypeReader {
                         indent(),
                         Colors.yellow(object.getType()),
                         Colors.yellow(getSpanFile(span)),
-                        Colors.blue(span.offset() + reader.position())
+                        Colors.blue(span.offset() + source.position())
                     );
                 }
 
-                fillCompound(object.getType(), reader, factory, object);
+                fillCompound(object.getType(), source, factory, object);
             }
         }
 
@@ -132,8 +133,8 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object target) throws IOException {
-        super.fillCompound(info, reader, factory, target);
+    protected void fillCompound(ClassTypeInfo info, BinarySource source, TypeFactory factory, Object target) throws IOException {
+        super.fillCompound(info, source, factory, target);
 
         if (target instanceof HFW.StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
@@ -141,11 +142,11 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        if (!reader.readBool(BoolFormat.BYTE)) {
+    protected Object readPointer(PointerTypeInfo info, BinarySource source, TypeFactory factory) throws IOException {
+        if (!source.readBool(BoolFormat.BYTE)) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
-            return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
+            return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), source, factory));
         } else {
             return resolveLink(info);
         }
@@ -233,7 +234,7 @@ public class StreamingObjectReader extends HFWTypeReader {
         return "\t".repeat(depth);
     }
 
-    private byte[] getSpanData(StreamingGraph.Span span) throws IOException {
+    private Bytes getSpanData(StreamingGraph.Span span) throws IOException {
         return storage.read(getSpanFile(span), span.offset(), span.length());
     }
 

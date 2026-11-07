@@ -6,14 +6,16 @@ import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
-import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.io.BytesBinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.util.PathTypeVisitor;
 import sh.adelessfox.odradek.rtti.util.TypePath;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.collect.Ints;
 import wtf.reversed.toolbox.hash.HashCode;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -33,38 +35,38 @@ public final class LinkDatabase implements Closeable {
     private static final int FILE_VERSION = 1;
 
     private final DecimaGame game;
-    private final BinaryReader reader;
-    private final int[] offsets;
+    private final BinarySource source;
+    private final Ints offsets;
 
-    private LinkDatabase(DecimaGame game, BinaryReader reader, int[] offsets) {
+    private LinkDatabase(DecimaGame game, BinarySource source, Ints offsets) {
         this.game = game;
-        this.reader = reader;
+        this.source = source;
         this.offsets = offsets;
     }
 
     public static LinkDatabase open(DecimaGame game, Path path) throws IOException {
-        var reader = BinaryReader.open(path);
+        var source = BinarySource.open(path);
         try {
-            int magic = reader.readInt();
+            int magic = source.readInt();
             if (magic != FILE_MAGIC) {
                 throw new IllegalArgumentException("Invalid database file magic");
             }
 
-            int version = reader.readInt();
+            int version = source.readInt();
             if (version != FILE_VERSION) {
                 throw new IllegalArgumentException("Unsupported database file version");
             }
 
-            long checksum = reader.readLong();
+            long checksum = source.readLong();
             if (checksum != computeHash(game).asLong()) {
                 throw new IllegalArgumentException("Link table checksum mismatch");
             }
 
             int count = game.streamingGraph().types().size();
-            var offsets = reader.readInts(count);
-            return new LinkDatabase(game, reader, offsets);
+            var offsets = source.readInts(count);
+            return new LinkDatabase(game, source, offsets);
         } catch (Exception e) {
-            reader.close();
+            source.close();
             throw e;
         }
     }
@@ -99,11 +101,11 @@ public final class LinkDatabase implements Closeable {
 
         log.debug("Serializing the database...");
         try (BinaryWriter writer = BinaryWriter.open(path)) {
-            var offsets = new int[objects];
+            var offsets = Ints.allocate(objects);
 
             writer.position(16 + (long) objects * Integer.BYTES);
             for (int i = 0; i < objects; i++) {
-                offsets[i] = Math.toIntExact(writer.position());
+                offsets.set(i, Math.toIntExact(writer.position()));
 
                 writeVarInt(writer, links.get(i).size());
                 for (PackedLink link : links.get(i)) {
@@ -128,10 +130,10 @@ public final class LinkDatabase implements Closeable {
         var group = graph.group(target.groupId());
         int index = group.typeStart() + target.objectIndex();
 
-        synchronized (reader) {
-            return reader
-                .position(offsets[index])
-                .readObjects(readVarInt(reader), r -> readLink(graph, r));
+        synchronized (source) {
+            return source
+                .position(offsets.get(index))
+                .readObjects(readVarInt(source), r -> readLink(graph, r));
         }
     }
 
@@ -142,7 +144,7 @@ public final class LinkDatabase implements Closeable {
     }
 
     public void close() throws IOException {
-        reader.close();
+        source.close();
     }
 
     private static GroupInfo visitGroup(StreamingGraph.Group group, DecimaGame game) throws IOException {
@@ -178,27 +180,27 @@ public final class LinkDatabase implements Closeable {
         return new ObjectInfo(links);
     }
 
-    private static Link readLink(StreamingGraph graph, BinaryReader reader) throws IOException {
-        int groupId = readVarInt(reader);
-        int objectIndex = readVarInt(reader);
+    private static Link readLink(StreamingGraph graph, BinarySource source) throws IOException {
+        int groupId = readVarInt(source);
+        int objectIndex = readVarInt(source);
         var objectType = graph.group(groupId).types().get(objectIndex);
-        var path = readPath(objectType, reader);
+        var path = readPath(objectType, source);
         return new Link(groupId, objectIndex, path);
     }
 
     private static void writeLink(PackedLink link, BinaryWriter writer) throws IOException {
         writeVarInt(writer, link.groupId());
         writeVarInt(writer, link.objectIndex());
-        writeVarInt(writer, link.path().length);
+        writeVarInt(writer, link.path().length());
         writer.writeBytes(link.path());
     }
 
-    private static TypePath readPath(ClassTypeInfo root, BinaryReader reader) throws IOException {
+    private static TypePath readPath(ClassTypeInfo root, BinarySource source) throws IOException {
         var elements = new ArrayList<TypePath.Element>();
         var parent = (TypeInfo) root;
 
-        for (long end = readVarInt(reader) + reader.position(); reader.position() < end; ) {
-            int element = readVarInt(reader);
+        for (long end = readVarInt(source) + source.position(); source.position() < end; ) {
+            int element = readVarInt(source);
             int index = element >>> 1;
             if ((element & 1) == 0) {
                 var type = parent.asClass();
@@ -228,11 +230,11 @@ public final class LinkDatabase implements Closeable {
         }
     }
 
-    private static int readVarInt(BinaryReader reader) throws IOException {
+    private static int readVarInt(BinarySource source) throws IOException {
         int len = 0;
         int out = 0;
         while (true) {
-            int tmp = reader.readByte();
+            int tmp = source.readByte();
             out |= (tmp & 0x7F) << len;
             if ((tmp & 0x80) == 0) {
                 break;
@@ -275,12 +277,12 @@ public final class LinkDatabase implements Closeable {
         }
     }
 
-    private record PackedLink(int groupId, int objectIndex, byte[] path) {
+    private record PackedLink(int groupId, int objectIndex, Bytes path) {
         static PackedLink pack(int groupId, int objectIndex, TypePath path) throws IOException {
-            byte[] bytes;
+            Bytes bytes;
             try (BytesBinaryWriter writer = new BytesBinaryWriter()) {
                 writePath(path, writer);
-                bytes = writer.toByteArray();
+                bytes = writer.toBytes();
             }
             return new PackedLink(groupId, objectIndex, bytes);
         }

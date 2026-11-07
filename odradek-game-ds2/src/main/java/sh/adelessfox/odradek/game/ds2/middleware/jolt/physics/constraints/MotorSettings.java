@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.constraints;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -12,12 +12,12 @@ public class MotorSettings {
     public float minTorqueLimit;
     public float maxTorqueLimit;
 
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        frequency = reader.readFloat();
-        damping = reader.readFloat();
-        minForceLimit = reader.readFloat();
-        maxForceLimit = reader.readFloat();
-        minTorqueLimit = reader.readFloat();
-        maxTorqueLimit = reader.readFloat();
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        frequency = source.readFloat();
+        damping = source.readFloat();
+        minForceLimit = source.readFloat();
+        maxForceLimit = source.readFloat();
+        minTorqueLimit = source.readFloat();
+        maxTorqueLimit = source.readFloat();
     }
 }

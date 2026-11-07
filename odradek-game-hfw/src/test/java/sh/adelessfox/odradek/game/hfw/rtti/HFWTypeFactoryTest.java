@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import wtf.reversed.toolbox.collect.*;
 
 import java.util.stream.Stream;
 
@@ -42,6 +43,14 @@ class HFWTypeFactoryTest {
 
         EqualsVerifier.forClass(instance.getClass())
             .suppress(Warning.NONFINAL_FIELDS)
+            .withPrefabValues(Bytes.class, Bytes.wrap(new byte[]{1}), Bytes.wrap(new byte[]{2}))
+            .withPrefabValues(Shorts.class, Shorts.copyOf(new short[]{1}), Shorts.copyOf(new short[]{2}))
+            .withPrefabValues(Ints.class, Ints.copyOf(new int[]{1}), Ints.copyOf(new int[]{2}))
+            .withPrefabValues(Longs.class, Longs.copyOf(new long[]{1}), Longs.copyOf(new long[]{2}))
+            .withPrefabValues(Floats.class, Floats.copyOf(new float[]{1}), Floats.copyOf(new float[]{2}))
+            .withPrefabValues(Doubles.class, Doubles.copyOf(new double[]{1}), Doubles.copyOf(new double[]{2}))
+            .withPrefabValues(Chars.class, Chars.copyOf(new char[]{1}), Chars.copyOf(new char[]{2}))
+            .withPrefabValues(Booleans.class, Booleans.copyOf(new boolean[]{false}), Booleans.copyOf(new boolean[]{true}))
             .verify();
     }
 

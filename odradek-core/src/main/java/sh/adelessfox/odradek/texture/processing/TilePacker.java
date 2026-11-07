@@ -3,7 +3,6 @@ package sh.adelessfox.odradek.texture.processing;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.util.Srgb;
-import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.math.FloatMath;
 
@@ -45,7 +44,7 @@ public interface TilePacker {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff++) {
-                data[dstOff] = packUNorm8(src.get(srcOff), srgb);
+                data.set(dstOff, packUNorm8(src.get(srcOff), srgb));
             }
         }
     }
@@ -57,8 +56,8 @@ public interface TilePacker {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 2) {
-                data[dstOff/**/] = packUNorm8(src.get(srcOff/**/), srgb);
-                data[dstOff + 1] = packUNorm8(src.get(srcOff + 1), srgb);
+                data.set(dstOff/**/, packUNorm8(src.get(srcOff/**/), srgb));
+                data.set(dstOff + 1, packUNorm8(src.get(srcOff + 1), srgb));
             }
         }
     }
@@ -70,9 +69,9 @@ public interface TilePacker {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 3) {
-                data[dstOff/**/] = packUNorm8(src.get(srcOff/**/), srgb);
-                data[dstOff + 1] = packUNorm8(src.get(srcOff + 1), srgb);
-                data[dstOff + 2] = packUNorm8(src.get(srcOff + 2), srgb);
+                data.set(dstOff/**/, packUNorm8(src.get(srcOff/**/), srgb));
+                data.set(dstOff + 1, packUNorm8(src.get(srcOff + 1), srgb));
+                data.set(dstOff + 2, packUNorm8(src.get(srcOff + 2), srgb));
             }
         }
     }
@@ -84,16 +83,16 @@ public interface TilePacker {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 4) {
-                data[dstOff/**/] = packUNorm8(src.get(srcOff/**/), srgb);
-                data[dstOff + 1] = packUNorm8(src.get(srcOff + 1), srgb);
-                data[dstOff + 2] = packUNorm8(src.get(srcOff + 2), srgb);
-                data[dstOff + 3] = packUNorm8(src.get(srcOff + 3), false); // alpha is always linear
+                data.set(dstOff/**/, packUNorm8(src.get(srcOff/**/), srgb));
+                data.set(dstOff + 1, packUNorm8(src.get(srcOff + 1), srgb));
+                data.set(dstOff + 2, packUNorm8(src.get(srcOff + 2), srgb));
+                data.set(dstOff + 3, packUNorm8(src.get(srcOff + 3), false)); // alpha is always linear
             }
         }
     }
 
     private static void packR16Unorm(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -104,7 +103,7 @@ public interface TilePacker {
     }
 
     private static void packR16G16Unorm(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -116,7 +115,7 @@ public interface TilePacker {
     }
 
     private static void packR16G16B16Unorm(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -129,7 +128,7 @@ public interface TilePacker {
     }
 
     private static void packR16G16B16A16Unorm(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -143,7 +142,7 @@ public interface TilePacker {
     }
 
     private static void packR16Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -154,7 +153,7 @@ public interface TilePacker {
     }
 
     private static void packR16G16Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -166,7 +165,7 @@ public interface TilePacker {
     }
 
     private static void packR16G16B16Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -179,7 +178,7 @@ public interface TilePacker {
     }
 
     private static void packR16G16B16A16Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -193,7 +192,7 @@ public interface TilePacker {
     }
 
     private static void packR32Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -204,7 +203,7 @@ public interface TilePacker {
     }
 
     private static void packR32G32Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -216,7 +215,7 @@ public interface TilePacker {
     }
 
     private static void packR32G32B32Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -229,7 +228,7 @@ public interface TilePacker {
     }
 
     private static void packR32G32B32A32Sfloat(TileContext ctx, Floats src, Surface dst) {
-        var data = Bytes.Mutable.wrap(dst.data());
+        var data = dst.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
@@ -249,9 +248,9 @@ public interface TilePacker {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 3) {
-                data[dstOff/**/] = packUNorm8(src.get(srcOff + 2), srgb);
-                data[dstOff + 1] = packUNorm8(src.get(srcOff + 1), srgb);
-                data[dstOff + 2] = packUNorm8(src.get(srcOff/**/), srgb);
+                data.set(dstOff/**/, packUNorm8(src.get(srcOff + 2), srgb));
+                data.set(dstOff + 1, packUNorm8(src.get(srcOff + 1), srgb));
+                data.set(dstOff + 2, packUNorm8(src.get(srcOff/**/), srgb));
             }
         }
     }
@@ -263,10 +262,10 @@ public interface TilePacker {
             int srcOff = row * ctx.width * 4;
             int dstOff = dst.offset(ctx.x, ctx.y + row, ctx.z);
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 4) {
-                data[dstOff/**/] = packUNorm8(src.get(srcOff + 2), srgb);
-                data[dstOff + 1] = packUNorm8(src.get(srcOff + 1), srgb);
-                data[dstOff + 2] = packUNorm8(src.get(srcOff/**/), srgb);
-                data[dstOff + 3] = packUNorm8(src.get(srcOff + 3), false); // alpha is always linear
+                data.set(dstOff/**/, packUNorm8(src.get(srcOff + 2), srgb));
+                data.set(dstOff + 1, packUNorm8(src.get(srcOff + 1), srgb));
+                data.set(dstOff + 2, packUNorm8(src.get(srcOff/**/), srgb));
+                data.set(dstOff + 3, packUNorm8(src.get(srcOff + 3), false)); // alpha is always linear
             }
         }
     }

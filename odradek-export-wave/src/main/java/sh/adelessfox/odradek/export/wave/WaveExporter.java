@@ -35,23 +35,25 @@ public final class WaveExporter implements Exporter.OfSingleOutput<Audio> {
             .putShort((short) (codec.sizeBytes() * 8)) // wBitsPerSample
             .flip();
 
-        var data = ByteBuffer.allocate(8 + converted.data().length)
+        var dataHeader = ByteBuffer.allocate(8)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(RIFF_CHUNK_DATA_ID) // chunkID
-            .putInt(converted.data().length) // chunkSize
-            .put(converted.data()) // data
+            .putInt(converted.data().length()) // chunkSize
             .flip();
+        var data = converted.data().asBuffer();
 
         var header = ByteBuffer.allocate(12)
             .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(RIFF_CHUNK_ID) // chunkID
-            .putInt(fmt.remaining() + data.remaining() + 4) // chunkSize
+            .putInt(fmt.remaining() + dataHeader.remaining() + data.remaining() + 4) // chunkSize
             .putInt(RIFF_FORMAT_ID) // format
             .flip();
 
-        channel.write(header);
-        channel.write(fmt);
-        channel.write(data);
+        for (var buffer : new ByteBuffer[]{header, fmt, dataHeader, data}) {
+            while (buffer.hasRemaining()) {
+                channel.write(buffer);
+            }
+        }
     }
 
     @Override

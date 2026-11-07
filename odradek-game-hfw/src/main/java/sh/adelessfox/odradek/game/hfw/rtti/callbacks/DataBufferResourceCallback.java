@@ -1,27 +1,27 @@
 package sh.adelessfox.odradek.game.hfw.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 
 public class DataBufferResourceCallback implements ExtraBinaryDataCallback<HFW.DataBufferResource> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, HFW.DataBufferResource object) throws IOException {
-        var count = reader.readInt();
+    public void deserialize(BinarySource source, TypeFactory factory, HFW.DataBufferResource object) throws IOException {
+        var count = source.readInt();
         if (count == 0) {
             return;
         }
 
-        var streaming = reader.readBool(BoolFormat.INT);
-        var flags = reader.readInt();
-        var format = Value.valueOf(HFW.EDataBufferFormat.class, reader.readInt());
-        var stride = reader.readInt();
-        var data = streaming ? null : reader.readBytes(stride * count);
+        var streaming = source.readBool(BoolFormat.INT);
+        var flags = source.readInt();
+        var format = Value.valueOf(HFW.EDataBufferFormat.class, source.readInt());
+        var stride = source.readInt();
+        var data = streaming ? null : source.readBytes(stride * count);
 
         object.count(count);
         object.isStreaming(streaming);

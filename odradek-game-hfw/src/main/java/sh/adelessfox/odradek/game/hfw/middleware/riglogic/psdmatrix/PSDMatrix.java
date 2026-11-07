@@ -1,21 +1,23 @@
 package sh.adelessfox.odradek.game.hfw.middleware.riglogic.psdmatrix;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Floats;
+import wtf.reversed.toolbox.collect.Shorts;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public record PSDMatrix(
     short distinctPSDs,
-    short[] rowIndices,
-    short[] columnIndices,
-    float[] values
+    Shorts rowIndices,
+    Shorts columnIndices,
+    Floats values
 ) {
-    public static PSDMatrix read(BinaryReader reader) throws IOException {
+    public static PSDMatrix read(BinarySource source) throws IOException {
         return new PSDMatrix(
-            reader.readShort(),
-            reader.readShorts(reader.readInt()),
-            reader.readShorts(reader.readInt()),
-            reader.readFloats(reader.readInt())
+            source.readShort(),
+            source.readShorts(source.readInt()),
+            source.readShorts(source.readInt()),
+            source.readFloats(source.readInt())
         );
     }
 }

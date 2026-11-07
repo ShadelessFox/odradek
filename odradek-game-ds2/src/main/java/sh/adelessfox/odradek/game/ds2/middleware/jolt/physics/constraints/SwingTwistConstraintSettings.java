@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.constraints;
 
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.JoltUtils;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -22,21 +22,21 @@ public class SwingTwistConstraintSettings extends TwoBodyConstraintSettings {
     public final MotorSettings twistMotorSettings = new MotorSettings();
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        position1 = JoltUtils.readVec3(reader);
-        twistAxis1 = JoltUtils.readVec3(reader);
-        planeAxis1 = JoltUtils.readVec3(reader);
-        position2 = JoltUtils.readVec3(reader);
-        twistAxis2 = JoltUtils.readVec3(reader);
-        planeAxis2 = JoltUtils.readVec3(reader);
-        normalHalfConeAngle = reader.readFloat();
-        planeHalfConeAngle = reader.readFloat();
-        twistMinAngle = reader.readFloat();
-        twistMaxAngle = reader.readFloat();
-        maxFrictionTorque = reader.readFloat();
-        swingMotorSettings.restoreBinaryState(reader);
-        twistMotorSettings.restoreBinaryState(reader);
+        position1 = JoltUtils.readVec3(source);
+        twistAxis1 = JoltUtils.readVec3(source);
+        planeAxis1 = JoltUtils.readVec3(source);
+        position2 = JoltUtils.readVec3(source);
+        twistAxis2 = JoltUtils.readVec3(source);
+        planeAxis2 = JoltUtils.readVec3(source);
+        normalHalfConeAngle = source.readFloat();
+        planeHalfConeAngle = source.readFloat();
+        twistMinAngle = source.readFloat();
+        twistMaxAngle = source.readFloat();
+        maxFrictionTorque = source.readFloat();
+        swingMotorSettings.restoreBinaryState(source);
+        twistMotorSettings.restoreBinaryState(source);
     }
 }

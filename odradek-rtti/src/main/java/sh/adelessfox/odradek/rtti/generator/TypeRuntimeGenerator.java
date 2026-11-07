@@ -2,13 +2,16 @@ package sh.adelessfox.odradek.rtti.generator;
 
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Value;
+import wtf.reversed.toolbox.collect.Slice;
 
-import java.lang.classfile.*;
+import java.lang.classfile.ClassBuilder;
+import java.lang.classfile.ClassFile;
+import java.lang.classfile.CodeBuilder;
+import java.lang.classfile.TypeKind;
 import java.lang.classfile.attribute.*;
 import java.lang.constant.*;
 import java.lang.invoke.*;
 import java.lang.reflect.AccessFlag;
-import java.lang.reflect.Array;
 import java.lang.runtime.ObjectMethods;
 import java.util.*;
 import java.util.function.Consumer;
@@ -17,7 +20,6 @@ import static java.lang.classfile.ClassFile.*;
 import static java.lang.constant.ConstantDescs.*;
 
 public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
-    private static final ClassDesc CD_Arrays = Arrays.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_ClassTypeInfo = ClassTypeInfo.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_List = List.class.describeConstable().orElseThrow();
     private static final ClassDesc CD_StableValue = StableValue.class.describeConstable().orElseThrow();
@@ -254,7 +256,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         if (container == null) {
             return "null";
         }
-        int size = container instanceof Collection<?> c ? c.size() : Array.getLength(container);
+        int size = container instanceof Slice slice ? slice.length() : ((Collection<?>) container).size();
         return switch (size) {
             case 0 -> "[]";
             case 1 -> "[1 item]";
@@ -304,16 +306,10 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
     private static void buildEqualsHashCode(ClassBuilder builder, ClassDesc desc, List<BoostrapAttrInfo> attrs) {
         List<String> names = new ArrayList<>(attrs.size());
         List<DirectMethodHandleDesc> handles = new ArrayList<>(attrs.size());
-        List<BoostrapAttrInfo> arrays = new ArrayList<>();
 
         for (BoostrapAttrInfo attr : attrs) {
-            if (attr.handle().invocationType().returnType().isArray()) {
-                // Boostrap doesn't correctly work with arrays; rely on Arrays methods instead
-                arrays.add(attr);
-            } else {
-                names.add(toDisplayName(attr.attr()));
-                handles.add(attr.handle());
-            }
+            names.add(toDisplayName(attr.attr()));
+            handles.add(attr.handle());
         }
 
         List<ConstantDesc> args = new ArrayList<>();
@@ -331,35 +327,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 args.toArray(ConstantDesc[]::new)
             ));
 
-            if (!arrays.isEmpty()) {
-                Label fail = cob.newLabel();
-                cob.ifeq(fail);
-
-                cob.aload(1);
-                cob.checkcast(desc);
-                cob.astore(1);
-
-                for (BoostrapAttrInfo attr : arrays) {
-                    var fieldName = attr.handle().methodName();
-                    var fieldDesc = attr.handle().invocationType().returnType();
-
-                    cob.aload(0);
-                    cob.getfield(desc, fieldName, fieldDesc);
-
-                    cob.aload(1);
-                    cob.getfield(desc, fieldName, fieldDesc);
-
-                    cob.invokestatic(CD_Arrays, "equals", MethodTypeDesc.of(CD_boolean, fieldDesc, fieldDesc));
-                    cob.ifeq(fail);
-                }
-
-                cob.iconst_1();
-                cob.ireturn();
-
-                cob.labelBinding(fail);
-                cob.iconst_0();
-            }
-
             cob.ireturn();
         });
 
@@ -371,18 +338,6 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
                 MethodTypeDesc.of(CD_int, desc),
                 args.toArray(ConstantDesc[]::new)
             ));
-
-            for (BoostrapAttrInfo attr : arrays) {
-                var fieldName = attr.handle().methodName();
-                var fieldDesc = attr.handle().invocationType().returnType();
-
-                cob.ldc(31);
-                cob.imul();
-                cob.aload(0);
-                cob.getfield(desc, fieldName, fieldDesc);
-                cob.invokestatic(CD_Arrays, "hashCode", MethodTypeDesc.of(CD_int, fieldDesc));
-                cob.iadd();
-            }
 
             cob.ireturn();
         });
@@ -492,7 +447,7 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
             case ContainerTypeInfo i -> {
                 var itemType = toClassDesc(i.itemType(), useWrapperType);
                 if (itemType.isPrimitive()) {
-                    yield itemType.arrayType();
+                    yield PrimitiveContainers.wrapperType(itemType.displayName()).describeConstable().orElseThrow();
                 } else {
                     yield CD_List;
                 }

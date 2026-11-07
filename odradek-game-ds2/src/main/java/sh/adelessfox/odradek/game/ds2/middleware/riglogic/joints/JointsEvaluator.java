@@ -1,14 +1,14 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic.joints;
 
 import sh.adelessfox.odradek.game.ds2.middleware.riglogic.joints.bpcm.JointStorage;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public record JointsEvaluator(
     JointStorage storage
 ) {
-    public static JointsEvaluator read(BinaryReader reader) throws IOException {
-        return new JointsEvaluator(JointStorage.read(reader));
+    public static JointsEvaluator read(BinarySource source) throws IOException {
+        return new JointsEvaluator(JointStorage.read(source));
     }
 }

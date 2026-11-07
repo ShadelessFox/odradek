@@ -1,28 +1,29 @@
 package sh.adelessfox.odradek.audio.container.at9;
 
 import sh.adelessfox.odradek.audio.container.wave.WaveFormatExtensible;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public final class Atrac9FormatExtensible extends WaveFormatExtensible {
     private final int versionInfo;
-    private final byte[] configData;
+    private final Bytes configData;
     private final int reserved;
 
-    public Atrac9FormatExtensible(BinaryReader reader) throws IOException {
-        super(reader);
+    public Atrac9FormatExtensible(BinarySource source) throws IOException {
+        super(source);
 
-        versionInfo = reader.readInt();
-        configData = reader.readBytes(4);
-        reserved = reader.readInt();
+        versionInfo = source.readInt();
+        configData = source.readBytes(4);
+        reserved = source.readInt();
     }
 
     public int versionInfo() {
         return versionInfo;
     }
 
-    public byte[] configData() {
+    public Bytes configData() {
         return configData;
     }
 

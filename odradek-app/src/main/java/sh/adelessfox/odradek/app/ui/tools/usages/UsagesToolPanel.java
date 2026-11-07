@@ -310,7 +310,7 @@ public final class UsagesToolPanel implements ToolPanel, Focusable {
         return config.resolve("links-" + LinkDatabase.computeHash(game) + ".db");
     }
 
-    record Progress(int cur, int max) {
+    private record Progress(int cur, int max) {
         @Override
         public String toString() {
             return "%d/%d".formatted(cur, max);

@@ -1,18 +1,20 @@
 package sh.adelessfox.odradek.io;
 
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 import wtf.reversed.toolbox.util.Check;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.ByteOrder;
 import java.util.Collection;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
 /**
- * A reader for compressed data split into chunks.
+ * A source for compressed data split into chunks.
  */
-public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> extends BinaryReader {
+public abstract class ChunkedBinarySource<T extends ChunkedBinarySource.Chunk> extends BinarySource {
     public interface Chunk {
         long offset();
 
@@ -23,7 +25,7 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
         int compressedSize();
     }
 
-    private final BinaryReader reader;
+    private final BinarySource source;
     private final NavigableMap<Long, T> chunks;
     private final long offset;
 
@@ -34,8 +36,8 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
     private T chunk;
     private long position;
 
-    private ChunkedBinaryReader(
-        BinaryReader reader,
+    private ChunkedBinarySource(
+        BinarySource source,
         NavigableMap<Long, T> chunks,
         int maxCompressedSize,
         int maxDecompressedSize,
@@ -44,14 +46,14 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
     ) {
         super(size);
 
-        this.reader = reader;
+        this.source = source;
         this.chunks = chunks;
         this.compressed = Bytes.Mutable.allocate(maxCompressedSize);
         this.decompressed = Bytes.Mutable.allocate(maxDecompressedSize);
         this.offset = offset;
     }
 
-    public ChunkedBinaryReader(BinaryReader reader, Collection<? extends T> chunks) {
+    public ChunkedBinarySource(BinarySource source, Collection<? extends T> chunks) {
         int maxCompressedSize = 0;
         int maxDecompressedSize = 0;
         var map = new TreeMap<Long, T>(Long::compareUnsigned);
@@ -62,7 +64,7 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
         }
 
         var size = chunks.stream().mapToLong(Chunk::size).sum();
-        this(reader, map, maxCompressedSize, maxDecompressedSize, size, 0);
+        this(source, map, maxCompressedSize, maxDecompressedSize, size, 0);
     }
 
     @Override
@@ -75,21 +77,21 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
     public short readShort() throws IOException {
         readBytes(scratch.slice(0, Short.BYTES));
         var result = scratch.getShort(0);
-        return bigEndian ? Short.reverseBytes(result) : result;
+        return order() == ByteOrder.BIG_ENDIAN ? Short.reverseBytes(result) : result;
     }
 
     @Override
     public int readInt() throws IOException {
         readBytes(scratch.slice(0, Integer.BYTES));
         var result = scratch.getInt(0);
-        return bigEndian ? Integer.reverseBytes(result) : result;
+        return order() == ByteOrder.BIG_ENDIAN ? Integer.reverseBytes(result) : result;
     }
 
     @Override
     public long readLong() throws IOException {
         readBytes(scratch.slice(0, Long.BYTES));
         var result = scratch.getLong(0);
-        return bigEndian ? Long.reverseBytes(result) : result;
+        return order() == ByteOrder.BIG_ENDIAN ? Long.reverseBytes(result) : result;
     }
 
     @Override
@@ -114,8 +116,8 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
                 var compressedSlice = compressed.slice(0, chunk.compressedSize());
                 var decompressedSlice = decompressed.slice(0, chunk.size());
 
-                reader.position(chunk.compressedOffset());
-                reader.readBytes(compressedSlice);
+                source.position(chunk.compressedOffset());
+                source.readBytes(compressedSlice);
                 decompress(compressedSlice, decompressedSlice, chunk);
             }
 
@@ -132,50 +134,46 @@ public abstract class ChunkedBinaryReader<T extends ChunkedBinaryReader.Chunk> e
     }
 
     @Override
-    public BinaryReader position(long pos) {
+    public BinarySource position(long pos) {
         position = Check.position(pos, size(), "position");
         return this;
     }
 
     @Override
-    public BinaryReader slice(long offset, long length) {
+    public BinarySource slice(long offset, long length) {
         Check.fromIndexSize(offset, length, size());
-        long absoluteOffset = this.offset + offset;
-        if (length == 0) {
-            return new SliceBinaryReader<>(reader, chunks, compressed.length(), decompressed.length(), 0, absoluteOffset, this);
-        }
-        var floor = chunks.floorKey(absoluteOffset);
-        if (floor == null) {
-            throw new IllegalArgumentException("No chunk found for offset " + offset);
-        }
-        var ceiling = chunks.ceilingKey(absoluteOffset + length);
-        var slice = ceiling != null
-            ? chunks.subMap(floor, true, ceiling, false)
-            : chunks.tailMap(floor, true);
-        return new SliceBinaryReader<>(reader, slice, compressed.length(), decompressed.length(), length, absoluteOffset, this);
+        return new SliceBinarySource<>(
+            source,
+            chunks,
+            compressed.length(),
+            decompressed.length(),
+            length,
+            this.offset + offset,
+            this);
     }
 
     @Override
     public void close() throws IOException {
-        reader.close();
+        source.close();
     }
 
     protected abstract void decompress(Bytes.Mutable src, Bytes.Mutable dst, T chunk);
 
-    private static final class SliceBinaryReader<T extends Chunk> extends ChunkedBinaryReader<T> {
-        final ChunkedBinaryReader<T> delegate;
+    private static final class SliceBinarySource<T extends Chunk> extends ChunkedBinarySource<T> {
+        final ChunkedBinarySource<T> delegate;
 
-        SliceBinaryReader(
-            BinaryReader reader,
+        SliceBinarySource(
+            BinarySource source,
             NavigableMap<Long, T> chunks,
             int maxCompressedSize,
             int maxDecompressedSize,
             long size,
             long baseOffset,
-            ChunkedBinaryReader<T> delegate
+            ChunkedBinarySource<T> delegate
         ) {
-            super(reader, chunks, maxCompressedSize, maxDecompressedSize, size, baseOffset);
+            super(source, chunks, maxCompressedSize, maxDecompressedSize, size, baseOffset);
             this.delegate = delegate;
+            order(delegate.order());
         }
 
         @Override

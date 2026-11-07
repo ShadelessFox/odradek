@@ -1,6 +1,8 @@
 package sh.adelessfox.odradek.graphics;
 
-public record Program(ProgramType type, ProgramFormat format, byte[] blob) {
+import wtf.reversed.toolbox.collect.Bytes;
+
+public record Program(ProgramType type, ProgramFormat format, Bytes blob) {
     /**
      * Disassembles the program into a human-readable format. The exact output depends on the program type and format.
      *

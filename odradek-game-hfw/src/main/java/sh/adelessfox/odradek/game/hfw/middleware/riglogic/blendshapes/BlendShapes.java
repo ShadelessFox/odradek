@@ -1,19 +1,20 @@
 package sh.adelessfox.odradek.game.hfw.middleware.riglogic.blendshapes;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Shorts;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public record BlendShapes(
-    short[] lods,
-    short[] inputIndices,
-    short[] outputIndices
+    Shorts lods,
+    Shorts inputIndices,
+    Shorts outputIndices
 ) {
-    public static BlendShapes read(BinaryReader reader) throws IOException {
+    public static BlendShapes read(BinarySource source) throws IOException {
         return new BlendShapes(
-            reader.readShorts(reader.readInt()),
-            reader.readShorts(reader.readInt()),
-            reader.readShorts(reader.readInt())
+            source.readShorts(source.readInt()),
+            source.readShorts(source.readInt()),
+            source.readShorts(source.readInt())
         );
     }
 }

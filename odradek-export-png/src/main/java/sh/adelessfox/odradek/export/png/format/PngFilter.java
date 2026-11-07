@@ -1,52 +1,70 @@
 package sh.adelessfox.odradek.export.png.format;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
+import java.util.List;
+import java.util.stream.IntStream;
+
 final class PngFilter {
     private final PngFormat format;
-    private final byte[][] filtered;
-    private byte[] previous;
-    private byte[] current;
+    private final List<Bytes.Mutable> filtered;
+    private Bytes.Mutable previous;
+    private Bytes.Mutable current;
 
     PngFilter(PngFormat format) {
-        this.filtered = new byte[5][format.bytesPerPixel() + format.bytesPerRow()];
-        this.previous = new byte[format.bytesPerPixel() + format.bytesPerRow()];
-        this.current = new byte[format.bytesPerPixel() + format.bytesPerRow()];
+        int length = format.bytesPerPixel() + format.bytesPerRow();
+        this.filtered = IntStream.range(0, 5).mapToObj(_ -> Bytes.allocate(length)).toList();
+        this.previous = Bytes.allocate(length);
+        this.current = Bytes.allocate(length);
         this.format = format;
     }
 
-    int filter(byte[] row, int offset) {
+    void reset() {
+        previous.fill((byte) 0);
+    }
+
+    int filter(Bytes row, int offset) {
         int bpp = format.bytesPerPixel();
         int bpr = format.bytesPerRow();
 
-        System.arraycopy(row, offset, current, bpp, bpr);
+        row.slice(offset, bpr).copyTo(current, bpp);
         int best = filter(current, previous, filtered, bpp, bpr);
 
-        byte[] temp = previous;
+        Bytes.Mutable temp = previous;
         previous = current;
         current = temp;
         return best;
     }
 
-    byte[] filtered(int filter) {
-        return filtered[filter];
+    Bytes.Mutable filtered(int filter) {
+        return filtered.get(filter);
     }
 
-    private static int filter(byte[] curr, byte[] prev, byte[][] scratch, int bpp, int bpr) {
-        byte[] sRow = scratch[1];
-        byte[] uRow = scratch[2];
-        byte[] aRow = scratch[3];
-        byte[] pRow = scratch[4];
+    private static int filter(Bytes curr, Bytes prev, List<Bytes.Mutable> scratch, int bpp, int bpr) {
+        var sRow = scratch.get(1);
+        var uRow = scratch.get(2);
+        var aRow = scratch.get(3);
+        var pRow = scratch.get(4);
         int sadN = 0, sadS = 0, sadU = 0, sadA = 0, sadP = 0;
         for (int i = bpp; i < bpp + bpr; i++) {
-            int x = Byte.toUnsignedInt(curr[i]);
-            int a = Byte.toUnsignedInt(curr[i - bpp]);
-            int b = Byte.toUnsignedInt(prev[i]);
-            int c = Byte.toUnsignedInt(prev[i - bpp]);
+            int x = curr.getUnsigned(i);
+            int a = curr.getUnsigned(i - bpp);
+            int b = prev.getUnsigned(i);
+            int c = prev.getUnsigned(i - bpp);
 
-            sadN += Math.abs(curr[i]);
-            sadS += Math.abs(sRow[i] = (byte) (x - a));
-            sadU += Math.abs(uRow[i] = (byte) (x - b));
-            sadA += Math.abs(aRow[i] = (byte) (x - (a + b >>> 1)));
-            sadP += Math.abs(pRow[i] = (byte) (x - paeth(a, b, c)));
+            byte s = (byte) (x - a);
+            byte u = (byte) (x - b);
+            byte avg = (byte) (x - (a + b >>> 1));
+            byte p = (byte) (x - paeth(a, b, c));
+            sRow.set(i, s);
+            uRow.set(i, u);
+            aRow.set(i, avg);
+            pRow.set(i, p);
+            sadN += Math.abs((byte) x);
+            sadS += Math.abs(s);
+            sadU += Math.abs(u);
+            sadA += Math.abs(avg);
+            sadP += Math.abs(p);
         }
 
         int[] sad = {sadN, sadS, sadU, sadA, sadP};
@@ -59,7 +77,7 @@ final class PngFilter {
             }
         }
         if (filter == 0) {
-            System.arraycopy(curr, bpp, scratch[0], bpp, bpr);
+            curr.slice(bpp, bpr).copyTo(scratch.get(0), bpp);
         }
         return filter;
     }

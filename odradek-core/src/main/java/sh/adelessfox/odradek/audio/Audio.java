@@ -1,5 +1,6 @@
 package sh.adelessfox.odradek.audio;
 
+import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.util.Check;
 
 /**
@@ -10,7 +11,7 @@ import wtf.reversed.toolbox.util.Check;
  * @param samples The number of samples
  * @param data    The codec-specific audio data
  */
-public record Audio(AudioCodec codec, AudioFormat format, int samples, byte[] data) {
+public record Audio(AudioCodec codec, AudioFormat format, int samples, Bytes data) {
     public Audio {
         Check.positive(samples, "samples");
     }

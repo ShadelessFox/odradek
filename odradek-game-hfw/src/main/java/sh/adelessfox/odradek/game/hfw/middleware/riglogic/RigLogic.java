@@ -4,7 +4,7 @@ import sh.adelessfox.odradek.game.hfw.middleware.riglogic.animatedmaps.AnimatedM
 import sh.adelessfox.odradek.game.hfw.middleware.riglogic.blendshapes.BlendShapes;
 import sh.adelessfox.odradek.game.hfw.middleware.riglogic.controls.Controls;
 import sh.adelessfox.odradek.game.hfw.middleware.riglogic.joints.Joints;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
@@ -17,19 +17,19 @@ public record RigLogic(
     BlendShapes blendShapes,
     AnimatedMaps animatedMaps
 ) {
-    public static RigLogic read(BinaryReader reader) throws IOException {
-        reader.order(ByteOrder.BIG_ENDIAN);
+    public static RigLogic read(BinarySource source) throws IOException {
+        source.order(ByteOrder.BIG_ENDIAN);
         try {
-            var config = Configuration.read(reader);
-            var metrics = RigMetrics.read(reader);
-            var controls = Controls.read(reader);
-            var joints = Joints.read(reader);
-            var blendShapes = BlendShapes.read(reader);
-            var animatedMaps = AnimatedMaps.read(reader);
+            var config = Configuration.read(source);
+            var metrics = RigMetrics.read(source);
+            var controls = Controls.read(source);
+            var joints = Joints.read(source);
+            var blendShapes = BlendShapes.read(source);
+            var animatedMaps = AnimatedMaps.read(source);
 
             return new RigLogic(config, metrics, controls, joints, blendShapes, animatedMaps);
         } finally {
-            reader.order(ByteOrder.LITTLE_ENDIAN);
+            source.order(ByteOrder.LITTLE_ENDIAN);
         }
     }
 }

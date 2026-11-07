@@ -5,13 +5,15 @@ import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.Shader;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
 public final class ShaderBlobExporter extends BaseShaderExporter implements Exporter.OfMultipleOutputs<Shader> {
     @Override
     protected void write(Program program, WritableByteChannel channel) throws IOException {
-        channel.write(ByteBuffer.wrap(program.blob()));
+        var buffer = program.blob().asBuffer();
+        while (buffer.hasRemaining()) {
+            channel.write(buffer);
+        }
     }
 
     @Override

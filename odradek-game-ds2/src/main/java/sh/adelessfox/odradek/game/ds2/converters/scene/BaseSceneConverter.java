@@ -8,10 +8,9 @@ import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.scene.Scene;
+import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.math.Matrix4;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +23,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         DS2.StreamingDataSource dataSource,
         DS2Game game
     ) {
-        var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
+        var buffer = new StreamingCursor(game.readDataSource(dataSource));
         var primitives = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
@@ -73,7 +72,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
     private static void readVertices(
         DS2.VertexArrayResource object,
-        ByteBuffer buffer,
+        StreamingCursor buffer,
         MeshReader reader
     ) {
         var weights = new ArrayList<Accessor>();
@@ -83,13 +82,11 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         for (var stream : object.streams()) {
             var stride = stream.stride();
 
-            ByteBuffer view;
+            Bytes view;
             if (object.isStreaming()) {
                 view = readBuffer(buffer, count, stride);
             } else {
-                view = ByteBuffer
-                    .wrap(stream.data())
-                    .order(ByteOrder.LITTLE_ENDIAN);
+                view = stream.data();
             }
 
             for (var element : stream.elements()) {
@@ -149,7 +146,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
     private static void readIndices(
         DS2.IndexArrayResource object,
-        ByteBuffer buffer,
+        StreamingCursor buffer,
         int startIndex,
         int endIndex,
         MeshReader reader
@@ -162,27 +159,36 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         var count = object.count();
         var stride = object.format().unwrap().stride();
 
-        ByteBuffer view;
+        Bytes view;
         if (object.isStreaming()) {
             view = readBuffer(buffer, count, stride);
         } else {
-            view = ByteBuffer
-                .wrap(object.data())
-                .order(ByteOrder.LITTLE_ENDIAN);
+            view = object.data();
         }
 
         var accessor = Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
         reader.setIndices(accessor);
     }
 
-    private static ByteBuffer readBuffer(ByteBuffer buffer, int count, int stride) {
-        int position = align(buffer.position(), stride);
+    private static Bytes readBuffer(StreamingCursor buffer, int count, int stride) {
+        int position = align(buffer.position, stride);
         int size = count * stride;
-        var view = buffer
-            .slice(position, size)
-            .order(ByteOrder.LITTLE_ENDIAN);
-        buffer.position(position + size);
+        var view = buffer.data.slice(position, size);
+        buffer.position = position + size;
         return view;
+    }
+
+    private static final class StreamingCursor {
+        private final Bytes data;
+        private int position;
+
+        private StreamingCursor(Bytes data) {
+            this.data = data;
+        }
+
+        private boolean hasRemaining() {
+            return position < data.length();
+        }
     }
 
     private static int lcm(int c) {

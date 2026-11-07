@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.shape;
 
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.JoltUtils;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -11,10 +11,10 @@ public class BoxShape extends ConvexShape {
     public float convexRadius;
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        halfExtent = JoltUtils.readAlignedVector3(reader);
-        convexRadius = reader.readFloat();
+        halfExtent = JoltUtils.readAlignedVector3(source);
+        convexRadius = source.readFloat();
     }
 }

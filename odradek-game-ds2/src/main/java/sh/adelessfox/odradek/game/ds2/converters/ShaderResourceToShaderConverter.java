@@ -9,7 +9,7 @@ import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.ProgramFormat;
 import sh.adelessfox.odradek.graphics.ProgramType;
 import sh.adelessfox.odradek.graphics.Shader;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -21,8 +21,8 @@ public final class ShaderResourceToShaderConverter implements Converter<DS2.Shad
         HwShader shader;
 
         try {
-            byte[] data = game.readDataSource(object.streamingDataSource());
-            shader = HwShader.read(BinaryReader.wrap(data));
+            var data = game.readDataSource(object.streamingDataSource());
+            shader = HwShader.read(BinarySource.wrap(data));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.audio.container.at9;
 
 import sh.adelessfox.odradek.audio.container.riff.RiffChunkReader;
 import sh.adelessfox.odradek.audio.container.wave.WaveFactChunk;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -12,15 +12,15 @@ public final class Atrac9FactChunk extends WaveFactChunk {
     private final int inputOverlapDelaySamples;
     private final int encoderDelaySamples;
 
-    public Atrac9FactChunk(BinaryReader reader) throws IOException {
-        super(reader);
+    public Atrac9FactChunk(BinarySource source) throws IOException {
+        super(source);
 
-        inputOverlapDelaySamples = reader.readInt();
-        encoderDelaySamples = reader.readInt();
+        inputOverlapDelaySamples = source.readInt();
+        encoderDelaySamples = source.readInt();
     }
 
     public static RiffChunkReader<Atrac9FactChunk> reader() {
-        return (reader, _) -> new Atrac9FactChunk(reader);
+        return (source, _) -> new Atrac9FactChunk(source);
     }
 
     public int inputOverlapDelaySamples() {

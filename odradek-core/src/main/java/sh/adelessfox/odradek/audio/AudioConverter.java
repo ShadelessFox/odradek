@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.audio.container.riff.RiffParser;
 import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.audio.container.wave.WaveFmtChunk;
-import sh.adelessfox.odradek.io.BinaryReader;
+import sh.adelessfox.odradek.io.BinaryWriter;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,21 +56,19 @@ final class AudioConverter {
         return new Audio(codec, format, audio.samples(), audio.data());
     }
 
-    private static byte[] remap(
-        byte[] data,
+    private static Bytes remap(
+        Bytes data,
         int sampleCount,
         int sampleSize,
         int sourceChannels,
         int targetChannels
     ) {
-        var buffer = new byte[sampleCount * sampleSize * targetChannels];
+        var buffer = Bytes.allocate(sampleCount * sampleSize * targetChannels);
         for (int i = 0; i < sampleCount; i++) {
             for (int ch = 0; ch < targetChannels; ch++) {
                 int srcCh = ch % sourceChannels;
-                System.arraycopy(
-                    data, (i * sourceChannels + srcCh) * sampleSize,
-                    buffer, (i * targetChannels + ch) * sampleSize,
-                    sampleSize);
+                data.slice((i * sourceChannels + srcCh) * sampleSize, sampleSize)
+                    .copyTo(buffer, (i * targetChannels + ch) * sampleSize);
             }
         }
         return buffer;
@@ -83,7 +83,7 @@ final class AudioConverter {
         }
     }
 
-    private static byte[] convertToWav(Audio audio, AudioCodec.Pcm target) throws IOException, InterruptedException {
+    private static Bytes convertToWav(Audio audio, AudioCodec.Pcm target) throws IOException, InterruptedException {
         var vgmstream = VgmstreamDownloader.download();
         var input = extractTempFile(audio);
         var command = buildVgmstreamCommand(vgmstream, input, target);
@@ -93,9 +93,9 @@ final class AudioConverter {
                 .command(command)
                 .start();
 
-            byte[] stdout;
+            Bytes stdout;
             try (InputStream in = process.getInputStream()) {
-                stdout = in.readAllBytes();
+                stdout = Bytes.wrap(in.readAllBytes());
             }
 
             byte[] stderr;
@@ -139,18 +139,18 @@ final class AudioConverter {
             format);
     }
 
-    private static Audio unpackWavToAudio(byte[] wav, AudioCodec.Pcm target) throws IOException {
+    private static Audio unpackWavToAudio(Bytes wav, AudioCodec.Pcm target) throws IOException {
         var riff = new RiffParser()
             .reader(WaveFmtChunk.ID, WaveFmtChunk.reader())
             .reader(WaveDataChunk.ID, WaveDataChunk.reader())
-            .parse(BinaryReader.wrap(wav));
+            .parse(BinarySource.wrap(wav));
 
         var fmt = riff.get(WaveFmtChunk.ID).orElseThrow(() -> new IllegalStateException("Missing fmt chunk"));
         var data = riff.get(WaveDataChunk.ID).orElseThrow(() -> new IllegalStateException("Missing data chunk"));
 
         int sampleRate = fmt.sampleRate();
         int channels = fmt.channelCount();
-        int samples = data.data().length / (target.sizeBytes() * channels);
+        int samples = data.data().length() / (target.sizeBytes() * channels);
 
         return new Audio(target, new AudioFormat(sampleRate, channels), samples, data.data());
     }
@@ -163,7 +163,9 @@ final class AudioConverter {
         };
         try {
             var file = Files.createTempFile("odradek-vgstream", suffix);
-            Files.write(file, audio.data());
+            try (var writer = BinaryWriter.open(file)) {
+                writer.writeBytes(audio.data());
+            }
             return file;
         } catch (IOException e) {
             log.error("Failed to extract audio to temporary file", e);

@@ -8,10 +8,10 @@ import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.scene.Scene;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.collect.Shorts;
 import wtf.reversed.toolbox.math.Matrix4;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         HFW.StreamingDataSource dataSource,
         HFWGame game
     ) {
-        var buffer = ByteBuffer.wrap(game.readDataSource(dataSource)).order(ByteOrder.LITTLE_ENDIAN);
+        var buffer = new StreamingCursor(game.readDataSource(dataSource));
         var meshes = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
@@ -72,20 +72,16 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         var accessor = buildBufferAccessor(buffer);
         var view = accessor.asShortView();
 
-        var output = ByteBuffer
-            .allocate(accessor.count() * accessor.componentCount() * Short.BYTES)
-            .order(ByteOrder.LITTLE_ENDIAN);
+        var output = Shorts.allocate(accessor.count() * 4);
 
         // TODO: Figure what might've affected the order
         for (int i = 0; i < accessor.count(); i++) {
             output
-                .putShort(view.get(i, 1))
-                .putShort(view.get(i, 0))
-                .putShort((short) 0)
-                .putShort((short) 0);
+                .set(i * 4, view.get(i, 1))
+                .set(i * 4 + 1, view.get(i, 0));
         }
 
-        return Accessor.of(output.flip(), new Type.I16(4, true, false), accessor.count());
+        return Accessor.of(output.asBytes(), new Type.I16(4, true, false), accessor.count());
     }
 
     private static Accessor buildBufferAccessor(HFW.DataBufferResource buffer) {
@@ -94,7 +90,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         }
 
         int count = buffer.count();
-        var data = ByteBuffer.wrap(buffer.data()).order(ByteOrder.LITTLE_ENDIAN);
+        var data = buffer.data();
 
         return switch (buffer.format().unwrap()) {
             case R_FLOAT_32 -> Accessor.of(data, new Type.F32(1), count);
@@ -129,7 +125,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
     private static void readVertices(
         HFW.VertexArrayResource object,
-        ByteBuffer buffer,
+        StreamingCursor buffer,
         MeshReader reader
     ) {
         var weights = new ArrayList<Accessor>();
@@ -139,13 +135,11 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         for (var stream : object.streams()) {
             var stride = stream.stride();
 
-            ByteBuffer view;
+            Bytes view;
             if (object.isStreaming()) {
                 view = readBufferAligned(buffer, count, stride);
             } else {
-                view = ByteBuffer
-                    .wrap(stream.data())
-                    .order(ByteOrder.LITTLE_ENDIAN);
+                view = stream.data();
             }
 
             for (var element : stream.elements()) {
@@ -205,7 +199,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
     private static void readIndices(
         HFW.IndexArrayResource object,
-        ByteBuffer buffer,
+        StreamingCursor buffer,
         int startIndex,
         int endIndex,
         MeshReader reader
@@ -218,27 +212,36 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         var count = object.count();
         var stride = object.format().unwrap().stride();
 
-        ByteBuffer view;
+        Bytes view;
         if (object.isStreaming()) {
             view = readBufferAligned(buffer, count, stride);
         } else {
-            view = ByteBuffer
-                .wrap(object.data())
-                .order(ByteOrder.LITTLE_ENDIAN);
+            view = object.data();
         }
 
         var accessor = Accessor.of(view, startIndex * stride, stride, type, endIndex - startIndex);
         reader.setIndices(accessor);
     }
 
-    private static ByteBuffer readBufferAligned(ByteBuffer buffer, int count, int stride) {
-        int position = alignUp(buffer.position(), stride);
+    private static Bytes readBufferAligned(StreamingCursor buffer, int count, int stride) {
+        int position = alignUp(buffer.position, stride);
         int size = count * stride;
-        var view = buffer
-            .slice(position, size)
-            .order(ByteOrder.LITTLE_ENDIAN);
-        buffer.position(position + size);
+        var view = buffer.data.slice(position, size);
+        buffer.position = position + size;
         return view;
+    }
+
+    private static final class StreamingCursor {
+        private final Bytes data;
+        private int position;
+
+        private StreamingCursor(Bytes data) {
+            this.data = data;
+        }
+
+        private boolean hasRemaining() {
+            return position < data.length();
+        }
     }
 
     private static int alignUp(int value, int alignment) {

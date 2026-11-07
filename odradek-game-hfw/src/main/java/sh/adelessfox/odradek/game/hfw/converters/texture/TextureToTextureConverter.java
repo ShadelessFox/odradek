@@ -7,7 +7,6 @@ import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureKind;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -26,8 +25,10 @@ public final class TextureToTextureConverter
 
         var textureSet = object.textureSetParent() != null ? object.textureSetParent().get() : null;
         var dataSource = textureSet != null ? textureSet.streamingDataSource() : object.streamingDataSource();
-        var streamedData = ByteBuffer.wrap(game.readDataSource(dataSource));
-        var embeddedData = ByteBuffer.wrap(object.data().embeddedData());
+        var streamedData = game.readDataSource(dataSource);
+        var embeddedData = object.data().embeddedData();
+        int streamedOffset = 0;
+        int embeddedOffset = 0;
 
         int width = object.header().width() & 0x3FFF;
         int height = object.header().height() & 0x3FFF;
@@ -49,21 +50,24 @@ public final class TextureToTextureConverter
 
             for (int element = 0; element < elements; element++) {
                 var surface = Surface.create(mipWidth, mipHeight, format, colorSpace);
+                int size = surface.data().length();
 
                 if (mip >= object.data().streamedMips()) {
-                    embeddedData.get(surface.data());
+                    embeddedData.slice(embeddedOffset, size).copyTo(surface.data(), 0);
+                    embeddedOffset += size;
                 } else if (textureSet == null) {
-                    streamedData.get(surface.data());
+                    streamedData.slice(streamedOffset, size).copyTo(surface.data(), 0);
+                    streamedOffset += size;
                 } else {
-                    streamedData.get(object.streamingMipOffsets()[mip], surface.data());
+                    streamedData.slice(object.streamingMipOffsets().get(mip), size).copyTo(surface.data(), 0);
                 }
 
                 surfaces.add(surface);
             }
         }
 
-        assert !streamedData.hasRemaining() || textureSet != null;
-        assert !embeddedData.hasRemaining();
+        assert streamedOffset == streamedData.length() || textureSet != null;
+        assert embeddedOffset == embeddedData.length();
 
         return Optional.of(new Texture(
             format,

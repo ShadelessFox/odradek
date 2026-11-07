@@ -10,6 +10,7 @@ import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.util.SimpleTypeVisitor;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -101,8 +102,8 @@ public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
 
         @Override
         public void visitContainer(ContainerTypeInfo info, Object object, JsonWriter writer) throws IOException {
-            if (object instanceof byte[] bytes) {
-                writer.value(Base64.getEncoder().encodeToString(bytes));
+            if (object instanceof Bytes bytes) {
+                writer.value(Base64.getEncoder().encodeToString(bytes.toArray()));
             } else {
                 writer.beginArray();
                 super.visitContainer(info, object, writer);

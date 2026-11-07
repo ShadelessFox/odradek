@@ -1,13 +1,14 @@
 package sh.adelessfox.odradek.rtti.io;
 
 import sh.adelessfox.odradek.NotImplementedException;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import wtf.reversed.toolbox.collect.*;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 import java.lang.invoke.VarHandle;
@@ -18,38 +19,38 @@ import java.util.Map;
 public abstract class AbstractTypeReader {
     private final Map<ClassTypeInfo, AttributeReader[]> decodingPlans = new IdentityHashMap<>();
 
-    public Object read(TypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+    public Object read(TypeInfo info, BinarySource source, TypeFactory factory) throws IOException {
         return switch (info) {
-            case AtomTypeInfo t -> readAtom(t, reader, factory);
-            case EnumTypeInfo t -> readEnum(t, reader, factory);
-            case ClassTypeInfo t -> readCompound(t, reader, factory);
-            case ContainerTypeInfo t -> readContainer(t, reader, factory);
-            case PointerTypeInfo t -> readPointer(t, reader, factory);
+            case AtomTypeInfo t -> readAtom(t, source, factory);
+            case EnumTypeInfo t -> readEnum(t, source, factory);
+            case ClassTypeInfo t -> readCompound(t, source, factory);
+            case ContainerTypeInfo t -> readContainer(t, source, factory);
+            case PointerTypeInfo t -> readPointer(t, source, factory);
             case BitSetTypeInfo _ -> throw new NotImplementedException(); // TODO
         };
     }
 
     protected TypedObject readCompound(
         ClassTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory
     ) throws IOException {
         var object = info.newInstance();
-        fillCompound(info, reader, factory, object);
+        fillCompound(info, source, factory, object);
         return object;
     }
 
     protected void fillCompound(
         ClassTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory,
         Object target
     ) throws IOException {
         for (AttributeReader attribute : getOrCreateDecodingPlan(info)) {
-            attribute.read(reader, factory, target);
+            attribute.read(source, factory, target);
         }
         if (target instanceof ExtraBinaryDataHolder holder) {
-            holder.deserialize(reader, factory);
+            holder.deserialize(source, factory);
         }
     }
 
@@ -66,15 +67,15 @@ public abstract class AbstractTypeReader {
             plan[i] = switch (attr.type()) {
                 case AtomTypeInfo t -> {
                     var atomReader = readerForAtom(t);
-                    yield (reader, _, target) -> atomReader.read(reader, target, handle);
+                    yield (source, _, target) -> atomReader.read(source, target, handle);
                 }
-                case EnumTypeInfo t -> (reader, factory, target) -> handle.set(target, readEnum(t, reader, factory));
+                case EnumTypeInfo t -> (source, factory, target) -> handle.set(target, readEnum(t, source, factory));
                 case ClassTypeInfo t ->
-                    (reader, factory, target) -> handle.set(target, readCompound(t, reader, factory));
+                    (source, factory, target) -> handle.set(target, readCompound(t, source, factory));
                 case ContainerTypeInfo t ->
-                    (reader, factory, target) -> handle.set(target, readContainer(t, reader, factory));
+                    (source, factory, target) -> handle.set(target, readContainer(t, source, factory));
                 case PointerTypeInfo t ->
-                    (reader, factory, target) -> handle.set(target, readPointer(t, reader, factory));
+                    (source, factory, target) -> handle.set(target, readPointer(t, source, factory));
                 case BitSetTypeInfo _ -> (_, _, _) -> {
                     throw new NotImplementedException(); // TODO
                 };
@@ -85,18 +86,18 @@ public abstract class AbstractTypeReader {
 
     @FunctionalInterface
     private interface AttributeReader {
-        void read(BinaryReader reader, TypeFactory factory, Object target) throws IOException;
+        void read(BinarySource source, TypeFactory factory, Object target) throws IOException;
     }
 
-    protected Object readAtom(AtomTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        return readerForAtom(info).read(reader);
+    protected Object readAtom(AtomTypeInfo info, BinarySource source, TypeFactory factory) throws IOException {
+        return readerForAtom(info).read(source);
     }
 
-    protected Value<?> readEnum(EnumTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
+    protected Value<?> readEnum(EnumTypeInfo info, BinarySource source, TypeFactory factory) throws IOException {
         int value = switch (info.size()) {
-            case Byte.BYTES -> reader.readByte();
-            case Short.BYTES -> reader.readShort();
-            case Integer.BYTES -> reader.readInt();
+            case Byte.BYTES -> source.readByte();
+            case Short.BYTES -> source.readShort();
+            case Integer.BYTES -> source.readInt();
             default -> throw new IllegalArgumentException("Unexpected enum size: " + info.size());
         };
         if (info instanceof EnumSetTypeInfo) {
@@ -108,13 +109,13 @@ public abstract class AbstractTypeReader {
 
     protected abstract Object readContainer(
         ContainerTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory
     ) throws IOException;
 
     protected abstract Object readPointer(
         PointerTypeInfo info,
-        BinaryReader reader,
+        BinarySource source,
         TypeFactory factory
     ) throws IOException;
 
@@ -133,89 +134,89 @@ public abstract class AbstractTypeReader {
         AtomReader CHAR_16 = new Char16();
         AtomReader BOOL_8 = new Bool8();
 
-        Object read(BinaryReader reader) throws IOException;
+        Object read(BinarySource source) throws IOException;
 
-        default void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-            handle.set(target, read(reader));
+        default void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+            handle.set(target, read(source));
         }
 
-        default Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
+        default Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
             var result = info.newInstance(count);
             for (int i = 0; i < count; i++) {
-                info.set(result, i, read(reader));
+                info.set(result, i, read(source));
             }
             return result;
         }
 
         final class Int8 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readByte();
+            public Object read(BinarySource source) throws IOException {
+                return source.readByte();
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readByte());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readByte());
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == byte[].class;
-                return reader.readBytes(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Bytes.class;
+                return source.readBytes(count);
             }
         }
 
         final class Int16 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readShort();
+            public Object read(BinarySource source) throws IOException {
+                return source.readShort();
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readShort());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readShort());
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == short[].class;
-                return reader.readShorts(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Shorts.class;
+                return source.readShorts(count);
             }
         }
 
         final class Int32 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readInt();
+            public Object read(BinarySource source) throws IOException {
+                return source.readInt();
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readInt());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readInt());
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == int[].class;
-                return reader.readInts(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Ints.class;
+                return source.readInts(count);
             }
         }
 
         final class Int64 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readLong();
+            public Object read(BinarySource source) throws IOException {
+                return source.readLong();
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readLong());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readLong());
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == long[].class;
-                return reader.readLongs(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Longs.class;
+                return source.readLongs(count);
             }
         }
 
@@ -227,8 +228,8 @@ public abstract class AbstractTypeReader {
             }
 
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                var magnitude = reader.readBytes(16);
+            public Object read(BinarySource source) throws IOException {
+                var magnitude = source.readBytes(16).toArray();
 
                 // The value is stored in little-endian order; BigInteger expects big-endian order
                 for (int i = 0; i < 8; i++) {
@@ -243,91 +244,91 @@ public abstract class AbstractTypeReader {
 
         final class Float16 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readHalf();
+            public Object read(BinarySource source) throws IOException {
+                return source.readHalf();
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readHalf());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readHalf());
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == float[].class;
-                return reader.readHalfs(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Floats.class;
+                return source.readHalfs(count);
             }
         }
 
         final class Float32 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readFloat();
+            public Object read(BinarySource source) throws IOException {
+                return source.readFloat();
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readFloat());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readFloat());
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == float[].class;
-                return reader.readFloats(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Floats.class;
+                return source.readFloats(count);
             }
         }
 
         final class Float64 implements AtomReader {
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readDouble());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readDouble());
             }
 
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readDouble();
+            public Object read(BinarySource source) throws IOException {
+                return source.readDouble();
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == double[].class;
-                return reader.readDoubles(count);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Doubles.class;
+                return source.readDoubles(count);
             }
         }
 
         final class Bool8 implements AtomReader {
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return reader.readBool(BoolFormat.BYTE);
+            public Object read(BinarySource source) throws IOException {
+                return source.readBool(BoolFormat.BYTE);
             }
 
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, reader.readBool(BoolFormat.BYTE));
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, source.readBool(BoolFormat.BYTE));
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == boolean[].class;
-                return AtomReader.super.read(reader, count, info);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Booleans.class;
+                return AtomReader.super.read(source, count, info);
             }
         }
 
         final class Char16 implements AtomReader {
             @Override
-            public void read(BinaryReader reader, Object target, VarHandle handle) throws IOException {
-                handle.set(target, (char) reader.readShort());
+            public void read(BinarySource source, Object target, VarHandle handle) throws IOException {
+                handle.set(target, (char) source.readShort());
             }
 
             @Override
-            public Object read(BinaryReader reader) throws IOException {
-                return (char) reader.readShort();
+            public Object read(BinarySource source) throws IOException {
+                return (char) source.readShort();
             }
 
             @Override
-            public Object read(BinaryReader reader, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == char[].class;
-                return AtomReader.super.read(reader, count, info);
+            public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
+                assert info.type() == Chars.class;
+                return AtomReader.super.read(source, count, info);
             }
         }
     }

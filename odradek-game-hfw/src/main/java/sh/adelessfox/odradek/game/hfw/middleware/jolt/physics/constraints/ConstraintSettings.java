@@ -1,15 +1,15 @@
 package sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.constraints;
 
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.core.Factory;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public class ConstraintSettings {
     public float drawConstraintSize;
 
-    public static ConstraintSettings restoreFromBinaryState(BinaryReader reader) throws IOException {
-        var hash = reader.readInt();
+    public static ConstraintSettings restoreFromBinaryState(BinarySource source) throws IOException {
+        var hash = source.readInt();
         var name = Factory.getTypeName(hash);
         var result = switch (name) {
             case "HingeConstraintSettings" -> new HingeConstraintSettings();
@@ -18,11 +18,11 @@ public class ConstraintSettings {
             case "SliderConstraintSettings" -> new SliderConstraintSettings();
             default -> throw new UnsupportedOperationException("Constraint %s not implemented".formatted(name));
         };
-        result.restoreBinaryState(reader);
+        result.restoreBinaryState(source);
         return result;
     }
 
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        drawConstraintSize = reader.readFloat();
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        drawConstraintSize = source.readFloat();
     }
 }

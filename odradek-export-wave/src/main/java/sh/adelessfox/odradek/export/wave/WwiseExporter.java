@@ -5,7 +5,6 @@ import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.game.Exporter;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
@@ -15,7 +14,10 @@ public final class WwiseExporter implements Exporter.OfSingleOutput<Audio> {
         if (!(object.codec() instanceof AudioCodec.Wwise)) {
             throw new IllegalArgumentException("Audio must be in Wwise format");
         }
-        channel.write(ByteBuffer.wrap(object.data()));
+        var data = object.data().asBuffer();
+        while (data.hasRemaining()) {
+            channel.write(data);
+        }
     }
 
     @Override

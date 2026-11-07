@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -14,16 +14,16 @@ public record RigMetrics(
     short blendShapeCount,
     short animatedMapCount
 ) {
-    public static RigMetrics read(BinaryReader reader) throws IOException {
+    public static RigMetrics read(BinarySource source) throws IOException {
         return new RigMetrics(
-            reader.readShort(),
-            reader.readShort(),
-            reader.readShort(),
-            reader.readShort(),
-            reader.readShort(),
-            reader.readShort(),
-            reader.readShort(),
-            reader.readShort()
+            source.readShort(),
+            source.readShort(),
+            source.readShort(),
+            source.readShort(),
+            source.readShort(),
+            source.readShort(),
+            source.readShort(),
+            source.readShort()
         );
     }
 }

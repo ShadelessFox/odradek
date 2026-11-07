@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.VarHandle;
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -504,8 +504,8 @@ public class TypeContext {
 
         @Override
         public Object newInstance(int length) {
-            if (isArray()) {
-                return Array.newInstance(itemType().type(), length);
+            if (itemType().type().isPrimitive()) {
+                return PrimitiveContainers.allocate(itemType().type(), length);
             } else {
                 return Arrays.asList(new Object[length]);
             }
@@ -513,34 +513,39 @@ public class TypeContext {
 
         @Override
         public Object get(Object object, int index) {
-            if (isArray()) {
-                return Array.get(object, index);
-            } else {
-                return ((List<?>) object).get(index);
-            }
+            return switch (object) {
+                case Bytes values -> values.get(index);
+                case Shorts values -> values.get(index);
+                case Ints values -> values.get(index);
+                case Longs values -> values.get(index);
+                case Floats values -> values.get(index);
+                case Doubles values -> values.get(index);
+                case Chars values -> values.get(index);
+                case Booleans values -> values.get(index);
+                default -> ((List<?>) object).get(index);
+            };
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void set(Object object, int index, Object value) {
-            if (isArray()) {
-                Array.set(object, index, value);
-            } else {
-                ((List<Object>) object).set(index, value);
+            switch (object) {
+                case Bytes.Mutable values -> values.set(index, (byte) value);
+                case Shorts.Mutable values -> values.set(index, (short) value);
+                case Ints.Mutable values -> values.set(index, (int) value);
+                case Longs.Mutable values -> values.set(index, (long) value);
+                case Floats.Mutable values -> values.set(index, (float) value);
+                case Doubles.Mutable values -> values.set(index, (double) value);
+                case Chars.Mutable values -> values.set(index, (char) value);
+                case Booleans.Mutable values -> values.set(index, (boolean) value);
+                case Slice _ -> throw new UnsupportedOperationException("Cannot modify a read-only primitive container");
+                default -> ((List<Object>) object).set(index, value);
             }
         }
 
         @Override
         public int length(Object object) {
-            if (isArray()) {
-                return Array.getLength(object);
-            } else {
-                return ((List<?>) object).size();
-            }
-        }
-
-        private boolean isArray() {
-            return itemType().type().isPrimitive();
+            return object instanceof Slice slice ? slice.length() : ((List<?>) object).size();
         }
     }
 

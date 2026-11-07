@@ -7,8 +7,8 @@ import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.Collisio
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.GroupFilter;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.PhysicsMaterial;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.shape.Shape;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,22 +41,22 @@ public class BodyCreationSettings {
     public Shape shape;
 
     public static BodyCreationSettings sRestoreWithChildren(
-        BinaryReader reader,
+        BinarySource source,
         List<Shape> shapeMap,
         List<PhysicsMaterial> materialMap,
         List<GroupFilter> groupFilterMap
     ) throws IOException {
         BodyCreationSettings settings = new BodyCreationSettings();
-        settings.restoreBinaryState(reader);
-        settings.shape = Shape.sRestoreWithChildren(reader, shapeMap, materialMap).orElse(null);
+        settings.restoreBinaryState(source);
+        settings.shape = Shape.sRestoreWithChildren(source, shapeMap, materialMap).orElse(null);
 
-        int groupFilterId = reader.readInt();
+        int groupFilterId = source.readInt();
         if (groupFilterId != ~0) {
             GroupFilter groupFilter;
 
             if (groupFilterId >= groupFilterMap.size()) {
                 assert groupFilterId == groupFilterMap.size();
-                groupFilter = GroupFilter.sRestoreFromBinaryState(reader);
+                groupFilter = GroupFilter.sRestoreFromBinaryState(source);
                 groupFilterMap.add(groupFilter);
             } else {
                 groupFilter = groupFilterMap.get(groupFilterId);
@@ -68,24 +68,24 @@ public class BodyCreationSettings {
         return settings;
     }
 
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        position = JoltUtils.readAlignedVector3(reader);
-        rotation = JoltUtils.readQuaternion(reader);
-        collisionGroup = CollisionGroup.restoreFromBinaryState(reader);
-        objectLayer = reader.readShort();
-        motionType = MotionType.values()[reader.readByte()];
-        allowDynamicOrKinematic = reader.readBool(BoolFormat.BYTE);
-        motionQuality = MotionQuality.values()[reader.readByte()];
-        allowSleeping = reader.readBool(BoolFormat.BYTE);
-        friction = reader.readFloat();
-        restitution = reader.readFloat();
-        linearDamping = reader.readFloat();
-        angularDamping = reader.readFloat();
-        maxLinearVelocity = reader.readFloat();
-        maxAngularVelocity = reader.readFloat();
-        gravityFactor = reader.readFloat();
-        overrideMassProperties = OverrideMassProperties.values()[reader.readByte()];
-        inertiaMultiplier = reader.readFloat();
-        massPropertiesOverride = MassProperties.restoreFromBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        position = JoltUtils.readAlignedVector3(source);
+        rotation = JoltUtils.readQuaternion(source);
+        collisionGroup = CollisionGroup.restoreFromBinaryState(source);
+        objectLayer = source.readShort();
+        motionType = MotionType.values()[source.readByte()];
+        allowDynamicOrKinematic = source.readBool(BoolFormat.BYTE);
+        motionQuality = MotionQuality.values()[source.readByte()];
+        allowSleeping = source.readBool(BoolFormat.BYTE);
+        friction = source.readFloat();
+        restitution = source.readFloat();
+        linearDamping = source.readFloat();
+        angularDamping = source.readFloat();
+        maxLinearVelocity = source.readFloat();
+        maxAngularVelocity = source.readFloat();
+        gravityFactor = source.readFloat();
+        overrideMassProperties = OverrideMassProperties.values()[source.readByte()];
+        inertiaMultiplier = source.readFloat();
+        massPropertiesOverride = MassProperties.restoreFromBinaryState(source);
     }
 }

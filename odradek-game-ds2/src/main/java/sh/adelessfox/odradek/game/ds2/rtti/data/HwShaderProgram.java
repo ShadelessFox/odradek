@@ -1,7 +1,8 @@
 package sh.adelessfox.odradek.game.ds2.rtti.data;
 
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -20,24 +21,24 @@ public record HwShaderProgram(
     int unk2C,
     int unk30,
     byte unk34,
-    byte[] blob
+    Bytes blob
 ) {
-    public static HwShaderProgram read(BinaryReader reader) throws IOException {
-        var unk00 = reader.readInt();
-        var unk04 = reader.readInt();
-        var unk08 = reader.readInt();
-        var unk0C = reader.readInt();
-        var unk10 = reader.readInt();
-        var type = DS2.EProgramType.valueOf((byte) reader.readInt());
-        var unk18 = reader.readInt();
-        var shaderModel = reader.readInt();
-        var unk20 = reader.readInt();
-        var unk24 = reader.readInt();
-        var unk28 = reader.readInt();
-        var unk2C = reader.readInt();
-        var unk30 = reader.readInt();
-        var unk34 = reader.readByte();
-        var blob = reader.readBytes(reader.readInt());
+    public static HwShaderProgram read(BinarySource source) throws IOException {
+        var unk00 = source.readInt();
+        var unk04 = source.readInt();
+        var unk08 = source.readInt();
+        var unk0C = source.readInt();
+        var unk10 = source.readInt();
+        var type = DS2.EProgramType.valueOf((byte) source.readInt());
+        var unk18 = source.readInt();
+        var shaderModel = source.readInt();
+        var unk20 = source.readInt();
+        var unk24 = source.readInt();
+        var unk28 = source.readInt();
+        var unk2C = source.readInt();
+        var unk30 = source.readInt();
+        var unk34 = source.readByte();
+        var blob = source.readBytes(source.readInt());
 
         return new HwShaderProgram(
             unk00,

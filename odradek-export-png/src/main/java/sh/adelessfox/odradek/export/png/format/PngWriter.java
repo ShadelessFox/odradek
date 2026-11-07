@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.export.png.format;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -11,7 +13,7 @@ import java.util.zip.Deflater;
 
 public final class PngWriter implements Closeable {
     // PNG signature
-    private final byte[] SIGNATURE = new byte[]{(byte) 0x89, 'P', 'N', 'G', '\r', '\n', (byte) 0x1A, '\n'};
+    private static final Bytes SIGNATURE = Bytes.wrap(new byte[]{(byte) 0x89, 'P', 'N', 'G', '\r', '\n', (byte) 0x1A, '\n'});
 
     // Chunk IDs
     private static final int IHDR = 'I' << 24 | 'H' << 16 | 'D' << 8 | 'R';
@@ -31,7 +33,8 @@ public final class PngWriter implements Closeable {
     private final int plays;
 
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
-    private final byte[] idatBuffer = new byte[1024 * 64 - 12];
+    private final Bytes.Mutable idatBuffer = Bytes.allocate(1024 * 64 - 12);
+    private final Bytes.Mutable filterMethodBuffer = Bytes.allocate(1);
     private int idatLength;
 
     private int sequenceNumber;
@@ -59,17 +62,17 @@ public final class PngWriter implements Closeable {
         return new PngWriter(format, channel, frames, plays);
     }
 
-    public void write(byte[] data) throws IOException {
+    public void write(Bytes data) throws IOException {
         if (frames > 0) {
             throw new IllegalStateException("Can't write frame to animated PNG, " +
-                "use write(byte[], Duration, PngDisposeMethod, PngBlendMethod) instead");
+                "use write(Bytes, Duration, PngDisposeMethod, PngBlendMethod) instead");
         }
         writeHeader();
         writeImage(data);
     }
 
     public void write(
-        byte[] data,
+        Bytes data,
         Duration duration,
         PngDisposeMethod dispose,
         PngBlendMethod blend
@@ -78,7 +81,7 @@ public final class PngWriter implements Closeable {
     }
 
     public void write(
-        byte[] data,
+        Bytes data,
         int x,
         int y,
         int width,
@@ -88,7 +91,7 @@ public final class PngWriter implements Closeable {
         PngBlendMethod blend
     ) throws IOException {
         if (frames == 0) {
-            throw new IllegalStateException("Can't write frame to non-animated PNG, use write(byte[]) instead");
+            throw new IllegalStateException("Can't write frame to non-animated PNG, use write(Bytes) instead");
         }
         if (frameNumber >= frames) {
             throw new IllegalStateException("Already wrote " + frames + " frames, can't write more");
@@ -118,7 +121,7 @@ public final class PngWriter implements Closeable {
     }
 
     private void writeHeader() throws IOException {
-        channel.write(ByteBuffer.wrap(SIGNATURE));
+        channel.write(SIGNATURE.asBuffer());
         writeIHDR();
         if (format.colorSpace() == PngColorSpace.SRGB) {
             writeSRGB();
@@ -127,39 +130,40 @@ public final class PngWriter implements Closeable {
         writeTEXt("Software", "Odradek");
     }
 
-    private void writeImage(byte[] image) throws IOException {
-        if (image.length != format.bytesPerImage()) {
+    private void writeImage(Bytes image) throws IOException {
+        if (image.length() != format.bytesPerImage()) {
             throw new IllegalArgumentException("image has wrong size, expected "
-                + format.bytesPerImage() + " but was " + image.length);
+                + format.bytesPerImage() + " but was " + image.length());
         }
+        filter.reset();
         for (int y = 0; y < format.height(); y++) {
             writeRow(image, y * format.bytesPerRow());
         }
         flush();
     }
 
-    private void writeRow(byte[] image, int offset) throws IOException {
-        if (offset + format.bytesPerRow() > image.length) {
+    private void writeRow(Bytes image, int offset) throws IOException {
+        if (offset + format.bytesPerRow() > image.length()) {
             throw new IllegalArgumentException("image has wrong size, expected at least " +
-                (offset + format.bytesPerRow()) + " but was " + image.length);
+                (offset + format.bytesPerRow()) + " but was " + image.length());
         }
         int filterMethod = filter.filter(image, offset);
-        deflate(new byte[]{(byte) filterMethod}, 0, 1);
-        deflate(filter.filtered(filterMethod), format.bytesPerPixel(), format.bytesPerRow());
+        deflate(filterMethodBuffer.set(0, (byte) filterMethod));
+        deflate(filter.filtered(filterMethod).slice(format.bytesPerPixel(), format.bytesPerRow()));
     }
 
-    private void deflate(byte[] array, int offset, int length) throws IOException {
-        deflater.setInput(array, offset, length);
+    private void deflate(Bytes data) throws IOException {
+        deflater.setInput(data.asBuffer());
         while (!deflater.needsInput()) {
             deflate();
         }
     }
 
     private void deflate() throws IOException {
-        int len = deflater.deflate(idatBuffer, idatLength, idatBuffer.length - idatLength);
+        int len = deflater.deflate(idatBuffer.asMutableBuffer().position(idatLength));
         if (len > 0) {
             idatLength += len;
-            if (idatLength == idatBuffer.length) {
+            if (idatLength == idatBuffer.length()) {
                 writeData();
             }
         }
@@ -197,14 +201,14 @@ public final class PngWriter implements Closeable {
     }
 
     private void writeIDAT() throws IOException {
-        writeChunk(IDAT, ByteBuffer.wrap(idatBuffer, 0, idatLength));
+        writeChunk(IDAT, idatBuffer.asBuffer().limit(idatLength));
         idatLength = 0;
     }
 
     private void writeFDAT(int sequenceNumber) throws IOException {
         var buffer = ByteBuffer.allocate(idatLength + 4)
             .putInt(sequenceNumber)
-            .put(idatBuffer, 0, idatLength)
+            .put(idatBuffer.asBuffer().limit(idatLength))
             .flip();
 
         writeChunk(fdAT, buffer);

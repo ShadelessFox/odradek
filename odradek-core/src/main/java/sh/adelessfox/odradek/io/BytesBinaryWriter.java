@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.io;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Objects;
@@ -82,10 +84,13 @@ public final class BytesBinaryWriter implements BinaryWriter {
         buffer = null;
     }
 
-    public byte[] toByteArray() {
+    /**
+     * Returns an independent snapshot of the bytes written so far.
+     */
+    public Bytes toBytes() {
         byte[] dst = new byte[length];
         buffer.get(0, dst, 0, length);
-        return dst;
+        return Bytes.wrap(dst);
     }
 
     private void reserve(int count) {
