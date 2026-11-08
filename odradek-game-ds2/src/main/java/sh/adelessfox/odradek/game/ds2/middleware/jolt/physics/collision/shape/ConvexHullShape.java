@@ -15,10 +15,10 @@ import java.util.List;
 public class ConvexHullShape extends ConvexShape {
     public record Point(Vec3 position, Ints faces) {
         private static Point read(BinarySource source) throws IOException {
-            final var position = JoltUtils.readAlignedVector3(source);
-            final var facesCount = source.readInt();
-            final var faces = source.readInts(3);
-            return new Point(position, faces.asBytes().asInts());
+            var position = JoltUtils.readAlignedVector3(source);
+            var facesCount = source.readInt();
+            var faces = source.readInts(3).slice(0, facesCount);
+            return new Point(position, faces);
         }
     }
 
