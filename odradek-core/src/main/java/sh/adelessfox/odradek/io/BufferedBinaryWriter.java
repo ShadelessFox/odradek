@@ -56,33 +56,10 @@ abstract class BufferedBinaryWriter extends BinaryWriter {
             return;
         }
 
-        // If there's pending data in the buffer, fill the remaining space first
-        int valuesPosition = 0;
-        if (bufferLength > 0) {
-            int remaining = bufferRemaining();
-            values.slice(0, remaining).copyTo(buffer, bufferPosition);
-            bufferPosition += remaining;
-            bufferLength = Math.max(bufferLength, bufferPosition);
-            valuesPosition += remaining;
-        }
-
+        // Otherwise, write directly to the output
         flush();
-
-        // If the remaining data fits in a single buffer, copy it there
-        int valuesRemaining = values.length() - valuesPosition;
-        if (valuesRemaining < BUFFER_SIZE) {
-            values.slice(valuesPosition, valuesRemaining).copyTo(buffer, 0);
-            bufferPosition = valuesRemaining;
-            bufferLength = valuesRemaining;
-            return;
-        }
-
-        // If not, do a straight write, buffer is emptied
-        while (valuesPosition < values.length()) {
-            int count = writeChecked(values.slice(valuesPosition), sourcePosition);
-            sourcePosition += count;
-            valuesPosition += count;
-        }
+        writeInternal(values, sourcePosition);
+        sourcePosition += values.length();
     }
 
     @Override
@@ -122,25 +99,25 @@ abstract class BufferedBinaryWriter extends BinaryWriter {
 
     @Override
     public final void flush() throws IOException {
-        int written = 0;
-        while (written < bufferLength) {
-            written += writeChecked(buffer.slice(written, bufferLength - written), sourcePosition + written);
-        }
+        writeInternal(buffer.slice(0, bufferLength), sourcePosition);
 
         sourcePosition += bufferPosition;
         bufferPosition = 0;
         bufferLength = 0;
     }
 
-    private int writeChecked(Bytes source, long position) throws IOException {
-        int count = writeImpl(source, position);
-        if (count < 0) {
-            throw new EOFException("Unexpected end of output");
+    private void writeInternal(Bytes source, long position) throws IOException {
+        int written = 0;
+        while (written < source.length()) {
+            int count = writeImpl(source.slice(written), position + written);
+            if (count < 0) {
+                throw new EOFException("Unexpected end of output");
+            }
+            if (count == 0 || count > source.length() - written) {
+                throw new IOException("Invalid write progress: " + count);
+            }
+            written += count;
         }
-        if (count == 0 || count > source.length()) {
-            throw new IOException("Invalid write progress: " + count);
-        }
-        return count;
     }
 
     private int bufferRemaining() {

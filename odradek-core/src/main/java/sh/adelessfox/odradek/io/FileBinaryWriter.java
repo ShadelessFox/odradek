@@ -1,6 +1,7 @@
 package sh.adelessfox.odradek.io;
 
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.util.Check;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -8,15 +9,16 @@ import java.nio.file.Path;
 
 import static java.nio.file.StandardOpenOption.*;
 
-final class ChannelBinaryWriter extends BufferedBinaryWriter {
+final class FileBinaryWriter extends BufferedBinaryWriter {
     private final FileChannel channel;
 
-    private ChannelBinaryWriter(FileChannel channel) {
+    private FileBinaryWriter(FileChannel channel) {
         this.channel = channel;
     }
 
-    static ChannelBinaryWriter create(Path path) throws IOException {
-        return new ChannelBinaryWriter(FileChannel.open(path, WRITE, CREATE, TRUNCATE_EXISTING));
+    static FileBinaryWriter create(Path path) throws IOException {
+        Check.nonNull(path, "path");
+        return new FileBinaryWriter(FileChannel.open(path, WRITE, CREATE, TRUNCATE_EXISTING));
     }
 
     @Override

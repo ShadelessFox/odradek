@@ -18,12 +18,15 @@ import java.nio.file.Path;
  * Methods that write data, such as {@code writeInt}, start at the current {@link #position() position}
  * and advance it by the number of bytes written. Multibyte values are encoded using the current
  * {@link #order() byte order}, which defaults to {@link ByteOrder#LITTLE_ENDIAN LITTLE_ENDIAN}.
+ * <p>
+ * Write operations are <i>in-place</i> and do not shift existing data.
+ * Writing at a position beyond the current end of the output will extend the output with zero bytes.
  */
 public abstract class BinaryWriter implements Flushable, Closeable {
     boolean bigEndian;
 
     public static BinaryWriter open(Path path) throws IOException {
-        return ChannelBinaryWriter.create(path);
+        return FileBinaryWriter.create(path);
     }
 
     /**
