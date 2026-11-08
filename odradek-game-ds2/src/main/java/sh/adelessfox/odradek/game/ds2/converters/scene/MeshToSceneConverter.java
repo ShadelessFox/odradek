@@ -60,9 +60,6 @@ public final class MeshToSceneConverter
         if (node.isEmpty()) {
             node = convertNode(context, object, game);
             node.ifPresent(n -> context.resources.put(key, n));
-            log.debug("Created new node for resource {} ({})", key, object.getType());
-        } else {
-            log.debug("Reusing existing node for resource {} ({})", key, object.getType());
         }
         return node;
     }

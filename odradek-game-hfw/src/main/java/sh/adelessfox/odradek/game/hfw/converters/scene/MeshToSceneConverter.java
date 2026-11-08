@@ -56,8 +56,8 @@ public final class MeshToSceneConverter
         var node = Optional.ofNullable(context.resources.get(key));
         if (node.isEmpty()) {
             node = convertNode(context, object, game);
+            node.ifPresent(n -> context.resources.put(key, n));
         }
-        node.ifPresent(n -> context.resources.put(key, n));
         return node;
     }
 
