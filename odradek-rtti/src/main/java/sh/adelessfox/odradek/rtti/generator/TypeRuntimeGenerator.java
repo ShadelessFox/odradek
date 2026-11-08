@@ -256,7 +256,14 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         if (container == null) {
             return "null";
         }
-        int size = container instanceof Slice slice ? slice.length() : ((Collection<?>) container).size();
+        // TODO: This is kinda gross, but it's mostly debug stuff that
+        //  doesn't affect the runtime, but can definitely bite in the ass someday.
+        int size = switch (container) {
+            case Slice s -> s.length();
+            case List<?> l -> l.size();
+            case BitSet b -> b.size();
+            default -> throw new UnsupportedOperationException("Unsupported container type: " + container.getClass().getName());
+        };
         return switch (size) {
             case 0 -> "[]";
             case 1 -> "[1 item]";
