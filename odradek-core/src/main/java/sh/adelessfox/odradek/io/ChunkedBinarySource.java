@@ -111,14 +111,14 @@ public abstract class ChunkedBinarySource<T extends ChunkedBinarySource.Chunk> e
             }
 
             if (this.chunk != chunk) {
-                this.chunk = chunk;
-
                 var compressedSlice = compressed.slice(0, chunk.compressedSize());
                 var decompressedSlice = decompressed.slice(0, chunk.size());
 
                 source.position(chunk.compressedOffset());
                 source.readBytes(compressedSlice);
                 decompress(compressedSlice, decompressedSlice, chunk);
+
+                this.chunk = chunk;
             }
 
             decompressed.slice(offset, length).copyTo(target, off);
