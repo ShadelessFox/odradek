@@ -21,8 +21,8 @@ abstract class BaseCastExporter<T> implements Exporter.OfSingleOutput<T> {
 
         export(object, root);
 
-        try {
-            cast.write(writer.asOutputStream());
+        try (var os = writer.asOutputStream()) {
+            cast.write(os);
         } catch (CastException e) {
             throw new IOException("Error writing cast file", e);
         }

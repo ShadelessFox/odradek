@@ -14,7 +14,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Optional;
 
 public final class SvgFontExporter implements Exporter.OfSingleOutput<Font> {
@@ -61,7 +60,7 @@ public final class SvgFontExporter implements Exporter.OfSingleOutput<Font> {
             elemPath.setAttribute("d", toSvgPath(glyph, object.metrics().ascent()));
         }
 
-        try (OutputStream os = writer.asOutputStream()) {
+        try (var os = writer.asOutputStream()) {
             var transformerFactory = TransformerFactory.newInstance();
             var transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
