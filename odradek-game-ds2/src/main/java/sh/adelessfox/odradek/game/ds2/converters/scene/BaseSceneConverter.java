@@ -9,8 +9,11 @@ import sh.adelessfox.odradek.game.ds2.rtti.data.ref.Ref;
 import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.scene.Scene;
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 import wtf.reversed.toolbox.math.Matrix4;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +26,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         DS2.StreamingDataSource dataSource,
         DS2Game game
     ) {
-        var buffer = new StreamingCursor(game.readDataSource(dataSource));
+        var source = BinarySource.wrap(game.readDataSource(dataSource));
         var primitives = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
@@ -37,13 +40,13 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
             var indexArray = primitive.indexArray().get();
 
             var reader = new MeshReader();
-            readVertices(vertexArray, buffer, reader);
-            readIndices(indexArray, buffer, primitive.startIndex(), primitive.endIndex(), reader);
+            readVertices(vertexArray, source, reader);
+            readIndices(indexArray, source, primitive.startIndex(), primitive.endIndex(), reader);
 
             primitives.add(reader.read());
         }
 
-        if (buffer.hasRemaining()) {
+        if (source.remaining() > 0) {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
@@ -72,7 +75,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
     private static void readVertices(
         DS2.VertexArrayResource object,
-        StreamingCursor buffer,
+        BinarySource source,
         MeshReader reader
     ) {
         var weights = new ArrayList<Accessor>();
@@ -84,7 +87,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
             Bytes view;
             if (object.isStreaming()) {
-                view = readBuffer(buffer, count, stride);
+                view = readBufferAligned(source, count, stride);
             } else {
                 view = stream.data();
             }
@@ -146,7 +149,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
     private static void readIndices(
         DS2.IndexArrayResource object,
-        StreamingCursor buffer,
+        BinarySource source,
         int startIndex,
         int endIndex,
         MeshReader reader
@@ -161,7 +164,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
 
         Bytes view;
         if (object.isStreaming()) {
-            view = readBuffer(buffer, count, stride);
+            view = readBufferAligned(source, count, stride);
         } else {
             view = object.data();
         }
@@ -170,24 +173,13 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         reader.setIndices(accessor);
     }
 
-    private static Bytes readBuffer(StreamingCursor buffer, int count, int stride) {
-        int position = align(buffer.position, stride);
-        int size = count * stride;
-        var view = buffer.data.slice(position, size);
-        buffer.position = position + size;
-        return view;
-    }
-
-    private static final class StreamingCursor {
-        private final Bytes data;
-        private int position;
-
-        private StreamingCursor(Bytes data) {
-            this.data = data;
-        }
-
-        private boolean hasRemaining() {
-            return position < data.length();
+    private static Bytes readBufferAligned(BinarySource source, int count, int stride) {
+        try {
+            return source
+                .position(align(source.position(), stride))
+                .readBytes(Math.multiplyExact(count, stride));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -202,7 +194,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, DS2Game> {
         return (c << 4) / a;
     }
 
-    private static int align(int value, int granularity) {
+    private static long align(long value, int granularity) {
         int target = lcm(granularity);
         return Math.ceilDiv(value, target) * target;
     }

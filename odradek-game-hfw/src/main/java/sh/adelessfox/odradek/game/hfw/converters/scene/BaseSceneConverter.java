@@ -10,8 +10,11 @@ import sh.adelessfox.odradek.geometry.*;
 import sh.adelessfox.odradek.scene.Scene;
 import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Shorts;
+import wtf.reversed.toolbox.io.BinarySource;
 import wtf.reversed.toolbox.math.Matrix4;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +27,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         HFW.StreamingDataSource dataSource,
         HFWGame game
     ) {
-        var buffer = new StreamingCursor(game.readDataSource(dataSource));
+        var source = BinarySource.wrap(game.readDataSource(dataSource));
         var meshes = new ArrayList<Mesh>(primitiveResources.size());
 
         assert shadingGroups.size() == primitiveResources.size();
@@ -40,13 +43,13 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
             var indexArray = primitive.indexArray().get();
 
             var reader = new MeshReader();
-            readVertices(vertexArray, buffer, reader);
-            readIndices(indexArray, buffer, primitive.startIndex(), primitive.endIndex(), reader);
+            readVertices(vertexArray, source, reader);
+            readIndices(indexArray, source, primitive.startIndex(), primitive.endIndex(), reader);
 
             meshes.add(reader.read());
         }
 
-        if (buffer.hasRemaining()) {
+        if (source.remaining() > 0) {
             throw new IllegalStateException("Not all data was read from the buffer");
         }
 
@@ -125,7 +128,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
     private static void readVertices(
         HFW.VertexArrayResource object,
-        StreamingCursor buffer,
+        BinarySource source,
         MeshReader reader
     ) {
         var weights = new ArrayList<Accessor>();
@@ -137,7 +140,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
             Bytes view;
             if (object.isStreaming()) {
-                view = readBufferAligned(buffer, count, stride);
+                view = readBufferAligned(source, count, stride);
             } else {
                 view = stream.data();
             }
@@ -199,7 +202,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
     private static void readIndices(
         HFW.IndexArrayResource object,
-        StreamingCursor buffer,
+        BinarySource source,
         int startIndex,
         int endIndex,
         MeshReader reader
@@ -214,7 +217,7 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
 
         Bytes view;
         if (object.isStreaming()) {
-            view = readBufferAligned(buffer, count, stride);
+            view = readBufferAligned(source, count, stride);
         } else {
             view = object.data();
         }
@@ -223,28 +226,17 @@ abstract class BaseSceneConverter<T> implements Converter<T, Scene, HFWGame> {
         reader.setIndices(accessor);
     }
 
-    private static Bytes readBufferAligned(StreamingCursor buffer, int count, int stride) {
-        int position = alignUp(buffer.position, stride);
-        int size = count * stride;
-        var view = buffer.data.slice(position, size);
-        buffer.position = position + size;
-        return view;
-    }
-
-    private static final class StreamingCursor {
-        private final Bytes data;
-        private int position;
-
-        private StreamingCursor(Bytes data) {
-            this.data = data;
-        }
-
-        private boolean hasRemaining() {
-            return position < data.length();
+    private static Bytes readBufferAligned(BinarySource source, int count, int stride) {
+        try {
+            return source
+                .position(align(source.position(), stride))
+                .readBytes(Math.multiplyExact(count, stride));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
-    private static int alignUp(int value, int alignment) {
+    private static long align(long value, int alignment) {
         return Math.ceilDiv(value, alignment) * alignment;
     }
 }
