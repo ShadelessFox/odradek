@@ -30,7 +30,8 @@ final class PngWriterHelper {
 
         try (var png = PngWriter.of(pngFormat, writer)) {
             var surface = texture.surfaces().getFirst();
-            var data = flip(surface.convert(desiredFormat).data(), pngFormat.bytesPerChannel());
+            var data = surface.convert(desiredFormat).data();
+            flip(data, pngFormat.bytesPerChannel());
             png.write(data);
         }
     }
@@ -47,7 +48,8 @@ final class PngWriterHelper {
 
         try (var png = PngWriter.ofAnimated(pngFormat, frames, 0, writer)) {
             for (var surface : texture.surfaces()) {
-                var data = flip(surface.convert(desiredFormat).data(), pngFormat.bytesPerChannel());
+                var data = surface.convert(desiredFormat).data();
+                flip(data, pngFormat.bytesPerChannel());
                 png.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
             }
         }
@@ -108,23 +110,17 @@ final class PngWriterHelper {
         return new PngFormat(width, height, pngColorType, pngColorSpace);
     }
 
-    private static Bytes flip(Bytes data, int bytesPerChannel) {
-        if (bytesPerChannel == 1) {
-            return data;
-        }
-        var array = Bytes.allocate(data.length());
-        data.copyTo(array, 0);
+    private static void flip(Bytes.Mutable data, int bytesPerChannel) {
         if (bytesPerChannel == 2) {
-            for (int i = 0; i < array.length(); i += 2) {
-                swap(array, i, i + 1);
+            for (int i = 0; i < data.length(); i += 2) {
+                swap(data, i, i + 1);
             }
         } else if (bytesPerChannel == 4) {
-            for (int i = 0; i < array.length(); i += 4) {
-                swap(array, i/**/, i + 3);
-                swap(array, i + 1, i + 2);
+            for (int i = 0; i < data.length(); i += 4) {
+                swap(data, i/**/, i + 3);
+                swap(data, i + 1, i + 2);
             }
         }
-        return array;
     }
 
     private static void swap(Bytes.Mutable arr, int i, int j) {
