@@ -16,7 +16,7 @@ public class LocalizedTextResourceCallback implements ExtraBinaryDataCallback<HF
         var count = ELanguageExtension.writtenLanguages().size();
         var texts = new ArrayList<String>(count);
         for (int i = 0; i < count; i++) {
-            texts.add(source.readString(Short.toUnsignedInt(source.readShort())));
+            texts.add(source.readString(source.readUnsignedShort()));
         }
         object.texts(List.copyOf(texts));
     }

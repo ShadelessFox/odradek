@@ -175,7 +175,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
         var types = new ArrayList<ClassTypeInfo>(count);
 
         for (int i = 0; i < count; i++) {
-            var index = Short.toUnsignedInt(source.readShort());
+            var index = source.readUnsignedShort();
             var hash = graph.typeHashes().get(index);
             var type = factory.get(HFWTypeId.of(hash));
             types.add(type.asClass());

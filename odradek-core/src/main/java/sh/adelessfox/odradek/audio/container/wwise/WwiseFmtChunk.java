@@ -15,7 +15,7 @@ public final class WwiseFmtChunk extends WaveFmtChunk {
     private WwiseFmtChunk(BinarySource source) throws IOException {
         super(source);
 
-        var size = Short.toUnsignedInt(source.readShort());
+        var size = source.readUnsignedShort();
         var end = source.position() + size;
 
         sampleCount = switch (formatTag()) {
