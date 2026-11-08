@@ -7,8 +7,5 @@ public record MotionMatchingVecN(Floats data) {
         if (data.length() != 72) {
             throw new IllegalArgumentException("MotionMatchingVecN must have exactly 72 floats, got " + data.length());
         }
-        var copy = Floats.allocate(72);
-        data.copyTo(copy, 0);
-        data = copy.asBytes().asFloats();
     }
 }
