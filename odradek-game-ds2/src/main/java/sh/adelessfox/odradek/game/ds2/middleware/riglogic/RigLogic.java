@@ -18,8 +18,9 @@ public record RigLogic(
     AnimatedMaps animatedMaps
 ) {
     public static RigLogic read(BinarySource source) throws IOException {
-        source.order(ByteOrder.BIG_ENDIAN);
+        var order = source.order();
         try {
+            source.order(ByteOrder.BIG_ENDIAN);
             var config = Configuration.read(source);
             var metrics = RigMetrics.read(source);
             var controls = Controls.read(source);
@@ -29,7 +30,7 @@ public record RigLogic(
 
             return new RigLogic(config, metrics, controls, joints, blendShapes, animatedMaps);
         } finally {
-            source.order(ByteOrder.LITTLE_ENDIAN);
+            source.order(order);
         }
     }
 }
