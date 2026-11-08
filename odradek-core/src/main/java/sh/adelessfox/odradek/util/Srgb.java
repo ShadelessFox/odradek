@@ -1,8 +1,5 @@
 package sh.adelessfox.odradek.util;
 
-import wtf.reversed.toolbox.collect.Bytes;
-import wtf.reversed.toolbox.collect.Floats;
-
 /**
  * Utility class for dealing with sRGB conversions.
  * <p>
@@ -11,27 +8,27 @@ import wtf.reversed.toolbox.collect.Floats;
 public final class Srgb {
     private static final int LUT_BITS = 14; // Keeps us within DirectX spec (< 0.6)
     private static final int LUT_MAX = (1 << LUT_BITS) - 1;
-    private static final Bytes TO_SRGB = buildToSrgb(LUT_BITS);
-    private static final Floats TO_LINEAR = buildToLinear();
+    private static final byte[] TO_SRGB = buildToSrgb(LUT_BITS);
+    private static final float[] TO_LINEAR = buildToLinear();
 
     private Srgb() {
     }
 
-    private static Bytes buildToSrgb(int bits) {
+    private static byte[] buildToSrgb(int bits) {
         int size = 1 << bits;
         byte[] table = new byte[size];
         for (int i = 0; i < size; i++) {
             table[i] = (byte) Math.fma(linearToSrgb((float) i / (size - 1)), 255.0f, 0.5f);
         }
-        return Bytes.wrap(table);
+        return table;
     }
 
-    private static Floats buildToLinear() {
+    private static float[] buildToLinear() {
         float[] table = new float[256];
         for (int i = 0; i < 256; i++) {
             table[i] = srgbToLinear((float) i / 255.0f);
         }
-        return Floats.copyOf(table);
+        return table;
     }
 
     /**
@@ -63,7 +60,7 @@ public final class Srgb {
      */
     public static byte linearToSrgbByte(float f) {
         if (f >= 0.0f && f <= 1.0f) {
-            return TO_SRGB.get((int) Math.fma(f, LUT_MAX, 0.5f));
+            return TO_SRGB[(int) Math.fma(f, LUT_MAX, 0.5f)];
         } else if (f > 1.0f) {
             return (byte) 255;
         } else {
@@ -75,6 +72,6 @@ public final class Srgb {
      * Converts an sRGB-encoded byte to a linear float value using a LUT.
      */
     public static float srgbByteToLinear(byte b) {
-        return TO_LINEAR.get(Byte.toUnsignedInt(b));
+        return TO_LINEAR[Byte.toUnsignedInt(b)];
     }
 }
