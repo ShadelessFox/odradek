@@ -33,12 +33,12 @@ public class TextureCallback implements ExtraBinaryDataCallback<HFW.Texture> {
         header.numSurfaces(source.readShort());
         header.numMips(source.readByte());
         header.pixelFormat(HFW.EPixelFormat.valueOf(source.readByte()));
-        header.unk0A(source.readByte());
+        header.texCoordType(HFW.ETexCoordType.valueOf(source.readByte()));
         header.colorSpace(HFW.ETexColorSpace.valueOf(source.readByte()));
-        header.unk0C(source.readByte());
-        header.unk0D(source.readByte());
-        header.unk0E(source.readByte());
-        header.unk0F(source.readByte());
+        header.flags(source.readByte());
+        header.creationFlags(source.readByte());
+        header.streamingMipCount(source.readByte());
+        header.highMipSkipCount(source.readByte());
         header.hash(HFWTypeReader.readCompound(HFW.MurmurHashValue.class, source, factory));
         return header;
     }

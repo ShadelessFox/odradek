@@ -33,12 +33,12 @@ public final class TextureCallback implements ExtraBinaryDataCallback<DS2.Textur
         header.numSurfaces(source.readShort());
         header.numMips(source.readByte());
         header.pixelFormat(DS2.EPixelFormat.valueOf(source.readByte()));
-        header.unk0A(source.readByte());
+        header.texCoordType(DS2.ETexCoordType.valueOf(source.readByte()));
         header.colorSpace(DS2.ETexColorSpace.valueOf(source.readByte()));
-        header.unk0C(source.readByte());
-        header.unk0D(source.readByte());
-        header.unk0E(source.readByte());
-        header.unk0F(source.readByte());
+        header.flags(source.readByte());
+        header.creationFlags(source.readByte());
+        header.streamingMipCount(source.readByte());
+        header.highMipSkipCount(source.readByte());
         header.hash(DS2TypeReader.readCompound(DS2.MurmurHashValue.class, source, factory));
         return header;
     }

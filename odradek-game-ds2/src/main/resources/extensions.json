@@ -76,12 +76,12 @@
 				{"name": "NumSurfaces", "type": "uint16", "offset": 0, "flags": 0},
 				{"name": "NumMips", "type": "uint8", "offset": 0, "flags": 0},
 				{"name": "PixelFormat", "type": "EPixelFormat", "offset": 0, "flags": 0},
-				{"name": "Unk0A", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "TexCoordType", "type": "ETexCoordType", "offset": 0, "flags": 0},
 				{"name": "ColorSpace", "type": "ETexColorSpace", "offset": 0, "flags": 0},
-				{"name": "Unk0C", "type": "uint8", "offset": 0, "flags": 0},
-				{"name": "Unk0D", "type": "uint8", "offset": 0, "flags": 0},
-				{"name": "Unk0E", "type": "uint8", "offset": 0, "flags": 0},
-				{"name": "Unk0F", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "Flags", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "CreationFlags", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "StreamingMipCount", "type": "uint8", "offset": 0, "flags": 0},
+				{"name": "HighMipSkipCount", "type": "uint8", "offset": 0, "flags": 0},
 				{"name": "Hash", "type": "MurmurHashValue", "offset": 0, "flags": 0}
 			]
 		},
