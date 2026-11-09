@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.constraints;
 
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.JoltUtils;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -14,13 +14,13 @@ public class SliderConstraintSettings extends TwoBodyConstraintSettings {
     public final MotorSettings swingMotorSettings = new MotorSettings();
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        sliderAxis = JoltUtils.readVec3(reader);
-        limitsMin = reader.readFloat();
-        limitsMax = reader.readFloat();
-        maxFrictionForce = reader.readFloat();
-        swingMotorSettings.restoreBinaryState(reader);
+        sliderAxis = JoltUtils.readVec3(source);
+        limitsMin = source.readFloat();
+        limitsMax = source.readFloat();
+        maxFrictionForce = source.readFloat();
+        swingMotorSettings.restoreBinaryState(source);
     }
 }

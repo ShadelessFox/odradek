@@ -11,10 +11,11 @@ import sh.adelessfox.odradek.game.ds2.rtti.DS2TypeReader;
 import sh.adelessfox.odradek.game.ds2.storage.StreamingGraphImpl;
 import sh.adelessfox.odradek.game.ds2.storage.StreamingGraphStorage;
 import sh.adelessfox.odradek.game.ds2.storage.StreamingObjectReader;
-import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.util.system.ProductVersion;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -77,7 +78,7 @@ public final class DS2Game implements DecimaGame {
         streamingReader = new StreamingObjectReader(storage, streamingGraph, typeFactory);
     }
 
-    public byte[] readDataSource(DS2.StreamingDataSource dataSource) {
+    public Bytes readDataSource(DS2.StreamingDataSource dataSource) {
         try {
             return readDataSourceData(dataSource);
         } catch (IOException e) {
@@ -86,15 +87,15 @@ public final class DS2Game implements DecimaGame {
         }
     }
 
-    public byte[] readDataSourceData(DS2.StreamingDataSource dataSource) throws IOException {
+    public Bytes readDataSourceData(DS2.StreamingDataSource dataSource) throws IOException {
         return readDataSourceData(dataSource, dataSource.offset(), dataSource.length());
     }
 
-    public byte[] readDataSourceData(DS2.StreamingDataSource dataSource, int offset, int length) throws IOException {
+    public Bytes readDataSourceData(DS2.StreamingDataSource dataSource, int offset, int length) throws IOException {
         return readFileData(dataSource.fileId(), (long) dataSource.fileOffset() + offset, length);
     }
 
-    private byte[] readFileData(int fileId, long offset, long length) throws IOException {
+    private Bytes readFileData(int fileId, long offset, long length) throws IOException {
         return readFile(streamingGraph.files().get(fileId), offset, length);
     }
 
@@ -106,7 +107,7 @@ public final class DS2Game implements DecimaGame {
     }
 
     @Override
-    public byte[] readFile(String file, long offset, long length) throws IOException {
+    public Bytes readFile(String file, long offset, long length) throws IOException {
         return storage.read(file, offset, length);
     }
 
@@ -137,8 +138,8 @@ public final class DS2Game implements DecimaGame {
         FileSystem fileSystem,
         TypeFactory typeFactory
     ) throws IOException {
-        try (var reader = BinaryReader.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
-            var result = new DS2TypeReader().readObject(reader, typeFactory);
+        try (var source = BinarySource.open(fileSystem.resolve("cache:package/streaming_graph.core"))) {
+            var result = new DS2TypeReader().readObject(source, typeFactory);
             return (DS2.StreamingGraphResource) result;
         }
     }

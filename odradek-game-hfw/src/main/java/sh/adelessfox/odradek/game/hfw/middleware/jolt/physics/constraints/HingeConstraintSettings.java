@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.constraints;
 
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.JoltUtils;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -19,18 +19,18 @@ public class HingeConstraintSettings extends TwoBodyConstraintSettings {
     public final MotorSettings motorSettings = new MotorSettings();
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        point1 = JoltUtils.readAlignedVector3(reader);
-        hingeAxis1 = JoltUtils.readAlignedVector3(reader);
-        normalAxis1 = JoltUtils.readAlignedVector3(reader);
-        point2 = JoltUtils.readAlignedVector3(reader);
-        hingeAxis2 = JoltUtils.readAlignedVector3(reader);
-        normalAxis2 = JoltUtils.readAlignedVector3(reader);
-        limitsMin = reader.readFloat();
-        limitsMax = reader.readFloat();
-        maxFrictionForce = reader.readFloat();
-        motorSettings.restoreBinaryState(reader);
+        point1 = JoltUtils.readAlignedVector3(source);
+        hingeAxis1 = JoltUtils.readAlignedVector3(source);
+        normalAxis1 = JoltUtils.readAlignedVector3(source);
+        point2 = JoltUtils.readAlignedVector3(source);
+        hingeAxis2 = JoltUtils.readAlignedVector3(source);
+        normalAxis2 = JoltUtils.readAlignedVector3(source);
+        limitsMin = source.readFloat();
+        limitsMax = source.readFloat();
+        maxFrictionForce = source.readFloat();
+        motorSettings.restoreBinaryState(source);
     }
 }

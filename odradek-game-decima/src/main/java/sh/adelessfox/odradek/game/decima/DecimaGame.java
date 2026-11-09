@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.game.decima;
 
 import sh.adelessfox.odradek.game.Game;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -45,7 +46,7 @@ public interface DecimaGame extends Game {
         return readGroup(groupId).get(objectIndex);
     }
 
-    byte[] readFile(String file, long offset, long length) throws IOException;
+    Bytes readFile(String file, long offset, long length) throws IOException;
 
     /**
      * Resolve game-specific path to actual filesystem path.

@@ -1,5 +1,9 @@
 package sh.adelessfox.odradek.export.png.format;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
+import java.util.Arrays;
+
 final class PngFilter {
     private final PngFormat format;
     private final byte[][] filtered;
@@ -13,11 +17,15 @@ final class PngFilter {
         this.format = format;
     }
 
-    int filter(byte[] row, int offset) {
+    void reset() {
+        Arrays.fill(previous, (byte) 0);
+    }
+
+    int filter(Bytes row, int offset) {
         int bpp = format.bytesPerPixel();
         int bpr = format.bytesPerRow();
 
-        System.arraycopy(row, offset, current, bpp, bpr);
+        row.slice(offset, bpr).copyTo(current, bpp, bpr);
         int best = filter(current, previous, filtered, bpp, bpr);
 
         byte[] temp = previous;
@@ -26,8 +34,8 @@ final class PngFilter {
         return best;
     }
 
-    byte[] filtered(int filter) {
-        return filtered[filter];
+    Bytes filtered(int filter) {
+        return Bytes.wrap(filtered[filter]);
     }
 
     private static int filter(byte[] curr, byte[] prev, byte[][] scratch, int bpp, int bpr) {

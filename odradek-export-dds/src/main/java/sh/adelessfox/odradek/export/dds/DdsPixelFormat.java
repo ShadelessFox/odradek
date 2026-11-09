@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.export.dds;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import wtf.reversed.toolbox.collect.Bytes;
 
 record DdsPixelFormat(
     int flags,
@@ -17,17 +16,15 @@ record DdsPixelFormat(
     // flags
     static final int DDPF_FOURCC = 0x4;
 
-    public ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(BYTES)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(BYTES)
-            .putInt(flags)
-            .putInt(fourCC)
-            .putInt(rgbBitCount)
-            .putInt(rBitMask)
-            .putInt(gBitMask)
-            .putInt(bBitMask)
-            .putInt(aBitMask)
-            .flip();
+    public Bytes toBytes() {
+        return Bytes.allocate(BYTES)
+            .setInt(0x00, BYTES)
+            .setInt(0x04, flags)
+            .setInt(0x08, fourCC)
+            .setInt(0x0C, rgbBitCount)
+            .setInt(0x10, rBitMask)
+            .setInt(0x14, gBitMask)
+            .setInt(0x18, bBitMask)
+            .setInt(0x1C, aBitMask);
     }
 }

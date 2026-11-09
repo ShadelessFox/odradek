@@ -65,9 +65,9 @@ public record Texture(
         }
         for (Surface surface : surfaces) {
             int size = format.block().surfaceSize(surface.width(), surface.height());
-            if (surface.data().length != size) {
+            if (surface.data().length() != size) {
                 throw new IllegalArgumentException("Surface data size does not match expected size: "
-                    + surface.data().length + " != " + size);
+                    + surface.data().length() + " != " + size);
             }
             if (surface.format() != format) {
                 throw new IllegalArgumentException("Surface format does not match texture format: "

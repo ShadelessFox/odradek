@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.ds2.middleware.riglogic.controls;
 
 import sh.adelessfox.odradek.game.ds2.middleware.riglogic.conditionaltable.ConditionalTable;
 import sh.adelessfox.odradek.game.ds2.middleware.riglogic.psdmatrix.PSDMatrix;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -10,10 +10,10 @@ public record Controls(
     ConditionalTable guiToRawMapping,
     PSDMatrix psds
 ) {
-    public static Controls read(BinaryReader reader) throws IOException {
+    public static Controls read(BinarySource source) throws IOException {
         return new Controls(
-            ConditionalTable.read(reader),
-            PSDMatrix.read(reader)
+            ConditionalTable.read(source),
+            PSDMatrix.read(source)
         );
     }
 }

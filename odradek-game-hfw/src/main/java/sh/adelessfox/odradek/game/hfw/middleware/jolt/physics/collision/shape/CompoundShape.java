@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.shape;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.JoltUtils;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.geometry.AABox;
 import sh.adelessfox.odradek.game.hfw.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,10 +21,10 @@ public class CompoundShape extends Shape {
             this.rotation = rotation;
         }
 
-        private static SubShape read(BinaryReader reader) throws IOException {
-            var userData = reader.readInt();
-            var position = JoltUtils.readVec3(reader);
-            var rotation = JoltUtils.readVec3(reader);
+        private static SubShape read(BinarySource source) throws IOException {
+            var userData = source.readInt();
+            var position = JoltUtils.readVec3(source);
+            var rotation = JoltUtils.readVec3(source);
 
             return new SubShape(userData, position, rotation);
         }
@@ -36,12 +36,12 @@ public class CompoundShape extends Shape {
     public List<SubShape> subShapes;
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
-        centerOfMass = JoltUtils.readAlignedVector3(reader);
-        localBounds = JoltUtils.readAABox(reader);
-        innerRadius = reader.readFloat();
-        subShapes = JoltUtils.readObjects(reader, SubShape::read);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
+        centerOfMass = JoltUtils.readAlignedVector3(source);
+        localBounds = JoltUtils.readAABox(source);
+        innerRadius = source.readFloat();
+        subShapes = JoltUtils.readObjects(source, SubShape::read);
     }
 
     @Override

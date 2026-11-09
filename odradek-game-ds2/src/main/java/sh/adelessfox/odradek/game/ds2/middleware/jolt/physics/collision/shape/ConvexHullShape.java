@@ -5,25 +5,26 @@ import sh.adelessfox.odradek.game.ds2.middleware.jolt.geometry.AABox;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.geometry.Plane;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.math.Mat44;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.collect.Ints;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 public class ConvexHullShape extends ConvexShape {
-    public record Point(Vec3 position, int[] faces) {
-        private static Point read(BinaryReader reader) throws IOException {
-            final var position = JoltUtils.readAlignedVector3(reader);
-            final var facesCount = reader.readInt();
-            final var faces = reader.readInts(3);
-            return new Point(position, Arrays.copyOf(faces, facesCount));
+    public record Point(Vec3 position, Ints faces) {
+        private static Point read(BinarySource source) throws IOException {
+            var position = JoltUtils.readAlignedVector3(source);
+            var facesCount = source.readInt();
+            var faces = source.readInts(3).slice(0, facesCount);
+            return new Point(position, faces);
         }
     }
 
     public record Face(short firstVertex, short vertexCount) {
-        private static Face read(BinaryReader reader) throws IOException {
-            return new Face(reader.readShort(), reader.readShort());
+        private static Face read(BinarySource source) throws IOException {
+            return new Face(source.readShort(), source.readShort());
         }
     }
 
@@ -33,24 +34,24 @@ public class ConvexHullShape extends ConvexShape {
     public List<Point> points;
     public List<Face> faces;
     public List<Plane> planes;
-    public byte[] vertexIdx;
+    public Bytes vertexIdx;
     public float convexRadius;
     public float volume;
     public float innerRadius;
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        centerOfMass = JoltUtils.readVec3(reader);
-        inertia = JoltUtils.readMatrix4(reader);
-        localBounds = JoltUtils.readAABox(reader);
-        points = JoltUtils.readObjects(reader, Point::read);
-        faces = JoltUtils.readObjects(reader, Face::read);
-        planes = JoltUtils.readObjects(reader, r -> new Plane(JoltUtils.readVec3(r), r.readFloat()));
-        vertexIdx = JoltUtils.readBytes(reader);
-        convexRadius = reader.readFloat();
-        volume = reader.readFloat();
-        innerRadius = reader.readFloat();
+        centerOfMass = JoltUtils.readVec3(source);
+        inertia = JoltUtils.readMatrix4(source);
+        localBounds = JoltUtils.readAABox(source);
+        points = JoltUtils.readObjects(source, Point::read);
+        faces = JoltUtils.readObjects(source, Face::read);
+        planes = JoltUtils.readObjects(source, r -> new Plane(JoltUtils.readVec3(r), r.readFloat()));
+        vertexIdx = JoltUtils.readBytes(source);
+        convexRadius = source.readFloat();
+        volume = source.readFloat();
+        innerRadius = source.readFloat();
     }
 }

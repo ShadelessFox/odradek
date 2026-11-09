@@ -3,13 +3,15 @@ package sh.adelessfox.odradek.graphics.win32.d3d;
 import sh.adelessfox.odradek.graphics.win32.IID;
 import sh.adelessfox.odradek.graphics.win32.Win32Exception;
 import sh.adelessfox.odradek.graphics.win32.com.IUnknown;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.FunctionDescriptor;
 import java.lang.foreign.MemorySegment;
 import java.lang.invoke.MethodHandle;
 
-import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.ValueLayout.ADDRESS;
+import static java.lang.foreign.ValueLayout.JAVA_INT;
 
 public final class IDxcUtils extends IUnknown {
     public static final IID<IDxcUtils> IID_IDxcUtils = IID.of("4605c4cb-2019-492a-ada4-65f20bb7d67f", IDxcUtils::new);
@@ -22,11 +24,12 @@ public final class IDxcUtils extends IUnknown {
         CreateBlob = downcallHandle(6, FunctionDescriptor.of(JAVA_INT, ADDRESS, JAVA_INT, JAVA_INT, ADDRESS));
     }
 
-    public IDxcBlob createBlob(byte[] buffer, int codePage) {
+    public IDxcBlob createBlob(Bytes buffer, int codePage) {
         try (Arena arena = Arena.ofConfined()) {
-            MemorySegment data = arena.allocateFrom(JAVA_BYTE, buffer);
+            MemorySegment data = arena.allocate(buffer.length());
+            data.copyFrom(MemorySegment.ofBuffer(buffer.asBuffer()));
             MemorySegment blob = arena.allocate(ADDRESS.byteSize());
-            createBlob(data, buffer.length, codePage, blob);
+            createBlob(data, buffer.length(), codePage, blob);
             return new IDxcBlob(blob.get(ADDRESS, 0));
         }
     }

@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic.joints.bpcm;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -14,16 +14,16 @@ record JointGroup(
     int inputIndicesSizeAlignedTo4,
     int inputIndicesSizeAlignedTo8
 ) {
-    public static JointGroup read(BinaryReader reader) throws IOException {
+    public static JointGroup read(BinarySource source) throws IOException {
         return new JointGroup(
-            reader.readInt(),
-            reader.readInt(),
-            reader.readInt(),
-            reader.readInt(),
-            reader.readInt(),
-            reader.readInt(),
-            reader.readInt(),
-            reader.readInt()
+            source.readInt(),
+            source.readInt(),
+            source.readInt(),
+            source.readInt(),
+            source.readInt(),
+            source.readInt(),
+            source.readInt(),
+            source.readInt()
         );
     }
 }

@@ -3,11 +3,10 @@ package sh.adelessfox.odradek.export.wave;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.game.Exporter;
+import sh.adelessfox.odradek.io.BinaryWriter;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
 public final class WaveExporter implements Exporter.OfSingleOutput<Audio> {
@@ -18,40 +17,35 @@ public final class WaveExporter implements Exporter.OfSingleOutput<Audio> {
     private static final short WAVE_FORMAT_PCM = 0x0001;
 
     @Override
-    public void export(Audio object, WritableByteChannel channel) throws IOException {
+    public void export(Audio object, BinaryWriter writer) throws IOException {
         var codec = AudioCodec.Pcm.S16LE;
         var converted = object.convert(codec);
         var format = converted.format();
 
-        var fmt = ByteBuffer.allocate(24)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(RIFF_CHUNK_FMT_ID) // chunkID
-            .putInt(16) // chunkSize
-            .putShort(WAVE_FORMAT_PCM) // wFormatTag
-            .putShort((short) format.channels()) // wChannels
-            .putInt(format.sampleRate()) // dwSamplesPerSec
-            .putInt(format.sampleRate() * codec.sizeBytes() * format.channels()) // dwAvgBytesPerSec
-            .putShort((short) (codec.sizeBytes() * format.channels())) // wBlockAlign
-            .putShort((short) (codec.sizeBytes() * 8)) // wBitsPerSample
-            .flip();
+        var fmt = Bytes.allocate(24)
+            .setInt(0x00, RIFF_CHUNK_FMT_ID) // chunkID
+            .setInt(0x04, 16) // chunkSize
+            .setShort(0x08, WAVE_FORMAT_PCM) // wFormatTag
+            .setShort(0x0A, (short) format.channels()) // wChannels
+            .setInt(0x0C, format.sampleRate()) // dwSamplesPerSec
+            .setInt(0x10, format.sampleRate() * codec.sizeBytes() * format.channels()) // dwAvgBytesPerSec
+            .setShort(0x14, (short) (codec.sizeBytes() * format.channels())) // wBlockAlign
+            .setShort(0x16, (short) (codec.sizeBytes() * 8)); // wBitsPerSample
 
-        var data = ByteBuffer.allocate(8 + converted.data().length)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(RIFF_CHUNK_DATA_ID) // chunkID
-            .putInt(converted.data().length) // chunkSize
-            .put(converted.data()) // data
-            .flip();
+        var dataHeader = Bytes.allocate(8)
+            .setInt(0x00, RIFF_CHUNK_DATA_ID) // chunkID
+            .setInt(0x04, converted.data().length()); // chunkSize
+        var data = converted.data();
 
-        var header = ByteBuffer.allocate(12)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt(RIFF_CHUNK_ID) // chunkID
-            .putInt(fmt.remaining() + data.remaining() + 4) // chunkSize
-            .putInt(RIFF_FORMAT_ID) // format
-            .flip();
+        var header = Bytes.allocate(12)
+            .setInt(0x00, RIFF_CHUNK_ID) // chunkID
+            .setInt(0x04, fmt.length() + dataHeader.length() + data.length() + 4) // chunkSize
+            .setInt(0x08, RIFF_FORMAT_ID); // format
 
-        channel.write(header);
-        channel.write(fmt);
-        channel.write(data);
+        writer.writeBytes(header);
+        writer.writeBytes(fmt);
+        writer.writeBytes(dataHeader);
+        writer.writeBytes(data);
     }
 
     @Override

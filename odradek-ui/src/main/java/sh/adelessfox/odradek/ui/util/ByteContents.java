@@ -1,10 +1,11 @@
 package sh.adelessfox.odradek.ui.util;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
 import java.awt.datatransfer.*;
-import java.io.ByteArrayInputStream;
 import java.util.HexFormat;
 
-public record ByteContents(byte[] data) implements Transferable, ClipboardOwner {
+public record ByteContents(Bytes data) implements Transferable, ClipboardOwner {
     private static final DataFlavor byteArrayInputStreamFlavor = createByteArrayInputStreamFlavor();
     private static final DataFlavor stringFlavor = DataFlavor.stringFlavor;
     private static final DataFlavor[] flavors = {
@@ -30,9 +31,9 @@ public record ByteContents(byte[] data) implements Transferable, ClipboardOwner 
     @Override
     public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
         if (flavor.equals(byteArrayInputStreamFlavor)) {
-            return new ByteArrayInputStream(data);
+            return data.asInputStream();
         } else if (flavor.equals(stringFlavor)) {
-            return HexFormat.of().formatHex(data);
+            return data.toHexString(HexFormat.of());
         } else {
             throw new UnsupportedFlavorException(flavor);
         }

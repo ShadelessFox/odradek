@@ -6,14 +6,14 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
 import sh.adelessfox.odradek.export.json.spi.TypeInfoAdapterFactory;
 import sh.adelessfox.odradek.game.Exporter;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.util.SimpleTypeVisitor;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -27,13 +27,13 @@ public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
             .toList();
 
     @Override
-    public void export(TypedObject object, WritableByteChannel channel) throws IOException {
-        try (JsonWriter writer = new JsonWriter(Channels.newWriter(channel, StandardCharsets.UTF_8))) {
-            writer.setStrictness(Strictness.STRICT);
-            writer.setHtmlSafe(false);
-            writer.setFormattingStyle(FormattingStyle.PRETTY);
+    public void export(TypedObject object, BinaryWriter writer) throws IOException {
+        try (JsonWriter json = new JsonWriter(writer.asWriter(StandardCharsets.UTF_8))) {
+            json.setStrictness(Strictness.STRICT);
+            json.setHtmlSafe(false);
+            json.setFormattingStyle(FormattingStyle.PRETTY);
 
-            new JsonVisitor().visit(object, writer);
+            new JsonVisitor().visit(object, json);
         }
     }
 
@@ -101,8 +101,8 @@ public class JsonExporter implements Exporter.OfSingleOutput<TypedObject> {
 
         @Override
         public void visitContainer(ContainerTypeInfo info, Object object, JsonWriter writer) throws IOException {
-            if (object instanceof byte[] bytes) {
-                writer.value(Base64.getEncoder().encodeToString(bytes));
+            if (object instanceof Bytes bytes) {
+                writer.value(Base64.getEncoder().encodeToString(bytes.toArray()));
             } else {
                 writer.beginArray();
                 super.visitContainer(info, object, writer);

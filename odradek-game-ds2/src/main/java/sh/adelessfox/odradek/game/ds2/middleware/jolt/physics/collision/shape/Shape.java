@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.collision.shape;
 
 import sh.adelessfox.odradek.NotImplementedException;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.collision.PhysicsMaterial;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -11,20 +11,20 @@ import java.util.Optional;
 public class Shape {
     protected long mUserData;
 
-    public static Shape sRestoreFromBinaryState(BinaryReader reader) throws IOException {
-        var shapeSubType = ShapeSubType.values()[reader.readByte()];
+    public static Shape sRestoreFromBinaryState(BinarySource source) throws IOException {
+        var shapeSubType = ShapeSubType.values()[source.readByte()];
         var shape = ShapeFunctions.get(shapeSubType).construct();
-        shape.restoreBinaryState(reader);
+        shape.restoreBinaryState(source);
 
         return shape;
     }
 
     public static Optional<Shape> sRestoreWithChildren(
-        BinaryReader reader,
+        BinarySource source,
         List<Shape> shapeMap,
         List<PhysicsMaterial> materialMap
     ) throws IOException {
-        var shapeId = reader.readInt();
+        var shapeId = source.readInt();
 
         // Check nullptr shape
         if (shapeId == -1) {
@@ -37,18 +37,18 @@ public class Shape {
         }
 
         // Read the shape
-        var shape = sRestoreFromBinaryState(reader);
+        var shape = sRestoreFromBinaryState(source);
         shapeMap.add(shape);
 
         // Read the sub shapes
-        var subShapes = reader.readObjects(reader.readInt(), r -> sRestoreWithChildren(r, shapeMap, materialMap).orElse(null));
+        var subShapes = source.readObjects(source.readInt(), r -> sRestoreWithChildren(r, shapeMap, materialMap).orElse(null));
         shape.restoreSubShapeState(subShapes.toArray(Shape[]::new));
 
         throw new NotImplementedException();
     }
 
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        mUserData = reader.readLong();
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        mUserData = source.readLong();
     }
 
     public void restoreMaterialState(PhysicsMaterial[] materials) {

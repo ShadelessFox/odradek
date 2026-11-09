@@ -3,13 +3,14 @@ package sh.adelessfox.odradek.export.png;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.export.png.format.*;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 
 final class PngWriterHelper {
     private static final Logger log = LoggerFactory.getLogger(PngWriterHelper.class);
@@ -17,7 +18,7 @@ final class PngWriterHelper {
     private PngWriterHelper() {
     }
 
-    static void writeSingle(Texture texture, WritableByteChannel channel) throws IOException {
+    static void writeSingle(Texture texture, BinaryWriter writer) throws IOException {
         if (texture.kind() != TextureKind.TEXTURE_2D) {
             log.warn(
                 "Texture of type {} can't be properly exported as PNG, " +
@@ -27,17 +28,17 @@ final class PngWriterHelper {
         var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
         var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat, texture.colorSpace());
 
-        try (var writer = PngWriter.of(pngFormat, channel)) {
+        try (var png = PngWriter.of(pngFormat, writer)) {
             var surface = texture.surfaces().getFirst();
             var data = surface.convert(desiredFormat).data();
             flip(data, pngFormat.bytesPerChannel());
-            writer.write(data);
+            png.write(data);
         }
     }
 
     static void writeAnimated(
         Texture texture,
-        WritableByteChannel channel
+        BinaryWriter writer
     ) throws IOException {
         var desiredFormat = PngWriterHelper.pickDesiredFormat(texture.format());
         var pngFormat = PngWriterHelper.mapPngFormat(texture.width(), texture.height(), desiredFormat, texture.colorSpace());
@@ -45,11 +46,11 @@ final class PngWriterHelper {
         int frames = texture.surfaces().size();
         var duration = texture.duration().orElseThrow();
 
-        try (var writer = PngWriter.ofAnimated(pngFormat, frames, 0, channel)) {
+        try (var png = PngWriter.ofAnimated(pngFormat, frames, 0, writer)) {
             for (var surface : texture.surfaces()) {
                 var data = surface.convert(desiredFormat).data();
                 flip(data, pngFormat.bytesPerChannel());
-                writer.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
+                png.write(data, duration, PngDisposeMethod.BACKGROUND, PngBlendMethod.SOURCE);
             }
         }
     }
@@ -99,7 +100,7 @@ final class PngWriterHelper {
             case TextureFormat.R8G8B8_UNORM -> new PngColorType.TrueColor(false, 8);
             case TextureFormat.R8G8B8A8_UNORM -> new PngColorType.TrueColor(true, 8);
             case TextureFormat.R16G16B16_UNORM -> new PngColorType.TrueColor(false, 16);
-            case TextureFormat.R16G16B16A16_UNORM -> new PngColorType.Greyscale(true, 16);
+            case TextureFormat.R16G16B16A16_UNORM -> new PngColorType.TrueColor(true, 16);
             default -> throw new IllegalArgumentException("Unexpected texture format: " + format);
         };
         var pngColorSpace = switch (colorSpace) {
@@ -109,22 +110,22 @@ final class PngWriterHelper {
         return new PngFormat(width, height, pngColorType, pngColorSpace);
     }
 
-    private static void flip(byte[] array, int bytesPerChannel) {
+    private static void flip(Bytes.Mutable data, int bytesPerChannel) {
         if (bytesPerChannel == 2) {
-            for (int i = 0; i < array.length; i += 2) {
-                swap(array, i, i + 1);
+            for (int i = 0; i < data.length(); i += 2) {
+                swap(data, i, i + 1);
             }
         } else if (bytesPerChannel == 4) {
-            for (int i = 0; i < array.length; i += 4) {
-                swap(array, i/**/, i + 3);
-                swap(array, i + 1, i + 2);
+            for (int i = 0; i < data.length(); i += 4) {
+                swap(data, i/**/, i + 3);
+                swap(data, i + 1, i + 2);
             }
         }
     }
 
-    private static void swap(byte[] arr, int i, int j) {
-        byte temp = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+    private static void swap(Bytes.Mutable arr, int i, int j) {
+        byte temp = arr.get(i);
+        arr.set(i, arr.get(j));
+        arr.set(j, temp);
     }
 }

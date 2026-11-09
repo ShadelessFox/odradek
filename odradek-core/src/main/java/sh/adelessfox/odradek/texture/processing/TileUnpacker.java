@@ -54,9 +54,9 @@ public interface TileUnpacker {
             default -> throw new UnsupportedOperationException(src.format().name());
         };
         var format = src.format().decompressed();
-        var result = Surface.create(src.width(), src.height(), format, src.colorSpace());
-        decoder.decode(src.data(), 0, src.width(), src.height(), result.data(), 0);
-        return result;
+        var data = new byte[format.block().surfaceSize(src.width(), src.height())];
+        decoder.decode(src.data().toArray(), 0, src.width(), src.height(), data, 0);
+        return Surface.create(src.width(), src.height(), format, src.colorSpace(), Bytes.Mutable.wrap(data));
     }
 
     private static void unpackR8Unorm(TileContext ctx, Surface src, Floats.Mutable dst) {
@@ -66,7 +66,7 @@ public interface TileUnpacker {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
             for (int col = 0; col < ctx.width; col++, srcOff++, dstOff += 4) {
-                dst.set(dstOff/**/, unpackUNorm8(data[srcOff], srgb));
+                dst.set(dstOff/**/, unpackUNorm8(data.get(srcOff), srgb));
                 dst.set(dstOff + 1, 0.0f);
                 dst.set(dstOff + 2, 0.0f);
                 dst.set(dstOff + 3, 1.0f);
@@ -81,8 +81,8 @@ public interface TileUnpacker {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
             for (int col = 0; col < ctx.width; col++, srcOff += 2, dstOff += 4) {
-                dst.set(dstOff/**/, unpackUNorm8(data[srcOff/**/], srgb));
-                dst.set(dstOff + 1, unpackUNorm8(data[srcOff + 1], srgb));
+                dst.set(dstOff/**/, unpackUNorm8(data.get(srcOff/**/), srgb));
+                dst.set(dstOff + 1, unpackUNorm8(data.get(srcOff + 1), srgb));
                 dst.set(dstOff + 2, 0.0f);
                 dst.set(dstOff + 3, 1.0f);
             }
@@ -96,9 +96,9 @@ public interface TileUnpacker {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
             for (int col = 0; col < ctx.width; col++, srcOff += 3, dstOff += 4) {
-                dst.set(dstOff/**/, unpackUNorm8(data[srcOff/**/], srgb));
-                dst.set(dstOff + 1, unpackUNorm8(data[srcOff + 1], srgb));
-                dst.set(dstOff + 2, unpackUNorm8(data[srcOff + 2], srgb));
+                dst.set(dstOff/**/, unpackUNorm8(data.get(srcOff/**/), srgb));
+                dst.set(dstOff + 1, unpackUNorm8(data.get(srcOff + 1), srgb));
+                dst.set(dstOff + 2, unpackUNorm8(data.get(srcOff + 2), srgb));
                 dst.set(dstOff + 3, 1.0f);
             }
         }
@@ -111,16 +111,16 @@ public interface TileUnpacker {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 4) {
-                dst.set(dstOff/**/, unpackUNorm8(data[srcOff/**/], srgb));
-                dst.set(dstOff + 1, unpackUNorm8(data[srcOff + 1], srgb));
-                dst.set(dstOff + 2, unpackUNorm8(data[srcOff + 2], srgb));
-                dst.set(dstOff + 3, unpackUNorm8(data[srcOff + 3], false)); // alpha is always linear
+                dst.set(dstOff/**/, unpackUNorm8(data.get(srcOff/**/), srgb));
+                dst.set(dstOff + 1, unpackUNorm8(data.get(srcOff + 1), srgb));
+                dst.set(dstOff + 2, unpackUNorm8(data.get(srcOff + 2), srgb));
+                dst.set(dstOff + 3, unpackUNorm8(data.get(srcOff + 3), false)); // alpha is always linear
             }
         }
     }
 
     private static void unpackR16Unorm(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -134,7 +134,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16G16Unorm(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -148,7 +148,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16G16B16Unorm(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -162,7 +162,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16G16B16A16Unorm(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -176,7 +176,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -190,7 +190,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16G16Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -204,7 +204,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16G16B16Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -218,7 +218,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR16G16B16A16Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -232,7 +232,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR32Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -246,7 +246,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR32G32Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -260,7 +260,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR32G32B32Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -274,7 +274,7 @@ public interface TileUnpacker {
     }
 
     private static void unpackR32G32B32A32Sfloat(TileContext ctx, Surface src, Floats.Mutable dst) {
-        var data = Bytes.wrap(src.data());
+        var data = src.data();
         for (int row = 0; row < ctx.height; row++) {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
@@ -295,9 +295,9 @@ public interface TileUnpacker {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
             for (int col = 0; col < ctx.width; col++, srcOff += 3, dstOff += 4) {
-                dst.set(dstOff/**/, unpackUNorm8(data[srcOff/**/], srgb));
-                dst.set(dstOff + 1, unpackUNorm8(data[srcOff + 1], srgb));
-                dst.set(dstOff + 2, unpackUNorm8(data[srcOff + 2], srgb));
+                dst.set(dstOff/**/, unpackUNorm8(data.get(srcOff/**/), srgb));
+                dst.set(dstOff + 1, unpackUNorm8(data.get(srcOff + 1), srgb));
+                dst.set(dstOff + 2, unpackUNorm8(data.get(srcOff + 2), srgb));
                 dst.set(dstOff + 3, 1.0f);
             }
         }
@@ -310,10 +310,10 @@ public interface TileUnpacker {
             int srcOff = src.offset(ctx.x, ctx.y + row, ctx.z);
             int dstOff = row * ctx.width * 4;
             for (int col = 0; col < ctx.width; col++, srcOff += 4, dstOff += 4) {
-                dst.set(dstOff/**/, unpackUNorm8(data[srcOff + 2], srgb));
-                dst.set(dstOff + 1, unpackUNorm8(data[srcOff + 1], srgb));
-                dst.set(dstOff + 2, unpackUNorm8(data[srcOff/**/], srgb));
-                dst.set(dstOff + 3, unpackUNorm8(data[srcOff + 3], false)); // alpha is always linear
+                dst.set(dstOff/**/, unpackUNorm8(data.get(srcOff + 2), srgb));
+                dst.set(dstOff + 1, unpackUNorm8(data.get(srcOff + 1), srgb));
+                dst.set(dstOff + 2, unpackUNorm8(data.get(srcOff/**/), srgb));
+                dst.set(dstOff + 3, unpackUNorm8(data.get(srcOff + 3), false)); // alpha is always linear
             }
         }
     }

@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.collision.shape;
 
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.JoltUtils;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.math.Vec3;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -17,16 +17,16 @@ public class TaperedCapsuleShape extends ConvexShape {
     public float tanAlpha;
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        centerOfMass = JoltUtils.readVec3(reader);
-        topRadius = reader.readFloat();
-        bottomRadius = reader.readFloat();
-        topCenter = reader.readFloat();
-        bottomCenter = reader.readFloat();
-        convexRadius = reader.readFloat();
-        sinAlpha = reader.readFloat();
-        tanAlpha = reader.readFloat();
+        centerOfMass = JoltUtils.readVec3(source);
+        topRadius = source.readFloat();
+        bottomRadius = source.readFloat();
+        topCenter = source.readFloat();
+        bottomCenter = source.readFloat();
+        convexRadius = source.readFloat();
+        sinAlpha = source.readFloat();
+        tanAlpha = source.readFloat();
     }
 }

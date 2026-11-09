@@ -1,13 +1,12 @@
 package sh.adelessfox.odradek.texture;
 
-import sh.adelessfox.odradek.util.Handles;
+import wtf.reversed.toolbox.collect.Bytes;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
-import java.nio.ByteOrder;
 
-public record Surface(int width, int height, TextureFormat format, TextureColorSpace colorSpace, byte[] data) {
+public record Surface(int width, int height, TextureFormat format, TextureColorSpace colorSpace, Bytes.Mutable data) {
     public Surface {
         if (width <= 0) {
             throw new IllegalArgumentException("Width must be greater than 0");
@@ -16,14 +15,14 @@ public record Surface(int width, int height, TextureFormat format, TextureColorS
             throw new IllegalArgumentException("Height must be greater than 0");
         }
         int size = format.block().surfaceSize(width, height);
-        if (data.length != size) {
+        if (data.length() != size) {
             throw new IllegalArgumentException("Surface data size does not match expected size for source format");
         }
     }
 
     public static Surface create(int width, int height, TextureFormat format, TextureColorSpace colorSpace) {
         var size = format.block().surfaceSize(width, height);
-        var data = new byte[size];
+        var data = Bytes.allocate(size);
         return new Surface(width, height, format, colorSpace, data);
     }
 
@@ -32,10 +31,10 @@ public record Surface(int width, int height, TextureFormat format, TextureColorS
         int height,
         TextureFormat format,
         TextureColorSpace colorSpace,
-        byte[] data
+        Bytes.Mutable data
     ) {
         var size = format.block().surfaceSize(width, height);
-        if (size != data.length) {
+        if (size != data.length()) {
             throw new IllegalArgumentException("Data size does not match the expected size for the given format and dimensions");
         }
         return new Surface(width, height, format, colorSpace, data);
@@ -69,11 +68,11 @@ public record Surface(int width, int height, TextureFormat format, TextureColorS
 
                 if (grayscale) {
                     var buffer = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-                    System.arraycopy(converted.data(), 0, buffer, 0, buffer.length);
+                    converted.data().copyTo(buffer);
                 } else {
                     var buffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
-                    for (int i = 0, o = 0, len = converted.data().length; i < len; i += 4, o++) {
-                        buffer[o] = Handles.getInt(converted.data(), i, ByteOrder.LITTLE_ENDIAN);
+                    for (int i = 0, o = 0, len = converted.data().length(); i < len; i += 4, o++) {
+                        buffer[o] = converted.data().getInt(i);
                     }
                 }
 

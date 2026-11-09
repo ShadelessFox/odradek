@@ -9,7 +9,8 @@ import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.audio.container.wwise.WwiseFmtChunk;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.ds2.game.DS2Game;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -21,11 +22,11 @@ abstract class BaseAudioConverter<T> implements Converter<T, Audio, DS2Game> {
         .reader(WwiseFmtChunk.ID, WwiseFmtChunk.reader())
         .reader(WaveDataChunk.ID, WaveDataChunk.reader());
 
-    protected static Optional<Audio> convertWem(byte[] wem) {
+    protected static Optional<Audio> convertWem(Bytes wem) {
         RiffFile file;
 
         try {
-            file = RIFF_PARSER.parse(BinaryReader.wrap(wem));
+            file = RIFF_PARSER.parse(BinarySource.wrap(wem));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -42,7 +43,7 @@ abstract class BaseAudioConverter<T> implements Converter<T, Audio, DS2Game> {
 
     private static int pcmSamples(WaveDataChunk data, WwiseFmtChunk fmt) {
         return BaseAudioConverter.pcmBytesToSamples(
-            data.data().length,
+            data.data().length(),
             fmt.channelCount(),
             fmt.bitsPerSample());
     }

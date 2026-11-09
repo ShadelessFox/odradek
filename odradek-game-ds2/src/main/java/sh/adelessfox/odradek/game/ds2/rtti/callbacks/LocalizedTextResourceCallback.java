@@ -2,10 +2,10 @@ package sh.adelessfox.odradek.game.ds2.rtti.callbacks;
 
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
 import sh.adelessfox.odradek.game.ds2.rtti.extensions.ELanguageExtension;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.StringFormat;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataCallback;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.StringFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,14 +13,14 @@ import java.util.List;
 
 public final class LocalizedTextResourceCallback implements ExtraBinaryDataCallback<DS2.LocalizedTextResource> {
     @Override
-    public void deserialize(BinaryReader reader, TypeFactory factory, DS2.LocalizedTextResource object) throws IOException {
+    public void deserialize(BinarySource source, TypeFactory factory, DS2.LocalizedTextResource object) throws IOException {
         var count = ELanguageExtension.writtenLanguages().size();
         var texts = new ArrayList<DS2.LocalizedTextResourceText>(count);
         for (int i = 0; i < count; i++) {
             var entry = factory.newInstance(DS2.LocalizedTextResourceText.class);
-            entry.text(reader.readString(StringFormat.SHORT_LENGTH));
-            entry.altText(reader.readString(StringFormat.SHORT_LENGTH));
-            entry.mode(DS2.ESubtitleMode.valueOf(reader.readByte()));
+            entry.text(source.readString(StringFormat.SHORT_LENGTH));
+            entry.altText(source.readString(StringFormat.SHORT_LENGTH));
+            entry.mode(DS2.ESubtitleMode.valueOf(source.readByte()));
             texts.add(entry);
         }
         object.texts(List.copyOf(texts));

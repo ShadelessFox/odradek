@@ -1,10 +1,10 @@
 package sh.adelessfox.odradek.audio.container.riff;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 @FunctionalInterface
 public interface RiffChunkReader<T extends RiffChunk> {
-    T read(BinaryReader reader, int size) throws IOException;
+    T read(BinarySource source, int size) throws IOException;
 }

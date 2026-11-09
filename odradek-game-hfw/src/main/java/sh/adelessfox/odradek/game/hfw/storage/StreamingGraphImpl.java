@@ -6,19 +6,18 @@ import sh.adelessfox.odradek.game.decima.DecimaHash;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeId;
-import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.hash.HashCode;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public final class StreamingGraphImpl implements StreamingGraph {
     private static final Logger log = LoggerFactory.getLogger(StreamingGraphImpl.class);
@@ -31,7 +30,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
     private final Map<StreamingGraph.Group, List<StreamingGraph.Group>> superGroups;
 
     private final List<ClassTypeInfo> typeTable;
-    private final byte[] linkTable;
+    private final Bytes linkTable;
 
     private final List<StreamingGraph.Span> spans;
     private final List<StreamingGraph.Locator> locators;
@@ -79,7 +78,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
 
     @Override
     public Iterator<StreamingGraph.Link> links(int position) {
-        var buffer = ByteBuffer.wrap(linkTable, position, linkTable.length - position);
+        var buffer = linkTable.slice(position).asBuffer();
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
@@ -95,7 +94,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
 
     @Override
     public HashCode checksum() {
-        return DecimaHash.murmur3().hash(Bytes.wrap(linkTable));
+        return DecimaHash.murmur3().hash(linkTable);
     }
 
     @Override
@@ -141,7 +140,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
     }
 
     private List<StreamingGraph.Group> computeSubgroups(HFW.StreamingGraphResource graph) {
-        return IntStream.of(graph.subGroups())
+        return graph.subGroups().stream()
             .mapToObj(this::group)
             .toList();
     }
@@ -152,13 +151,13 @@ public final class StreamingGraphImpl implements StreamingGraph {
     ) throws IOException {
         log.debug("Reading type table");
 
-        var reader = BinaryReader.wrap(graph.typeTableData());
+        var source = BinarySource.wrap(graph.typeTableData());
 
-        var compression = reader.readInt();
-        var stride = reader.readInt();
-        var count = reader.readInt();
-        var count2 = reader.readInt();
-        var unk10 = reader.readInt();
+        var compression = source.readInt();
+        var stride = source.readInt();
+        var count = source.readInt();
+        var count2 = source.readInt();
+        var unk10 = source.readInt();
 
         if (compression != 0) {
             throw new IOException("Unsupported compression: " + compression);
@@ -176,8 +175,8 @@ public final class StreamingGraphImpl implements StreamingGraph {
         var types = new ArrayList<ClassTypeInfo>(count);
 
         for (int i = 0; i < count; i++) {
-            var index = Short.toUnsignedInt(reader.readShort());
-            var hash = graph.typeHashes()[index];
+            var index = source.readUnsignedShort();
+            var hash = graph.typeHashes().get(index);
             var type = factory.get(HFWTypeId.of(hash));
             types.add(type.asClass());
         }
@@ -185,7 +184,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
         return List.copyOf(types);
     }
 
-    private static byte[] readLinkTable(
+    private static Bytes readLinkTable(
         HFW.StreamingGraphResource graph,
         StreamingGraphStorage storage
     ) throws IOException {
@@ -228,7 +227,7 @@ public final class StreamingGraphImpl implements StreamingGraph {
             this.graph = graph;
             this.inner = inner;
 
-            roots = Arrays.stream(graph.resource.rootIndices(), inner.rootStart(), inner.rootStart() + inner.rootCount())
+            roots = graph.resource.rootIndices().slice(inner.rootStart(), inner.rootCount()).stream()
                 .boxed()
                 .toList();
         }

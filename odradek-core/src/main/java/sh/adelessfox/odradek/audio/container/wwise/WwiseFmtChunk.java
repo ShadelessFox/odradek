@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.audio.container.wwise;
 
 import sh.adelessfox.odradek.audio.container.riff.RiffChunkReader;
 import sh.adelessfox.odradek.audio.container.wave.WaveFmtChunk;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.util.OptionalInt;
@@ -12,24 +12,24 @@ public final class WwiseFmtChunk extends WaveFmtChunk {
 
     private final OptionalInt sampleCount;
 
-    private WwiseFmtChunk(BinaryReader reader) throws IOException {
-        super(reader);
+    private WwiseFmtChunk(BinarySource source) throws IOException {
+        super(source);
 
-        var size = Short.toUnsignedInt(reader.readShort());
-        var end = reader.position() + size;
+        var size = source.readUnsignedShort();
+        var end = source.position() + size;
 
         sampleCount = switch (formatTag()) {
             case 0xFFFF -> {
                 // Vorbis
                 if (size >= 6) {
-                    reader.skip(6);
+                    source.skip(6);
                 } else if (size >= 2) {
-                    reader.skip(2);
+                    source.skip(2);
                 }
                 if (size == 24) {
-                    reader.skip(16); // ubyte sig_unk[16];
+                    source.skip(16); // ubyte sig_unk[16];
                 }
-                yield OptionalInt.of(reader.readInt());
+                yield OptionalInt.of(source.readInt());
             }
             case 0xFFFE -> {
                 // PCM
@@ -38,11 +38,11 @@ public final class WwiseFmtChunk extends WaveFmtChunk {
             default -> throw new IOException("Unknown Wwise fmt chunk format tag: " + formatTag());
         };
 
-        reader.position(end);
+        source.position(end);
     }
 
     public static RiffChunkReader<WwiseFmtChunk> reader() {
-        return (reader, _) -> new WwiseFmtChunk(reader);
+        return (source, _) -> new WwiseFmtChunk(source);
     }
 
     public OptionalInt sampleCount() {

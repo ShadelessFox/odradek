@@ -1,7 +1,6 @@
 package sh.adelessfox.odradek.export.dds;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import wtf.reversed.toolbox.collect.Bytes;
 
 record DdsHeader(
     int flags,
@@ -35,25 +34,22 @@ record DdsHeader(
     static final int DDS_CUBEMAP_ALLFACES = 0x0000fe00;  // DDSCAPS2_CUBEMAP | DDSCAPS2_CUBEMAP_XXX
     static final int DDS_VOLUME = 0x00200000; // DDSCAPS2_VOLUME
 
-    public ByteBuffer toBuffer() {
-        return ByteBuffer.allocate(4 + BYTES + DdsHeaderDxt10.BYTES)
-            .order(ByteOrder.LITTLE_ENDIAN)
-            .putInt('D' | 'D' << 8 | 'S' << 16 | ' ' << 24)
-            .putInt(BYTES)
-            .putInt(flags)
-            .putInt(height)
-            .putInt(width)
-            .putInt(pitchOrLinearSize)
-            .putInt(depth)
-            .putInt(mipMapCount)
-            .position(0x4c) // dwReserved1
-            .put(pixelFormat.toBuffer())
-            .putInt(caps)
-            .putInt(caps2)
-            .putInt(caps3)
-            .putInt(caps4)
-            .position(0x80) // dwReserved2
-            .put(dxt10.toBuffer())
-            .flip();
+    public Bytes toBytes() {
+        var bytes = Bytes.allocate(4 + BYTES + DdsHeaderDxt10.BYTES)
+            .setInt(0x00, 'D' | 'D' << 8 | 'S' << 16 | ' ' << 24)
+            .setInt(0x04, BYTES)
+            .setInt(0x08, flags)
+            .setInt(0x0C, height)
+            .setInt(0x10, width)
+            .setInt(0x14, pitchOrLinearSize)
+            .setInt(0x18, depth)
+            .setInt(0x1C, mipMapCount)
+            .setInt(0x6C, caps)
+            .setInt(0x70, caps2)
+            .setInt(0x74, caps3)
+            .setInt(0x78, caps4);
+        pixelFormat.toBytes().copyTo(bytes, 0x4c);
+        dxt10.toBytes().copyTo(bytes, 0x80);
+        return bytes;
     }
 }

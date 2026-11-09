@@ -38,13 +38,14 @@ public final class UITextureToTextureConverter
         // hardcoded in UITextureFrames::UITextureFrames
         var colorSpace = TextureColorSpace.SRGB;
 
-        var surfaces = new ArrayList<Surface>(spans.length);
-        for (long span : spans) {
+        var surfaces = new ArrayList<Surface>(spans.length());
+        for (int i = 0; i < spans.length(); i++) {
+            long span = spans.get(i);
             int offset = (int) (span);
             int length = (int) (span >>> 32);
-            var buffer = new byte[object.size()];
+            var buffer = Bytes.allocate(object.size());
 
-            Decompressor.lz4Block().decompress(Bytes.wrap(data, offset, length), Bytes.Mutable.wrap(buffer, 0, object.size()));
+            Decompressor.lz4Block().decompress(data.slice(offset, length), buffer);
             surfaces.add(new Surface(object.width(), object.height(), format, colorSpace, buffer));
         }
 
@@ -52,7 +53,7 @@ public final class UITextureToTextureConverter
             format,
             colorSpace,
             surfaces,
-            spans.length,
+            spans.length(),
             mapFrequency(object.frequency().unwrap())
         ));
     }
@@ -71,7 +72,10 @@ public final class UITextureToTextureConverter
         int width = object.header().width() & 0x3FFF;
         int height = object.header().height() & 0x3FFF;
         var colorSpace = mapColorSpace(object.header().colorSpace().unwrap());
-        var surface = Surface.create(width, height, format, colorSpace, object.data().embeddedData());
+        var data = object.data().embeddedData();
+        var buffer = Bytes.allocate(data.length());
+        data.copyTo(buffer, 0);
+        var surface = Surface.create(width, height, format, colorSpace, buffer);
 
         return Optional.of(Texture.of2D(
             format,

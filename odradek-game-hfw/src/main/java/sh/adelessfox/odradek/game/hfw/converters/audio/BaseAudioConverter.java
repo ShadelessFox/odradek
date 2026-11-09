@@ -10,7 +10,8 @@ import sh.adelessfox.odradek.audio.container.riff.RiffParser;
 import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.HFWGame;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -28,7 +29,7 @@ abstract class BaseAudioConverter<T> implements Converter<T, Audio, HFWGame> {
         int sampleRate,
         int channelCount,
         int sampleCount,
-        byte[] stream
+        Bytes stream
     ) {
         var codec = switch (bitsPerSample) {
             case 16 -> AudioCodec.Pcm.S16LE;
@@ -40,11 +41,11 @@ abstract class BaseAudioConverter<T> implements Converter<T, Audio, HFWGame> {
         return Optional.of(new Audio(codec, format, sampleCount, stream));
     }
 
-    protected static Optional<Audio> convertAtrac9(byte[] stream) {
+    protected static Optional<Audio> convertAtrac9(Bytes stream) {
         RiffFile file;
 
         try {
-            file = RIFF_PARSER.parse(BinaryReader.wrap(stream));
+            file = RIFF_PARSER.parse(BinarySource.wrap(stream));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

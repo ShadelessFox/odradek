@@ -9,15 +9,13 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static java.nio.file.StandardOpenOption.*;
 
 @Command(name = "export", description = "Export one or more objects in the specified format", showDefaultValues = true)
 public class ExportAssetCommand extends AbstractCommand {
@@ -72,8 +70,8 @@ public class ExportAssetCommand extends AbstractCommand {
             switch (exporter) {
                 case Exporter.OfSingleOutput<Object> e -> {
                     var path = output.resolve(makeObjectName(id, object, e));
-                    try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                        e.export(converted, channel);
+                    try (var writer = BinaryWriter.open(path)) {
+                        e.export(converted, writer);
                         log.debug("Exported object {} ({}) to {}", object, object.getType(), path);
                     } catch (Exception ex) {
                         log.error("  Failed to export object {} ({}); skipping", object, object.getType(), ex);

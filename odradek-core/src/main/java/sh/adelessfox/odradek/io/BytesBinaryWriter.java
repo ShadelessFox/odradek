@@ -1,10 +1,12 @@
 package sh.adelessfox.odradek.io;
 
+import wtf.reversed.toolbox.collect.Bytes;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-public final class BytesBinaryWriter implements BinaryWriter {
+public final class BytesBinaryWriter extends BinaryWriter {
     private ByteBuffer buffer;
     private int length = 0;
 
@@ -20,9 +22,9 @@ public final class BytesBinaryWriter implements BinaryWriter {
     }
 
     @Override
-    public void write(ByteBuffer src) {
-        reserve(src.remaining());
-        buffer.put(src);
+    public void writeBytes(Bytes values) {
+        reserve(values.length());
+        buffer.put(values.asBuffer());
     }
 
     @Override
@@ -34,19 +36,19 @@ public final class BytesBinaryWriter implements BinaryWriter {
     @Override
     public void writeShort(short value) {
         reserve(Short.BYTES);
-        buffer.putShort(value);
+        buffer.putShort(bigEndian ? Short.reverseBytes(value) : value);
     }
 
     @Override
     public void writeInt(int value) {
         reserve(Integer.BYTES);
-        buffer.putInt(value);
+        buffer.putInt(bigEndian ? Integer.reverseBytes(value) : value);
     }
 
     @Override
     public void writeLong(long value) {
         reserve(Long.BYTES);
-        buffer.putLong(value);
+        buffer.putLong(bigEndian ? Long.reverseBytes(value) : value);
     }
 
     @Override
@@ -58,23 +60,19 @@ public final class BytesBinaryWriter implements BinaryWriter {
     public BinaryWriter position(long pos) {
         Objects.checkIndex(pos, Integer.MAX_VALUE);
         int curPos = buffer.position();
-        int newPos = Math.toIntExact(Math.max(curPos, pos));
+        int newPos = Math.toIntExact(pos);
         if (curPos != newPos) {
-            reserve(newPos - curPos);
+            if (newPos > curPos) {
+                reserve(newPos - curPos);
+            }
             buffer.position(newPos);
         }
         return this;
     }
 
     @Override
-    public ByteOrder order() {
-        return buffer.order();
-    }
-
-    @Override
-    public BinaryWriter order(ByteOrder order) {
-        buffer.order(order);
-        return this;
+    public void flush() {
+        // Do nothing
     }
 
     @Override
@@ -82,18 +80,23 @@ public final class BytesBinaryWriter implements BinaryWriter {
         buffer = null;
     }
 
-    public byte[] toByteArray() {
+    /**
+     * Returns an independent snapshot of the bytes written so far.
+     */
+    public Bytes toBytes() {
         byte[] dst = new byte[length];
         buffer.get(0, dst, 0, length);
-        return dst;
+        return Bytes.wrap(dst);
     }
 
     private void reserve(int count) {
         if (buffer.remaining() < count) {
+            int position = buffer.position();
             buffer = ByteBuffer
                 .allocate(Math.max(buffer.capacity() * 2, buffer.capacity() + count))
                 .order(buffer.order())
-                .put(buffer.flip());
+                .put(buffer.duplicate().position(0).limit(length))
+                .position(position);
         }
         length = Math.max(length, buffer.position() + count);
     }

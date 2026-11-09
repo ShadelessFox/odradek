@@ -7,8 +7,8 @@ import sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.collision.shape.Sh
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.constraints.ConstraintSettings;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.physics.constraints.TwoBodyConstraintSettings;
 import sh.adelessfox.odradek.game.ds2.middleware.jolt.skeleton.Skeleton;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,14 +23,14 @@ public class RagdollSettings {
     public Skeleton skeleton;
     public List<Part> parts;
 
-    public static RagdollSettings sRestoreFromBinaryState(BinaryReader reader) throws IOException {
+    public static RagdollSettings sRestoreFromBinaryState(BinarySource source) throws IOException {
         List<Shape> shapeMap = new ArrayList<>(1024);
         List<GroupFilter> groupFilterMap = new ArrayList<>(128);
         List<PhysicsMaterial> materialMap = new ArrayList<>(128);
 
         RagdollSettings settings = new RagdollSettings();
-        settings.skeleton = Skeleton.restoreFromBinaryState(reader);
-        settings.parts = reader.readObjects(reader.readInt(), r -> {
+        settings.skeleton = Skeleton.restoreFromBinaryState(source);
+        settings.parts = source.readObjects(source.readInt(), r -> {
             Part part = new Part();
             part.body = BodyCreationSettings.sRestoreWithChildren(r, shapeMap, materialMap, groupFilterMap);
 

@@ -1,13 +1,14 @@
 package sh.adelessfox.odradek.rtti.generator.source;
 
 import com.squareup.javapoet.*;
-import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.rtti.generator.PrimitiveContainers;
 import sh.adelessfox.odradek.rtti.generator.TypeGenerator;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Modifier;
@@ -68,10 +69,10 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
                 var deserialize = MethodSpec.methodBuilder("deserialize")
                     .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
                     .addAnnotation(Override.class)
-                    .addParameter(BinaryReader.class, "reader")
+                    .addParameter(BinarySource.class, "source")
                     .addParameter(TypeFactory.class, "factory")
                     .addException(IOException.class)
-                    .addCode("new $T().deserialize(reader, factory, this);", callback);
+                    .addCode("new $T().deserialize(source, factory, this);", callback);
 
                 builder.addMethod(deserialize.build());
             });
@@ -231,7 +232,7 @@ final class TypeSourceGenerator extends TypeGenerator<TypeMirror> {
             case ContainerTypeInfo i -> {
                 var itemType = toJavaType(i.itemType());
                 if (itemType.isPrimitive()) {
-                    yield ArrayTypeName.of(itemType);
+                    yield TypeName.get(PrimitiveContainers.wrapperType(itemType.toString()));
                 } else {
                     yield ParameterizedTypeName.get(NAME_List, itemType);
                 }

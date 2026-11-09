@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.audio.container.wave;
 
 import sh.adelessfox.odradek.audio.container.riff.RiffChunk;
 import sh.adelessfox.odradek.audio.container.riff.RiffChunkReader;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -11,12 +11,12 @@ public class WaveFactChunk implements RiffChunk {
 
     private final int sampleCount;
 
-    public WaveFactChunk(BinaryReader reader) throws IOException {
-        sampleCount = reader.readInt();
+    public WaveFactChunk(BinarySource source) throws IOException {
+        sampleCount = source.readInt();
     }
 
     public static RiffChunkReader<? extends WaveFactChunk> reader() {
-        return (reader, _) -> new WaveFactChunk(reader);
+        return (source, _) -> new WaveFactChunk(source);
     }
 
     public int sampleCount() {

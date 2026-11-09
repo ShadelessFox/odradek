@@ -8,13 +8,14 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
+import sh.adelessfox.odradek.util.Booleans;
+import wtf.reversed.toolbox.collect.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.invoke.VarHandle;
-import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.StreamSupport;
@@ -504,8 +505,8 @@ public class TypeContext {
 
         @Override
         public Object newInstance(int length) {
-            if (isArray()) {
-                return Array.newInstance(itemType().type(), length);
+            if (itemType().type().isPrimitive()) {
+                return PrimitiveContainers.allocate(itemType().type(), length);
             } else {
                 return Arrays.asList(new Object[length]);
             }
@@ -513,34 +514,43 @@ public class TypeContext {
 
         @Override
         public Object get(Object object, int index) {
-            if (isArray()) {
-                return Array.get(object, index);
-            } else {
-                return ((List<?>) object).get(index);
-            }
+            return switch (object) {
+                case Bytes values -> values.get(index);
+                case Shorts values -> values.get(index);
+                case Ints values -> values.get(index);
+                case Longs values -> values.get(index);
+                case Floats values -> values.get(index);
+                case Doubles values -> values.get(index);
+                case Booleans values -> values.get(index);
+                case List<?> values -> values.get(index);
+                default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
+            };
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void set(Object object, int index, Object value) {
-            if (isArray()) {
-                Array.set(object, index, value);
-            } else {
-                ((List<Object>) object).set(index, value);
+            switch (object) {
+                case Bytes.Mutable values -> values.set(index, (byte) value);
+                case Shorts.Mutable values -> values.set(index, (short) value);
+                case Ints.Mutable values -> values.set(index, (int) value);
+                case Longs.Mutable values -> values.set(index, (long) value);
+                case Floats.Mutable values -> values.set(index, (float) value);
+                case Doubles.Mutable values -> values.set(index, (double) value);
+                case Booleans.Mutable values -> values.set(index, (boolean) value);
+                case List<?> values -> ((List<Object>) values).set(index, value);
+                default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
             }
         }
 
         @Override
         public int length(Object object) {
-            if (isArray()) {
-                return Array.getLength(object);
-            } else {
-                return ((List<?>) object).size();
-            }
-        }
-
-        private boolean isArray() {
-            return itemType().type().isPrimitive();
+            return switch (object) {
+                case Slice s -> s.length();
+                case Booleans b -> b.length();
+                case List<?> l -> l.size();
+                default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
+            };
         }
     }
 

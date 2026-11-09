@@ -1,18 +1,19 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic.animatedmaps;
 
 import sh.adelessfox.odradek.game.ds2.middleware.riglogic.conditionaltable.ConditionalTable;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Shorts;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public record AnimatedMaps(
-    short[] lods,
+    Shorts lods,
     ConditionalTable conditionals
 ) {
-    public static AnimatedMaps read(BinaryReader reader) throws IOException {
+    public static AnimatedMaps read(BinarySource source) throws IOException {
         return new AnimatedMaps(
-            reader.readShorts(reader.readInt()),
-            ConditionalTable.read(reader)
+            source.readShorts(source.readInt()),
+            ConditionalTable.read(source)
         );
     }
 }

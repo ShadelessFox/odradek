@@ -4,6 +4,7 @@ import org.w3c.dom.Document;
 import sh.adelessfox.odradek.font.Font;
 import sh.adelessfox.odradek.font.Glyph;
 import sh.adelessfox.odradek.game.Exporter;
+import sh.adelessfox.odradek.io.BinaryWriter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -13,14 +14,11 @@ import javax.xml.transform.stream.StreamResult;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
 import java.util.Optional;
 
 public final class SvgFontExporter implements Exporter.OfSingleOutput<Font> {
     @Override
-    public void export(Font object, WritableByteChannel channel) throws IOException {
+    public void export(Font object, BinaryWriter writer) throws IOException {
         Document document;
         try {
             var documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -62,7 +60,7 @@ public final class SvgFontExporter implements Exporter.OfSingleOutput<Font> {
             elemPath.setAttribute("d", toSvgPath(glyph, object.metrics().ascent()));
         }
 
-        try (OutputStream os = Channels.newOutputStream(channel)) {
+        try (var os = writer.asOutputStream()) {
             var transformerFactory = TransformerFactory.newInstance();
             var transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");

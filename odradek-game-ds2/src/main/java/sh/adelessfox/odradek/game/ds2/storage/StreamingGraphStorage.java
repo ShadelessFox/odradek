@@ -4,9 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.ds2.rtti.DS2;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.DirectStorageReader;
+import sh.adelessfox.odradek.io.DirectStorageSource;
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -21,7 +21,7 @@ public final class StreamingGraphStorage implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(StreamingGraphStorage.class);
     private static final Pattern PACKAGE_NAME = Pattern.compile("^package\\.(?<channel>\\d+)\\.(?<index>\\d+)\\.core");
 
-    private final Map<String, BinaryReader> files = new HashMap<>();
+    private final Map<String, BinarySource> files = new HashMap<>();
     private final DecimaGame game;
 
     public StreamingGraphStorage(DecimaGame game) {
@@ -59,12 +59,12 @@ public final class StreamingGraphStorage implements Closeable {
             return;
         }
 
-        BinaryReader reader;
+        BinarySource source;
 
         try {
-            reader = DirectStorageReader.open(path);
+            source = DirectStorageSource.open(path);
         } catch (IOException e) {
-            reader = BinaryReader.open(path);
+            source = BinarySource.open(path);
         }
 
         var matcher = PACKAGE_NAME.matcher(file);
@@ -76,37 +76,30 @@ public final class StreamingGraphStorage implements Closeable {
         }
 
         synchronized (files) {
-            files.put(file, reader);
+            files.put(file, source);
         }
     }
 
-    public byte[] read(String file, long offset, long length) throws IOException {
-        var reader = resolve(file);
-        var buffer = new byte[Math.toIntExact(length)];
-
-        if (length == 0) {
-            return buffer;
+    public Bytes read(String file, long offset, long length) throws IOException {
+        var source = resolve(file);
+        synchronized (source) {
+            return source
+                .position(offset)
+                .readBytes(Math.toIntExact(length));
         }
-
-        synchronized (reader) {
-            reader.position(offset);
-            reader.readBytes(Bytes.Mutable.wrap(buffer));
-        }
-
-        return buffer;
     }
 
-    private BinaryReader resolve(String file) {
-        BinaryReader reader = files.get(file);
-        if (reader == null) {
+    private BinarySource resolve(String file) {
+        BinarySource source = files.get(file);
+        if (source == null) {
             throw new IllegalArgumentException("Can't resolve file: " + file);
         }
-        return reader;
+        return source;
     }
 
     @Override
     public void close() throws IOException {
-        for (BinaryReader value : files.values()) {
+        for (BinarySource value : files.values()) {
             value.close();
         }
         files.clear();

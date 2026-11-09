@@ -4,58 +4,50 @@ import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Floats;
 import wtf.reversed.toolbox.collect.Ints;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.List;
 import java.util.Objects;
 
 public sealed interface Accessor {
     /**
-     * Creates a new accessor backed by the given buffer.
+     * Creates a new accessor sharing the given bytes, interpreted as little endian.
      *
-     * @param buffer the buffer to read from
-     * @param offset the offset in bytes from the start of the buffer to the first element
-     * @param stride the stride in bytes between elements. Can be {@code 0} for tightly packed data
-     * @param type   the type of the elements in the buffer
-     * @param count  the number of elements in the buffer
-     * @return a new accessor backed by the given buffer
+     * @param bytes  the logical byte slice to read from
+     * @param offset the offset in bytes from the start of the slice to the first element
+     * @param stride the stride in bytes between elements; {@code 0} repeats the same element
+     * @param type   the type of the elements
+     * @param count  the number of elements
+     * @return a new accessor sharing the given bytes, not an immutable snapshot
      */
-    static Accessor of(ByteBuffer buffer, int offset, int stride, Type type, int count) {
-        Objects.checkIndex(offset, buffer.remaining());
-        if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
-            throw new IllegalArgumentException("buffer must be LITTLE_ENDIAN");
-        }
-        int sliceOffset = buffer.position() + offset;
-        int sliceLength = OfBuffer.requiredSize(stride, count, type);
-        var slice = buffer
-            .slice(sliceOffset, sliceLength)
-            .order(ByteOrder.LITTLE_ENDIAN);
-        return new OfBuffer(slice, stride, type, count);
+    static Accessor of(Bytes bytes, int offset, int stride, Type type, int count) {
+        Objects.checkIndex(offset, bytes.length());
+        int sliceLength = OfBytes.requiredSize(stride, count, type);
+        var slice = bytes.slice(offset, sliceLength);
+        return new OfBytes(slice, stride, type, count);
     }
 
     /**
-     * Creates a new accessor backed by the given buffer.
+     * Creates a tightly packed accessor sharing the given bytes, interpreted as little endian.
      *
-     * @param buffer the buffer to read from
-     * @param offset the offset in bytes from the start of the buffer to the first element
-     * @param type   the type of the elements in the buffer
-     * @param count  the number of elements in the buffer
-     * @return a new accessor backed by the given buffer
+     * @param bytes  the logical byte slice to read from
+     * @param offset the offset in bytes from the start of the slice to the first element
+     * @param type   the type of the elements
+     * @param count  the number of elements
+     * @return a new accessor sharing the given bytes
      */
-    static Accessor of(ByteBuffer buffer, int offset, Type type, int count) {
-        return of(buffer, offset, OfBuffer.byteSize(type), type, count);
+    static Accessor of(Bytes bytes, int offset, Type type, int count) {
+        return of(bytes, offset, OfBytes.byteSize(type), type, count);
     }
 
     /**
-     * Creates a new accessor backed by the given buffer.
+     * Creates a tightly packed accessor sharing the given bytes, interpreted as little endian.
      *
-     * @param buffer the buffer to read from
-     * @param type   the type of the elements in the buffer
-     * @param count  the number of elements in the buffer
-     * @return a new accessor backed by the given buffer
+     * @param bytes the logical byte slice to read from
+     * @param type  the type of the elements
+     * @param count the number of elements
+     * @return a new accessor sharing the given bytes
      */
-    static Accessor of(ByteBuffer buffer, Type type, int count) {
-        return of(buffer, 0, type, count);
+    static Accessor of(Bytes bytes, Type type, int count) {
+        return of(bytes, 0, type, count);
     }
 
     /**
@@ -100,7 +92,7 @@ public sealed interface Accessor {
 
     default Bytes toBytes() {
         var view = asByteView();
-        var bytes = Bytes.Mutable.allocate(count() * componentCount());
+        var bytes = Bytes.allocate(Math.multiplyExact(count(), componentCount()));
         for (int i = 0; i < count(); i++) {
             for (int j = 0; j < componentCount(); j++) {
                 bytes.set(i * componentCount() + j, view.get(i, j));
@@ -111,7 +103,7 @@ public sealed interface Accessor {
 
     default Ints toInts() {
         var view = asIntView();
-        var ints = Ints.Mutable.allocate(count() * componentCount());
+        var ints = Ints.allocate(Math.multiplyExact(count(), componentCount()));
         for (int i = 0; i < count(); i++) {
             for (int j = 0; j < componentCount(); j++) {
                 ints.set(i * componentCount() + j, view.get(i, j));
@@ -122,7 +114,7 @@ public sealed interface Accessor {
 
     default Floats toFloats() {
         var view = asFloatView();
-        var floats = Floats.Mutable.allocate(count() * componentCount());
+        var floats = Floats.allocate(Math.multiplyExact(count(), componentCount()));
         for (int i = 0; i < count(); i++) {
             for (int j = 0; j < componentCount(); j++) {
                 floats.set(i * componentCount() + j, view.get(i, j));
@@ -134,20 +126,19 @@ public sealed interface Accessor {
     default Floats toFloatsNormalized() {
         int count = count();
         int componentCount = componentCount();
-        var accumulator = new float[componentCount];
-
         var view = asFloatView();
-        var floats = Floats.Mutable.allocate(count * componentCount);
+        var floats = Floats.allocate(Math.multiplyExact(count, componentCount));
 
         for (int i = 0; i < count; i++) {
             float sum = 0;
             for (int j = 0; j < componentCount; j++) {
                 float value = view.get(i, j);
-                accumulator[j] = view.get(i, j);
+                floats.set(i * componentCount + j, value);
                 sum += value;
             }
             for (int j = 0; j < componentCount; j++) {
-                floats.set(i * componentCount + j, accumulator[j] / sum);
+                int index = i * componentCount + j;
+                floats.set(index, floats.get(index) / sum);
             }
         }
 
@@ -197,15 +188,9 @@ public sealed interface Accessor {
 
     float getFloat(int elementIndex, int componentIndex);
 
-    record OfBuffer(ByteBuffer buffer, int stride, Type type, int count) implements Accessor {
-        public OfBuffer {
-            if (buffer.order() != ByteOrder.LITTLE_ENDIAN) {
-                throw new IllegalArgumentException("buffer must be LITTLE_ENDIAN");
-            }
-            buffer = buffer
-                .slice(0, requiredSize(stride, count, type))
-                .asReadOnlyBuffer()
-                .order(ByteOrder.LITTLE_ENDIAN);
+    record OfBytes(Bytes bytes, int stride, Type type, int count) implements Accessor {
+        public OfBytes {
+            bytes = bytes.slice(0, requiredSize(stride, count, type));
         }
 
         @Override
@@ -216,27 +201,27 @@ public sealed interface Accessor {
             if (componentCount > componentCount()) {
                 throw new UnsupportedOperationException("can't resize to a type with more components");
             }
-            return new OfBuffer(buffer, stride, type.withComponents(componentCount), count);
+            return new OfBytes(bytes, stride, type.withComponents(componentCount), count);
         }
 
         @Override
         public byte getByte(int elementIndex, int componentIndex) {
-            return buffer.get(positionFor(elementIndex, componentIndex));
+            return bytes.get(positionFor(elementIndex, componentIndex));
         }
 
         @Override
         public short getShort(int elementIndex, int componentIndex) {
-            return buffer.getShort(positionFor(elementIndex, componentIndex));
+            return bytes.getShort(positionFor(elementIndex, componentIndex));
         }
 
         @Override
         public int getInt(int elementIndex, int componentIndex) {
-            return buffer.getInt(positionFor(elementIndex, componentIndex));
+            return bytes.getInt(positionFor(elementIndex, componentIndex));
         }
 
         @Override
         public float getFloat(int elementIndex, int componentIndex) {
-            return buffer.getFloat(positionFor(elementIndex, componentIndex));
+            return bytes.getFloat(positionFor(elementIndex, componentIndex));
         }
 
         private int positionFor(int elementIndex, int componentIndex) {
@@ -253,7 +238,7 @@ public sealed interface Accessor {
             if (count < 1) {
                 throw new IllegalArgumentException("count must be at least 1");
             }
-            return stride * (count - 1) + byteSize(type);
+            return Math.addExact(Math.multiplyExact(stride, count - 1), byteSize(type));
         }
 
         private static int componentByteSize(Type type) {
@@ -269,11 +254,11 @@ public sealed interface Accessor {
 
         private static int byteSize(Type type) {
             return switch (type) {
-                case Type.I8 x -> Byte.BYTES * x.components();
-                case Type.I16 x -> Short.BYTES * x.components();
-                case Type.I32 x -> Integer.BYTES * x.components();
-                case Type.F16 x -> Short.BYTES * x.components();
-                case Type.F32 x -> Float.BYTES * x.components();
+                case Type.I8 x -> Math.multiplyExact(Byte.BYTES, x.components());
+                case Type.I16 x -> Math.multiplyExact(Short.BYTES, x.components());
+                case Type.I32 x -> Math.multiplyExact(Integer.BYTES, x.components());
+                case Type.F16 x -> Math.multiplyExact(Short.BYTES, x.components());
+                case Type.F32 x -> Math.multiplyExact(Float.BYTES, x.components());
                 case Type.X10Y10Z10W2 _ -> Integer.BYTES;
             };
         }

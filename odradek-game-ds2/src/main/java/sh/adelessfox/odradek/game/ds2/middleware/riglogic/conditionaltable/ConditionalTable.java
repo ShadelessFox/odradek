@@ -1,31 +1,33 @@
 package sh.adelessfox.odradek.game.ds2.middleware.riglogic.conditionaltable;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Floats;
+import wtf.reversed.toolbox.collect.Shorts;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
 public record ConditionalTable(
-    short[] intervalsRemaining,
-    short[] inputIndices,
-    short[] outputIndices,
-    float[] fromValues,
-    float[] toValues,
-    float[] slopeValues,
-    float[] cutValues,
+    Shorts intervalsRemaining,
+    Shorts inputIndices,
+    Shorts outputIndices,
+    Floats fromValues,
+    Floats toValues,
+    Floats slopeValues,
+    Floats cutValues,
     short inputCount,
     short outputCount
 ) {
-    public static ConditionalTable read(BinaryReader reader) throws IOException {
+    public static ConditionalTable read(BinarySource source) throws IOException {
         return new ConditionalTable(
-            reader.readShorts(reader.readInt()),
-            reader.readShorts(reader.readInt()),
-            reader.readShorts(reader.readInt()),
-            reader.readFloats(reader.readInt()),
-            reader.readFloats(reader.readInt()),
-            reader.readFloats(reader.readInt()),
-            reader.readFloats(reader.readInt()),
-            reader.readShort(),
-            reader.readShort()
+            source.readShorts(source.readInt()),
+            source.readShorts(source.readInt()),
+            source.readShorts(source.readInt()),
+            source.readFloats(source.readInt()),
+            source.readFloats(source.readInt()),
+            source.readFloats(source.readInt()),
+            source.readFloats(source.readInt()),
+            source.readShort(),
+            source.readShort()
         );
     }
 }

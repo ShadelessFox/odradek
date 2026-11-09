@@ -1,19 +1,18 @@
 package sh.adelessfox.odradek.export.dds;
 
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 
 final class DdsWriter {
-    static void write(Texture texture, WritableByteChannel channel) throws IOException {
+    static void write(Texture texture, BinaryWriter writer) throws IOException {
         var converted = texture.convert(mapIncompatibleFormat(texture.format()));
-        writeHeader(converted, channel);
-        writeData(converted, channel);
+        writeHeader(converted, writer);
+        writeData(converted, writer);
     }
 
     private static TextureFormat mapIncompatibleFormat(TextureFormat format) {
@@ -24,15 +23,15 @@ final class DdsWriter {
         };
     }
 
-    private static void writeHeader(Texture texture, WritableByteChannel channel) throws IOException {
-        channel.write(createHeader(texture).toBuffer());
+    private static void writeHeader(Texture texture, BinaryWriter writer) throws IOException {
+        writer.writeBytes(createHeader(texture).toBytes());
     }
 
-    private static void writeData(Texture texture, WritableByteChannel channel) throws IOException {
+    private static void writeData(Texture texture, BinaryWriter writer) throws IOException {
         if (texture.kind() == TextureKind.TEXTURE_3D) {
             // The order in which surfaces are stored matches the order DDS uses.
             for (Surface surface : texture.surfaces()) {
-                channel.write(ByteBuffer.wrap(surface.data()));
+                writer.writeBytes(surface.data());
             }
         } else {
             int mips = texture.mips();
@@ -44,7 +43,7 @@ final class DdsWriter {
             for (int element = 0; element < elements; element++) {
                 for (int mip = 0; mip < mips; mip++) {
                     Surface surface = texture.surfaces().get(mip * elements + element);
-                    channel.write(ByteBuffer.wrap(surface.data()));
+                    writer.writeBytes(surface.data());
                 }
             }
         }

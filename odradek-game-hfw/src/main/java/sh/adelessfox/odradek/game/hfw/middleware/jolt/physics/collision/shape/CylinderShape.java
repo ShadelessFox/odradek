@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.game.hfw.middleware.jolt.physics.collision.shape;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -10,11 +10,11 @@ public class CylinderShape extends ConvexShape {
     public float convexRadius;
 
     @Override
-    public void restoreBinaryState(BinaryReader reader) throws IOException {
-        super.restoreBinaryState(reader);
+    public void restoreBinaryState(BinarySource source) throws IOException {
+        super.restoreBinaryState(source);
 
-        halfHeight = reader.readFloat();
-        radius = reader.readFloat();
-        convexRadius = reader.readFloat();
+        halfHeight = source.readFloat();
+        radius = source.readFloat();
+        convexRadius = source.readFloat();
     }
 }

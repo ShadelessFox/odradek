@@ -1,7 +1,8 @@
 package sh.adelessfox.odradek.game.hfw.rtti.data;
 
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -13,20 +14,20 @@ public record HwShader(
     int unk0C,
     int unk10,
     List<HwShaderProgram> programs,
-    byte[] rootSignature
+    Bytes rootSignature
 ) {
     public HwShader {
         programs = List.copyOf(programs);
     }
 
-    public static HwShader read(BinaryReader reader) throws IOException {
-        var unk00 = reader.readInt();
-        var unk04 = reader.readInt();
-        var programTypeMask = HFW.EProgramTypeMask.valueOf(reader.readInt());
-        var unk0C = reader.readInt();
-        var unk10 = reader.readInt();
-        var programs = reader.readObjects(reader.readInt(), HwShaderProgram::read);
-        var rootSignature = reader.readBytes(reader.readInt());
+    public static HwShader read(BinarySource source) throws IOException {
+        var unk00 = source.readInt();
+        var unk04 = source.readInt();
+        var programTypeMask = HFW.EProgramTypeMask.valueOf(source.readInt());
+        var unk0C = source.readInt();
+        var unk10 = source.readInt();
+        var programs = source.readObjects(source.readInt(), HwShaderProgram::read);
+        var rootSignature = source.readBytes(source.readInt());
 
         return new HwShader(
             unk00,

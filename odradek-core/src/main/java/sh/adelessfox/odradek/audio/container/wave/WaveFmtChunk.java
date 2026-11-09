@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.audio.container.wave;
 
 import sh.adelessfox.odradek.audio.container.riff.RiffChunk;
 import sh.adelessfox.odradek.audio.container.riff.RiffChunkReader;
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 
@@ -19,18 +19,18 @@ public class WaveFmtChunk implements RiffChunk {
     private final int bitsPerSample;
     private final Object extension;
 
-    public WaveFmtChunk(BinaryReader reader) throws IOException {
-        formatTag = Short.toUnsignedInt(reader.readShort());
-        channelCount = Short.toUnsignedInt(reader.readShort());
-        sampleRate = reader.readInt();
-        avgBytesPerSec = reader.readInt();
-        blockAlign = Short.toUnsignedInt(reader.readShort());
-        bitsPerSample = Short.toUnsignedInt(reader.readShort());
-        extension = readExtension(reader, formatTag);
+    public WaveFmtChunk(BinarySource source) throws IOException {
+        formatTag = source.readUnsignedShort();
+        channelCount = source.readUnsignedShort();
+        sampleRate = source.readInt();
+        avgBytesPerSec = source.readInt();
+        blockAlign = source.readUnsignedShort();
+        bitsPerSample = source.readUnsignedShort();
+        extension = readExtension(source, formatTag);
     }
 
     public static RiffChunkReader<? extends WaveFmtChunk> reader() {
-        return (reader, _) -> new WaveFmtChunk(reader);
+        return (source, _) -> new WaveFmtChunk(source);
     }
 
     public int formatTag() {
@@ -61,7 +61,7 @@ public class WaveFmtChunk implements RiffChunk {
         return extension;
     }
 
-    protected Object readExtension(BinaryReader reader, int format) throws IOException {
+    protected Object readExtension(BinarySource source, int format) throws IOException {
         return null;
     }
 }

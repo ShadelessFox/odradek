@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.middleware.edgeanim;
 
-import sh.adelessfox.odradek.io.BinaryReader;
+import wtf.reversed.toolbox.io.BinarySource;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,27 +24,27 @@ public record EdgeAnimSkeleton(
 ) {
     private static final int TAG = 'E' << 24 | 'S' << 16 | '0' << 8 | '6';
 
-    public static EdgeAnimSkeleton read(BinaryReader reader) throws IOException {
-        var tag = reader.readInt();
+    public static EdgeAnimSkeleton read(BinarySource source) throws IOException {
+        var tag = source.readInt();
         if (tag != TAG) {
             throw new IOException("Invalid EdgeAnimSkeleton tag: " + tag);
         }
-        var sizeTotal = reader.readInt();
-        var sizeCustomData = reader.readInt();
-        var sizeNameHashes = reader.readInt();
-        var numJoints = reader.readShort();
-        var numUserChannels = reader.readShort();
-        var flags = reader.readShort();
-        var locomotionJointIndex = reader.readShort();
-        var offsetBasePose = reader.readInt();
-        var offsetJointLinkageMap = reader.readInt();
-        var offsetJointNameHashArray = reader.readInt();
-        var offsetUserChannelNameHashArray = reader.readInt();
-        var offsetUserChannelNodeNameHashArray = reader.readInt();
-        var offsetUserChannelFlagsArray = reader.readInt();
-        var offsetCustomData = reader.readInt();
-        reader.skip(8);
-        var numJointLinkages = reader.readInt();
+        var sizeTotal = source.readInt();
+        var sizeCustomData = source.readInt();
+        var sizeNameHashes = source.readInt();
+        var numJoints = source.readShort();
+        var numUserChannels = source.readShort();
+        var flags = source.readShort();
+        var locomotionJointIndex = source.readShort();
+        var offsetBasePose = source.readInt();
+        var offsetJointLinkageMap = source.readInt();
+        var offsetJointNameHashArray = source.readInt();
+        var offsetUserChannelNameHashArray = source.readInt();
+        var offsetUserChannelNodeNameHashArray = source.readInt();
+        var offsetUserChannelFlagsArray = source.readInt();
+        var offsetCustomData = source.readInt();
+        source.skip(8);
+        var numJointLinkages = source.readInt();
 
         return new EdgeAnimSkeleton(
             sizeTotal,
@@ -65,8 +65,8 @@ public record EdgeAnimSkeleton(
         );
     }
 
-    public List<EdgeAnimJointTransform> readBasePose(BinaryReader reader) throws IOException {
-        reader.position(offsetBasePose + 24);
-        return reader.readObjects(numJoints, EdgeAnimJointTransform::read);
+    public List<EdgeAnimJointTransform> readBasePose(BinarySource source) throws IOException {
+        source.position(offsetBasePose + 24);
+        return source.readObjects(numJoints, EdgeAnimJointTransform::read);
     }
 }

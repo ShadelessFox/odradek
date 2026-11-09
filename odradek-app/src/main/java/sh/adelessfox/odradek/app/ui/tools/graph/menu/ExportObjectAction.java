@@ -14,6 +14,7 @@ import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -37,8 +38,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.nio.file.StandardOpenOption.*;
 
 @ActionRegistration(id = ExportObjectAction.ID, text = "&Export As\u2026", description = "Export selected resources in a supported format", icon = "fugue:blue-document-export", keystroke = "ctrl E")
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_EXPORT)
@@ -309,8 +308,8 @@ public class ExportObjectAction extends Action {
             switch (batch.exporter()) {
                 case Exporter.OfSingleOutput<T> e -> {
                     var path = singleFile ? output : output.resolve(makeObjectName(objectId, type, e));
-                    try (var channel = Files.newByteChannel(path, WRITE, CREATE, TRUNCATE_EXISTING)) {
-                        e.export(object, channel);
+                    try (var writer = BinaryWriter.open(path)) {
+                        e.export(object, writer);
                         log.debug("Exported object {} ({}) to {}", objectId, type, path);
                     } catch (Exception ex) {
                         Files.delete(path);

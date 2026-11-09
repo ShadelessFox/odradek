@@ -22,7 +22,7 @@ public final class TextureSetDdsExporter implements Exporter.OfMultipleOutputs<T
             }
 
             var name = Filenames.withSuffix(Filenames.filename(source.path()), ".dds");
-            DdsWriter.write(unpacked, provider.channel(name));
+            DdsWriter.write(unpacked, provider.writer(name));
         }
     }
 

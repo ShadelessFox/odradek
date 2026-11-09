@@ -7,30 +7,31 @@ import sh.adelessfox.odradek.game.decima.StreamingGraph;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.HFWTypeReader;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.*;
-import sh.adelessfox.odradek.io.BinaryReader;
-import sh.adelessfox.odradek.io.BoolFormat;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.PointerTypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
 import sh.adelessfox.odradek.util.LruWeakCache;
+import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BoolFormat;
 
 import java.io.IOException;
 import java.util.*;
 
-public class StreamingObjectReader extends HFWTypeReader {
+public final class StreamingObjectReader extends HFWTypeReader {
     private static final Logger log = LoggerFactory.getLogger(StreamingObjectReader.class);
 
     private final StreamingGraphStorage storage;
     private final StreamingGraph graph;
     private final TypeFactory factory;
 
-    private final LruWeakCache<Integer, GroupResult> cache = new LruWeakCache<>(5000);
+    private final LruWeakCache<CacheKey, GroupResult> cache = new LruWeakCache<>(5000);
 
     private GroupResult currentGroup;
     private List<GroupResult> currentSubGroups;
 
-    private boolean resolveStreamingLinksAndLocators;
+    private boolean resolveStreamingLinks;
     private Iterator<StreamingGraph.Link> streamingLinks;
     private Iterator<StreamingGraph.Locator> streamingLocators;
     private int depth;
@@ -52,54 +53,63 @@ public class StreamingObjectReader extends HFWTypeReader {
         this.factory = factory;
     }
 
-    public GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
-        return readGroup(id, new HashMap<>(), readSubgroups);
+    public synchronized GroupResult readGroup(int id, boolean readSubgroups) throws IOException {
+        var group = Objects.requireNonNull(graph.group(id), () -> "Group not found: " + id);
+        return readGroup(group, new HashMap<>(), new HashSet<>(), readSubgroups);
     }
 
-    private GroupResult readGroup(int id, Map<Integer, GroupResult> cache, boolean readSubgroups) throws IOException {
-        var group = Objects.requireNonNull(graph.group(id), () -> "Group not found: " + id);
+    private GroupResult readGroup(
+        StreamingGraph.Group group,
+        Map<CacheKey, GroupResult> results,
+        Set<CacheKey> loading,
+        boolean readSubgroups
+    ) throws IOException {
+        var key = new CacheKey(group.id(), readSubgroups);
+        var result = results.get(key);
+        if (result != null) {
+            return result;
+        }
+
+        result = cache.get(key);
+        if (result != null) {
+            results.put(key, result);
+            return result;
+        }
+
+        if (!loading.add(key)) {
+            throw new IOException("Cyclic subgroup dependency for group " + group.id());
+        }
 
         if (log.isDebugEnabled()) {
-            log.debug("{}Reading group {}", indent(), Colors.blue(id));
+            log.debug("{}Reading group {}", indent(), Colors.blue(group.id()));
         }
 
-        var result = cache.get(group.id());
-        if (result == null) {
-            depth++;
-            result = readGroup(group, readSubgroups);
-            cache.put(result.group.id(), result);
-            depth--;
-        }
-
-        return result;
-    }
-
-    private synchronized GroupResult readGroup(StreamingGraph.Group group, boolean readSubgroups) throws IOException {
-        var subGroups = new ArrayList<GroupResult>(group.subGroups().size());
-        if (readSubgroups) {
-            for (StreamingGraph.Group subGroup : group.subGroups()) {
-                subGroups.add(readGroup(subGroup, true));
+        depth++;
+        try {
+            var subGroups = new ArrayList<GroupResult>(group.subGroups().size());
+            if (readSubgroups) {
+                for (StreamingGraph.Group subGroup : group.subGroups()) {
+                    subGroups.add(readGroup(subGroup, results, loading, true));
+                }
             }
-        }
 
-        currentSubGroups = subGroups;
-        resolveStreamingLinksAndLocators = readSubgroups;
+            currentSubGroups = subGroups;
+            resolveStreamingLinks = readSubgroups;
 
-        var result = cache.get(group.id());
-        if (result == null) {
             result = readSingleGroup(group);
-            cache.put(group.id(), result);
+            results.put(key, result);
+            cache.put(key, result);
+            return result;
+        } finally {
+            depth--;
+            loading.remove(key);
         }
-
-        return result;
     }
 
     private GroupResult readSingleGroup(StreamingGraph.Group group) throws IOException {
-        var objects = new ArrayList<TypedObject>(group.types().size());
-        for (ClassTypeInfo type : group.types()) {
-            objects.add(type.newInstance());
-        }
-
+        var objects = group.types().stream()
+            .map(ClassTypeInfo::newInstance)
+            .toList();
         var result = new GroupResult(group, objects);
 
         currentGroup = result;
@@ -108,10 +118,8 @@ public class StreamingObjectReader extends HFWTypeReader {
 
         int index = 0;
         for (StreamingGraph.Span span : group.spans()) {
-            var data = getSpanData(span);
-            var reader = BinaryReader.wrap(data);
-
-            while (reader.remaining() > 0) {
+            var source = BinarySource.wrap(readSpan(span));
+            while (source.remaining() > 0) {
                 var object = objects.get(index++);
 
                 if (log.isDebugEnabled()) {
@@ -120,11 +128,11 @@ public class StreamingObjectReader extends HFWTypeReader {
                         indent(),
                         Colors.yellow(object.getType()),
                         Colors.yellow(getSpanFile(span)),
-                        Colors.blue(span.offset() + reader.position())
+                        Colors.blue(span.offset() + source.position())
                     );
                 }
 
-                fillCompound(object.getType(), reader, factory, object);
+                fillCompound(object.getType(), source, factory, object);
             }
         }
 
@@ -132,8 +140,8 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected void fillCompound(ClassTypeInfo info, BinaryReader reader, TypeFactory factory, Object target) throws IOException {
-        super.fillCompound(info, reader, factory, target);
+    protected void fillCompound(ClassTypeInfo info, BinarySource source, TypeFactory factory, Object target) throws IOException {
+        super.fillCompound(info, source, factory, target);
 
         if (target instanceof HFW.StreamingDataSource dataSource) {
             resolveStreamingDataSource(dataSource);
@@ -141,21 +149,17 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     @Override
-    protected Object readPointer(PointerTypeInfo info, BinaryReader reader, TypeFactory factory) throws IOException {
-        if (!reader.readBool(BoolFormat.BYTE)) {
+    protected Object readPointer(PointerTypeInfo info, BinarySource source, TypeFactory factory) throws IOException {
+        if (!source.readBool(BoolFormat.BYTE)) {
             return null;
         } else if (info.pointerType().equals("UUIDRef")) {
-            return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), reader, factory));
+            return new UUIDRef<>((HFW.GGUUID) readCompound(factory.get("GGUUID").asClass(), source, factory));
         } else {
             return resolveLink(info);
         }
     }
 
     private void resolveStreamingDataSource(HFW.StreamingDataSource dataSource) {
-        if (!resolveStreamingLinksAndLocators) {
-            return;
-        }
-
         if (dataSource.isValid()) {
             var locator = streamingLocators.next();
 
@@ -173,7 +177,7 @@ public class StreamingObjectReader extends HFWTypeReader {
     }
 
     private Object resolveLink(PointerTypeInfo info) {
-        if (!resolveStreamingLinksAndLocators) {
+        if (!resolveStreamingLinks) {
             return null;
         }
 
@@ -217,7 +221,13 @@ public class StreamingObjectReader extends HFWTypeReader {
         }
 
         if (!matches) {
-            throw new IllegalStateException("Type mismatch for pointer");
+            log.error(
+                "Type mismatch for {}: resolved to {} ({}:{})",
+                info,
+                object.getType(),
+                group.group.id(),
+                linkIndex);
+            return null;
         }
 
         var objectId = new ObjectId(group.group().id(), linkIndex);
@@ -233,12 +243,15 @@ public class StreamingObjectReader extends HFWTypeReader {
         return "\t".repeat(depth);
     }
 
-    private byte[] getSpanData(StreamingGraph.Span span) throws IOException {
+    private Bytes readSpan(StreamingGraph.Span span) throws IOException {
         return storage.read(getSpanFile(span), span.offset(), span.length());
     }
 
     private String getSpanFile(StreamingGraph.Span span) {
         return graph.files().get(span.fileIndex());
+    }
+
+    private record CacheKey(int groupId, boolean readSubgroups) {
     }
 
     private record Colors(CharSequence text, int foreground) {

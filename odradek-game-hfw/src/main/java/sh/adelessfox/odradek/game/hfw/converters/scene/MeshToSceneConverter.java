@@ -6,7 +6,6 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.hfw.game.HFWGame;
 import sh.adelessfox.odradek.game.hfw.rtti.HFW;
 import sh.adelessfox.odradek.game.hfw.rtti.data.ref.Ref;
-import sh.adelessfox.odradek.io.BinaryReader;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimJointTransform;
 import sh.adelessfox.odradek.middleware.edgeanim.EdgeAnimSkeleton;
 import sh.adelessfox.odradek.rtti.TypeInfo;
@@ -14,6 +13,7 @@ import sh.adelessfox.odradek.scene.Bone;
 import sh.adelessfox.odradek.scene.Node;
 import sh.adelessfox.odradek.scene.Scene;
 import sh.adelessfox.odradek.scene.Skeleton;
+import wtf.reversed.toolbox.io.BinarySource;
 import wtf.reversed.toolbox.math.Matrix4;
 
 import java.io.IOException;
@@ -56,8 +56,8 @@ public final class MeshToSceneConverter
         var node = Optional.ofNullable(context.resources.get(key));
         if (node.isEmpty()) {
             node = convertNode(context, object, game);
+            node.ifPresent(n -> context.resources.put(key, n));
         }
-        node.ifPresent(n -> context.resources.put(key, n));
         return node;
     }
 
@@ -300,8 +300,8 @@ public final class MeshToSceneConverter
 
         List<EdgeAnimJointTransform> transforms;
 
-        try (var reader = BinaryReader.wrap(skeleton.general().edgeAnimSkeleton())) {
-            transforms = EdgeAnimSkeleton.read(reader).readBasePose(reader);
+        try (var source = BinarySource.wrap(skeleton.general().edgeAnimSkeleton())) {
+            transforms = EdgeAnimSkeleton.read(source).readBasePose(source);
         } catch (IOException e) {
             log.error("Error reading edgeanim skeleton", e);
             return Optional.empty();

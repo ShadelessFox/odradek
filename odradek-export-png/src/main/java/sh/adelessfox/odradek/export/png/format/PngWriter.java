@@ -1,9 +1,10 @@
 package sh.adelessfox.odradek.export.png.format;
 
+import sh.adelessfox.odradek.io.BinaryWriter;
+import wtf.reversed.toolbox.collect.Bytes;
+
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.zip.CRC32;
@@ -11,7 +12,7 @@ import java.util.zip.Deflater;
 
 public final class PngWriter implements Closeable {
     // PNG signature
-    private final byte[] SIGNATURE = new byte[]{(byte) 0x89, 'P', 'N', 'G', '\r', '\n', (byte) 0x1A, '\n'};
+    private static final Bytes SIGNATURE = Bytes.wrap(new byte[]{(byte) 0x89, 'P', 'N', 'G', '\r', '\n', (byte) 0x1A, '\n'});
 
     // Chunk IDs
     private static final int IHDR = 'I' << 24 | 'H' << 16 | 'D' << 8 | 'R';
@@ -26,50 +27,51 @@ public final class PngWriter implements Closeable {
 
     private final PngFormat format;
     private final PngFilter filter;
-    private final WritableByteChannel channel;
+    private final BinaryWriter writer;
     private final int frames;
     private final int plays;
 
     private final Deflater deflater = new Deflater(Deflater.BEST_SPEED);
-    private final byte[] idatBuffer = new byte[1024 * 64 - 12];
+    private final Bytes.Mutable idatBuffer = Bytes.allocate(1024 * 64 - 12);
+    private final Bytes.Mutable filterMethodBuffer = Bytes.allocate(1);
     private int idatLength;
 
     private int sequenceNumber;
     private int frameNumber;
 
-    private PngWriter(PngFormat format, WritableByteChannel channel, int frames, int plays) {
+    private PngWriter(PngFormat format, BinaryWriter writer, int frames, int plays) {
         this.format = format;
         this.filter = new PngFilter(format);
-        this.channel = channel;
+        this.writer = writer;
         this.frames = frames;
         this.plays = plays;
     }
 
-    public static PngWriter of(PngFormat format, WritableByteChannel channel) {
-        return new PngWriter(format, channel, 0, 0);
+    public static PngWriter of(PngFormat format, BinaryWriter writer) {
+        return new PngWriter(format, writer, 0, 0);
     }
 
-    public static PngWriter ofAnimated(PngFormat format, int frames, int plays, WritableByteChannel channel) {
+    public static PngWriter ofAnimated(PngFormat format, int frames, int plays, BinaryWriter writer) {
         if (frames <= 0) {
             throw new IllegalArgumentException("frames must be greater than 0");
         }
         if (plays < 0) {
             throw new IllegalArgumentException("plays must be non-negative");
         }
-        return new PngWriter(format, channel, frames, plays);
+        return new PngWriter(format, writer, frames, plays);
     }
 
-    public void write(byte[] data) throws IOException {
+    public void write(Bytes data) throws IOException {
         if (frames > 0) {
             throw new IllegalStateException("Can't write frame to animated PNG, " +
-                "use write(byte[], Duration, PngDisposeMethod, PngBlendMethod) instead");
+                "use write(Bytes, Duration, PngDisposeMethod, PngBlendMethod) instead");
         }
         writeHeader();
         writeImage(data);
     }
 
     public void write(
-        byte[] data,
+        Bytes data,
         Duration duration,
         PngDisposeMethod dispose,
         PngBlendMethod blend
@@ -78,7 +80,7 @@ public final class PngWriter implements Closeable {
     }
 
     public void write(
-        byte[] data,
+        Bytes data,
         int x,
         int y,
         int width,
@@ -88,7 +90,7 @@ public final class PngWriter implements Closeable {
         PngBlendMethod blend
     ) throws IOException {
         if (frames == 0) {
-            throw new IllegalStateException("Can't write frame to non-animated PNG, use write(byte[]) instead");
+            throw new IllegalStateException("Can't write frame to non-animated PNG, use write(Bytes) instead");
         }
         if (frameNumber >= frames) {
             throw new IllegalStateException("Already wrote " + frames + " frames, can't write more");
@@ -104,6 +106,15 @@ public final class PngWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
+        try {
+            validate();
+            writeIEND();
+        } finally {
+            deflater.end();
+        }
+    }
+
+    private void validate() {
         if (frames > 0) {
             if (frameNumber == 0) {
                 throw new IllegalStateException("No frames written");
@@ -113,12 +124,10 @@ public final class PngWriter implements Closeable {
                     + frameNumber + " were written");
             }
         }
-        writeIEND();
-        deflater.end();
     }
 
     private void writeHeader() throws IOException {
-        channel.write(ByteBuffer.wrap(SIGNATURE));
+        writer.writeBytes(SIGNATURE);
         writeIHDR();
         if (format.colorSpace() == PngColorSpace.SRGB) {
             writeSRGB();
@@ -127,39 +136,40 @@ public final class PngWriter implements Closeable {
         writeTEXt("Software", "Odradek");
     }
 
-    private void writeImage(byte[] image) throws IOException {
-        if (image.length != format.bytesPerImage()) {
+    private void writeImage(Bytes image) throws IOException {
+        if (image.length() != format.bytesPerImage()) {
             throw new IllegalArgumentException("image has wrong size, expected "
-                + format.bytesPerImage() + " but was " + image.length);
+                + format.bytesPerImage() + " but was " + image.length());
         }
+        filter.reset();
         for (int y = 0; y < format.height(); y++) {
             writeRow(image, y * format.bytesPerRow());
         }
         flush();
     }
 
-    private void writeRow(byte[] image, int offset) throws IOException {
-        if (offset + format.bytesPerRow() > image.length) {
+    private void writeRow(Bytes image, int offset) throws IOException {
+        if (offset + format.bytesPerRow() > image.length()) {
             throw new IllegalArgumentException("image has wrong size, expected at least " +
-                (offset + format.bytesPerRow()) + " but was " + image.length);
+                (offset + format.bytesPerRow()) + " but was " + image.length());
         }
         int filterMethod = filter.filter(image, offset);
-        deflate(new byte[]{(byte) filterMethod}, 0, 1);
-        deflate(filter.filtered(filterMethod), format.bytesPerPixel(), format.bytesPerRow());
+        deflate(filterMethodBuffer.set(0, (byte) filterMethod));
+        deflate(filter.filtered(filterMethod).slice(format.bytesPerPixel(), format.bytesPerRow()));
     }
 
-    private void deflate(byte[] array, int offset, int length) throws IOException {
-        deflater.setInput(array, offset, length);
+    private void deflate(Bytes data) throws IOException {
+        deflater.setInput(data.asBuffer());
         while (!deflater.needsInput()) {
             deflate();
         }
     }
 
     private void deflate() throws IOException {
-        int len = deflater.deflate(idatBuffer, idatLength, idatBuffer.length - idatLength);
+        int len = deflater.deflate(idatBuffer.asMutableBuffer().position(idatLength));
         if (len > 0) {
             idatLength += len;
-            if (idatLength == idatBuffer.length) {
+            if (idatLength == idatBuffer.length()) {
                 writeData();
             }
         }
@@ -183,72 +193,65 @@ public final class PngWriter implements Closeable {
     }
 
     private void writeIHDR() throws IOException {
-        var data = ByteBuffer.allocate(13)
-            .putInt(format.width())
-            .putInt(format.height())
-            .put(mapBitDepth(format))
-            .put(mapColorType(format))
-            .put((byte) 0) // compression method - deflate
-            .put((byte) 0) // filter method - adaptive
-            .put((byte) 0) // interlace method - no interlace
-            .flip();
+        var data = Bytes.allocate(13)
+            .setInt(0x00, Integer.reverseBytes(format.width()))
+            .setInt(0x04, Integer.reverseBytes(format.height()))
+            .set(0x08, mapBitDepth(format))
+            .set(0x09, mapColorType(format))
+            .set(0x0A, (byte) 0) // compression method - deflate
+            .set(0x0B, (byte) 0) // filter method - adaptive
+            .set(0x0C, (byte) 0); // interlace method - no interlace
 
         writeChunk(IHDR, data);
     }
 
     private void writeIDAT() throws IOException {
-        writeChunk(IDAT, ByteBuffer.wrap(idatBuffer, 0, idatLength));
+        writeChunk(IDAT, idatBuffer.slice(0, idatLength));
         idatLength = 0;
     }
 
     private void writeFDAT(int sequenceNumber) throws IOException {
-        var buffer = ByteBuffer.allocate(idatLength + 4)
-            .putInt(sequenceNumber)
-            .put(idatBuffer, 0, idatLength)
-            .flip();
+        var buffer = Bytes.allocate(idatLength + 4)
+            .setInt(0, Integer.reverseBytes(sequenceNumber));
+        idatBuffer.slice(0, idatLength).copyTo(buffer, 4);
 
         writeChunk(fdAT, buffer);
         idatLength = 0;
     }
 
     private void writeSRGB() throws IOException {
-        var data = ByteBuffer.allocate(1)
-            .put((byte) 0) // rendering intent - perceptual
-            .flip();
+        var data = Bytes.allocate(1)
+            .set(0x00, (byte) 0); // rendering intent - perceptual
 
         writeChunk(sRGB, data);
     }
 
     private void writeGAMA() throws IOException {
-        var data = ByteBuffer.allocate(4)
-            .putInt(45455) // gamma value - 1/2.2
-            .flip();
+        var data = Bytes.allocate(4)
+            .setInt(0, Integer.reverseBytes(45455)); // gamma value - 1/2.2
 
         writeChunk(gAMA, data);
     }
 
     private void writeTEXt(String keyword, String text) throws IOException {
-        var keywordBytes = keyword.getBytes(StandardCharsets.ISO_8859_1);
-        var textBytes = text.getBytes(StandardCharsets.ISO_8859_1);
+        var keywordBytes = Bytes.wrap(keyword.getBytes(StandardCharsets.ISO_8859_1));
+        var textBytes = Bytes.wrap(text.getBytes(StandardCharsets.ISO_8859_1));
 
-        var data = ByteBuffer.allocate(keywordBytes.length + 1 + textBytes.length)
-            .put(keywordBytes)
-            .put((byte) 0) // null separator
-            .put(textBytes)
-            .flip();
+        var data = Bytes.allocate(keywordBytes.length() + 1 + textBytes.length());
+        keywordBytes.copyTo(data, 0);
+        textBytes.copyTo(data, keywordBytes.length() + 1);
 
         writeChunk(tEXt, data);
     }
 
     private void writeIEND() throws IOException {
-        writeChunk(IEND, ByteBuffer.allocate(0));
+        writeChunk(IEND, Bytes.empty());
     }
 
     private void writeACTL(int frames, int plays) throws IOException {
-        var data = ByteBuffer.allocate(8)
-            .putInt(frames)
-            .putInt(plays)
-            .flip();
+        var data = Bytes.allocate(8)
+            .setInt(0x00, Integer.reverseBytes(frames))
+            .setInt(0x04, Integer.reverseBytes(plays));
 
         writeChunk(acTL, data);
     }
@@ -263,34 +266,32 @@ public final class PngWriter implements Closeable {
         PngDisposeMethod dispose,
         PngBlendMethod blend
     ) throws IOException {
-        var data = ByteBuffer.allocate(26)
-            .putInt(sequenceNumber)
-            .putInt(width)
-            .putInt(height)
-            .putInt(xOffset)
-            .putInt(yOffset)
-            .putShort((short) duration.toMillis())
-            .putShort((short) 1000)
-            .put(mapDisposeMethod(dispose))
-            .put(mapBlendMethod(blend))
-            .flip();
+        var data = Bytes.allocate(26)
+            .setInt(0x00, Integer.reverseBytes(sequenceNumber))
+            .setInt(0x04, Integer.reverseBytes(width))
+            .setInt(0x08, Integer.reverseBytes(height))
+            .setInt(0x0C, Integer.reverseBytes(xOffset))
+            .setInt(0x10, Integer.reverseBytes(yOffset))
+            .setShort(0x14, Short.reverseBytes((short) duration.toMillis()))
+            .setShort(0x16, Short.reverseBytes((short) 1000))
+            .set(0x18, mapDisposeMethod(dispose))
+            .set(0x19, mapBlendMethod(blend));
 
         writeChunk(fcTL, data);
     }
 
-    private void writeChunk(int type, ByteBuffer data) throws IOException {
-        var buffer = ByteBuffer.allocate(data.remaining() + 12)
-            .putInt(data.remaining())
-            .putInt(type)
-            .put(data.slice());
+    private void writeChunk(int type, Bytes data) throws IOException {
+        var buffer = Bytes.allocate(data.length() + 12)
+            .setInt(0, Integer.reverseBytes(data.length()))
+            .setInt(4, Integer.reverseBytes(type));
+        data.copyTo(buffer, 8);
 
         var crc32 = new CRC32();
-        crc32.update(buffer.slice(4, data.remaining() + 4));
+        crc32.update(buffer.slice(4, data.length() + 4).asBuffer());
 
-        buffer.putInt((int) crc32.getValue());
-        buffer.flip();
+        buffer.setInt(data.length() + 8, Integer.reverseBytes((int) crc32.getValue()));
 
-        channel.write(buffer);
+        writer.writeBytes(buffer);
     }
 
     private static byte mapBitDepth(PngFormat format) {

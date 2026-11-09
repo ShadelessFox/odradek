@@ -1,6 +1,8 @@
 package sh.adelessfox.odradek.ui.components;
 
 import com.formdev.flatlaf.ui.FlatUIUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.tree.TreeCellRenderer;
@@ -8,6 +10,8 @@ import java.awt.*;
 import java.util.Objects;
 
 public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer implements TreeCellRenderer {
+    private static final Logger log = LoggerFactory.getLogger(StyledTreeCellRenderer.class);
+
     private JTree tree;
     private boolean selected;
     private boolean dropCell;
@@ -59,7 +63,17 @@ public abstract class StyledTreeCellRenderer<T> extends StyledCellRenderer imple
 
         setLeadingIcon(getIconOrDisabledIcon(tree, typedValue, selected, expanded, leaf, row, focused));
         setFont(tree.getFont());
-        setText(getText(tree, typedValue, selected, expanded, focused, leaf, row));
+
+        StyledText text;
+        try {
+            text = getText(tree, typedValue, selected, expanded, focused, leaf, row);
+        } catch (Exception e) {
+            text = StyledText.builder()
+                .add("Error rendering node: " + e, b -> b.foreground(Color.MAGENTA))
+                .build().orElseThrow();
+            log.error("Error rendering node: {}", typedValue, e);
+        }
+        setText(text);
 
         return this;
     }
