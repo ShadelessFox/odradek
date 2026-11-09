@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.rtti.generator;
 
-import sh.adelessfox.odradek.util.Bits;
+import sh.adelessfox.odradek.util.Booleans;
 import wtf.reversed.toolbox.collect.*;
 
 import java.util.Map;
@@ -14,7 +14,7 @@ public final class PrimitiveContainers {
         "long", new Representation<>(Longs.class, Longs::allocate),
         "float", new Representation<>(Floats.class, Floats::allocate),
         "double", new Representation<>(Doubles.class, Doubles::allocate),
-        "boolean", new Representation<>(Bits.class, Bits::allocate)
+        "boolean", new Representation<>(Booleans.class, Booleans::allocate)
     );
 
     private PrimitiveContainers() {

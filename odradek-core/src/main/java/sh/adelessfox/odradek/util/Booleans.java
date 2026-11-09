@@ -4,17 +4,17 @@ import wtf.reversed.toolbox.util.Check;
 
 import java.util.Arrays;
 
-public sealed class Bits {
+public sealed class Booleans {
     final long[] words;
     final int bitLength;
 
-    private Bits(long[] words, int bitLength) {
+    private Booleans(long[] words, int bitLength) {
         Check.argument(words.length == wordLength(bitLength), "bitLength does not match words.length");
         this.words = words;
         this.bitLength = bitLength;
     }
 
-    Bits(int bitLength) {
+    Booleans(int bitLength) {
         this(new long[wordLength(bitLength)], bitLength);
     }
 
@@ -23,8 +23,8 @@ public sealed class Bits {
         return new Mutable(length);
     }
 
-    public static Bits copyOf(long[] array) {
-        return new Bits(array.clone(), Math.multiplyExact(array.length, Long.SIZE));
+    public static Booleans copyOf(long[] array) {
+        return new Booleans(array.clone(), Math.multiplyExact(array.length, Long.SIZE));
     }
 
     public boolean get(int index) {
@@ -45,7 +45,7 @@ public sealed class Bits {
         if (this == obj) {
             return true;
         }
-        return obj instanceof Bits other
+        return obj instanceof Booleans other
             && bitLength == other.bitLength
             && Arrays.equals(words, other.words);
     }
@@ -57,7 +57,7 @@ public sealed class Bits {
 
     @Override
     public String toString() {
-        return "[" + bitLength + " bits]";
+        return "[" + bitLength + " booleans]";
     }
 
     static long bitMask(int bitIndex) {
@@ -72,7 +72,7 @@ public sealed class Bits {
         return Math.ceilDivExact(length, Long.SIZE);
     }
 
-    public static final class Mutable extends Bits {
+    public static final class Mutable extends Booleans {
         Mutable(int length) {
             super(length);
         }
