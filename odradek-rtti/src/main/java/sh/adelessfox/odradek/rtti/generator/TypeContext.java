@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
+import sh.adelessfox.odradek.util.Bits;
 import wtf.reversed.toolbox.collect.*;
 
 import java.io.BufferedReader;
@@ -520,7 +521,7 @@ public class TypeContext {
                 case Longs values -> values.get(index);
                 case Floats values -> values.get(index);
                 case Doubles values -> values.get(index);
-                case BitSet values -> values.get(index);
+                case Bits values -> values.get(index);
                 case List<?> values -> values.get(index);
                 default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
             };
@@ -536,7 +537,7 @@ public class TypeContext {
                 case Longs.Mutable values -> values.set(index, (long) value);
                 case Floats.Mutable values -> values.set(index, (float) value);
                 case Doubles.Mutable values -> values.set(index, (double) value);
-                case BitSet values -> values.set(index, (boolean) value);
+                case Bits.Mutable values -> values.set(index, (boolean) value);
                 case List<?> values -> ((List<Object>) values).set(index, value);
                 default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
             }
@@ -544,7 +545,12 @@ public class TypeContext {
 
         @Override
         public int length(Object object) {
-            return object instanceof Slice slice ? slice.length() : ((List<?>) object).size();
+            return switch (object) {
+                case Slice s -> s.length();
+                case Bits b -> b.length();
+                case List<?> l -> l.size();
+                default -> throw new IllegalArgumentException("Unsupported container type: " + object.getClass());
+            };
         }
     }
 

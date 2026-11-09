@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.rtti.data.ExtraBinaryDataHolder;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.util.Bits;
 import wtf.reversed.toolbox.collect.*;
 import wtf.reversed.toolbox.io.BinarySource;
 import wtf.reversed.toolbox.io.BoolFormat;
@@ -13,7 +14,6 @@ import wtf.reversed.toolbox.io.BoolFormat;
 import java.io.IOException;
 import java.lang.invoke.VarHandle;
 import java.math.BigInteger;
-import java.util.BitSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -310,7 +310,7 @@ public abstract class AbstractTypeReader {
 
             @Override
             public Object read(BinarySource source, int count, ContainerTypeInfo info) throws IOException {
-                assert info.type() == BitSet.class;
+                assert info.type() == Bits.class;
                 return AtomReader.super.read(source, count, info);
             }
         }

@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.rtti.generator;
 
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.Value;
+import sh.adelessfox.odradek.util.Bits;
 import wtf.reversed.toolbox.collect.Slice;
 
 import java.lang.classfile.ClassBuilder;
@@ -260,8 +261,8 @@ public final class TypeRuntimeGenerator extends TypeGenerator<Class<?>> {
         //  doesn't affect the runtime, but can definitely bite in the ass someday.
         int size = switch (container) {
             case Slice s -> s.length();
+            case Bits b -> b.length();
             case List<?> l -> l.size();
-            case BitSet b -> b.size();
             default -> throw new UnsupportedOperationException("Unsupported container type: " + container.getClass().getName());
         };
         return switch (size) {

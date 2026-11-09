@@ -8,9 +8,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import sh.adelessfox.odradek.rtti.ClassTypeInfo;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.factory.TypeFactory;
+import sh.adelessfox.odradek.util.Bits;
 import wtf.reversed.toolbox.collect.*;
 
-import java.util.BitSet;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -50,7 +50,7 @@ class HFWTypeFactoryTest {
             .withPrefabValues(Longs.class, Longs.copyOf(new long[]{1}), Longs.copyOf(new long[]{2}))
             .withPrefabValues(Floats.class, Floats.copyOf(new float[]{1}), Floats.copyOf(new float[]{2}))
             .withPrefabValues(Doubles.class, Doubles.copyOf(new double[]{1}), Doubles.copyOf(new double[]{2}))
-            .withPrefabValues(BitSet.class, BitSet.valueOf(new long[]{1}), BitSet.valueOf(new long[]{2}))
+            .withPrefabValues(Bits.class, Bits.copyOf(new long[]{1}), Bits.copyOf(new long[]{2}))
             .verify();
     }
 
