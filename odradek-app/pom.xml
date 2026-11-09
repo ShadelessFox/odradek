@@ -256,7 +256,7 @@
                         <!-- Allows usage of java.lang.StableValue -->
                         <javaOption>--enable-preview</javaOption>
                         <!-- To make ChannelBinaryReader not close the underlying channel on interrupt -->
-                        <javaOption>--add-opens=java.base/sun.nio.ch=odradek.core</javaOption>
+                        <javaOption>--add-opens=java.base/sun.nio.ch=wtf.reversed.toolbox</javaOption>
                         <!-- To make allow setting accelerators on JMenu -->
                         <javaOption>--add-opens=java.desktop/javax.swing=odradek.ui</javaOption>
                         <!-- Fixes canvas flickering on resize -->
