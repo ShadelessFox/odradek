@@ -14,14 +14,14 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 public final class OpenLinkInNewTabAction extends Action {
     @Override
     public void perform(ActionContext context) {
-        var node = context.get(DataKeys.SELECTION, ObjectStructure.Node.class).orElseThrow();
+        var node = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
         ObjectEditorInput.fromLink(node.game(), node.value())
             .ifPresent(input -> context.require(DataKeys.EDITOR_MANAGER).openEditorInNewTab(input));
     }
 
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION, ObjectStructure.Node.class)
+        return context.get(DataKeys.SELECTION, ObjectStructure.class)
             .filter(node -> node.value() instanceof ObjectIdHolder)
             .isPresent();
     }

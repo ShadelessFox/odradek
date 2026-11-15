@@ -19,7 +19,7 @@ public class CopyBytesToClipboardAction extends Action {
     @Override
     public void perform(ActionContext context) {
         var game = context.get(DataKeys.GAME).orElseThrow();
-        var node = context.get(DataKeys.SELECTION, ObjectStructure.Node.class).orElseThrow();
+        var node = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
         var bytes = Converter.convert(node.type(), node.value(), Bytes.class, game);
 
         if (bytes.isPresent()) {
@@ -37,7 +37,7 @@ public class CopyBytesToClipboardAction extends Action {
 
     @Override
     public boolean isVisible(ActionContext context) {
-        return context.get(DataKeys.SELECTION, ObjectStructure.Node.class)
+        return context.get(DataKeys.SELECTION, ObjectStructure.class)
             .flatMap(structure -> Converter.converter(structure.type(), Bytes.class))
             .isPresent();
     }
