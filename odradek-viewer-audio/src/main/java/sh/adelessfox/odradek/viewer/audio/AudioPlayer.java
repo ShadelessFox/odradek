@@ -28,8 +28,11 @@ final class AudioPlayer extends JPanel implements Disposable {
 
     private final EventBus eventBus = new DefaultEventBus();
     private final Clip clip;
+    private final Timer timer;
+    private final LineListener lineListener;
+    private boolean disposed;
 
-    public AudioPlayer(Audio audio) {
+    public AudioPlayer(Audio audio, long initialPosition, float volume) {
         var pcm16 = audio.convert(CODEC, 2);
 
         try {
@@ -37,13 +40,14 @@ final class AudioPlayer extends JPanel implements Disposable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        setVolume(volume);
 
         setLayout(new MigLayout("ins panel,wrap", "fill,grow", "[fill,grow][]"));
         add(createWaveform(pcm16, eventBus));
         add(createProgressBar(eventBus));
         add(createToolBar(audio, clip, eventBus));
 
-        var timer = new Timer(REPAINT_INTERVAL, _ -> {
+        timer = new Timer(REPAINT_INTERVAL, _ -> {
             var position = (float) clip.getMicrosecondPosition() / Math.max(1, clip.getMicrosecondLength());
             eventBus.publish(new Events.PositionChanged(position));
         });
@@ -63,23 +67,25 @@ final class AudioPlayer extends JPanel implements Disposable {
                     clip.setMicrosecondPosition(position);
                     eventBus.publish(new Events.PositionChanged(e.position()));
                 }
-                case Events.SetVolumeRequested e -> {
-                    var gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-                    gain.setValue(Math.clamp(linearToDb(e.volume()), gain.getMinimum(), gain.getMaximum()));
-                }
+                case Events.SetVolumeRequested e -> setVolume(e.volume());
                 case Events.PlaybackStarted _ -> timer.start();
                 case Events.PlaybackStopped _ -> timer.stop();
                 case Events.PositionChanged _ -> { /* don't care; present only for exhaustiveness */ }
             }
         });
 
-        clip.addLineListener(event -> {
+        lineListener = event -> SwingUtilities.invokeLater(() -> {
+            if (disposed) {
+                return;
+            }
             if (event.getType() == LineEvent.Type.START) {
                 eventBus.publish(new Events.PlaybackStarted());
             } else if (event.getType() == LineEvent.Type.STOP) {
                 eventBus.publish(new Events.PlaybackStopped());
             }
         });
+        clip.addLineListener(lineListener);
+        setPosition(initialPosition);
     }
 
     public void start() {
@@ -94,8 +100,37 @@ final class AudioPlayer extends JPanel implements Disposable {
         return clip.isRunning();
     }
 
+    public long getPosition() {
+        return Math.clamp(clip.getMicrosecondPosition(), 0, clip.getMicrosecondLength());
+    }
+
+    public void setPosition(long position) {
+        clip.setMicrosecondPosition(position);
+        eventBus.publish(new Events.PositionChanged((float) position / Math.max(1, clip.getMicrosecondLength())));
+    }
+
+    public float getVolume() {
+        return clip.isControlSupported(FloatControl.Type.MASTER_GAIN)
+            ? dbToLinear(((FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN)).getValue())
+            : 1.0f;
+    }
+
+    public void setVolume(float volume) {
+        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            var gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            gain.setValue(Math.clamp(linearToDb(volume), gain.getMinimum(), gain.getMaximum()));
+        }
+    }
+
     @Override
     public void dispose() {
+        if (disposed) {
+            return;
+        }
+        disposed = true;
+        timer.stop();
+        clip.removeLineListener(lineListener);
+        clip.stop();
         // DirectClip#close may block for up to two seconds. Close it asynchronously so it won't block the UI
         Futures.submit(clip::close);
     }
@@ -219,8 +254,13 @@ final class AudioPlayer extends JPanel implements Disposable {
         var format = new AudioFormat(pcm16.format().sampleRate(), 16, pcm16.format().channels(), true, false);
         var clip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
         var data = pcm16.data().toArray();
-        clip.open(format, data, 0, data.length);
-        return clip;
+        try {
+            clip.open(format, data, 0, data.length);
+            return clip;
+        } catch (Exception | Error e) {
+            clip.close();
+            throw e;
+        }
     }
 
     private sealed interface Events extends Event {
