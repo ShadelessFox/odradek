@@ -16,7 +16,7 @@ import sh.adelessfox.odradek.app.ui.ApplicationParameters;
 import sh.adelessfox.odradek.app.ui.component.browser.BrowserDialog;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.util.Dialogs;
-import sh.adelessfox.odradek.util.system.OperatingSystem;
+import wtf.reversed.toolbox.util.Platform;
 
 import javax.swing.*;
 import java.awt.*;
@@ -93,7 +93,7 @@ public class Main implements Runnable {
             .getSystemEventQueue()
             .push(new ApplicationEventQueue());
 
-        if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
+        if (Platform.current().os() == Platform.OS.LINUX) {
             // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated(true);
             JDialog.setDefaultLookAndFeelDecorated(true);
@@ -129,7 +129,7 @@ public class Main implements Runnable {
         if (userHome == null) {
             throw new IllegalStateException("Unable to determine user home directory");
         }
-        return switch (OperatingSystem.name()) {
+        return switch (Platform.current().os()) {
             case WINDOWS -> Path.of(userHome, "AppData", "Local", identifier);
             case MACOS -> Path.of(userHome, "Library", "Application Support", identifier);
             case LINUX -> Path.of(userHome, ".config", identifier);

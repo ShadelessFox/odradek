@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.graphics;
 import sh.adelessfox.odradek.graphics.win32.d3d.DxCompiler;
 import sh.adelessfox.odradek.graphics.win32.d3d.IDxcCompiler;
 import sh.adelessfox.odradek.graphics.win32.d3d.IDxcUtils;
-import sh.adelessfox.odradek.util.system.OperatingSystem;
+import wtf.reversed.toolbox.util.Platform;
 
 import java.lang.foreign.Arena;
 import java.lang.foreign.SymbolLookup;
@@ -13,7 +13,7 @@ final class Disassembler {
     }
 
     static String disassemble(Program program) {
-        if (OperatingSystem.name() != OperatingSystem.Name.WINDOWS) {
+        if (Platform.current().os() != Platform.OS.WINDOWS) {
             throw new UnsupportedOperationException("Shader disassembly is only supported on Windows");
         }
         try (var arena = Arena.ofConfined()) {

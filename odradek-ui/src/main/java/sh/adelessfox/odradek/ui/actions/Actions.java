@@ -6,7 +6,7 @@ import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.components.SplitButton;
 import sh.adelessfox.odradek.ui.data.DataContexts;
 import sh.adelessfox.odradek.ui.util.Icons;
-import sh.adelessfox.odradek.util.system.OperatingSystem;
+import wtf.reversed.toolbox.util.Platform;
 
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
@@ -63,7 +63,7 @@ public final class Actions {
                 }
                 selectionProvider.getSelection(component, e).ifPresent(selection -> {
                     selectionProvider.setSelection(component, selection, e);
-                    if (OperatingSystem.name() == OperatingSystem.Name.LINUX) {
+                    if (Platform.current().os() == Platform.OS.LINUX) {
                         showPopupMenu(component, popupMenu, e, selectionProvider);
                     }
                 });
@@ -71,7 +71,7 @@ public final class Actions {
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e) && OperatingSystem.name() != OperatingSystem.Name.LINUX) {
+                if (SwingUtilities.isRightMouseButton(e) && Platform.current().os() != Platform.OS.LINUX) {
                     showPopupMenu(component, popupMenu, e, selectionProvider);
                 }
             }

@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.audio;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.util.system.OperatingSystem;
+import wtf.reversed.toolbox.util.Platform;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -32,25 +32,25 @@ final class VgmstreamDownloader {
     }
 
     static Path download() {
-        var string = switch (OperatingSystem.name()) {
-            case WINDOWS -> switch (OperatingSystem.arch()) {
-                case AMD64 -> VGMSTREAM_WINDOWS_AMD64;
-                default -> throw new UnsupportedOperationException(OperatingSystem.arch().name());
+        var string = switch (Platform.current().os()) {
+            case WINDOWS -> switch (Platform.current().arch()) {
+                case X86_64 -> VGMSTREAM_WINDOWS_AMD64;
+                default -> throw new UnsupportedOperationException(Platform.current().arch().name());
             };
-            case LINUX -> switch (OperatingSystem.arch()) {
-                case AMD64 -> VGMSTREAM_LINUX_AMD64;
-                default -> throw new UnsupportedOperationException(OperatingSystem.arch().name());
+            case LINUX -> switch (Platform.current().arch()) {
+                case X86_64 -> VGMSTREAM_LINUX_AMD64;
+                default -> throw new UnsupportedOperationException(Platform.current().arch().name());
             };
-            case MACOS -> switch (OperatingSystem.arch()) {
-                case AARCH64 -> VGMSTREAM_MACOS_ARM64;
-                default -> throw new UnsupportedOperationException(OperatingSystem.arch().name());
+            case MACOS -> switch (Platform.current().arch()) {
+                case ARM_64 -> VGMSTREAM_MACOS_ARM64;
+                default -> throw new UnsupportedOperationException(Platform.current().arch().name());
             };
         };
         var directory = Path.of("vgmstream-" + VERSION);
         if (!Files.exists(directory)) {
             downloadZip(URI.create(string), directory);
         }
-        var executable = directory.resolve(switch (OperatingSystem.name()) {
+        var executable = directory.resolve(switch (Platform.current().os()) {
             case WINDOWS -> "vgmstream-cli.exe";
             case LINUX, MACOS -> "vgmstream-cli";
         });
