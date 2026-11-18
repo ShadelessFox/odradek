@@ -15,7 +15,6 @@ import sh.adelessfox.odradek.game.ObjectHolder;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.ui.actions.*;
@@ -25,6 +24,7 @@ import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.ui.util.Dialogs;
 import sh.adelessfox.odradek.ui.util.ProgressMonitor;
 import sh.adelessfox.odradek.util.Gatherers;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;

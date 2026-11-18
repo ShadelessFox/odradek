@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.export.shader;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.graphics.Program;
 import sh.adelessfox.odradek.graphics.Shader;
-import sh.adelessfox.odradek.io.BinaryWriter;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

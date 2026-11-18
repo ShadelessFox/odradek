@@ -2,9 +2,9 @@ package sh.adelessfox.odradek.export.cast;
 
 import be.twofold.tinycast.*;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.scene.Bone;
 import sh.adelessfox.odradek.scene.Skeleton;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.util.Optional;

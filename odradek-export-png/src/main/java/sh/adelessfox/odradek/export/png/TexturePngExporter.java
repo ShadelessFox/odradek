@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.export.png;
 
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.texture.Texture;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.util.Optional;

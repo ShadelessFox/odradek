@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.export.png.format;
 
-import sh.adelessfox.odradek.io.BinaryWriter;
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.Closeable;
 import java.io.IOException;

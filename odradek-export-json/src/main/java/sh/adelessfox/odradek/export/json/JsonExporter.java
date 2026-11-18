@@ -6,12 +6,12 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
 import sh.adelessfox.odradek.export.json.spi.TypeInfoAdapterFactory;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.data.Value;
 import sh.adelessfox.odradek.rtti.util.SimpleTypeVisitor;
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

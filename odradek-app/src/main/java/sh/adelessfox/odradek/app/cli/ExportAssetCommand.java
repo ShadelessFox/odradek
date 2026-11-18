@@ -9,8 +9,8 @@ import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.nio.file.Path;

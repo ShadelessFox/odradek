@@ -3,12 +3,12 @@ package sh.adelessfox.odradek.export.png;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.export.png.format.*;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureColorSpace;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 

@@ -3,7 +3,7 @@ package sh.adelessfox.odradek.export.wave;
 import sh.adelessfox.odradek.audio.Audio;
 import sh.adelessfox.odradek.audio.AudioCodec;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.io.BinaryWriter;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.util.Optional;

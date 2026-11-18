@@ -4,7 +4,7 @@ import org.w3c.dom.Document;
 import sh.adelessfox.odradek.font.Font;
 import sh.adelessfox.odradek.font.Glyph;
 import sh.adelessfox.odradek.game.Exporter;
-import sh.adelessfox.odradek.io.BinaryWriter;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;

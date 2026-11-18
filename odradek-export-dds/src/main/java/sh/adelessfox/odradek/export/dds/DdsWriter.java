@@ -1,10 +1,10 @@
 package sh.adelessfox.odradek.export.dds;
 
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.texture.Surface;
 import sh.adelessfox.odradek.texture.Texture;
 import sh.adelessfox.odradek.texture.TextureFormat;
 import sh.adelessfox.odradek.texture.TextureKind;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 

@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.util.Reflections;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.nio.file.Files;

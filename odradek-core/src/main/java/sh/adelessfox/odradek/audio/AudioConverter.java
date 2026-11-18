@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.audio.container.riff.RiffParser;
 import sh.adelessfox.odradek.audio.container.wave.WaveDataChunk;
 import sh.adelessfox.odradek.audio.container.wave.WaveFmtChunk;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import java.io.IOException;
 import java.io.InputStream;

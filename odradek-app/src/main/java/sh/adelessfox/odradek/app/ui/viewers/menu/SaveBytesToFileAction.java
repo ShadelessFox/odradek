@@ -5,12 +5,12 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.viewers.ObjectStructure;
 import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Converter;
-import sh.adelessfox.odradek.io.BinaryWriter;
 import sh.adelessfox.odradek.ui.actions.Action;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import wtf.reversed.toolbox.collect.Bytes;
+import wtf.reversed.toolbox.io.BinaryWriter;
 
 import javax.swing.*;
 import java.io.File;

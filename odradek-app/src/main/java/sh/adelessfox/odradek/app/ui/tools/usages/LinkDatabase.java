@@ -6,8 +6,6 @@ import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.StreamingGraph;
-import sh.adelessfox.odradek.io.BinaryWriter;
-import sh.adelessfox.odradek.io.BytesBinaryWriter;
 import sh.adelessfox.odradek.rtti.*;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.rtti.util.PathTypeVisitor;
@@ -16,6 +14,8 @@ import wtf.reversed.toolbox.collect.Bytes;
 import wtf.reversed.toolbox.collect.Ints;
 import wtf.reversed.toolbox.hash.HashCode;
 import wtf.reversed.toolbox.io.BinarySource;
+import wtf.reversed.toolbox.io.BinaryWriter;
+import wtf.reversed.toolbox.io.BytesBinaryWriter;
 
 import java.io.Closeable;
 import java.io.IOException;
