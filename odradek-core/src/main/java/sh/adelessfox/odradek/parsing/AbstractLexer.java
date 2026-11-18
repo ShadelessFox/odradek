@@ -1,8 +1,6 @@
 package sh.adelessfox.odradek.parsing;
 
-import sh.adelessfox.odradek.util.Result;
-
-public abstract class AbstractLexer<T extends Token, E> {
+public abstract class AbstractLexer<T extends Token> {
     protected Source source;
     protected T peeked;
 
@@ -10,29 +8,25 @@ public abstract class AbstractLexer<T extends Token, E> {
         this.source = source;
     }
 
-    public final Result<T, E> peek() {
+    public final T peek() {
         if (peeked == null) {
-            var result = nextImpl();
-            if (result.isError()) {
-                return result;
-            }
-            peeked = result.unwrap();
+            peeked = nextImpl();
         }
-        return Result.ok(peeked);
+        return peeked;
     }
 
-    public final Result<T, E> next() {
+    public final T next() {
         if (peeked == null) {
             return nextImpl();
         }
         var result = peeked;
         peeked = null;
-        return Result.ok(result);
+        return result;
     }
 
     public final Location location() {
         return new Location(source.line(), source.column());
     }
 
-    protected abstract Result<T, E> nextImpl();
+    protected abstract T nextImpl();
 }

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.util.steam.vdf.VdfObject;
 import sh.adelessfox.odradek.app.util.steam.vdf.VdfParser;
-import sh.adelessfox.odradek.util.Result;
+import sh.adelessfox.odradek.parsing.SyntaxException;
 import sh.adelessfox.odradek.util.system.OperatingSystem;
 
 import java.io.IOException;
@@ -38,13 +38,14 @@ final class Steam {
     }
 
     private static Optional<Path> findInstallDir(Path folderPath, Path manifestPath) throws IOException {
-        return switch (VdfParser.parse(manifestPath)) {
-            case Result.Ok(var manifest) -> findInstallDir(folderPath, manifest);
-            case Result.Error(var error) -> {
-                log.warn("Failed to parse appmanifest at {}: {}", manifestPath, error);
-                yield Optional.empty();
-            }
-        };
+        VdfObject manifest;
+        try {
+            manifest = VdfParser.parse(manifestPath);
+        } catch (SyntaxException e) {
+            log.warn("Failed to parse appmanifest at {}: {}", manifestPath, e.getMessage());
+            return Optional.empty();
+        }
+        return findInstallDir(folderPath, manifest);
     }
 
     private static Optional<Path> findInstallDir(Path folderPath, VdfObject appState) {
@@ -60,13 +61,14 @@ final class Steam {
             log.warn("Steam libraryfolders.vdf not found at {}", libraryFoldersPath);
             return List.of();
         }
-        return switch (VdfParser.parse(libraryFoldersPath)) {
-            case Result.Ok(var libraryFolders) -> findLibraryFolderPaths(libraryFolders);
-            case Result.Error(var error) -> {
-                log.warn("Failed to parse libraryfolders.vdf: {}", error);
-                yield List.of();
-            }
-        };
+        VdfObject libraryFolders;
+        try {
+            libraryFolders = VdfParser.parse(libraryFoldersPath);
+        } catch (SyntaxException e) {
+            log.warn("Failed to parse libraryfolders.vdf: {}", e.getMessage());
+            return List.of();
+        }
+        return findLibraryFolderPaths(libraryFolders);
     }
 
     private static List<Path> findLibraryFolderPaths(VdfObject libraryFolders) {

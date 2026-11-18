@@ -2,43 +2,30 @@ package sh.adelessfox.odradek.app.ui.tools.graph.filter;
 
 import sh.adelessfox.odradek.parsing.AbstractParser;
 import sh.adelessfox.odradek.parsing.Location;
-import sh.adelessfox.odradek.util.Result;
+import sh.adelessfox.odradek.parsing.SyntaxException;
 
-final class FilterParser extends AbstractParser<FilterToken, FilterError, FilterLexer> {
+final class FilterParser extends AbstractParser<FilterToken, FilterLexer> {
     FilterParser(FilterLexer lexer) {
         super(lexer);
     }
 
-    Result<Filter, FilterError> parse() {
+    Filter parse() {
         var result = parseInfix();
-        if (result.isError()) {
-            return result;
-        }
         return switch (next()) {
-            case Result.Ok(var tok) when tok instanceof FilterToken.End -> result;
-            case Result.Ok(var tok) ->
-                Result.error(new FilterError("Unexpected token " + tok.toDisplayString(), tok.location()));
-            case Result.Error<?, FilterError> error -> error.map(_ -> null);
+            case FilterToken.End _ -> result;
+            case FilterToken t -> throw new SyntaxException("Unexpected token " + t.toDisplayString(), t.location());
         };
     }
 
-    private Result<Filter, FilterError> parseInfix() {
+    private Filter parseInfix() {
         return parseInfix(0);
     }
 
-    private Result<Filter, FilterError> parseInfix(int rbp) {
-        var left = parsePrefix();
-        if (left.isError()) {
-            return left;
-        }
-
-        var result = left.unwrap();
+    private Filter parseInfix(int rbp) {
+        var result = parsePrefix();
         while (true) {
             var op = peek();
-            if (op.isError()) {
-                return op.map(_ -> null);
-            }
-            if (!(op.unwrap() instanceof FilterToken.Infix infix)) {
+            if (!(op instanceof FilterToken.Infix infix)) {
                 break;
             }
 
@@ -48,115 +35,84 @@ final class FilterParser extends AbstractParser<FilterToken, FilterError, Filter
             }
 
             next();
-
             var right = parseInfix(lbp);
-            if (right.isError()) {
-                return right;
-            }
 
             result = switch (infix) {
-                case FilterToken.And _ -> new Filter.And(result, right.unwrap());
-                case FilterToken.Or _ -> new Filter.Or(result, right.unwrap());
+                case FilterToken.And _ -> new Filter.And(result, right);
+                case FilterToken.Or _ -> new Filter.Or(result, right);
             };
         }
 
-        return Result.ok(result);
+        return result;
     }
 
-    private Result<Filter, FilterError> parsePrefix() {
-        var peek = peek();
-        if (peek.isError()) {
-            return peek.map(_ -> null);
-        }
-
-        if (peek.unwrap() instanceof FilterToken.Prefix prefix) {
+    private Filter parsePrefix() {
+        if (peek() instanceof FilterToken.Prefix prefix) {
             next();
-
             var right = parseInfix(prefix.precedence());
-            if (right.isError()) {
-                return right;
-            }
 
             return switch (prefix) {
-                case FilterToken.Not _ -> right.map(Filter.Not::new);
+                case FilterToken.Not _ -> new Filter.Not(right);
             };
         }
 
         return parsePrimary();
     }
 
-    private Result<Filter, FilterError> parsePrimary() {
-        var token = next();
-        if (token.isError()) {
-            return token.map(_ -> null);
-        }
-        return switch (token.unwrap()) {
+    private Filter parsePrimary() {
+        return switch (next()) {
             // [key] ':' [value]
             case FilterToken.Name(var key, var location) -> {
-                var colon = expect(
+                expect(
                     FilterToken.Colon.class::isInstance,
-                    t -> new FilterError("Expected ':' after name but found " + t.toDisplayString(), t.location()));
-                if (colon.isError()) {
-                    yield colon.map(_ -> null);
-                }
-                var value = next();
-                if (value.isError()) {
-                    yield value.map(_ -> null);
-                }
-                yield parseKey(key, location, value.unwrap());
+                    t -> new SyntaxException("Expected ':' after name but found " + t.toDisplayString(), t.location()));
+                yield parseKey(key, location, next());
             }
             // '(' [expr] ')'
             case FilterToken.Open _ -> {
                 var inner = parseInfix();
-                if (inner.isError()) {
-                    yield inner;
-                }
-                var close = expect(
+                expect(
                     FilterToken.Close.class::isInstance,
-                    t -> new FilterError("Expected closing parenthesis but found " + t.toDisplayString(), t.location()));
-                if (close.isError()) {
-                    yield close.map(_ -> null);
-                }
+                    t -> new SyntaxException("Expected closing parenthesis but found " + t.toDisplayString(), t.location()));
                 yield inner;
             }
-            case FilterToken.End t -> Result.error(new FilterError("Unexpected end of input", t.location()));
-            case FilterToken t ->
-                Result.error(new FilterError("Unexpected token " + t.toDisplayString(), t.location()));
+            case FilterToken.End t -> throw new SyntaxException("Unexpected end of input", t.location());
+            case FilterToken t -> throw new SyntaxException("Unexpected token " + t.toDisplayString(), t.location());
         };
     }
 
-    private Result<Filter, FilterError> parseKey(String key, Location location, FilterToken value) {
+    private Filter parseKey(String key, Location location, FilterToken value) {
         return switch (key) {
             case "group" -> {
                 if (!(value instanceof FilterToken.Number(var id, _))) {
-                    yield Result.error(new FilterError(
+                    throw new SyntaxException(
                         "Expected group ID after ':' but found " + value.toDisplayString(),
-                        value.location()));
+                        value.location());
                 }
-                yield Result.ok(new Filter.GroupId(id));
+                yield new Filter.GroupId(id);
             }
             case "type" -> {
                 if (!(value instanceof FilterToken.Name(var name, _))) {
-                    yield Result.error(new FilterError(
+                    throw new SyntaxException(
                         "Expected type name after ':' but found " + value.toDisplayString(),
-                        value.location()));
+                        value.location());
                 }
-                yield Result.ok(new Filter.GroupType(name));
+                yield new Filter.GroupType(name);
             }
             case "has" -> {
                 if (!(value instanceof FilterToken.Name(var what, _))) {
-                    yield Result.error(new FilterError(
+                    throw new SyntaxException(
                         "Expected criteria name after ':' but found " + value.toDisplayString(),
-                        value.location()));
+                        value.location());
                 }
                 yield switch (what) {
-                    case "subgroups" -> Result.ok(new Filter.GroupHasSubgroups());
-                    case "supergroups" -> Result.ok(new Filter.GroupHasSupergroups());
-                    case "roots" -> Result.ok(new Filter.GroupHasRoots());
-                    default -> Result.error(new FilterError("Unknown 'has' criteria '" + what + "'", value.location()));
+                    case "subgroups" -> new Filter.GroupHasSubgroups();
+                    case "supergroups" -> new Filter.GroupHasSupergroups();
+                    case "roots" -> new Filter.GroupHasRoots();
+                    default -> throw new SyntaxException("Unknown 'has' criteria '" + what + "'", value.location());
                 };
             }
-            default -> Result.error(new FilterError("Unknown criteria key '" + key + "'", location));
+            default -> throw new SyntaxException("Unknown criteria key '" + key + "'", location);
         };
     }
 }

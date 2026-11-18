@@ -3,12 +3,11 @@ package sh.adelessfox.odradek.app.ui.tools.graph.filter;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphStructure;
 import sh.adelessfox.odradek.parsing.util.StringSource;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.util.Result;
 
 import java.util.Set;
 
 public sealed interface Filter {
-    static Result<Filter, FilterError> parse(String input) {
+    static Filter parse(String input) {
         return new FilterParser(new FilterLexer(new StringSource(input))).parse();
     }
 

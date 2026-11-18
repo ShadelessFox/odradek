@@ -3,61 +3,61 @@ package sh.adelessfox.odradek.app.ui.tools.graph.filter;
 import sh.adelessfox.odradek.parsing.AbstractLexer;
 import sh.adelessfox.odradek.parsing.Location;
 import sh.adelessfox.odradek.parsing.Source;
-import sh.adelessfox.odradek.util.Result;
+import sh.adelessfox.odradek.parsing.SyntaxException;
 
-final class FilterLexer extends AbstractLexer<FilterToken, FilterError> {
+final class FilterLexer extends AbstractLexer<FilterToken> {
     FilterLexer(Source source) {
         super(source);
     }
 
     @Override
-    protected Result<FilterToken, FilterError> nextImpl() {
+    protected FilterToken nextImpl() {
         source.consumeWhile(Character::isWhitespace);
 
         var start = location();
         int ch = source.next();
 
         if (ch == Source.EOF) {
-            return Result.ok(new FilterToken.End(start));
+            return new FilterToken.End(start);
         } else if (ch == '(') {
-            return Result.ok(new FilterToken.Open(start));
+            return new FilterToken.Open(start);
         } else if (ch == ')') {
-            return Result.ok(new FilterToken.Close(start));
+            return new FilterToken.Close(start);
         } else if (ch == ':') {
-            return Result.ok(new FilterToken.Colon(start));
+            return new FilterToken.Colon(start);
         } else if (isNameStart(ch)) {
             return readString(start, ch);
         } else if (isNumberStart(ch)) {
             return readNumber(start, ch);
         } else {
-            return Result.error(new FilterError("Unexpected character '" + (char) ch + "'", start));
+            throw new SyntaxException("Unexpected character '" + (char) ch + "'", start);
         }
     }
 
-    private Result<FilterToken, FilterError> readNumber(Location start, int ch) {
+    private FilterToken readNumber(Location start, int ch) {
         var buffer = new StringBuilder().appendCodePoint(ch);
         while (!source.isEof() && isNumberPart(source.peek())) {
             buffer.appendCodePoint(source.next());
         }
         try {
             int value = Integer.parseInt(buffer.toString());
-            return Result.ok(new FilterToken.Number(value, start));
+            return new FilterToken.Number(value, start);
         } catch (NumberFormatException e) {
-            return Result.error(new FilterError(e.getMessage(), start));
+            throw new SyntaxException(e.getMessage(), e, start);
         }
     }
 
-    private Result<FilterToken, FilterError> readString(Location start, int ch) {
+    private FilterToken readString(Location start, int ch) {
         var buffer = new StringBuilder().appendCodePoint(ch);
         while (!source.isEof() && isNamePart(source.peek())) {
             buffer.appendCodePoint(source.next());
         }
         var value = buffer.toString();
         return switch (value) {
-            case "and" -> Result.ok(new FilterToken.And(start));
-            case "or" -> Result.ok(new FilterToken.Or(start));
-            case "not" -> Result.ok(new FilterToken.Not(start));
-            default -> Result.ok(new FilterToken.Name(value, start));
+            case "and" -> new FilterToken.And(start);
+            case "or" -> new FilterToken.Or(start);
+            case "not" -> new FilterToken.Not(start);
+            default -> new FilterToken.Name(value, start);
         };
     }
 

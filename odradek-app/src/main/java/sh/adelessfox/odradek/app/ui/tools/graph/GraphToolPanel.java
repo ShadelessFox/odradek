@@ -15,6 +15,7 @@ import sh.adelessfox.odradek.event.EventBus;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
+import sh.adelessfox.odradek.parsing.SyntaxException;
 import sh.adelessfox.odradek.rtti.TypeInfo;
 import sh.adelessfox.odradek.rtti.data.TypedObject;
 import sh.adelessfox.odradek.settings.Settings;
@@ -28,7 +29,6 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.tools.ToolPanel;
 import sh.adelessfox.odradek.ui.tools.ToolSite;
 import sh.adelessfox.odradek.ui.util.Fugue;
-import sh.adelessfox.odradek.util.Result;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -169,22 +169,18 @@ public class GraphToolPanel implements ToolPanel, Focusable {
 
         var validationPopup = new ValidationPopup(filterField);
         Runnable callback = () -> {
-            var filter = createFilter(
-                filterField.getText(),
-                toggleCaseSensitive.isSelected(),
-                toggleWholeWord.isSelected());
-
-            switch (filter) {
-                case Result.Ok(var predicate) -> {
-                    validationPopup.setVisible(false);
-                    tree.getModel().setFilter(predicate.orElse(null));
-                    tree.getModel().refresh();
-                }
-                case Result.Error(var message) -> {
-                    validationPopup.setMessage(message);
-                    validationPopup.setSeverity(ValidationPopup.Severity.ERROR);
-                    validationPopup.setVisible(true);
-                }
+            try {
+                var filter = createFilter(
+                    filterField.getText(),
+                    toggleCaseSensitive.isSelected(),
+                    toggleWholeWord.isSelected());
+                validationPopup.setVisible(false);
+                tree.getModel().setFilter(filter.orElse(null));
+                tree.getModel().refresh();
+            } catch (SyntaxException e) {
+                validationPopup.setMessage(e.getMessage());
+                validationPopup.setSeverity(ValidationPopup.Severity.ERROR);
+                validationPopup.setVisible(true);
             }
         };
 
@@ -237,13 +233,13 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         return tree;
     }
 
-    private static Result<Optional<Predicate<GraphStructure>>, String> createFilter(
+    private static Optional<Predicate<GraphStructure>> createFilter(
         String input,
         boolean matchCase,
         boolean matchWholeWord
     ) {
         if (input.isBlank()) {
-            return Result.ok(Optional.empty());
+            return Optional.empty();
         }
         var options = EnumSet.noneOf(FilterOption.class);
         if (matchCase) {
@@ -252,9 +248,7 @@ public class GraphToolPanel implements ToolPanel, Focusable {
         if (matchWholeWord) {
             options.add(FilterOption.WHOLE_WORD);
         }
-        return Filter.parse(input)
-            .map(filter -> Optional.<Predicate<GraphStructure>>of(
-                structure -> filter.test(structure, options) != FilterResult.FAIL))
-            .mapError(error -> "%s at %s".formatted(error.message(), error.location()));
+        var filter = Filter.parse(input);
+        return Optional.of(structure -> filter.test(structure, options) != FilterResult.FAIL);
     }
 }
