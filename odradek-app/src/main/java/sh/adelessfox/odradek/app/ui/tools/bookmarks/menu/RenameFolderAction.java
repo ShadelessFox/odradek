@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkStructure;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
@@ -11,7 +11,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 2)
 public final class RenameFolderAction extends AbstractBookmarkAction {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var folder = context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class).orElseThrow();
         var name = promptName("Rename Folder", "Enter new name for folder '" + folder.name() + "':", folder.name());
         if (name != null) {
@@ -20,7 +20,7 @@ public final class RenameFolderAction extends AbstractBookmarkAction {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class)
             .filter(folder -> !folder.id().equals(bookmarks(context).rootFolderId()))
             .isPresent();

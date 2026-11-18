@@ -43,6 +43,7 @@ module odradek.app {
     requires odradek.viewer.model;
     requires odradek.viewer.shader;
     requires odradek.viewer.texture;
+    requires sh.adelessfox.procmem;
 
     opens sh.adelessfox.odradek.app to info.picocli;
     opens sh.adelessfox.odradek.app.cli to info.picocli;

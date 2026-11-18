@@ -4,7 +4,11 @@ import sh.adelessfox.odradek.app.ui.ApplicationDataKeys;
 import sh.adelessfox.odradek.app.ui.component.main.MainEvent;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings;
-import sh.adelessfox.odradek.ui.actions.*;
+import sh.adelessfox.odradek.data.DataContext;
+import sh.adelessfox.odradek.ui.actions.Action;
+import sh.adelessfox.odradek.ui.actions.ActionContribution;
+import sh.adelessfox.odradek.ui.actions.ActionProvider;
+import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
 import java.util.List;
@@ -20,7 +24,7 @@ public final class ThemeAction extends Action {
     @ActionContribution(parent = ThemeAction.ID)
     public static final class Placeholder extends Action implements ActionProvider {
         @Override
-        public List<? extends Action> create(ActionContext context) {
+        public List<? extends Action> create(DataContext context) {
             return Stream.of(ApplicationSettings.Theme.values())
                 .map(ChangeThemeAction::new)
                 .toList();
@@ -35,7 +39,7 @@ public final class ThemeAction extends Action {
         }
 
         @Override
-        public void perform(ActionContext context) {
+        public void perform(DataContext context) {
             if (isSelected(context)) {
                 return;
             }
@@ -43,12 +47,12 @@ public final class ThemeAction extends Action {
         }
 
         @Override
-        public Optional<String> getText(ActionContext context) {
+        public Optional<String> getText(DataContext context) {
             return Optional.of(theme.toString());
         }
 
         @Override
-        public boolean isSelected(ActionContext context) {
+        public boolean isSelected(DataContext context) {
             var setting = context.require(ApplicationDataKeys.SETTINGS).get(ApplicationSettings.THEME);
             return setting.value() == theme;
         }

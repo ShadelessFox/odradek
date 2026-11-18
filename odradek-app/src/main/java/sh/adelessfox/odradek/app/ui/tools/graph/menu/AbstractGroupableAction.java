@@ -1,8 +1,8 @@
 package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphStructure;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.components.tree.StructuredTree;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 
@@ -13,7 +13,7 @@ abstract class AbstractGroupableAction<T extends GraphStructure.Groupable<T, ?>,
     implements Action.Check {
 
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         @SuppressWarnings("unchecked")
         var groupable = (GraphStructure.Groupable<T, O>) context.get(DataKeys.SELECTION, getType()).orElseThrow();
         var tree = context.require(DataKeys.COMPONENT, StructuredTree.class);
@@ -28,12 +28,12 @@ abstract class AbstractGroupableAction<T extends GraphStructure.Groupable<T, ?>,
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return context.get(DataKeys.SELECTION, getType()).isPresent();
     }
 
     @Override
-    public boolean isChecked(ActionContext context) {
+    public boolean isChecked(DataContext context) {
         return context.get(DataKeys.SELECTION, getType())
             .filter(objects -> objects.options().contains(getOption()))
             .isPresent();

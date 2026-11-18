@@ -2,8 +2,8 @@ package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkStructure;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.data.*;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.util.Gatherers;
 
@@ -40,7 +40,7 @@ abstract class AbstractBookmarkAction extends Action {
         }
     }
 
-    protected static Optional<FolderId> enclosingFolder(ActionContext context) {
+    protected static Optional<FolderId> enclosingFolder(DataContext context) {
         var folders = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(BookmarkStructure.class))
@@ -52,21 +52,21 @@ abstract class AbstractBookmarkAction extends Action {
         };
     }
 
-    private static Optional<FolderId> folderIdOf(ActionContext context, BookmarkStructure structure) {
+    private static Optional<FolderId> folderIdOf(DataContext context, BookmarkStructure structure) {
         return switch (structure) {
             case BookmarkStructure.Bookmark bookmark -> Optional.of(bookmarks(context).getParent(bookmark.key()));
             case BookmarkStructure.Folder folder -> Optional.of(folder.id());
         };
     }
 
-    protected static Stream<BookmarkKey> selectedKeys(ActionContext context) {
+    protected static Stream<BookmarkKey> selectedKeys(DataContext context) {
         return context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(Bookmarkable.class))
             .map(Bookmarkable::bookmarkKey);
     }
 
-    protected static BookmarkRepository bookmarks(ActionContext context) {
+    protected static BookmarkRepository bookmarks(DataContext context) {
         return context.require(BookmarkDataKeys.BOOKMARKS);
     }
 }

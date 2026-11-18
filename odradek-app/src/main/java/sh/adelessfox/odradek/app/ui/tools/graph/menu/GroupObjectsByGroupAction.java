@@ -2,7 +2,7 @@ package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphStructure.GroupableByGroup;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -11,7 +11,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 @ActionContribution(parent = GraphMenu.ID)
 public class GroupObjectsByGroupAction extends AbstractGroupableAction<GroupableByGroup, GroupableByGroup.Option> {
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return context.has(DataKeys.SELECTION, GroupableByGroup.class);
     }
 

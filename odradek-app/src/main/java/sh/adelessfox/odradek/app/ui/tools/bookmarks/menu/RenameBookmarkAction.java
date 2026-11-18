@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
@@ -11,7 +11,7 @@ import java.util.Optional;
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 0)
 public class RenameBookmarkAction extends AbstractBookmarkAction {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var bookmarks = bookmarks(context);
         var bookmark = selectedKeys(context)
             .map(bookmarks::get).flatMap(Optional::stream)
@@ -25,7 +25,7 @@ public class RenameBookmarkAction extends AbstractBookmarkAction {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         var bookmarks = bookmarks(context);
         return selectedKeys(context)
             .map(bookmarks::get)

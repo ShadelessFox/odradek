@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.app.ui.viewers.menu;
 
 import sh.adelessfox.odradek.app.ui.viewers.ObjectStructure;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -17,7 +17,7 @@ import java.awt.*;
 @ActionContribution(parent = ObjectMenu.ID)
 public class CopyBytesToClipboardAction extends Action {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var game = context.get(DataKeys.GAME).orElseThrow();
         var node = context.get(DataKeys.SELECTION, ObjectStructure.class).orElseThrow();
         var bytes = Converter.convert(node.type(), node.value(), Bytes.class, game);
@@ -36,7 +36,7 @@ public class CopyBytesToClipboardAction extends Action {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return context.get(DataKeys.SELECTION, ObjectStructure.class)
             .flatMap(structure -> Converter.converter(structure.type(), Bytes.class))
             .isPresent();

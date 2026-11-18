@@ -1,6 +1,6 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
-import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
@@ -14,7 +14,7 @@ import java.util.Optional;
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 1)
 public class ToggleBookmarkAction extends AbstractBookmarkAction {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var bookmarks = bookmarks(context);
         selectedKeys(context).forEach(key -> {
             if (bookmarks.get(key).isEmpty()) {
@@ -29,7 +29,7 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         var bookmarks = bookmarks(context);
         // Ensure we either have all bookmarked or none bookmarked
         return selectedKeys(context)
@@ -39,16 +39,16 @@ public class ToggleBookmarkAction extends AbstractBookmarkAction {
     }
 
     @Override
-    public Optional<String> getText(ActionContext context) {
+    public Optional<String> getText(DataContext context) {
         return Optional.of(exists(context) ? "Delete Bookmark" : "Add Bookmark");
     }
 
     @Override
-    public Optional<String> getIcon(ActionContext context) {
+    public Optional<String> getIcon(DataContext context) {
         return Optional.of(exists(context) ? "fugue:bookmark--minus" : "fugue:bookmark--plus");
     }
 
-    private static boolean exists(ActionContext context) {
+    private static boolean exists(DataContext context) {
         var bookmarks = bookmarks(context);
         var present = selectedKeys(context)
             .map(bookmarks::get)

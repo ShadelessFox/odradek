@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.app.ui.tools.bookmarks.menu;
 
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.BookmarkStructure;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.actions.MenuIds;
@@ -13,7 +13,7 @@ import javax.swing.*;
 @ActionContribution(parent = BookmarkMenu.ID, group = MenuIds.GROUP_UTIL, order = 1)
 public final class DeleteFolderAction extends AbstractBookmarkAction {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var folder = context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class).orElseThrow();
         if (!needsConfirmation(context, folder) || confirmDeletion(folder)) {
             bookmarks(context).deleteFolder(folder.id());
@@ -21,13 +21,13 @@ public final class DeleteFolderAction extends AbstractBookmarkAction {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return context.get(DataKeys.SELECTION, BookmarkStructure.Folder.class)
             .filter(folder -> !folder.id().equals(bookmarks(context).rootFolderId()))
             .isPresent();
     }
 
-    private static boolean needsConfirmation(ActionContext context, BookmarkStructure.Folder folder) {
+    private static boolean needsConfirmation(DataContext context, BookmarkStructure.Folder folder) {
         var bookmarks = bookmarks(context);
         return !bookmarks.getAllInFolder(folder.id()).isEmpty()
             || !bookmarks.getAllFoldersInFolder(folder.id()).isEmpty();

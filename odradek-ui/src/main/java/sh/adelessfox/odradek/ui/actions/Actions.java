@@ -32,7 +32,7 @@ public final class Actions {
 
     public static void installMenuBar(JRootPane pane, String id, DataContext context) {
         pane.setJMenuBar(createMenuBar(id, context));
-        populateActionBindings(pane, id, new ActionContext(context, pane, null), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        populateActionBindings(pane, id, new DataContext(context), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     }
 
     @SuppressWarnings("unchecked")
@@ -40,13 +40,13 @@ public final class Actions {
         var popupMenu = createPopupMenu(component, id, context, false);
         var selectionProvider = getSelectionProvider(component);
         installContextMenu(component, popupMenu, (SelectionProvider<JComponent, ?>) selectionProvider);
-        populateActionBindings(component, id, new ActionContext(context, component, null), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        populateActionBindings(component, id, new DataContext(context), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         DataContexts.putDataContext(component, context);
     }
 
     public static JToolBar createToolBar(String id, DataContext context) {
         var toolBar = new ActionToolBar();
-        contributeGroups(toolBar, new ToolBarActionContributor(), id, new ActionContext(context, null, null));
+        contributeGroups(toolBar, new ToolBarActionContributor(), id, new DataContext(context));
         return toolBar;
     }
 
@@ -121,7 +121,7 @@ public final class Actions {
         return menuBar;
     }
 
-    private static void populateActionBindings(JComponent component, String id, ActionContext context, int condition) {
+    private static void populateActionBindings(JComponent component, String id, DataContext context, int condition) {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
             return;
@@ -139,7 +139,7 @@ public final class Actions {
     private static void populateActionBinding(
         JComponent component,
         ActionDescriptor descriptor,
-        ActionContext context,
+        DataContext context,
         int condition
     ) {
         if (descriptor.accelerator() == null) {
@@ -161,7 +161,7 @@ public final class Actions {
     }
 
     private static JMenu createMenu(ActionDescriptor action, DataContext context) {
-        var name = action.text(new ActionContext(context, null, null));
+        var name = action.text(new DataContext(context));
 
         var menu = new JMenu();
         menu.setText(name.text());
@@ -174,7 +174,7 @@ public final class Actions {
         return menu;
     }
 
-    private static void populateMenu(JPopupMenu menu, String id, ActionContext context, boolean includeSourceAction) {
+    private static void populateMenu(JPopupMenu menu, String id, DataContext context, boolean includeSourceAction) {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
             log.debug("No action groups found for ID: {}", id);
@@ -231,7 +231,7 @@ public final class Actions {
         C component,
         ActionContributor<C, ?> contributor,
         String id,
-        ActionContext context
+        DataContext context
     ) {
         var groups = Actions.groups.get(id);
         if (groups == null || groups.isEmpty()) {
@@ -249,7 +249,7 @@ public final class Actions {
         C component,
         ActionContributor<C, T> contributor,
         ActionDescriptorProvider provider,
-        ActionContext context,
+        DataContext context,
         int contributed
     ) {
         var actions = provider.create(context, contributed);
@@ -333,9 +333,9 @@ public final class Actions {
 
     private abstract static class AbstractMenuAction extends AbstractAction {
         protected final ActionDescriptor descriptor;
-        protected final ActionContext context;
+        protected final DataContext context;
 
-        AbstractMenuAction(ActionDescriptor descriptor, ActionContext context) {
+        AbstractMenuAction(ActionDescriptor descriptor, DataContext context) {
             this.descriptor = descriptor;
             this.context = context;
             update();
@@ -368,13 +368,13 @@ public final class Actions {
     }
 
     private static class MenuItemAction extends AbstractMenuAction {
-        MenuItemAction(ActionDescriptor descriptor, ActionContext context) {
+        MenuItemAction(ActionDescriptor descriptor, DataContext context) {
             super(descriptor, context);
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            descriptor.action().perform(context.withEvent(e));
+            descriptor.action().perform(context);
         }
     }
 
@@ -385,7 +385,7 @@ public final class Actions {
         public PopupMenuAction(
             JComponent component,
             ActionDescriptor descriptor,
-            ActionContext context,
+            DataContext context,
             boolean includeSourceAction
         ) {
             this.includeSourceAction = includeSourceAction;
@@ -402,7 +402,7 @@ public final class Actions {
         }
 
         JPopupMenu createPopupMenu() {
-            return Actions.createPopupMenu(component, descriptor.id(), context.context(), includeSourceAction);
+            return Actions.createPopupMenu(component, descriptor.id(), context, includeSourceAction);
         }
     }
 
@@ -415,7 +415,7 @@ public final class Actions {
     ) implements PopupMenuListener {
         @Override
         public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-            populateMenu(popupMenu, id, new ActionContext(context, source, null), includeSourceAction);
+            populateMenu(popupMenu, id, new DataContext(context), includeSourceAction);
         }
 
         @Override
@@ -433,9 +433,9 @@ public final class Actions {
         Action action,
         String id,
         KeyStroke accelerator,
-        Function<ActionContext, String> textSupplier,
-        Function<ActionContext, String> descriptionSupplier,
-        Function<ActionContext, Icon> iconSupplier,
+        Function<DataContext, String> textSupplier,
+        Function<DataContext, String> descriptionSupplier,
+        Function<DataContext, Icon> iconSupplier,
         List<ActionContribution> contributions
     ) {
         static ActionDescriptor unreflect(Class<? extends Action> type, Supplier<? extends Action> supplier) {
@@ -475,15 +475,15 @@ public final class Actions {
             );
         }
 
-        TextWithMnemonic text(ActionContext context) {
+        TextWithMnemonic text(DataContext context) {
             return TextWithMnemonic.parse(textSupplier.apply(context));
         }
 
-        String description(ActionContext context) {
+        String description(DataContext context) {
             return descriptionSupplier.apply(context);
         }
 
-        Icon icon(ActionContext context) {
+        Icon icon(DataContext context) {
             return iconSupplier.apply(context);
         }
 
@@ -506,7 +506,7 @@ public final class Actions {
         List<ActionDescriptor> actions
     ) implements ActionDescriptorProvider {
         @Override
-        public List<ActionDescriptor> create(ActionContext context, int contributions) {
+        public List<ActionDescriptor> create(DataContext context, int contributions) {
             return actions.stream()
                 .filter(action -> action.action().isVisible(context))
                 .toList();
@@ -526,7 +526,7 @@ public final class Actions {
             };
         }
 
-        List<ActionDescriptor> create(ActionContext context, int contributions);
+        List<ActionDescriptor> create(DataContext context, int contributions);
     }
 
     private static class PopupMenuActionContributor implements ActionContributor<JPopupMenu, JMenuItem> {
@@ -549,7 +549,7 @@ public final class Actions {
                 null,
                 popupMenu,
                 action.descriptor.id(),
-                action.context.context(),
+                action.context,
                 false));
             return menu;
         }

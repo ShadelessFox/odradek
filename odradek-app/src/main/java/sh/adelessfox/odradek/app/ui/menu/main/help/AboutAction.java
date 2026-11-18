@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.BuildInfo;
 import sh.adelessfox.odradek.app.ui.Application;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 
@@ -25,7 +25,7 @@ public class AboutAction extends Action {
     private static final Logger log = LoggerFactory.getLogger(AboutAction.class);
 
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         JOptionPane.showMessageDialog(
             JOptionPane.getRootFrame(),
             createContent(AboutAction::openLink),

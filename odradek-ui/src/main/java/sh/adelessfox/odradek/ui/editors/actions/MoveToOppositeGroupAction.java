@@ -1,7 +1,7 @@
 package sh.adelessfox.odradek.ui.editors.actions;
 
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -12,7 +12,7 @@ import java.util.Optional;
 @ActionContribution(parent = EditorMenu.ID, group = EditorMenu.GROUP_SPLIT, order = 3000)
 public class MoveToOppositeGroupAction extends Action {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var editor = context.get(DataKeys.EDITOR).orElseThrow();
         var source = context.get(DataKeys.EDITOR_STACK).orElseThrow();
         var target = source.getOpposite().orElseThrow();
@@ -20,13 +20,13 @@ public class MoveToOppositeGroupAction extends Action {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         var stack = context.get(DataKeys.EDITOR_STACK).orElseThrow();
         return stack.getOpposite().isPresent();
     }
 
     @Override
-    public Optional<String> getIcon(ActionContext context) {
+    public Optional<String> getIcon(DataContext context) {
         var stack = context.get(DataKeys.EDITOR_STACK).orElseThrow();
         var container = stack.getContainer().getSplitContainer();
         return Optional.of(switch (container.getOrientation()) {

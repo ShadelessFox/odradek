@@ -2,10 +2,14 @@ package sh.adelessfox.odradek.app.ui.tools.graph.menu;
 
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.decima.ObjectIdHolder;
 import sh.adelessfox.odradek.game.decima.ObjectTypeHolder;
 import sh.adelessfox.odradek.rtti.TypeInfo;
-import sh.adelessfox.odradek.ui.actions.*;
+import sh.adelessfox.odradek.ui.actions.Action;
+import sh.adelessfox.odradek.ui.actions.ActionContribution;
+import sh.adelessfox.odradek.ui.actions.ActionRegistration;
+import sh.adelessfox.odradek.ui.actions.MenuIds;
 import sh.adelessfox.odradek.ui.data.DataKeys;
 import sh.adelessfox.odradek.ui.editors.actions.EditorMenu;
 import sh.adelessfox.odradek.util.Gatherers;
@@ -21,7 +25,7 @@ import java.util.stream.Collectors;
 @ActionContribution(parent = BookmarkMenu.ID)
 public class CopyTypeToClipboardAction extends Action {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var ids = context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .gather(Gatherers.instanceOf(ObjectTypeHolder.class))
@@ -35,7 +39,7 @@ public class CopyTypeToClipboardAction extends Action {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return context.get(DataKeys.SELECTION_LIST).stream()
             .flatMap(Collection::stream)
             .anyMatch(ObjectIdHolder.class::isInstance);

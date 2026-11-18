@@ -6,6 +6,7 @@ import sh.adelessfox.odradek.app.ui.editors.ObjectEditorMenu;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
 import sh.adelessfox.odradek.app.ui.tools.bookmarks.menu.BookmarkMenu;
 import sh.adelessfox.odradek.app.ui.tools.graph.GraphMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.Converter;
 import sh.adelessfox.odradek.game.Exporter;
 import sh.adelessfox.odradek.game.Exporter.OfMultipleOutputs.DefaultOutputProvider;
@@ -55,7 +56,7 @@ public class ExportObjectAction extends Action {
     @ActionContribution(parent = ExportObjectAction.ID)
     public static class Placeholder extends Action implements ActionProvider {
         @Override
-        public List<? extends Action> create(ActionContext context) {
+        public List<? extends Action> create(DataContext context) {
             var game = context.require(DataKeys.GAME, DecimaGame.class);
             return exporters(context)
                 .gather(Gatherers.groupingBy(x -> x.exporter().namespace().orElse("")))
@@ -73,11 +74,11 @@ public class ExportObjectAction extends Action {
     }
 
     @Override
-    public boolean isVisible(ActionContext context) {
+    public boolean isVisible(DataContext context) {
         return exporters(context).findAny().isPresent();
     }
 
-    private static Stream<? extends Batch<?>> exporters(ActionContext context) {
+    private static Stream<? extends Batch<?>> exporters(DataContext context) {
         var game = context.get(DataKeys.GAME, DecimaGame.class).orElse(null);
         if (game == null) {
             return Stream.empty();
@@ -180,7 +181,7 @@ public class ExportObjectAction extends Action {
         }
 
         @Override
-        public List<Action> create(ActionContext context) {
+        public List<Action> create(DataContext context) {
             return actions;
         }
 

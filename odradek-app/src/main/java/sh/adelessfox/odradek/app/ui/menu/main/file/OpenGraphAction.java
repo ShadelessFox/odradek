@@ -2,10 +2,10 @@ package sh.adelessfox.odradek.app.ui.menu.main.file;
 
 import sh.adelessfox.odradek.app.ui.editors.ObjectEditorInput;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -14,7 +14,7 @@ import sh.adelessfox.odradek.ui.data.DataKeys;
 @ActionContribution(parent = MainMenu.File.ID)
 public class OpenGraphAction extends Action {
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var game = context.require(DataKeys.GAME, DecimaGame.class);
         var editors = context.require(DataKeys.EDITOR_MANAGER);
         editors.openEditor(new ObjectEditorInput(

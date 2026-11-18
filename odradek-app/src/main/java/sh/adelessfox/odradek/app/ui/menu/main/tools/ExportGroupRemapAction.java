@@ -3,9 +3,9 @@ package sh.adelessfox.odradek.app.ui.menu.main.tools;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sh.adelessfox.odradek.app.ui.menu.main.MainMenu;
+import sh.adelessfox.odradek.data.DataContext;
 import sh.adelessfox.odradek.game.decima.DecimaGame;
 import sh.adelessfox.odradek.ui.actions.Action;
-import sh.adelessfox.odradek.ui.actions.ActionContext;
 import sh.adelessfox.odradek.ui.actions.ActionContribution;
 import sh.adelessfox.odradek.ui.actions.ActionRegistration;
 import sh.adelessfox.odradek.ui.data.DataKeys;
@@ -26,7 +26,7 @@ public class ExportGroupRemapAction extends Action {
     private static Path lastPath;
 
     @Override
-    public void perform(ActionContext context) {
+    public void perform(DataContext context) {
         var game = context.require(DataKeys.GAME, DecimaGame.class);
         var output = chooseOutputPath().orElse(null);
         if (output == null) {
