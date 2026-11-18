@@ -1,3 +1,5 @@
+import sh.adelessfox.odradek.app.util.SteamGameLocator;
+
 module odradek.app {
     requires ch.qos.logback.classic;
     requires ch.qos.logback.core;
@@ -97,7 +99,7 @@ module odradek.app {
         sh.adelessfox.odradek.app.ui.viewers.ObjectViewer.Provider;
 
     provides sh.adelessfox.odradek.app.util.GameLocator
-        with sh.adelessfox.odradek.app.util.steam.SteamGameLocator;
+        with SteamGameLocator;
 
     provides sh.adelessfox.odradek.settings.gson.GsonAdapterProvider
         with sh.adelessfox.odradek.app.ui.settings.adapters.ApplicationGsonAdapterProvider;

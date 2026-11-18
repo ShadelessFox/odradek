@@ -2,6 +2,7 @@ package sh.adelessfox.odradek.app.util;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Stream;
@@ -22,10 +23,10 @@ public interface GameLocator {
     /**
      * Finds all game installations on the system.
      *
-     * @return a list of paths to game installations
+     * @return a collection of paths to game installations
      * @throws IOException if an I/O error occurs
      */
-    List<Path> findAll() throws IOException;
+    Collection<Path> findAll() throws IOException;
 
     String name();
 }
