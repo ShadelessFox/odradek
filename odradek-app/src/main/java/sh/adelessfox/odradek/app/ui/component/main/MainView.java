@@ -42,7 +42,7 @@ public class MainView implements View<JComponent> {
         DataContext context
     ) {
         var center = new ToolContainer(context);
-        ToolPanel.providers().forEach(provider -> center.addPanel(provider, provider.placement()));
+        ToolPanel.providers().forEach(center::addPanel);
         center.setCenter(editorManager.getComponent());
 
         // The initial state

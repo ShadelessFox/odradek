@@ -20,10 +20,9 @@ public interface ToolManager {
     /**
      * Registers a new tool panel using the given provider.
      *
-     * @param provider  provider of the tool panel
-     * @param placement placement of the tool panel
+     * @param provider provider of the tool panel
      */
-    void addPanel(ToolPanel.Provider provider, ToolPanel.Placement placement);
+    void addPanel(ToolPanel.Provider provider);
 
     /**
      * Opens the tool panel with the given ID.

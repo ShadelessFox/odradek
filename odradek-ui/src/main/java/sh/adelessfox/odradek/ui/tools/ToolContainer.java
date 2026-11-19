@@ -60,12 +60,12 @@ public final class ToolContainer extends JComponent implements ToolManager, Prop
     }
 
     @Override
-    public void addPanel(ToolPanel.Provider provider, ToolPanel.Placement placement) {
-        var state = new ToolPanelState(provider, placement);
+    public void addPanel(ToolPanel.Provider provider) {
+        var state = new ToolPanelState(provider, provider.placement());
         if (panelById.putIfAbsent(provider.id(), state) != null) {
             throw new IllegalArgumentException("Tool panel with ID '" + provider.id() + "' is already registered");
         }
-        getGroupFor(placement).add(state);
+        getGroupFor(provider.placement()).add(state);
         updateButtons();
     }
 
