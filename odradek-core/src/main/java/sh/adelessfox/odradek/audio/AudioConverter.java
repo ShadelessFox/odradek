@@ -77,13 +77,21 @@ final class AudioConverter {
     // region vgmstream
     private static Audio convertPcm(Audio audio, AudioCodec.Pcm target) {
         try {
-            return unpackWavToAudio(convertToWav(audio, target), target);
+            var output = Files.createTempFile("odradek-vgmstream", ".wav");
+            try {
+                convertToWav(audio, target, output);
+                try (var source = BinarySource.open(output)) {
+                    return unpackWavToAudio(source, target);
+                }
+            } finally {
+                deleteTempFile(output);
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to convert audio", e);
         }
     }
 
-    private static Bytes convertToWav(Audio audio, AudioCodec.Pcm target) throws IOException, InterruptedException {
+    private static void convertToWav(Audio audio, AudioCodec.Pcm target, Path output) throws IOException, InterruptedException {
         var vgmstream = VgmstreamDownloader.download();
         var input = extractTempFile(audio);
         var command = buildVgmstreamCommand(vgmstream, input, target);
@@ -91,12 +99,9 @@ final class AudioConverter {
         try {
             var process = new ProcessBuilder()
                 .command(command)
+                // Keep the full WAV off the heap; the parser only needs to allocate its sample data.
+                .redirectOutput(output.toFile())
                 .start();
-
-            Bytes stdout;
-            try (InputStream in = process.getInputStream()) {
-                stdout = Bytes.wrap(in.readAllBytes());
-            }
 
             byte[] stderr;
             try (InputStream in = process.getErrorStream()) {
@@ -112,14 +117,16 @@ final class AudioConverter {
             if (stderr.length > 0) {
                 log.warn("vgmstream conversion produced warnings: {}", new String(stderr, StandardCharsets.UTF_8));
             }
-
-            return stdout;
         } finally {
-            try {
-                Files.deleteIfExists(input);
-            } catch (IOException e) {
-                log.warn("Failed to delete temporary file: {}", input, e);
-            }
+            deleteTempFile(input);
+        }
+    }
+
+    private static void deleteTempFile(Path file) {
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            log.warn("Failed to delete temporary file: {}", file, e);
         }
     }
 
@@ -139,11 +146,11 @@ final class AudioConverter {
             format);
     }
 
-    private static Audio unpackWavToAudio(Bytes wav, AudioCodec.Pcm target) throws IOException {
+    private static Audio unpackWavToAudio(BinarySource source, AudioCodec.Pcm target) throws IOException {
         var riff = new RiffParser()
             .reader(WaveFmtChunk.ID, WaveFmtChunk.reader())
             .reader(WaveDataChunk.ID, WaveDataChunk.reader())
-            .parse(BinarySource.wrap(wav));
+            .parse(source);
 
         var fmt = riff.get(WaveFmtChunk.ID).orElseThrow(() -> new IllegalStateException("Missing fmt chunk"));
         var data = riff.get(WaveDataChunk.ID).orElseThrow(() -> new IllegalStateException("Missing data chunk"));

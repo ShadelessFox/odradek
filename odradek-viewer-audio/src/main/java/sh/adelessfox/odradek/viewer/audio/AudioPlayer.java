@@ -21,26 +21,30 @@ import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.CompletableFuture;
 
 final class AudioPlayer extends JPanel implements Disposable {
     private static final int REPAINT_INTERVAL = 1000 / 60; // TODO too arbitrary
     private static final AudioCodec.Pcm CODEC = AudioCodec.Pcm.S16LE;
 
     private final EventBus eventBus = new DefaultEventBus();
+    private final Audio pcm16;
     private final Clip clip;
     private final Timer timer;
     private final LineListener lineListener;
+    private CompletableFuture<Void> closing = CompletableFuture.completedFuture(null);
+    private long position;
+    private float volume;
     private boolean disposed;
 
-    public AudioPlayer(Audio audio, long initialPosition, float volume) {
-        var pcm16 = audio.convert(CODEC, 2);
+    public AudioPlayer(Audio audio) {
+        pcm16 = audio.convert(CODEC, 2);
 
         try {
             clip = openClip(pcm16);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        setVolume(volume);
 
         setLayout(new MigLayout("ins panel,wrap", "fill,grow", "[fill,grow][]"));
         add(createWaveform(pcm16, eventBus));
@@ -67,7 +71,10 @@ final class AudioPlayer extends JPanel implements Disposable {
                     clip.setMicrosecondPosition(position);
                     eventBus.publish(new Events.PositionChanged(e.position()));
                 }
-                case Events.SetVolumeRequested e -> setVolume(e.volume());
+                case Events.SetVolumeRequested e -> {
+                    var gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                    gain.setValue(Math.clamp(linearToDb(e.volume()), gain.getMinimum(), gain.getMaximum()));
+                }
                 case Events.PlaybackStarted _ -> timer.start();
                 case Events.PlaybackStopped _ -> timer.stop();
                 case Events.PositionChanged _ -> { /* don't care; present only for exhaustiveness */ }
@@ -75,17 +82,16 @@ final class AudioPlayer extends JPanel implements Disposable {
         });
 
         lineListener = event -> SwingUtilities.invokeLater(() -> {
-            if (disposed) {
+            if (disposed || !clip.isOpen()) {
                 return;
             }
-            if (event.getType() == LineEvent.Type.START) {
+            if (event.getType() == LineEvent.Type.START && clip.isRunning()) {
                 eventBus.publish(new Events.PlaybackStarted());
-            } else if (event.getType() == LineEvent.Type.STOP) {
+            } else if (event.getType() == LineEvent.Type.STOP && !clip.isRunning()) {
                 eventBus.publish(new Events.PlaybackStopped());
             }
         });
         clip.addLineListener(lineListener);
-        setPosition(initialPosition);
     }
 
     public void start() {
@@ -100,26 +106,34 @@ final class AudioPlayer extends JPanel implements Disposable {
         return clip.isRunning();
     }
 
-    public long getPosition() {
-        return Math.clamp(clip.getMicrosecondPosition(), 0, clip.getMicrosecondLength());
-    }
-
-    public void setPosition(long position) {
-        clip.setMicrosecondPosition(position);
-        eventBus.publish(new Events.PositionChanged((float) position / Math.max(1, clip.getMicrosecondLength())));
-    }
-
-    public float getVolume() {
-        return clip.isControlSupported(FloatControl.Type.MASTER_GAIN)
-            ? dbToLinear(((FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN)).getValue())
-            : 1.0f;
-    }
-
-    public void setVolume(float volume) {
-        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
-            var gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-            gain.setValue(Math.clamp(linearToDb(volume), gain.getMinimum(), gain.getMaximum()));
+    public void open() {
+        // A previous asynchronous close must finish before reopening the same clip.
+        closing.join();
+        if (disposed || clip.isOpen()) {
+            return;
         }
+        try {
+            openClip(clip, pcm16);
+            clip.setMicrosecondPosition(position);
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                ((FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN)).setValue(volume);
+            }
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void close() {
+        if (!closing.isDone() || !clip.isOpen()) {
+            return;
+        }
+        position = Math.clamp(clip.getMicrosecondPosition(), 0, clip.getMicrosecondLength());
+        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            volume = ((FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN)).getValue();
+        }
+        eventBus.publish(new Events.PlaybackStopped());
+        // DirectClip#close may block for up to two seconds. Close it asynchronously so it won't block the UI
+        closing = Futures.submit(clip::close);
     }
 
     @Override
@@ -131,8 +145,7 @@ final class AudioPlayer extends JPanel implements Disposable {
         timer.stop();
         clip.removeLineListener(lineListener);
         clip.stop();
-        // DirectClip#close may block for up to two seconds. Close it asynchronously so it won't block the UI
-        Futures.submit(clip::close);
+        close();
     }
 
     //region Components
@@ -253,10 +266,15 @@ final class AudioPlayer extends JPanel implements Disposable {
         var pcm16 = audio.convert(CODEC);
         var format = new AudioFormat(pcm16.format().sampleRate(), 16, pcm16.format().channels(), true, false);
         var clip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
-        var data = pcm16.data().toArray();
+        openClip(clip, pcm16);
+        return clip;
+    }
+
+    private static void openClip(Clip clip, Audio audio) throws LineUnavailableException {
+        var format = new AudioFormat(audio.format().sampleRate(), 16, audio.format().channels(), true, false);
+        var data = audio.data().toArray();
         try {
             clip.open(format, data, 0, data.length);
-            return clip;
         } catch (Exception | Error e) {
             clip.close();
             throw e;
