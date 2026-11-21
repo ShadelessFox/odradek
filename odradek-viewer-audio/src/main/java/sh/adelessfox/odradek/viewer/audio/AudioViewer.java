@@ -45,6 +45,7 @@ public final class AudioViewer implements Viewer {
 
     @Override
     public void activate() {
+        player.open();
         if (resume) {
             player.start();
             resume = false;
@@ -55,6 +56,7 @@ public final class AudioViewer implements Viewer {
     public void deactivate() {
         resume = player.isPlaying();
         player.stop();
+        player.close();
     }
 
     @Override

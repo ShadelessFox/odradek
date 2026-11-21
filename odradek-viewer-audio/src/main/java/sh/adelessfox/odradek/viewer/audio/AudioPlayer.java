@@ -21,16 +21,24 @@ import java.awt.event.MouseEvent;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.CompletableFuture;
 
 final class AudioPlayer extends JPanel implements Disposable {
     private static final int REPAINT_INTERVAL = 1000 / 60; // TODO too arbitrary
     private static final AudioCodec.Pcm CODEC = AudioCodec.Pcm.S16LE;
 
     private final EventBus eventBus = new DefaultEventBus();
+    private final Audio pcm16;
     private final Clip clip;
+    private final Timer timer;
+    private final LineListener lineListener;
+    private CompletableFuture<Void> closing = CompletableFuture.completedFuture(null);
+    private long position;
+    private float volume;
+    private boolean disposed;
 
     public AudioPlayer(Audio audio) {
-        var pcm16 = audio.convert(CODEC, 2);
+        pcm16 = audio.convert(CODEC, 2);
 
         try {
             clip = openClip(pcm16);
@@ -43,7 +51,7 @@ final class AudioPlayer extends JPanel implements Disposable {
         add(createProgressBar(eventBus));
         add(createToolBar(audio, clip, eventBus));
 
-        var timer = new Timer(REPAINT_INTERVAL, _ -> {
+        timer = new Timer(REPAINT_INTERVAL, _ -> {
             var position = (float) clip.getMicrosecondPosition() / Math.max(1, clip.getMicrosecondLength());
             eventBus.publish(new Events.PositionChanged(position));
         });
@@ -73,13 +81,17 @@ final class AudioPlayer extends JPanel implements Disposable {
             }
         });
 
-        clip.addLineListener(event -> {
-            if (event.getType() == LineEvent.Type.START) {
+        lineListener = event -> SwingUtilities.invokeLater(() -> {
+            if (disposed || !clip.isOpen()) {
+                return;
+            }
+            if (event.getType() == LineEvent.Type.START && clip.isRunning()) {
                 eventBus.publish(new Events.PlaybackStarted());
-            } else if (event.getType() == LineEvent.Type.STOP) {
+            } else if (event.getType() == LineEvent.Type.STOP && !clip.isRunning()) {
                 eventBus.publish(new Events.PlaybackStopped());
             }
         });
+        clip.addLineListener(lineListener);
     }
 
     public void start() {
@@ -94,10 +106,46 @@ final class AudioPlayer extends JPanel implements Disposable {
         return clip.isRunning();
     }
 
+    public void open() {
+        // A previous asynchronous close must finish before reopening the same clip.
+        closing.join();
+        if (disposed || clip.isOpen()) {
+            return;
+        }
+        try {
+            openClip(clip, pcm16);
+            clip.setMicrosecondPosition(position);
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                ((FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN)).setValue(volume);
+            }
+        } catch (LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void close() {
+        if (!closing.isDone() || !clip.isOpen()) {
+            return;
+        }
+        position = Math.clamp(clip.getMicrosecondPosition(), 0, clip.getMicrosecondLength());
+        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            volume = ((FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN)).getValue();
+        }
+        eventBus.publish(new Events.PlaybackStopped());
+        // DirectClip#close may block for up to two seconds. Close it asynchronously so it won't block the UI
+        closing = Futures.submit(clip::close);
+    }
+
     @Override
     public void dispose() {
-        // DirectClip#close may block for up to two seconds. Close it asynchronously so it won't block the UI
-        Futures.submit(clip::close);
+        if (disposed) {
+            return;
+        }
+        disposed = true;
+        timer.stop();
+        clip.removeLineListener(lineListener);
+        clip.stop();
+        close();
     }
 
     //region Components
@@ -218,9 +266,19 @@ final class AudioPlayer extends JPanel implements Disposable {
         var pcm16 = audio.convert(CODEC);
         var format = new AudioFormat(pcm16.format().sampleRate(), 16, pcm16.format().channels(), true, false);
         var clip = (Clip) AudioSystem.getLine(new DataLine.Info(Clip.class, format));
-        var data = pcm16.data().toArray();
-        clip.open(format, data, 0, data.length);
+        openClip(clip, pcm16);
         return clip;
+    }
+
+    private static void openClip(Clip clip, Audio audio) throws LineUnavailableException {
+        var format = new AudioFormat(audio.format().sampleRate(), 16, audio.format().channels(), true, false);
+        var data = audio.data().toArray();
+        try {
+            clip.open(format, data, 0, data.length);
+        } catch (Exception | Error e) {
+            clip.close();
+            throw e;
+        }
     }
 
     private sealed interface Events extends Event {
