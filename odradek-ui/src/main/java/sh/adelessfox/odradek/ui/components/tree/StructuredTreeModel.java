@@ -9,6 +9,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -162,7 +163,11 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
         var removed = new ArrayList<Integer>();
         var unchanged = new HashMap<TreeStructure<T>, Node<T>>();
 
-        difference(oldChildren, Node::getValue, newChildren, Function.identity(), added, removed, unchanged);
+        difference(
+            oldChildren, Node::getValue,
+            newChildren, Function.identity(),
+            Objects::equals,
+            added, removed, unchanged);
 
         if (!added.isEmpty() || !removed.isEmpty()) {
             var nodes = new ArrayList<Node<T>>(newChildren.size());
@@ -209,6 +214,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
     private static <T1, T2, R> void difference(
         List<? extends T1> oldItems, Function<? super T1, ? extends R> oldItemMapper,
         List<? extends T2> newItems, Function<? super T2, ? extends R> newItemMapper,
+        BiPredicate<? super R, ? super R> sameElement,
         List<Integer> added,
         List<Integer> removed,
         Map<? super R, ? super T1> unchanged
@@ -221,7 +227,7 @@ public final class StructuredTreeModel<T extends TreeStructure<T>> implements Tr
             var oldItem = oldItemMapper.apply(oldItemRaw);
             var newItem = newItemMapper.apply(newItems.get(i));
 
-            if (oldItem.equals(newItem)) {
+            if (sameElement.test(oldItem, newItem)) {
                 unchanged.put(oldItem, oldItemRaw);
                 matched.add(oldItem);
             }

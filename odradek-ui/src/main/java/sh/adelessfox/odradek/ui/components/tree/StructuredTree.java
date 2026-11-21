@@ -116,6 +116,15 @@ public class StructuredTree<T extends TreeStructure<T>> extends JTree implements
     /**
      * Runs an update and restores selection by matching the old and new elements.
      *
+     * @param update update that can replace or move tree nodes
+     */
+    public void updatePreservingSelection(Runnable update) {
+        updatePreservingSelection(T::hasSameIdentity, update);
+    }
+
+    /**
+     * Runs an update and restores selection by matching the old and new elements using the given predicate.
+     *
      * @param sameElement identifies elements whose mutable properties or location may have changed
      * @param update      update that can replace or move tree nodes
      */

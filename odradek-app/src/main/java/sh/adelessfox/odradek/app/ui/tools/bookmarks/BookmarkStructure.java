@@ -17,12 +17,17 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
     record Folder(BookmarkRepository repository, FolderId id, String name) implements BookmarkStructure {
         @Override
         public boolean equals(Object object) {
-            return object instanceof Folder folder && Objects.equals(id, folder.id);
+            return object instanceof Folder folder && id.equals(folder.id) && name.equals(folder.name);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(id);
+            return Objects.hash(id, name);
+        }
+
+        @Override
+        public boolean hasSameIdentity(BookmarkStructure other) {
+            return other instanceof Folder folder && id.equals(folder.id);
         }
     }
 
@@ -42,17 +47,22 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
         default BookmarkKey bookmarkKey() {
             return key();
         }
+
+        @Override
+        default boolean hasSameIdentity(BookmarkStructure other) {
+            return other instanceof Bookmark bookmark && key().equals(bookmark.key());
+        }
     }
 
     record GroupBookmark(BookmarkRepository repository, BookmarkKey.OfGroup key, String name) implements Bookmark {
         @Override
         public boolean equals(Object object) {
-            return object instanceof GroupBookmark that && Objects.equals(key, that.key);
+            return object instanceof GroupBookmark that && key.equals(that.key) && name.equals(that.name);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(key);
+            return Objects.hash(key, name);
         }
     }
 
@@ -64,12 +74,12 @@ public sealed interface BookmarkStructure extends TreeStructure<BookmarkStructur
 
         @Override
         public boolean equals(Object object) {
-            return object instanceof ObjectBookmark that && Objects.equals(key, that.key);
+            return object instanceof ObjectBookmark that && key.equals(that.key) && name.equals(that.name);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(key);
+            return Objects.hash(key, name);
         }
     }
 
