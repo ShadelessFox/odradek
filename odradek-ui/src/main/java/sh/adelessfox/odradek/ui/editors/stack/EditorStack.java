@@ -1,9 +1,9 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
 import com.formdev.flatlaf.extras.components.FlatTabbedPane;
+import sh.adelessfox.odradek.ui.components.Splitter.Orientation;
 import sh.adelessfox.odradek.ui.editors.Editor;
 import sh.adelessfox.odradek.ui.editors.EditorInput;
-import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;

@@ -4,7 +4,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import sh.adelessfox.odradek.app.ui.settings.ApplicationSettings.EditorState;
 import sh.adelessfox.odradek.game.decima.ObjectId;
-import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer;
+import sh.adelessfox.odradek.ui.components.Splitter;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -38,7 +38,7 @@ public final class EditorStateAdapter implements JsonSerializer<EditorState>, Js
             case "split" -> {
                 var left = context.<EditorState>deserialize(object.get("left"), EditorState.class);
                 var right = context.<EditorState>deserialize(object.get("right"), EditorState.class);
-                var orientation = EditorStackContainer.Orientation.valueOf(object.get("orientation").getAsString());
+                var orientation = Splitter.Orientation.valueOf(object.get("orientation").getAsString());
                 var proportion = object.get("proportion").getAsDouble();
                 yield new EditorState.Split(left, right, orientation, proportion);
             }

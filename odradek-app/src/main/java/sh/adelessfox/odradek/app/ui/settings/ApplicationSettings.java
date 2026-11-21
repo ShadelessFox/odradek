@@ -6,7 +6,7 @@ import com.google.gson.annotations.JsonAdapter;
 import sh.adelessfox.odradek.app.ui.settings.adapters.EditorStateAdapter;
 import sh.adelessfox.odradek.game.decima.ObjectId;
 import sh.adelessfox.odradek.settings.SettingsKey;
-import sh.adelessfox.odradek.ui.editors.stack.EditorStackContainer.Orientation;
+import sh.adelessfox.odradek.ui.components.Splitter;
 import sh.adelessfox.odradek.ui.tools.ToolState;
 
 import javax.swing.*;
@@ -54,7 +54,7 @@ public final class ApplicationSettings {
         record Split(
             EditorState left,
             EditorState right,
-            Orientation orientation,
+            Splitter.Orientation orientation,
             double proportion
         ) implements EditorState {
         }

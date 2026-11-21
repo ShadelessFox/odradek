@@ -1,12 +1,12 @@
-package sh.adelessfox.odradek.ui.tools;
+package sh.adelessfox.odradek.ui.components;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-final class Splitter extends JComponent {
-    enum Orientation {
+public final class Splitter extends JComponent {
+    public enum Orientation {
         HORIZONTAL,
         VERTICAL
     }
@@ -29,7 +29,7 @@ final class Splitter extends JComponent {
     private double dividerLocation = 0.5;
     private double resizeWeight = 0.5;
 
-    Splitter(Orientation orientation) {
+    public Splitter(Orientation orientation) {
         setOrientation(orientation);
         setLayout(new SplitterLayoutManager());
 

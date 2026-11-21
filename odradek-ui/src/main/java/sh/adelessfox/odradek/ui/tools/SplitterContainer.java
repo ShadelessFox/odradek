@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.tools;
 
+import sh.adelessfox.odradek.ui.components.Splitter;
+
 import javax.swing.*;
 import java.awt.*;
 

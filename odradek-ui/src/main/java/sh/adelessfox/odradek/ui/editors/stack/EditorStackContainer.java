@@ -1,5 +1,7 @@
 package sh.adelessfox.odradek.ui.editors.stack;
 
+import sh.adelessfox.odradek.ui.components.Splitter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.Optional;
@@ -8,11 +10,6 @@ import java.util.Optional;
  * Hosts a single {@link EditorStack} or a split pane with two {@link EditorStackContainer}s.
  */
 public final class EditorStackContainer extends JComponent {
-    public enum Orientation {
-        VERTICAL,
-        HORIZONTAL
-    }
-
     public record SplitResult(EditorStackContainer left, EditorStackContainer right) {
         public EditorStack targetStack() {
             return (EditorStack) right.getComponent(0);
@@ -27,13 +24,13 @@ public final class EditorStackContainer extends JComponent {
         add(stack, BorderLayout.CENTER);
     }
 
-    public SplitResult split(Orientation orientation, double position, boolean leading) {
+    public SplitResult split(Splitter.Orientation orientation, double position, boolean leading) {
         var first = new EditorStackContainer(manager, getEditorStack());
         var second = new EditorStackContainer(manager, manager.createStack());
 
-        var pane = new JSplitPane(orientation == Orientation.HORIZONTAL ? JSplitPane.HORIZONTAL_SPLIT : JSplitPane.VERTICAL_SPLIT);
-        pane.setLeftComponent(leading ? second : first);
-        pane.setRightComponent(leading ? first : second);
+        var pane = new Splitter(orientation);
+        pane.setFirstComponent(leading ? second : first);
+        pane.setSecondComponent(leading ? first : second);
 
         removeAll();
         add(pane, BorderLayout.CENTER);
@@ -48,9 +45,9 @@ public final class EditorStackContainer extends JComponent {
     public void compact() {
         Component leaf = getComponent(0);
 
-        if (leaf instanceof JSplitPane pane) {
-            Component left = pane.getLeftComponent();
-            Component right = pane.getRightComponent();
+        if (leaf instanceof Splitter pane) {
+            Component left = pane.getFirstComponent();
+            Component right = pane.getSecondComponent();
 
             if (canCompact(left)) {
                 leaf = right;
@@ -78,38 +75,34 @@ public final class EditorStackContainer extends JComponent {
     }
 
     public boolean isSplit() {
-        return getComponent(0) instanceof JSplitPane;
+        return getComponent(0) instanceof Splitter;
     }
 
     public boolean isLeaf() {
         return getComponent(0) instanceof EditorStack;
     }
 
-    public Orientation getOrientation() {
-        if (!(getComponent(0) instanceof JSplitPane pane)) {
+    public Splitter.Orientation getOrientation() {
+        if (!(getComponent(0) instanceof Splitter pane)) {
             throw new IllegalStateException("Container is not split");
         }
-        return pane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+        return pane.getOrientation();
     }
 
-    public void setOrientation(Orientation orientation) {
-        if (!(getComponent(0) instanceof JSplitPane pane)) {
+    public void setOrientation(Splitter.Orientation orientation) {
+        if (!(getComponent(0) instanceof Splitter pane)) {
             throw new IllegalStateException("Container is not split");
         }
         double proportion = getProportion();
-        pane.setOrientation(orientation == Orientation.HORIZONTAL ? JSplitPane.HORIZONTAL_SPLIT : JSplitPane.VERTICAL_SPLIT);
+        pane.setOrientation(orientation);
         pane.setDividerLocation(proportion);
     }
 
     public double getProportion() {
-        if (!(getComponent(0) instanceof JSplitPane pane)) {
+        if (!(getComponent(0) instanceof Splitter pane)) {
             throw new IllegalStateException("Container is not split");
         }
-        if (pane.getOrientation() == JSplitPane.VERTICAL_SPLIT) {
-            return (double) pane.getDividerLocation() / (getHeight() - pane.getDividerSize());
-        } else {
-            return (double) pane.getDividerLocation() / (getWidth() - pane.getDividerSize());
-        }
+        return pane.getDividerLocation();
     }
 
     public EditorStack getEditorStack() {
@@ -120,17 +113,17 @@ public final class EditorStackContainer extends JComponent {
     }
 
     public EditorStackContainer getLeftContainer() {
-        if (!(getComponent(0) instanceof JSplitPane pane)) {
+        if (!(getComponent(0) instanceof Splitter pane)) {
             throw new IllegalStateException("Container is not split");
         }
-        return (EditorStackContainer) pane.getLeftComponent();
+        return (EditorStackContainer) pane.getFirstComponent();
     }
 
     public EditorStackContainer getRightContainer() {
-        if (!(getComponent(0) instanceof JSplitPane pane)) {
+        if (!(getComponent(0) instanceof Splitter pane)) {
             throw new IllegalStateException("Container is not split");
         }
-        return (EditorStackContainer) pane.getRightComponent();
+        return (EditorStackContainer) pane.getSecondComponent();
     }
 
     public EditorStackContainer getSplitContainer() {
@@ -168,18 +161,18 @@ public final class EditorStackContainer extends JComponent {
     }
 
     private static void layoutContainer(EditorStackContainer container) {
-        if (container.getComponent(0) instanceof JSplitPane pane) {
+        if (container.getComponent(0) instanceof Splitter pane) {
             pane.setDividerLocation(pane.getResizeWeight());
             pane.validate();
 
-            layoutContainer((EditorStackContainer) pane.getLeftComponent());
-            layoutContainer((EditorStackContainer) pane.getRightComponent());
+            layoutContainer((EditorStackContainer) pane.getFirstComponent());
+            layoutContainer((EditorStackContainer) pane.getSecondComponent());
         }
     }
 
     private static boolean canCompact(Component component) {
-        if (component instanceof JSplitPane pane) {
-            return canCompact(pane.getLeftComponent()) && canCompact(pane.getRightComponent());
+        if (component instanceof Splitter pane) {
+            return canCompact(pane.getFirstComponent()) && canCompact(pane.getSecondComponent());
         } else if (component instanceof EditorStackContainer pane) {
             return canCompact(pane.getComponent(0));
         } else {
